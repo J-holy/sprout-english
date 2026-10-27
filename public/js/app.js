@@ -128,6 +128,15 @@ const App = (() => {
     a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  // 무료 사용자가 3단계 이상을 누르면: 플러스 안내
+  function upsell() {
+    const m = modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>3단계부터는 플러스예요</h2>
+      <p>1~2단계(알파벳·파닉스)는 지금처럼 <b>평생 무료</b>로 계속할 수 있어요.</p>
+      <ul class="perks"><li>📚 3~8단계 문장·대화·과거·미래 <b>210레슨</b></li><li>📖 스토리북 12권 더 (모두 16권)</li><li>💸 <b>월 ${won(PLANS.one.m12)}</b>부터 · 하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)}</li><li>🎟️ 첫 결제 ${Math.round(WELCOME_RATE * 100)}% 쿠폰 · 언제든 해지</li></ul>
+      <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 플러스 보기</a></div></div>`);
+    return m;
+  }
+
   function buy(kids, months) {
     if (!Store.user()) { toast('로그인 후 구매할 수 있어요. 처음이면 회원가입부터!'); return go('/login?next=/pricing'); }
     if (Store.isAdmin()) return toast('관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
@@ -136,8 +145,8 @@ const App = (() => {
     if (payMode === 'off') return toast('결제 기능을 준비 중이에요. 잠시 후 다시 시도해 주세요.');
     const m = modal(`<h2>🧾 구매 확인</h2>
       <dl class="summary"><dt>상품</dt><dd>${kids === 'two' ? '두 자녀' : '한 자녀'} ${months}개월</dd>
-      <dt>정가</dt><dd class="strike">${won(q.list)}</dd>
-      <dt>멤버십가</dt><dd>${won(planMonthly(kids, months) * months)}</dd>
+      ${q.list > planMonthly(kids, months) * months ? `<dt>1개월 요금 기준</dt><dd class="strike">${won(q.list)}</dd>` : ''}
+      <dt>플러스 ${months}개월</dt><dd>${won(planMonthly(kids, months) * months)}</dd>
       <dt>쿠폰</dt><dd>${q.coupon ? `${esc(q.coupon.name)} −${Math.round(q.rate * 100)}%` : '없음'}</dd>
       <dt>총 결제 금액</dt><dd class="total">${won(q.total)}</dd>
       <dt>자동갱신</dt><dd>${fmtDay(Date.now() + months * 30 * 86400000)}부터 · 언제든 해지</dd></dl>
@@ -194,7 +203,7 @@ const App = (() => {
     setInterval(() => Store.checkReminder(), 60000);
   }
 
-  return { init, route, go, toast, modal, demoMail, download, buy, sampleLesson, refreshHeader, pinOk: false, rate: 0.85 };
+  return { init, route, go, toast, modal, upsell, demoMail, download, buy, sampleLesson, refreshHeader, pinOk: false, rate: 0.85 };
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);

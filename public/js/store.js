@@ -156,7 +156,7 @@ const Store = (() => {
     db.users[email] = {
       id: email, email, parentName, providers: [provider], createdAt: now, lastLogin: now, trialStart: null, role: 'parent',
       profiles: [], activeProfile: null, membership: null, payments: [], worksheets: {},
-      coupons: [{ id: uid(), name: '웰컴쿠폰', rate: 0.4, expires: now + 10 * DAY, used: false, welcome: true }],
+      coupons: [{ id: uid(), name: '웰컴쿠폰', rate: WELCOME_RATE, expires: now + 10 * DAY, used: false, welcome: true }],
       notifications: [], settings: { notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true },
     };
     if (isAdmin(db.users[email])) db.users[email].role = 'admin';
@@ -208,7 +208,7 @@ const Store = (() => {
     if (u.trialStart) {
       const end = u.trialStart + 7 * DAY + (u.trialBonus || 0);
       if (end > now) return { ok: true, kind: 'trial', daysLeft: Math.ceil((end - now) / DAY) };
-      return { ok: false, reason: 'expired' };
+      return { ok: true, kind: 'free' }; // 체험이 끝나도 1~2단계는 평생 무료
     }
     return { ok: true, kind: 'trial', daysLeft: 7 };
   }
@@ -216,11 +216,11 @@ const Store = (() => {
     const u = user(); if (!u) return null;
     return u.coupons.filter(c => !c.used && c.expires > Date.now()).sort((a, b) => b.rate - a.rate)[0] || null;
   }
-  const couponRate = (c, kids, months) => !c ? 0 : c.welcome ? PLANS[kids].coupon[months] : c.rate;
+  const couponRate = c => !c ? 0 : c.welcome ? WELCOME_RATE : c.rate;
   function quote(kids, months) {
-    const c = bestCoupon(), rate = couponRate(c, kids, months);
-    // 쿠폰은 정가에서 할인하고, 멤버십가보다 비싸지면 멤버십가를 쓴다 (서버와 같은 계산)
-    const monthly = rate ? Math.min(planMonthly(kids, months), Math.round(PLANS[kids].list * (1 - rate))) : planMonthly(kids, months);
+    const c = bestCoupon(), rate = couponRate(c);
+    // 쿠폰은 멤버십 월 요금에서 할인하고 10원 단위로 맞춘다 (서버와 같은 계산)
+    const monthly = rate ? round10(planMonthly(kids, months) * (1 - rate)) : planMonthly(kids, months);
     return { coupon: c, rate, monthly, total: monthly * months, list: PLANS[kids].list * months };
   }
   // → 'demo'(완료) | 'redirect'(토스 결제창으로 이동)
@@ -268,8 +268,12 @@ const Store = (() => {
   // ---------- 진도 ----------
   function levelProgress(lv, p = profile()) { return (p && p.progress[lv]) || { lessons: [] }; }
   function lessonsDone(lv, p = profile()) { return levelProgress(lv, p).lessons.filter(Boolean).length; }
+  // 플러스(체험·멤버십·관리자)가 아니면 3단계부터는 잠긴다
+  const hasPlus = () => ['admin', 'member', 'trial'].includes(access().kind);
+  const needsPlus = lv => !isFreeLevel(lv) && !hasPlus();
   function isUnlocked(lv, p = profile()) {
     if (isAdmin()) return true;
+    if (needsPlus(lv)) return false;
     if (!p) return lv === 'A';
     const i = ALL_LEVELS.indexOf(lv), start = ALL_LEVELS.indexOf(p.startLevel);
     if (i <= start) return true;
@@ -277,7 +281,8 @@ const Store = (() => {
   }
   function currentLevel(p = profile()) {
     const unlocked = lv => { const i = ALL_LEVELS.indexOf(lv), s = ALL_LEVELS.indexOf(p.startLevel); return i <= s || lessonsDone(ALL_LEVELS[i - 1], p) >= LESSONS_PER_LEVEL; };
-    return ALL_LEVELS.find(lv => unlocked(lv) && lessonsDone(lv, p) < LESSONS_PER_LEVEL) || 'Z';
+    // 레벨 진단으로 정한 출발 레벨부터 찾는다 (앞쪽 레벨은 건너뛴 것으로 본다)
+    return ALL_LEVELS.slice(ALL_LEVELS.indexOf(p.startLevel)).find(lv => unlocked(lv) && lessonsDone(lv, p) < LESSONS_PER_LEVEL) || 'Z';
   }
   function difficulty(p = profile()) {
     if (!p) return 'normal';
@@ -444,7 +449,7 @@ const Store = (() => {
     get db() { return db; }, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
-    levelProgress, lessonsDone, isUnlocked, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
+    levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, accEmoji, gameResult, markWorksheet,
     notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, setTheme, exportData, importData, persist, hash,
   };

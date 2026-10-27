@@ -15,7 +15,7 @@ export function createUser({ email, parentName, provider, providerUid, marketing
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, email || null, parentName, role, t, t, marketing ? 1 : 0, 'cus_' + crypto.randomBytes(12).toString('hex'),
       JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing }));
     db.prepare('INSERT INTO identities (provider, provider_uid, user_id, created_at) VALUES (?, ?, ?, ?)').run(provider, providerUid || email, uid, t);
-    db.prepare('INSERT INTO coupons (id, user_id, name, rate, welcome, expires_at) VALUES (?, ?, ?, ?, 1, ?)').run(id(), uid, '웰컴쿠폰', 0.4, t + 10 * DAY);
+    db.prepare('INSERT INTO coupons (id, user_id, name, rate, welcome, expires_at) VALUES (?, ?, ?, ?, 1, ?)').run(id(), uid, '웰컴쿠폰', 0.2, t + 10 * DAY);
     notify(uid, '🎉 가입을 환영해요! 쿠폰함에 웰컴쿠폰이 발급되었어요.', 'coupon');
     return getUser(uid);
   });
@@ -65,7 +65,8 @@ export function access(u) {
   if (m && m.until > t) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - t) / DAY) };
   if (u.trial_start) {
     const end = u.trial_start + 7 * DAY + (u.trial_bonus || 0);
-    return end > t ? { ok: true, kind: 'trial', daysLeft: Math.ceil((end - t) / DAY) } : { ok: false, kind: 'expired' };
+    // 체험이 끝나도 1~2단계는 평생 무료로 계속 쓴다
+    return end > t ? { ok: true, kind: 'trial', daysLeft: Math.ceil((end - t) / DAY) } : { ok: true, kind: 'free' };
   }
   return { ok: true, kind: 'trial', daysLeft: 7 };
 }

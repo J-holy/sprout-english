@@ -1,10 +1,13 @@
 // 요금표와 결제 금액 계산 — 결제 금액은 항상 서버에서 계산한다
 import { db, now } from './db.js';
 
+// 화면(public/js/data.js)과 같은 값. 1~2단계는 평생 무료, 3단계부터 플러스.
 export const PLANS = {
-  one: { list: 58750, m1: 52900, m6: 49833, m12: 44000, coupon: { 1: 0.15, 6: 0.20, 12: 0.30 } },
-  two: { list: 117500, m1: 99000, m6: 88000, m12: 76333, coupon: { 1: 0.20, 6: 0.30, 12: 0.40 } },
+  one: { list: 6900, m1: 6900, m6: 5900, m12: 4900 },
+  two: { list: 9900, m1: 9900, m6: 8400, m12: 6900 },
 };
+export const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인
+const round10 = n => Math.round(n / 10) * 10;
 export const validPlan = (kids, months) => !!PLANS[kids] && [1, 6, 12].includes(Number(months));
 
 export function bestCoupon(uid) {
@@ -15,9 +18,9 @@ export function quote(uid, kids, months) {
   months = Number(months);
   const P = PLANS[kids], member = P['m' + months];
   const c = bestCoupon(uid);
-  const rate = !c ? 0 : c.welcome ? P.coupon[months] : c.rate;
-  // 쿠폰은 정가에서 할인하고, 멤버십가보다 비싸지면 멤버십가를 쓴다
-  const monthly = rate ? Math.min(member, Math.round(P.list * (1 - rate))) : member;
+  const rate = !c ? 0 : c.welcome ? WELCOME_RATE : c.rate;
+  // 쿠폰은 멤버십 월 요금에서 할인하고 10원 단위로 맞춘다 (화면과 같은 계산)
+  const monthly = rate ? round10(member * (1 - rate)) : member;
   return {
     kids, months, coupon: c, rate, monthly, total: monthly * months, list: P.list * months,
     name: `새싹영어 ${kids === 'two' ? '두 자녀' : '한 자녀'} ${months}개월`,

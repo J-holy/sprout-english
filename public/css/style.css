@@ -711,3 +711,11 @@ body.in-lesson .demo-banner { display: none; }
 .reader-text span.mid { color: var(--mid); }
 .reader-text span.no { color: var(--bad); }
 @media (max-width: 600px) { .speed-seg button { padding: 6px 8px; font-size: .85rem; } }
+
+/* ---------- 무료 / 플러스 ---------- */
+.free-plan { display: flex; gap: 16px; justify-content: space-between; align-items: center; flex-wrap: wrap; background: linear-gradient(90deg, var(--grass) 0 10px, var(--paper) 10px); }
+.free-plan > div { flex: 1; min-width: 260px; }
+.free-plan h2 { font-size: 1.8rem; margin: 6px 0 4px; } .free-plan p { margin: 0; }
+.upsell { text-align: center; display: grid; gap: 10px; } .upsell h2 { justify-content: center; margin: 0; } .upsell p { margin: 0; }
+.upsell .perks { text-align: left; }
+.price-table td small { color: var(--muted); }

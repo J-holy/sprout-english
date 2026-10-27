@@ -76,17 +76,19 @@ const UI = {
       const P = PLANS[kids];
       $('.plan-cards', root).innerHTML = [1, 6, 12].map(months => {
         const monthly = planMonthly(kids, months);
-        const q = loggedIn ? Store.quote(kids, months) : { rate: P.coupon[months], monthly: Math.min(monthly, Math.round(P.list * (1 - P.coupon[months]))) };
+        // 로그인 전에는 웰컴쿠폰을 받는다고 보고 보여준다
+        const q = loggedIn ? Store.quote(kids, months) : { rate: WELCOME_RATE, monthly: round10(monthly * (1 - WELCOME_RATE)) };
         q.total = q.monthly * months;
         const disc = Math.round((1 - monthly / P.list) * 100);
+        const perDay = Math.round((q.rate ? q.monthly : monthly) / 30 / 10) * 10;
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
-          ${months === 12 ? '<span class="ribbon">가장 저렴해요</span>' : ''}
+          ${months === 12 ? '<span class="ribbon">가장 인기</span>' : ''}
           <h4>${months}개월</h4>
           <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 6: `하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: `하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
-          <dl><dt>정가</dt><dd class="strike">월 ${won(P.list)}</dd>
-          <dt>멤버십가</dt><dd><b>월 ${won(monthly)}</b> <small>${disc}%↓</small></dd>
-          ${q.rate ? `<dt>쿠폰 적용</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
-          <div class="plan-total">총 <b>${won(q.total)}</b> ${months === 1 ? '/ 매월' : ''}</div>
+          <dl>${disc ? `<dt>1개월 요금</dt><dd class="strike">월 ${won(P.list)}</dd>` : ''}
+          <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
+          ${q.rate ? `<dt>첫 결제 쿠폰</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
+          <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}${months === 1 ? ' / 매월' : ''}</div>
           <button class="btn btn-primary full" data-buy="${months}">선택하기</button></div>`;
       }).join('');
       $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(kids, +b.dataset.buy));
@@ -134,7 +136,7 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 가입 없이 3분 체험</a>
           <a class="btn btn-ghost lg" href="#/leveltest">🧪 무료 레벨 진단</a>
         </div>
-        <ul class="trust"><li>✅ 7일 무료</li><li>✅ 카드 등록 없음</li><li>✅ 자동결제 없음</li><li>✅ 광고 없음</li></ul>
+        <ul class="trust"><li>✅ 알파벳·파닉스 평생 무료</li><li>✅ 7일 전체 체험</li><li>✅ 카드 등록 없음</li><li>✅ 플러스도 월 4,900원부터</li></ul>
       </div>
       <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div>
     </div>
@@ -204,8 +206,8 @@ Views.home = el => {
     <div class="card cta-card">
       <div class="cta-emoji" aria-hidden="true">🌱🐰🎈</div>
       <h2>오늘 저녁 15분, 아이와 함께 시작해보세요</h2>
-      <p>7일 동안 모든 기능을 무료로 쓰고, 체험이 끝나도 자동으로 결제되지 않아요.</p>
-      <div class="row-center"><a class="btn btn-primary lg" href="${cta}">${u ? '📚 학습하러 가기' : '🌱 7일 무료로 시작하기'}</a><a class="btn btn-ghost lg" href="#/pricing">💰 요금·할인 보기</a></div>
+      <p>알파벳·파닉스는 평생 무료예요. 가입하면 7일 동안 전체 단계를 써볼 수 있고, 자동으로 결제되지 않아요.</p>
+      <div class="row-center"><a class="btn btn-primary lg" href="${cta}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a><a class="btn btn-ghost lg" href="#/pricing">💰 요금·할인 보기</a></div>
     </div>
   </section>`;
 
@@ -296,12 +298,12 @@ Views.study = (el, params) => {
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">📚 학습하기</h1>
     ${u && !p ? `<div class="card status-card">👶 아이 프로필을 만들면 바로 학습을 시작할 수 있어요. <a href="#/profiles">프로필 만들기 →</a></div>` : ''}
-    ${u && p && !a.ok ? `<div class="card status-card">⏳ 무료체험이 끝났어요. <a href="#/pricing">요금·할인 보기 →</a></div>` : ''}
+
     ${u && p && a.ok ? `<div class="card status-card">📍 ${esc(p.name)}의 학습은 <a href="#/study">모험 지도</a>에서 이어갈 수 있어요.</div>` : ''}
     <div class="start-3">
       <a class="start-card" href="#/sample/A" style="--c:#ffd23f"><span>▶</span><b>3분 체험 레슨</b><small>가입 없이 알파벳 레슨 5문제</small></a>
       <a class="start-card" href="#/leveltest" style="--c:#7fd3ff"><span>🧪</span><b>무료 레벨 진단</b><small>12문제로 시작 레벨 찾기</small></a>
-      <a class="start-card" href="${u ? (p ? '#/study' : '#/profiles') : '#/signup'}" style="--c:#7ed957"><span>🌱</span><b>${u ? '내 학습 시작' : '7일 무료로 시작'}</b><small>${u ? '진도·별·리포트가 저장돼요' : '카드 등록 없이 바로'}</small></a>
+      <a class="start-card" href="${u ? (p ? '#/study' : '#/profiles') : '#/signup'}" style="--c:#7ed957"><span>🌱</span><b>${u ? '내 학습 시작' : '무료로 시작'}</b><small>${u ? '진도·별·리포트가 저장돼요' : '알파벳·파닉스 평생 무료'}</small></a>
     </div>
 
     <h2 class="sec-sub">하루 학습은 이렇게 해요</h2>
@@ -397,36 +399,39 @@ Views.pricing = (el, params) => {
     ${u ? `<div class="card status-card">${statusText(a, u)} ${a.kind === 'member' ? '<a href="#/parent/member">구독 관리 →</a>' : ''}</div>` : ''}
     ${params && params.get('error') ? `<div class="card notice error-card">⚠️ 결제를 완료하지 못했어요: ${esc(params.get('error'))}</div>` : ''}
 
-    <div class="price-hero card">
-      <div><span class="chip">처음이라면</span><h2>7일 무료체험</h2><p>모든 기능을 그대로 써보세요. <b>카드 등록 없음 · 자동결제 없음</b></p></div>
+    <div class="free-plan card">
+      <div><span class="chip">무료</span><h2>알파벳·파닉스는 평생 무료</h2>
+        <p>1~2단계(Level A~E, <b>50레슨</b>)와 스토리북 4권, 놀이터·AI 말하기·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
+        가입하면 <b>7일 동안은 전체 단계를</b> 모두 써볼 수 있어요. 카드 등록도 자동결제도 없어요.</p></div>
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
 
-    <h2 class="sec-sub">요금제</h2>
+    <h2 class="sec-sub">💎 플러스 <small>3~8단계 문장·대화·시제까지 · 스토리북 16권 전체</small></h2>
     ${UI.plans()}
 
-    <h2 class="sec-sub">🎟️ 웰컴쿠폰 할인율</h2>
-    <p class="sec-desc left">가입하면 바로 받는 쿠폰이에요. 10일 안에 결제하면 정가에서 아래만큼 할인돼요.</p>
+    <h2 class="sec-sub">🎟️ 첫 결제 쿠폰가</h2>
+    <p class="sec-desc left">가입하면 바로 받는 웰컴쿠폰으로, 10일 안에 결제하면 <b>${pct(WELCOME_RATE)} 더</b> 할인돼요.</p>
     <div class="table-wrap"><table class="table price-table">
       <thead><tr><th></th><th>1개월</th><th>6개월</th><th>12개월</th></tr></thead>
       <tbody>${['one', 'two'].map(k => `<tr><th>${k === 'one' ? '👧 한 자녀' : '👧👦 두 자녀'}</th>${[1, 6, 12].map(m => {
-        const P = PLANS[k], monthly = Math.min(planMonthly(k, m), Math.round(P.list * (1 - P.coupon[m])));
-        return `<td><b class="hot">${pct(P.coupon[m])}</b><br>월 ${won(monthly)}</td>`;
+        const monthly = round10(planMonthly(k, m) * (1 - WELCOME_RATE));
+        return `<td><small class="strike">월 ${won(planMonthly(k, m))}</small><br><b class="hot">월 ${won(monthly)}</b></td>`;
       }).join('')}</tr>`).join('')}</tbody></table></div>
 
-    <h2 class="sec-sub">무료체험 vs 멤버십</h2>
+    <h2 class="sec-sub">무료 vs 플러스</h2>
     <div class="table-wrap"><table class="table compare">
-      <thead><tr><th>기능</th><th>7일 무료체험</th><th>멤버십</th></tr></thead>
-      <tbody>${[['26개 레벨 레슨', '✅', '✅'], ['AI 발음 코치', '✅', '✅'], ['스토리북 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림', '✅', '✅'], ['워크시트 인쇄', '✅', '✅'], ['이용 기간', '7일', '1 · 6 · 12개월'], ['자동결제', '없음', '언제든 해지 가능']]
+      <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
+      <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '4권', '16권 전체'],
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', '월 4,900원부터 · 언제든 해지']]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
     <div class="grid3">
       <div class="card feat"><span class="feat-ico">🔁</span><h4>자동갱신</h4><p>기간이 끝나는 날 같은 상품으로 갱신돼요. 부모페이지 › 멤버십에서 버튼 하나로 해지해요.</p></div>
       <div class="card feat"><span class="feat-ico">↩️</span><h4>7일 이내 환불</h4><p>결제 후 7일 이내라면 부모페이지에서 바로 환불하고, 사용한 쿠폰도 돌려받아요.</p></div>
-      <div class="card feat"><span class="feat-ico">➕</span><h4>체험 기간 보존</h4><p>체험 중에 결제해도 남은 체험 일수는 멤버십 기간에 더해지고, 학습 기록은 그대로예요.</p></div>
+      <div class="card feat"><span class="feat-ico">🌱</span><h4>해지해도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
-    ${UI.faq(FAQ.filter(f => f.cat === '멤버십' || f.q.includes('자동으로 결제')))}
+    ${UI.faq(FAQ.filter(f => f.cat === '요금' || f.cat === '멤버십'))}
     <p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>
   </div>`;
   UI.wirePlans($('.plans', el));
@@ -434,7 +439,8 @@ Views.pricing = (el, params) => {
 function statusText(a, u) {
   if (a.kind === 'admin') return '🛠️ 관리자 계정 · 모든 기능을 제한 없이 이용 중';
   if (a.kind === 'member') return `💎 멤버십 이용 중 · <b>${a.daysLeft}일</b> 남음 · ${u.membership.autoRenew ? `다음 결제일 ${fmtDay(u.membership.until)}` : '자동갱신 해지됨'}`;
-  return a.ok ? `🎁 무료체험 중 · <b>${a.daysLeft}일</b> 남음 (자동결제 없음)` : '⏳ 무료체험이 끝났어요. 멤버십으로 학습을 이어가세요.';
+  if (a.kind === 'free') return '🌱 무료 이용 중 · 1~2단계(알파벳·파닉스)는 평생 무료예요. 💎 플러스로 3단계부터 이어갈 수 있어요.';
+  return `🎁 전체 단계 체험 중 · <b>${a.daysLeft}일</b> 남음 · 끝나도 1~2단계는 계속 무료 (자동결제 없음)`;
 }
 
 /* ---------- 도움말 ---------- */
@@ -487,15 +493,15 @@ Views.auth = (el, mode, params) => {
 
   const choose = (error = '') => {
     shell(0, `
-      <h1>${isUp ? '7일 무료로 시작해요 🌱' : '다시 오셨네요! 👋'}</h1>
-      ${isUp ? '<ul class="perks"><li>🎁 7일간 모든 기능 무료</li><li>🎟️ 웰컴쿠폰 바로 지급</li><li>🔒 카드 등록·자동결제 없음</li></ul>' : '<p class="center sec-desc">가입할 때 쓴 방법을 눌러 주세요. 비밀번호는 필요 없어요.</p>'}
+      <h1>${isUp ? '무료로 시작해요 🌱' : '다시 오셨네요! 👋'}</h1>
+      ${isUp ? '<ul class="perks"><li>🌱 알파벳·파닉스(1~2단계) 평생 무료</li><li>🎁 7일 동안 전체 단계 체험</li><li>🎟️ 플러스 첫 결제 20% 쿠폰</li><li>🔒 카드 등록·자동결제 없음</li></ul>' : '<p class="center sec-desc">가입할 때 쓴 방법을 눌러 주세요. 비밀번호는 필요 없어요.</p>'}
       ${error ? `<p class="form-err center">${esc(error)}</p>` : ''}
       ${providers.length ? `<div class="sns">${providers.map(([k, p]) => `<button class="sns-btn ${k}" data-sns="${k}"><span class="sns-ico">${p.icon}</span>${NAMES[k]}로 ${isUp ? '가입하기' : '로그인'}${last.method === k ? '<em class="last">최근 사용</em>' : ''}</button>`).join('')}</div>
       <div class="or"><span>또는 이메일로${last.method === 'email' ? ' <em class="last">최근 사용</em>' : ''}</span></div>` : ''}
       <form class="email-form" novalidate><label>이메일 주소<input name="email" type="email" autocomplete="email" inputmode="email" placeholder="parent@example.com" required></label>
       <p class="form-err" role="alert"></p><button class="btn btn-primary full lg">📮 인증코드 받기</button>
       <p class="fine center">입력한 메일로 6자리 숫자가 와요. 그 숫자만 넣으면 끝!</p></form>
-      <p class="center switch">${isUp ? '이미 계정이 있나요? <a href="#/login">로그인</a>' : '처음이세요? <a href="#/signup">회원가입하고 7일 무료 받기</a>'}</p>`);
+      <p class="center switch">${isUp ? '이미 계정이 있나요? <a href="#/login">로그인</a>' : '처음이세요? <a href="#/signup">무료로 회원가입</a>'}</p>`);
     $$('[data-sns]', el).forEach(b => b.onclick = () => snsFlow(b.dataset.sns));
     const f = $('form', el);
     f.email.value = email;
@@ -547,7 +553,7 @@ Views.auth = (el, mode, params) => {
   // 로그인하려는데 가입 기록이 없을 때: 바로 가입으로 이어준다
   const notMember = (provider, em) => {
     shell(1, `<div class="auth-logo">🤔</div><h1>아직 가입하지 않은 계정이에요</h1>
-      <p class="center"><b>${esc(em || NAMES[provider] + ' 계정')}</b><br>이 계정으로 바로 가입할까요? 7일 무료체험이 시작돼요.</p>
+      <p class="center"><b>${esc(em || NAMES[provider] + ' 계정')}</b><br>이 계정으로 바로 가입할까요? 무료로 시작하고 7일 동안 전체 단계를 써볼 수 있어요.</p>
       <button class="btn btn-primary full lg" data-join>🌱 이 계정으로 가입하기</button>
       <button class="btn btn-ghost full" data-other>다른 방법으로 로그인</button>`);
     $('[data-join]', el).onclick = () => signupStep(provider, em);
@@ -659,7 +665,7 @@ Views.learn = el => {
   el.innerHTML = `<div class="wrap sec">
     <div class="learner-bar card">
       ${avatarHtml(p, 'big')}
-      <div class="lb-info"><h1>${esc(p.name)}의 모험</h1><p>${a.kind === 'admin' ? '🛠️ 관리자 · 전체 열림' : a.kind === 'member' ? '💎 멤버십' : `🎁 무료체험 ${a.daysLeft}일 남음`} · <a href="#/profiles">프로필 변경</a></p></div>
+      <div class="lb-info"><h1>${esc(p.name)}의 모험</h1><p>${a.kind === 'admin' ? '🛠️ 관리자 · 전체 열림' : a.kind === 'member' ? '💎 플러스' : a.kind === 'free' ? '🌱 무료 (1~2단계) · <a href="#/pricing">💎 플러스 보기</a>' : `🎁 전체 체험 ${a.daysLeft}일 남음`} · <a href="#/profiles">프로필 변경</a></p></div>
       <div class="lb-stats">
         <div><b>🔥 ${Store.streak()}</b><small>연속 학습일</small></div>
         <a href="#/shop"><b>⭐ ${p.stars || 0}</b><small>별 (상점 가기)</small></a>
@@ -672,7 +678,7 @@ Views.learn = el => {
         <div class="course-prog"><div class="rb-bar"><i style="width:${doneAll / course * 100}%"></i></div>
           <small>전체 ${course}레슨 중 <b>${doneAll}개</b> 완료 · ${left ? `하루 ${p.dailyGoal}레슨(주 5일)이면 완주까지 <b>${durationText(studyWeeks(left, p.dailyGoal))}</b>` : '🎉 전체 과정 완주!'}</small></div>
         <p class="fine">난이도: ${{ easy: '🐣 쉬움 (보기 2개 + 힌트)', normal: '🐥 보통', hard: '🦅 도전 (보기 4개)' }[diff]}${p.difficulty === 'auto' ? ' · 정답률에 맞춰 자동 조절' : ''}</p></div>
-      <a class="btn btn-primary lg" href="#/lesson/${cur}/${curIdx}">▶ 출발!</a>
+      ${Store.needsPlus(cur) ? `<a class="btn btn-primary lg" href="#/pricing">💎 플러스로 이어가기</a>` : `<a class="btn btn-primary lg" href="#/lesson/${cur}/${curIdx}">▶ 출발!</a>`}
     </div>
     <div class="quick">
       <a class="quick-card" href="#/play" style="--r:-2deg"><span>🎈</span><b>놀이터</b><small>풍선·카드 게임</small></a>
@@ -690,12 +696,13 @@ Views.learn = el => {
           const open = Store.isUnlocked(lv), done = Store.lessonsDone(lv);
           const pct = Math.round(done / LESSONS_PER_LEVEL * 100); // 레벨 진도 (점수가 아니라 끝낸 날 수)
           return `<button class="node ${open ? '' : 'locked'} ${lv === cur ? 'current' : ''} ${done >= LESSONS_PER_LEVEL ? 'cleared' : ''}" data-lv="${lv}" style="--k:${k}" ${open ? '' : 'aria-disabled="true"'}>
-            <span class="node-ball">${open ? lv : '🔒'}</span><span class="node-prog" title="레벨 진도 ${pct}%">${done}/${LESSONS_PER_LEVEL}일</span><span class="node-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
+            <span class="node-ball">${open ? lv : Store.needsPlus(lv) ? '💎' : '🔒'}</span><span class="node-prog" title="레벨 진도 ${pct}%">${done}/${LESSONS_PER_LEVEL}일</span><span class="node-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>`).join('')}</div>
   </div>`;
   $$('.node', el).forEach(b => b.onclick = () => {
     const lv = b.dataset.lv;
+    if (Store.needsPlus(lv)) return App.upsell();
     if (!Store.isUnlocked(lv)) return App.toast('앞 레벨을 마치면 열려요 🔒');
     const lp = Store.levelProgress(lv), s = stageOf(lv);
     const doneN = Store.lessonsDone(lv);
@@ -714,6 +721,7 @@ Views.learn = el => {
 /* ---------- 레슨 ---------- */
 Views.lesson = (el, lv, idx) => {
   if (!ALL_LEVELS.includes(lv) || !(idx >= 0 && idx < LESSONS_PER_LEVEL)) return (location.hash = '#/study');
+  if (Store.needsPlus(lv)) { location.hash = '#/study'; return App.upsell(); }
   if (!Store.isUnlocked(lv)) { App.toast('이전 레벨을 먼저 마쳐야 열려요 🔒'); return (location.hash = '#/study'); }
   const qs = Gen.lesson(lv, idx);
   el.innerHTML = '<div class="wrap lesson-wrap"></div>';
@@ -739,7 +747,7 @@ Views.result = (root, { score, correct, total, again, next, nextLabel, sample, s
     <p>${sample ? '샘플 레슨은 기록되지 않아요. 시작하면 진도와 별이 저장돼요!' : `⭐ 별 ${earned || 0}개를 받았어요! ${score >= 90 ? '완벽해요 🌟' : '틀린 문제는 오답노트에 저장했어요.'}`}</p>
     <div class="row-center">
       <a class="btn btn-ghost" href="${again}" data-again>다시 하기</a>
-      ${sample ? '<a class="btn btn-primary" href="#/signup">7일 무료로 계속하기</a>' : `<a class="btn btn-ghost" href="#/study">모험 지도</a>${next ? `<a class="btn btn-primary" href="${next}">다음: ${nextLabel} ▶</a>` : ''}`}
+      ${sample ? '<a class="btn btn-primary" href="#/signup">무료로 가입하고 계속하기</a>' : `<a class="btn btn-ghost" href="#/study">모험 지도</a>${next ? `<a class="btn btn-primary" href="${next}">다음: ${nextLabel} ▶</a>` : ''}`}
     </div></div>`;
   const a = $('[data-again]', root);
   if (location.hash === again) a.onclick = e => { e.preventDefault(); App.route(); };
@@ -770,12 +778,13 @@ Views.stories = el => {
     <p class="sec-desc left">책마다 11쪽. 🐢 천천히·👆 한 단어씩 들으며 🗣️ 따라 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
     <div class="book-grid">${STORIES.map(s => { const open = Store.isUnlocked(STAGES[s.stage - 1].levels[0]); return `
       <a class="book ${open ? '' : 'locked'}" href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${STAGES[s.stage - 1].color}">
-        <span class="cover">${open ? s.cover : '🔒'}</span><b>${esc(s.title)}</b><small>섬 ${s.stage} ${p.stories[s.id] ? `· ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>
+        <span class="cover">${open ? s.cover : Store.needsPlus(STAGES[s.stage - 1].levels[0]) ? '💎' : '🔒'}</span><b>${esc(s.title)}</b><small>섬 ${s.stage} ${p.stories[s.id] ? `· ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>
   </div>`;
-  $$('.book.locked', el).forEach(b => b.onclick = e => { e.preventDefault(); App.toast('그 섬에 도착하면 열려요 🔒'); });
+  $$('.book.locked', el).forEach(b => b.onclick = e => { e.preventDefault(); b.innerText.includes('💎') ? App.upsell() : App.toast('그 섬에 도착하면 열려요 🔒'); });
 };
 Views.story = (el, id) => {
   const s = STORIES.find(x => x.id === id); if (!s) return (location.hash = '#/stories');
+  if (Store.needsPlus(STAGES[s.stage - 1].levels[0])) { location.hash = '#/stories'; return App.upsell(); }
   if (!Store.isUnlocked(STAGES[s.stage - 1].levels[0])) { App.toast('그 섬에 도착하면 열려요 🔒'); return (location.hash = '#/stories'); }
   const pref = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const keep = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } };
@@ -1187,8 +1196,8 @@ const ParentTabs = {
   },
   coupons(el, u) {
     el.innerHTML = `<div class="coupon-list">${u.coupons.map(c => { const exp = c.expires < Date.now(); return `
-      <div class="coupon ${c.used || exp ? 'off' : ''}"><div class="c-rate">${c.welcome ? '최대<br>' : ''}${Math.round(c.rate * 100)}%</div><div class="c-info"><b>${esc(c.name)}</b>
-      <small>${c.welcome ? '정가 기준 1개월 15~20% · 6개월 20~30% · 12개월 30~40%' : '모든 상품'}</small><small>${c.used ? '사용 완료' : exp ? '기간 만료' : `${fmtDay(c.expires)}까지 · D-${Math.ceil((c.expires - Date.now()) / 86400000)}`}</small></div></div>`; }).join('')}</div>
+      <div class="coupon ${c.used || exp ? 'off' : ''}"><div class="c-rate">${Math.round((c.welcome ? WELCOME_RATE : c.rate) * 100)}%</div><div class="c-info"><b>${esc(c.name)}</b>
+      <small>${c.welcome ? '플러스 첫 결제 · 1·6·12개월 모든 상품' : '모든 상품'}</small><small>${c.used ? '사용 완료' : exp ? '기간 만료' : `${fmtDay(c.expires)}까지 · D-${Math.ceil((c.expires - Date.now()) / 86400000)}`}</small></div></div>`; }).join('')}</div>
       <p class="fine">구매 시 할인율이 가장 높은 쿠폰 1장이 자동 적용돼요.</p><a class="btn btn-primary" href="#/pricing">요금·할인 보기</a>`;
   },
   worksheets(el, u) {
@@ -1287,7 +1296,7 @@ const AdminTabs = {
     const draw = q => {
       const list = users.filter(u => !q || ((u.email || '') + u.parentName).toLowerCase().includes(q.toLowerCase()));
       tbody.innerHTML = list.map(u => { const a = Store.access(u); return `<tr><td><b>${esc(u.parentName)}</b><br><small>${esc(u.email || '(이메일 없음)')}</small></td><td>${u.providers.map(p => prov[p] || p).join(' ')}</td>
-        <td>${u.role === 'admin' ? '<span class="chip on">관리자</span>' : '보호자'}</td><td>${a.kind === 'member' ? `💎 ${a.daysLeft}일` : a.kind === 'trial' ? `🎁 체험 ${a.daysLeft}일` : a.kind === 'admin' ? '전체 이용' : '⏳ 만료'}</td>
+        <td>${u.role === 'admin' ? '<span class="chip on">관리자</span>' : '보호자'}</td><td>${a.kind === 'member' ? `💎 ${a.daysLeft}일` : a.kind === 'trial' ? `🎁 체험 ${a.daysLeft}일` : a.kind === 'admin' ? '전체 이용' : '🌱 무료'}</td>
         <td>${u.profiles.map(p => p.avatar).join('') || '-'}</td><td>${fmtDay(u.createdAt)}</td><td><button class="btn btn-ghost sm" data-u="${esc(u.id)}">관리</button></td></tr>`; }).join('') || '<tr><td colspan="7">회원이 없어요.</td></tr>';
       $$('[data-u]', tbody).forEach(b => b.onclick = () => detail(b.dataset.u));
     };
@@ -1354,6 +1363,6 @@ const AdminTabs = {
 /* ---------- 이용권 만료 ---------- */
 Views.paywall = el => {
   el.innerHTML = `<div class="wrap sec narrow center"><div class="card intro">${UI.mascot('체험 기간이 끝났어! 그동안 모은 별과 기록은 그대로 있어. 다시 만나자!', '🥺')}
-    <h1>무료체험이 끝났어요</h1><p>멤버십을 시작하면 바로 이어서 학습할 수 있어요. 1개월 상품도 할인돼요.</p>
+    <h1>3단계부터는 플러스예요</h1><p>1~2단계는 평생 무료로 계속할 수 있어요. 플러스는 월 4,900원부터예요.</p>
     <a class="btn btn-primary lg" href="#/pricing">요금·할인 보기</a></div></div>`;
 };
