@@ -1,0 +1,18 @@
+# Caddy: 도메인의 HTTPS 인증서(Let's Encrypt)를 자동으로 발급·갱신하고 새싹영어 서버로 연결해요.
+# install-pi.sh가 example.com 을 실제 도메인으로 바꿔 /etc/caddy/Caddyfile 에 설치해요.
+
+example.com, www.example.com {
+	# www로 들어오면 기본 도메인으로 보낸다
+	@www host www.example.com
+	redir @www https://example.com{uri} permanent
+
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080
+
+	log {
+		output file /var/log/caddy/sprout-english.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+}

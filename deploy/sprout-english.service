@@ -1,0 +1,29 @@
+[Unit]
+Description=새싹영어 (Sprout English) 서버
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sprout
+Group=sprout
+WorkingDirectory=/opt/sprout-english/server
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+# 라즈베리파이 메모리 보호
+MemoryMax=400M
+Environment=NODE_OPTIONS=--max-old-space-size=256
+
+# 보안 강화
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/sprout-english/server/data
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

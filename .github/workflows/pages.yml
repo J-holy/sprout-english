@@ -1,0 +1,34 @@
+# main 브랜치에 올리면 public/ 폴더를 GitHub Pages로 배포해요.
+# 처음 한 번: 저장소 Settings › Pages › Source 를 "GitHub Actions"로 바꿔 주세요.
+# GitHub Pages에는 서버가 없으므로 사이트는 "체험용 데모 모드"(데이터는 방문자 브라우저에만 저장)로 동작해요.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['public/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v4

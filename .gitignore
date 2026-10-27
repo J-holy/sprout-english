@@ -1,0 +1,9 @@
+# 의존성·데이터·비밀값은 올리지 않아요
+node_modules/
+server/data/
+server/.env
+server/secrets/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store

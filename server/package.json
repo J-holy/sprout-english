@@ -1,0 +1,19 @@
+{
+  "name": "sprout-english-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "새싹영어 서버 (Raspberry Pi용): 계정·이메일 인증·SNS 로그인·결제·관리자·학습 기록 동기화",
+  "type": "module",
+  "main": "server.js",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "backup": "node scripts/backup.js",
+    "make-admin": "node scripts/make-admin.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "nodemailer": "^7.0.6"
+  }
+}
