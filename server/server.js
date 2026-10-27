@@ -316,6 +316,10 @@ app.get('/api/admin/backup', (req, res) => {
 
 // ---------- 정적 파일 ----------
 app.use('/api', (req, res) => bad(res, '없는 API예요.', 404));
+// index.html의 ?v=dev 를 서버 시작 시각으로 바꿔, 업데이트 후 예전 JS/CSS 캐시와 섞이지 않게 한다
+const BUILD = Date.now().toString(36);
+const indexHtml = () => fs.readFileSync(path.join(config.publicDir, 'index.html'), 'utf8').replaceAll('?v=dev', '?v=' + BUILD);
+app.get(['/', '/index.html'], (req, res) => res.set('Cache-Control', 'no-cache').type('html').send(indexHtml()));
 app.use(express.static(config.publicDir, {
   index: 'index.html', extensions: ['html'],
   setHeaders: (res, file) => res.setHeader('Cache-Control', file.endsWith('.html') ? 'no-cache' : 'public, max-age=300'),
