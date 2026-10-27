@@ -128,6 +128,16 @@ const App = (() => {
     a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  // 카카오톡 등 앱 안의 브라우저: 마이크가 막혀 있으니 외부 브라우저로 열도록 안내
+  function inAppBanner() {
+    const bar = document.getElementById('inappBanner'), ext = Speech.externalUrl();
+    const why = Speech.env.inApp ? '앱 안에서 열려서' : 'iPhone에서는 Safari에서만';
+    bar.innerHTML = `<span>🎤 ${why} <b>말하기(마이크)</b>가 ${Speech.env.inApp ? '안 돼요' : '돼요'}. ${Speech.env.ios ? '버튼이 안 되면 공유(⋯) › <b>Safari로 열기</b>를 눌러 주세요.' : ''}</span>
+      ${ext ? `<a class="btn btn-primary sm" href="${esc(ext)}">${Speech.env.ios ? 'Safari로' : 'Chrome으로'} 열기</a>` : ''}<button class="icon-btn" aria-label="닫기" data-x>✕</button>`;
+    bar.hidden = false;
+    bar.querySelector('[data-x]').onclick = () => { bar.hidden = true; };
+  }
+
   // 새싹 나무 물 주기 (하루 한 번)
   function waterTree(btn) {
     const r = Store.water(); if (!r.ok) return;
@@ -192,6 +202,7 @@ const App = (() => {
       try { const r = await fetch('audio/manifest.json'); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
     }
     Speech.configure({ server: API.on && !!API.cfg.tts, manifest });
+    if (Speech.env.inApp || Speech.env.iosNotSafari) inAppBanner();
     // 서버 없이(예: GitHub Pages) 열렸을 때는 데모라는 걸 알려준다
     const banner = document.getElementById('demoBanner');
     let closed = false; try { closed = sessionStorage.getItem('sprout-demo-closed') === '1'; } catch (e) { /* ignore */ }
@@ -212,7 +223,7 @@ const App = (() => {
     setInterval(() => Store.checkReminder(), 60000);
   }
 
-  return { init, route, go, toast, modal, upsell, waterTree, demoMail, download, buy, sampleLesson, refreshHeader, pinOk: false, rate: 0.85 };
+  return { init, route, go, toast, modal, upsell, waterTree, inAppBanner, demoMail, download, buy, sampleLesson, refreshHeader, pinOk: false, rate: 0.85 };
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);

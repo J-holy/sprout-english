@@ -304,7 +304,7 @@ Views.speakWidget = (box, sentences, record = true) => {
       <div class="speak-result" aria-live="polite"></div>
       <div class="row-center"><button class="btn btn-ghost" data-listen>🔊 듣기</button><button class="btn btn-ghost" data-slow>🐢 천천히</button>
       ${Speech.canListen ? '<button class="btn btn-primary mic" data-mic>🎤 말하기</button>' : ''}</div>
-      ${Speech.canListen ? '' : '<p class="hint">이 브라우저는 음성 인식을 지원하지 않아요. Chrome·Edge에서 마이크를 허용하면 AI 점수를 받을 수 있어요.</p>'}`;
+      ${Speech.canListen ? '' : `<p class="hint mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}`;
     $('[data-next]', box).onclick = () => { k = (k + 1) % sentences.length; draw(); };
     $('[data-listen]', box).onclick = () => Speech.speak(s);
     $('[data-slow]', box).onclick = () => Speech.speak(s, { slow: true });
@@ -322,7 +322,7 @@ Views.speakWidget = (box, sentences, record = true) => {
           <div class="hint">${miss.length ? `<b>${miss.map(esc).join(', ')}</b>을(를) 다시 들어보고 말해봐요.` : '완벽해요! 🌟'}${got ? ' · ⭐ 별 1개 획득!' : ''}</div>`;
         if (r.score >= 80) Speech.sfx.correct();
       } catch (e) {
-        res.innerHTML = `<div class="hint">${e.message === 'not-allowed' ? '마이크 권한을 허용해 주세요.' : '소리를 듣지 못했어요. 다시 말해볼까요?'}</div>`;
+        res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}</div>`;
       }
       mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 말하기';
     };
@@ -493,8 +493,11 @@ Views.help = el => {
     <div class="chips filter">${cats.map(c => `<button class="chip ${c === '전체' ? 'on' : ''}" data-c="${c}">${c}</button>`).join('')}</div>
     <div id="faqList"></div>
     <div class="card notice"><b>🔧 이 기기 진단</b>
-      <p>음성 합성 ${Speech.canSpeak ? '✅' : '❌'} · 음성 인식 ${Speech.canListen ? '✅' : '❌ (Chrome/Edge 권장)'} · 알림 ${'Notification' in window ? '✅' : '❌'}</p>
-      <div class="row"><button class="btn btn-ghost sm" data-test-voice>🔊 목소리 테스트</button><button class="btn btn-ghost sm" data-test-sfx>🎵 효과음 테스트</button></div></div>
+      <p>음성 합성 ${Speech.canSpeak ? '✅' : '❌'} · 음성 인식 ${Speech.canListen ? '✅' : '❌'} · 알림 ${'Notification' in window ? '✅' : '❌'}</p>
+      ${Speech.canListen ? '' : `<p class="mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}
+      <div class="row"><button class="btn btn-ghost sm" data-test-voice>🔊 목소리 테스트</button><button class="btn btn-ghost sm" data-test-sfx>🎵 효과음 테스트</button>
+        <button class="btn btn-primary sm" data-test-mic ${Speech.canListen ? '' : 'disabled'}>🎤 마이크 테스트</button></div>
+      <p class="mic-test-result" aria-live="polite"></p></div>
   </div>`;
   const draw = () => {
     const list = FAQ.filter(f => (cat === '전체' || f.cat === cat) && (!q || (f.q + f.a).includes(q)));
@@ -505,6 +508,14 @@ Views.help = el => {
   $$('[data-c]', el).forEach(b => b.onclick = () => { cat = b.dataset.c; $$('[data-c]', el).forEach(x => x.classList.toggle('on', x === b)); draw(); });
   $('[data-test-voice]', el).onclick = () => Speech.speak('Hello! Can you hear me?');
   $('[data-test-sfx]', el).onclick = () => Speech.sfx.cheer();
+  // 마이크 테스트: "Hello"라고 말하면 들은 말을 보여주고, 안 되면 원인과 해결 방법을 알려준다
+  const micBtn = $('[data-test-mic]', el), micOut = $('.mic-test-result', el);
+  micBtn.onclick = async () => {
+    micBtn.disabled = true; micBtn.textContent = '🎙️ "Hello!" 라고 말해 보세요…';
+    try { const alts = await Speech.listen(); micOut.innerHTML = `✅ 마이크가 잘 돼요! 들은 말: "<b>${esc(alts[0])}</b>"`; }
+    catch (e) { micOut.innerHTML = `⚠️ ${esc(Speech.micHelp(e.message))} <small class="fine">(코드: ${esc(e.message)})</small>`; }
+    micBtn.disabled = false; micBtn.textContent = '🎤 다시 테스트';
+  };
   draw();
 };
 
@@ -927,7 +938,7 @@ Views.story = (el, id) => {
         <button class="btn btn-ghost sm" data-again>🔁 다시 듣기</button>
         ${Speech.canListen ? '<button class="btn btn-primary sm mic" data-mic>🎤 따라 읽기</button>' : ''}
         <button class="btn btn-ghost sm" data-go>다 읽었어요 ▶</button>
-      </div><div class="follow-result"></div>`;
+      </div><div class="follow-result"></div>${Speech.canListen ? '' : `<p class="fine mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}`;
     $('[data-again]', box).onclick = () => read();
     $('[data-go]', box).onclick = () => { pg++; draw(); };
     const mic = $('[data-mic]', box);
@@ -943,7 +954,7 @@ Views.story = (el, id) => {
         if (r.score >= Lesson.passMark()) Speech.sfx.correct();
         if (auto && r.score >= Lesson.passMark()) later(() => { pg++; draw(); }, 1800);
       } catch (e) {
-        res.textContent = e.message === 'not-allowed' ? '마이크 권한을 허용해 주세요.' : '소리를 듣지 못했어요. 다시 해볼까요?';
+        res.textContent = Speech.micHelp(e.message);
       }
       mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 따라 읽기';
     };

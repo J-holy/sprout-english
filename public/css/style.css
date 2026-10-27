@@ -796,3 +796,24 @@ body.in-lesson .demo-banner { display: none; }
 .ch-sky .balloon.pop { animation: popb .5s forwards; }
 .ch-sky .balloon.nope { animation: shake .4s; }
 @keyframes floaty { from { transform: translateY(0); } to { transform: translateY(-40px); } }
+
+/* 🎤 마이크 안내 */
+.mic-hint { background: var(--berry-soft); border: 2px dashed var(--berry); border-radius: 14px; padding: 8px 12px; color: var(--ink); text-align: left; }
+.inapp-banner { background: var(--berry); flex-wrap: wrap; }
+.inapp-banner .btn { padding: 4px 12px; }
+.mic-test-result { margin: 8px 0 0; }
+/* 휴대폰 헤더: 메뉴 글자가 줄바꿈되지 않게 */
+.hb-link, .userbar .btn { white-space: nowrap; }
+@media (max-width: 600px) {
+  .userbar { flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
+  .userbar .btn.sm { padding: 4px 10px; font-size: .88rem; }
+  .userbar .icon-btn { padding: 4px 6px; font-size: 1.15rem; }
+}
+/* 두 개 중 고르기 스피드 게임 */
+.pick2-card { background: var(--paper); border: var(--bw) solid var(--line); border-radius: 22px; padding: 16px; width: 100%; max-width: 520px; box-shadow: var(--shadow); display: grid; gap: 8px; justify-items: center; }
+.pick2-prompt { margin: 0; font-family: var(--en); font-weight: 700; font-size: clamp(1.3rem, 4.5vw, 1.8rem); }
+.pick2-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 520px; }
+.pick2 { border: var(--bw) solid var(--line); border-radius: 20px; background: var(--paper); padding: 18px 10px; font-family: var(--en); font-weight: 700; font-size: clamp(1.1rem, 4vw, 1.5rem); cursor: pointer; box-shadow: 0 6px 0 var(--line); min-height: 80px; }
+.pick2:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 1px 0 var(--line); }
+.pick2.right { background: var(--grass-soft); border-color: var(--grass); }
+.pick2.wrong { background: var(--bad-soft); border-color: var(--bad); animation: shake .4s; }

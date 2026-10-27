@@ -114,8 +114,16 @@ const Gen = (() => {
     const pool = same.flatMap(levelItems);
     if (st === 1) return { kind: 'balloon', title: '알파벳 풍선 팡팡', how: '소리를 듣고 맞는 글자 풍선을 터뜨려요!', pool: pool.map(L => L.letter) };
     if (st === 2) return { kind: 'mole', title: '단어 두더지 잡기', how: '소리를 듣고 맞는 그림 두더지를 잡아요!', pool };
-    if (QA[st]) return { kind: 'ox', title: '대답 O/X 스피드', how: '질문을 듣고, 알맞은 대답이면 ⭕ 아니면 ❌!', pool: pool.map(x => ({ say: x.q, show: x.a, others: pool.map(y => y.a) })) };
-    return { kind: 'ox', title: '그림 문장 O/X 스피드', how: '문장을 듣고 그림과 맞으면 ⭕ 아니면 ❌!', pool: pool.map(x => ({ say: x.en, text: x.en, show: x.emoji, others: pool.map(y => y.emoji) })) };
+    // 3단계부터: 큰 버튼 두 개 중 하나를 빠르게 고르는 게임 (그림 없이 문장으로)
+    if (QA[st]) return { kind: 'pick2', title: '알맞은 대답 스피드', how: '질문을 듣고, 알맞은 대답을 빨리 골라요!',
+      pool: pool.map(x => ({ say: x.q, prompt: x.q, answer: x.a, wrong: pool.map(y => y.a).filter(a => a !== x.a) })) };
+    const allWords = pool.flatMap(x => words(x.en)).filter(w => w.length > 2);
+    return { kind: 'pick2', title: '빈칸 단어 스피드', how: '문장을 듣고, 빈칸에 들어갈 단어를 빨리 골라요!',
+      pool: pool.map(x => {
+        const ws = words(x.en), cand = ws.map((w, i) => [w, i]).filter(([w]) => w.length > 2);
+        const [w, i] = cand[Math.floor(Math.random() * cand.length)] || [ws[0], 0];
+        return { say: x.en, prompt: ws.map((v, k) => k === i ? '____' : v).join(' '), answer: w, wrong: allWords.filter(v => v.toLowerCase() !== w.toLowerCase()) };
+      }) };
   }
   return { lesson, levelItems, isReviewDay, challenge };
 })();
@@ -177,16 +185,18 @@ const Challenge = (() => {
           stage.querySelectorAll('.mole').forEach(x => x.disabled = true); hit(ok);
         });
       } else {
-        const item = pickOne(spec.pool), truth = Math.random() < 0.5;
-        const shown = truth ? item.show : pickOne(item.others.filter(o => o !== item.show)) || item.show;
-        const isTrue = shown === item.show;
-        stage.innerHTML = `<div class="ox-card">${item.text ? `<p class="ox-text">${esc(item.text)}</p>` : `<p class="ox-q">🔊 ${esc(item.say)}</p>`}
-          <div class="ox-show ${item.text ? 'pic' : ''}">${esc(shown)}</div></div>
-          <div class="ox-btns"><button class="ox o" data-v="1" aria-label="맞아요">⭕</button><button class="ox x" data-v="0" aria-label="아니에요">❌</button></div>`;
+        // 두 개 중 고르기: 질문(또는 빈칸 문장)을 보여주고 읽어준다
+        const item = pickOne(spec.pool);
+        const opts = shuffle([item.answer, pickOne(item.wrong)]);
+        stage.innerHTML = `<div class="pick2-card"><p class="pick2-prompt">${esc(item.prompt)}</p><button class="btn btn-ghost sm" data-again>🔊 다시 듣기</button></div>
+          <div class="pick2-btns">${opts.map(o => `<button class="pick2" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
         Speech.speak(item.say);
-        stage.querySelectorAll('.ox').forEach(b => b.onclick = () => {
-          const ok = (b.dataset.v === '1') === isTrue; b.classList.add(ok ? 'right' : 'wrong');
-          stage.querySelectorAll('.ox').forEach(x => x.disabled = true); hit(ok);
+        stage.querySelector('[data-again]').onclick = () => Speech.speak(item.say);
+        stage.querySelectorAll('.pick2').forEach(b => b.onclick = () => {
+          const ok = b.dataset.v === item.answer;
+          b.classList.add(ok ? 'right' : 'wrong');
+          if (!ok) stage.querySelectorAll('.pick2').forEach(x => { if (x.dataset.v === item.answer) x.classList.add('right'); });
+          stage.querySelectorAll('.pick2').forEach(x => x.disabled = true); hit(ok);
         });
       }
     };
@@ -427,7 +437,7 @@ const Lesson = (() => {
           <button class="btn btn-ghost" data-slow>🐢 천천히</button>
           ${Speech.canListen ? '<button class="btn btn-primary mic" data-mic>🎤 말하기</button>' : '<button class="btn btn-primary" data-self>따라 말했어요</button>'}
         </div>
-        ${Speech.canListen ? '<button class="link-btn" data-skip>지금은 말하기 어려워요 (건너뛰기)</button>' : '<p class="hint">이 브라우저는 음성 인식을 지원하지 않아 "듣고 따라 말하기"로 진행해요. Chrome/Edge에서는 AI 발음 코칭을 쓸 수 있어요.</p>'}`;
+        ${Speech.canListen ? '<button class="link-btn" data-skip>지금은 말하기 어려워요 (건너뛰기)</button>' : `<p class="hint mic-hint">🎤 지금은 "듣고 따라 말하기"로 진행해요. ${esc(Speech.unsupportedReason())}</p>`}`;
       el.querySelectorAll('[data-say]').forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
       const res = el.querySelector('.speak-result');
       el.querySelector('[data-listen]').onclick = () => Speech.speak(q.target);
@@ -456,7 +466,7 @@ const Lesson = (() => {
             res.innerHTML += `<div class="hint">${coach(r)} (${3 - tries}번 더 해볼 수 있어요)</div>`;
           }
         } catch (e) {
-          res.innerHTML = `<div class="hint">${e.message === 'not-allowed' ? '마이크 권한을 허용해 주세요.' : '소리를 듣지 못했어요. 마이크 가까이에서 또박또박 말해볼까요?'}</div>`;
+          res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}</div>`;
         }
         mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 말하기';
       };

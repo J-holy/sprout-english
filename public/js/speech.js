@@ -106,8 +106,58 @@ const Speech = (() => {
       r.onresult = e => finish(resolve, [...e.results[0]].map(a => a.transcript));
       r.onerror = e => finish(reject, new Error(e.error || 'error'));
       r.onend = () => finish(reject, new Error('no-speech'));
-      r.start();
+      try { r.start(); } catch (e) { finish(reject, new Error('busy')); }
     });
+  }
+
+  // ---------- 기기·브라우저 확인과 마이크 안내 ----------
+  const ua = navigator.userAgent || '';
+  const env = {
+    ios: /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+    android: /Android/i.test(ua),
+    kakao: /KAKAOTALK/i.test(ua),
+    // 앱 안의 브라우저 (카카오톡·인스타그램·페이스북·네이버·라인·밴드 등)는 마이크가 막힌 경우가 많다
+    inApp: /KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|; wv\)|Line\/|BAND\/|DaumApps|everytimeApp|SamsungBrowser\/.*CrossApp/i.test(ua),
+  };
+  env.iosNotSafari = env.ios && /CriOS|FxiOS|EdgiOS|Whale|NAVER|DaumApps|KAKAOTALK/i.test(ua);
+  env.secure = window.isSecureContext !== false;
+  // 외부 브라우저로 열기 주소 (카카오톡은 전용 주소, 안드로이드는 Chrome 인텐트)
+  function externalUrl(url = location.href) {
+    if (env.kakao) return 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+    // iOS 17부터 x-safari-https:// 로 Safari에서 바로 열 수 있다 (크롬·인스타그램 등)
+    if (env.ios) return 'x-safari-' + url;
+    if (env.android) return 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+    return null; // iPhone은 공유 버튼 › Safari로 열기
+  }
+  // 음성 인식을 쓸 수 없는 이유 (쓸 수 있으면 '')
+  function unsupportedReason() {
+    if (Rec && env.secure && !env.inApp && !env.iosNotSafari) return '';
+    if (!env.secure) return '보안 연결(https)이 아니라 마이크를 쓸 수 없어요. https:// 주소로 열어 주세요.';
+    if (env.inApp) return env.ios ? '앱 안의 브라우저에서는 말하기가 안 돼요. 오른쪽 아래 공유(⋯) 버튼 › "Safari로 열기"로 열어 주세요.' : '앱 안의 브라우저에서는 말하기가 안 돼요. 위쪽 "Chrome으로 열기"를 눌러 주세요.';
+    if (env.iosNotSafari) return 'iPhone에서는 Safari에서만 말하기(마이크)가 돼요. 위쪽 "Safari로 열기"를 눌러 주세요.';
+    if (env.ios) return 'iOS 14.5 이상의 Safari에서 말하기를 쓸 수 있어요. iPhone을 업데이트하거나 Safari로 열어 주세요.';
+    return '이 브라우저는 음성 인식을 지원하지 않아요. Chrome·Edge·삼성 인터넷 최신 버전으로 열어 주세요.';
+  }
+  // 음성 인식 오류 코드 → 아이·부모님이 할 일
+  function micHelp(code) {
+    const permIOS = '설정 › Safari › 마이크를 "허용"으로 바꾸고, 설정 › 일반 › 키보드 › "받아쓰기"를 켜 주세요.';
+    const permAndroid = '주소창 왼쪽 자물쇠(ⓘ) › 권한 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
+    const permPC = '주소창 왼쪽 자물쇠 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
+    // iPhone의 Chrome·네이버 앱 등은 권한을 줘도 음성 인식이 막혀 있다
+    if (env.iosNotSafari && ['not-allowed', 'service-not-allowed', 'unsupported'].includes(code)) return '🎤 iPhone에서는 Safari에서만 말하기 점수가 나와요. 공유 버튼 › "Safari로 열기"로 열어 주세요.';
+    switch (code) {
+      case 'not-allowed': return '🎤 마이크가 꺼져 있어요. ' + (env.ios ? permIOS : env.android ? permAndroid : permPC);
+      case 'service-not-allowed': return env.ios ? '🎤 iPhone 받아쓰기가 꺼져 있어요. 설정 › 일반 › 키보드 › "받아쓰기"를 켜고 Safari로 열어 주세요.' : unsupportedReason() || '🎤 이 브라우저에서 음성 인식을 쓸 수 없어요. Chrome으로 열어 주세요.';
+      case 'audio-capture': return '🎤 마이크를 찾지 못했어요. 다른 앱(통화·녹음)이 마이크를 쓰고 있는지 확인해 주세요.';
+      case 'network': return '📶 음성 인식은 인터넷이 필요해요. 연결을 확인해 주세요.';
+      case 'unsupported': return unsupportedReason();
+      case 'busy': return '잠깐만요, 다시 한 번 눌러 주세요.';
+      case 'timeout': case 'no-speech': case 'aborted': default: return '소리를 듣지 못했어요. 마이크 가까이에서 또박또박 말해 볼까요?';
+    }
+  }
+  // 마이크 권한 상태 ('granted' | 'denied' | 'prompt' | 'unknown')
+  async function micPermission() {
+    try { return (await navigator.permissions.query({ name: 'microphone' })).state; } catch (e) { return 'unknown'; }
   }
 
   const norm = s => s.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9\s-]/g, ' ').replace(/-/g, ' ').split(/\s+/).filter(Boolean);
@@ -164,7 +214,8 @@ const Speech = (() => {
 
   return {
     speak, speakLater, stop, listen, score, sfx,
-    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return !!Rec; },
+    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return !!Rec && env.secure && !env.inApp && !env.iosNotSafari; },
+    env, externalUrl, unsupportedReason, micHelp, micPermission,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
     configure({ server, manifest }) { neural = { server: !!server, manifest: manifest || null }; },
     get neuralAvailable() { return !!(neural.server || neural.manifest); },
