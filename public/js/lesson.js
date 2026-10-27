@@ -16,9 +16,15 @@ const Gen = (() => {
     const size = Math.ceil(bank.length / n);
     return bank.slice(k * size, k * size + size);
   }
+  // 레벨마다 1~9일째: 새 항목 + 앞에서 배운 항목 복습, 10일째: 레벨 전체 복습
+  const isReviewDay = idx => idx >= LESSONS_PER_LEVEL - 1;
   function lessonItems(level, idx) {
-    const items = levelItems(level), size = Math.ceil(items.length / LESSONS_PER_LEVEL);
-    let chunk = items.slice(idx * size, idx * size + size);
+    const items = levelItems(level), newDays = LESSONS_PER_LEVEL - 1;
+    if (isReviewDay(idx)) return shuffle(items).slice(0, 6);
+    const per = Math.ceil(items.length / newDays);
+    const fresh = items.slice(idx * per, idx * per + per);
+    const review = shuffle(items.slice(0, idx * per)).slice(0, Math.max(2, 5 - fresh.length));
+    let chunk = fresh.concat(review);
     if (chunk.length < 4) chunk = chunk.concat(shuffle(items.filter(x => !chunk.includes(x))).slice(0, 4 - chunk.length));
     return chunk;
   }
@@ -28,12 +34,15 @@ const Gen = (() => {
   const B = {
     1: (L, t) => {
       const pool = LETTERS.map(x => x.letter);
+      const [word, emoji] = L.words[t % L.words.length]; // 날마다 다른 그림 단어
+      // X는 x로 시작하는 쉬운 단어가 없어서 끝소리로 배운다 (box, fox, six)
+      const sound = L.ending ? `${word} ends with ${L.letter}` : `${L.letter} is for ${word}`;
       return [
         () => choice(`ltr-listen-${L.letter}`, '소리를 듣고 알파벳을 골라요', L.letter, pickOthers(pool, 2, L.letter), { say: L.letter, big: '🔊' }),
         () => choice(`ltr-case-${L.letter}`, '대문자와 짝인 소문자를 골라요', L.letter.toLowerCase(), pickOthers(pool, 2, L.letter).map(x => x.toLowerCase()), { show: L.letter, say: L.letter }),
-        () => choice(`ltr-start-${L.letter}`, '어떤 글자로 시작할까요?', L.letter, pickOthers(pool, 2, L.letter), { show: L.emoji, sub: L.word, say: L.word }),
-        () => ({ type: 'trace', key: `ltr-trace-${L.letter}`, title: '글자를 따라 써요', letter: t % 2 ? L.letter.toLowerCase() : L.letter, say: L.letter }),
-        () => ({ type: 'speak', key: `ltr-speak-${L.letter}`, title: '따라 말해요', target: `${L.letter} is for ${L.word}`, show: L.emoji }),
+        () => choice(`ltr-start-${L.letter}-${word}`, L.ending ? '어떤 글자로 끝날까요?' : '어떤 글자로 시작할까요?', L.letter, pickOthers(pool, 2, L.letter), { show: emoji, sub: word, say: word }),
+        () => ({ type: 'trace', key: `ltr-trace-${L.letter}-${t % 2}`, title: '글자를 따라 써요', letter: t % 2 ? L.letter.toLowerCase() : L.letter, say: L.letter }),
+        () => ({ type: 'speak', key: `ltr-speak-${L.letter}-${word}`, title: '따라 말해요', target: sound, show: emoji }),
       ];
     },
     2: W => {
@@ -81,7 +90,7 @@ const Gen = (() => {
   function lesson(level, idx, n = 8) {
     const st = stageOf(level).id;
     const items = lessonItems(level, idx);
-    const builders = items.map((it, t) => st === 1 ? B[1](it, t) : st === 2 ? B[2](it) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st));
+    const builders = items.map((it, t) => st === 1 ? B[1](it, t + idx) : st === 2 ? B[2](it) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st));
     const qs = []; let r = idx;
     for (let i = 0; qs.length < n; i++) {
       const bs = builders[i % builders.length];
@@ -94,7 +103,7 @@ const Gen = (() => {
     for (const bs of builders) for (const b of bs) { if (out.length >= n) break; const q = b(); if (!seen.has(q.key)) { seen.add(q.key); out.push(q); } }
     return out.slice(0, n);
   }
-  return { lesson, levelItems };
+  return { lesson, levelItems, isReviewDay };
 })();
 
 /* ---------------- 레슨 진행 엔진 ---------------- */

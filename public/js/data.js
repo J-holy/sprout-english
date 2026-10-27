@@ -1,5 +1,4 @@
-/* 새싹영어 — 콘텐츠 데이터 (커리큘럼, 학습 문항, 스토리북, FAQ, 요금제) */
-const LESSONS_PER_LEVEL = 3;
+/* 새싹영어 — 커리큘럼 구조, 레벨 테스트, 요금제, 상점, FAQ */
 
 const STAGES = [
   { id: 1, levels: ['A', 'B'], title: '알파벳', desc: '즐겁고 재미나게 알파벳 대소문자를 마스터해요.', skills: ['알파벳 소리', '대소문자 짝짓기', '따라 쓰기'], color: '#ff8a65' },
@@ -14,112 +13,7 @@ const STAGES = [
 const ALL_LEVELS = STAGES.flatMap(s => s.levels);
 const stageOf = lv => STAGES.find(s => s.levels.includes(lv));
 
-const LETTERS = [
-  ['A', 'apple', '🍎'], ['B', 'ball', '⚽'], ['C', 'cat', '🐱'], ['D', 'dog', '🐶'], ['E', 'egg', '🥚'],
-  ['F', 'fish', '🐟'], ['G', 'goat', '🐐'], ['H', 'hat', '🎩'], ['I', 'insect', '🐞'], ['J', 'juice', '🧃'],
-  ['K', 'kite', '🪁'], ['L', 'lion', '🦁'], ['M', 'moon', '🌙'], ['N', 'nose', '👃'], ['O', 'octopus', '🐙'],
-  ['P', 'pig', '🐷'], ['Q', 'queen', '👸'], ['R', 'rabbit', '🐰'], ['S', 'sun', '☀️'], ['T', 'tiger', '🐯'],
-  ['U', 'umbrella', '☂️'], ['V', 'van', '🚐'], ['W', 'whale', '🐳'], ['X', 'box', '📦'], ['Y', 'yo-yo', '🪀'], ['Z', 'zebra', '🦓'],
-].map(([letter, word, emoji]) => ({ letter, word, emoji }));
-
-const PHONICS = {
-  C: [['cat', '🐱', '고양이'], ['hat', '🎩', '모자'], ['bat', '🦇', '박쥐'], ['map', '🗺️', '지도'], ['van', '🚐', '승합차'], ['bag', '👜', '가방'],
-      ['bed', '🛏️', '침대'], ['hen', '🐔', '암탉'], ['net', '🥅', '그물'], ['pen', '🖊️', '펜'], ['web', '🕸️', '거미줄'], ['leg', '🦵', '다리']],
-  D: [['pig', '🐷', '돼지'], ['pin', '📌', '핀'], ['six', '6️⃣', '여섯'], ['lip', '👄', '입술'], ['kid', '🧒', '아이'], ['zip', '🤐', '지퍼'],
-      ['dog', '🐶', '개'], ['box', '📦', '상자'], ['fox', '🦊', '여우'], ['pot', '🍲', '냄비'], ['log', '🪵', '통나무'], ['hot', '🔥', '뜨거운']],
-  E: [['sun', '☀️', '해'], ['bus', '🚌', '버스'], ['cup', '☕', '컵'], ['bug', '🐛', '벌레'], ['nut', '🥜', '견과'], ['hug', '🤗', '안아주기'],
-      ['ship', '🚢', '배'], ['fish', '🐟', '물고기'], ['shell', '🐚', '조개'], ['chick', '🐤', '병아리'], ['cheese', '🧀', '치즈'], ['chair', '🪑', '의자']],
-};
-
-// 문장 은행: en / ko / (선택) emoji
-const SENTENCES = {
-  3: [
-    ['This is a cat.', '이것은 고양이예요.', '🐱'], ['I am happy.', '나는 행복해요.', '😊'], ['It is a big dog.', '그것은 큰 개예요.', '🐕'],
-    ['I like apples.', '나는 사과를 좋아해요.', '🍎'], ['I have a red ball.', '나는 빨간 공이 있어요.', '🔴'], ['She is my mom.', '그녀는 우리 엄마예요.', '👩'],
-    ['He is my dad.', '그는 우리 아빠예요.', '👨'], ['The sun is hot.', '해가 뜨거워요.', '☀️'], ['I see a bird.', '나는 새를 봐요.', '🐦'],
-    ['We can run.', '우리는 달릴 수 있어요.', '🏃'], ['That is my bag.', '저것은 내 가방이에요.', '🎒'], ['It is a pen.', '그것은 펜이에요.', '🖊️'],
-    ['I am six.', '나는 여섯 살이에요.', '6️⃣'], ['You are my friend.', '너는 내 친구야.', '🤝'], ['The cup is blue.', '컵이 파래요.', '🥤'],
-    ['I like milk.', '나는 우유를 좋아해요.', '🥛'], ['It is a fish.', '그것은 물고기예요.', '🐟'], ['We are kids.', '우리는 어린이예요.', '🧒'],
-  ],
-  5: [
-    ['The big bear is brown.', '큰 곰은 갈색이에요.', '🐻'], ['I have a small yellow duck.', '나는 작은 노란 오리가 있어요.', '🦆'],
-    ['The tall tree is green.', '키 큰 나무는 초록색이에요.', '🌳'], ['My sister is very kind.', '우리 언니는 아주 친절해요.', '👧'],
-    ['The soup is too hot.', '수프가 너무 뜨거워요.', '🍲'], ['I feel sleepy today.', '나는 오늘 졸려요.', '😴'],
-    ['The little cat is soft.', '작은 고양이는 부드러워요.', '🐈'], ['This cake is so sweet.', '이 케이크는 정말 달아요.', '🍰'],
-    ['The long train is fast.', '긴 기차는 빨라요.', '🚆'], ['My room is clean.', '내 방은 깨끗해요.', '🛏️'],
-    ['The sky is dark.', '하늘이 어두워요.', '🌌'], ['He is strong and brave.', '그는 힘세고 용감해요.', '💪'],
-    ['The flowers are pretty.', '꽃들이 예뻐요.', '🌸'], ['I am a little scared.', '나는 조금 무서워요.', '😨'],
-    ['The old man is funny.', '그 할아버지는 재미있어요.', '👴'], ['Her dress is purple.', '그녀의 드레스는 보라색이에요.', '👗'],
-  ],
-  7: [
-    ['I played soccer yesterday.', '나는 어제 축구를 했어요.', '⚽'], ['We went to the park.', '우리는 공원에 갔어요.', '🏞️'],
-    ['She ate a sandwich.', '그녀는 샌드위치를 먹었어요.', '🥪'], ['I saw a rainbow.', '나는 무지개를 봤어요.', '🌈'],
-    ['He drank some water.', '그는 물을 조금 마셨어요.', '💧'], ['They watched a movie.', '그들은 영화를 봤어요.', '🎬'],
-    ['I helped my mom.', '나는 엄마를 도왔어요.', '🤲'], ['The dog jumped high.', '개가 높이 뛰었어요.', '🐕'],
-    ['We made a snowman.', '우리는 눈사람을 만들었어요.', '⛄'], ['I read a book last night.', '나는 어젯밤에 책을 읽었어요.', '📖'],
-    ['She cleaned her room.', '그녀는 방을 청소했어요.', '🧹'], ['I had a good day.', '나는 좋은 하루를 보냈어요.', '🌟'],
-    ['He ran to school.', '그는 학교로 뛰어갔어요.', '🏫'], ['We sang a song.', '우리는 노래를 불렀어요.', '🎤'],
-    ['I wrote a letter.', '나는 편지를 썼어요.', '✉️'], ['The baby slept well.', '아기가 잘 잤어요.', '👶'],
-  ],
-  8: [
-    ['I will be a doctor.', '나는 의사가 될 거예요.', '🧑‍⚕️'], ['We will go to the beach.', '우리는 해변에 갈 거예요.', '🏖️'],
-    ['It will rain tomorrow.', '내일 비가 올 거예요.', '🌧️'], ['I am going to bake cookies.', '나는 쿠키를 구울 거예요.', '🍪'],
-    ['She will visit her grandma.', '그녀는 할머니 댁에 갈 거예요.', '👵'], ['He is going to fly a kite.', '그는 연을 날릴 거예요.', '🪁'],
-    ['I will study hard.', '나는 열심히 공부할 거예요.', '📚'], ['We are going to plant a tree.', '우리는 나무를 심을 거예요.', '🌱'],
-    ['I will be an astronaut.', '나는 우주비행사가 될 거예요.', '🧑‍🚀'], ['They will play together.', '그들은 함께 놀 거예요.', '🤸'],
-    ['I am going to draw a picture.', '나는 그림을 그릴 거예요.', '🎨'], ['My dream is to be a singer.', '내 꿈은 가수가 되는 거예요.', '🎤'],
-  ],
-};
-
-// 질문/대답 은행: q / a / ko
-const QA = {
-  4: [
-    ['What is your name?', 'My name is Mia.', '이름이 뭐니? — 내 이름은 미아야.'], ['How are you?', 'I am fine, thank you.', '어떻게 지내? — 잘 지내, 고마워.'],
-    ['How old are you?', 'I am seven years old.', '몇 살이니? — 나는 일곱 살이야.'], ['What color is it?', 'It is green.', '무슨 색이야? — 초록색이야.'],
-    ['Do you like pizza?', 'Yes, I do.', '피자 좋아해? — 응, 좋아해.'], ['Can you swim?', 'No, I can not.', '수영할 수 있어? — 아니, 못 해.'],
-    ['What is this?', 'It is a pencil.', '이건 뭐야? — 연필이야.'], ['Is it a cat?', 'No, it is a dog.', '고양이야? — 아니, 개야.'],
-    ['What do you want?', 'I want some juice.', '뭘 원해? — 주스를 원해.'], ['Who is she?', 'She is my teacher.', '그녀는 누구야? — 우리 선생님이야.'],
-    ['How many apples?', 'There are three apples.', '사과가 몇 개야? — 사과가 세 개 있어.'], ['Are you hungry?', 'Yes, I am.', '배고프니? — 응, 배고파.'],
-    ['What time is it?', 'It is two o\'clock.', '몇 시야? — 두 시야.'], ['Do you have a pet?', 'Yes, I have a hamster.', '애완동물 있어? — 응, 햄스터가 있어.'],
-    ['What is your favorite food?', 'I like noodles.', '제일 좋아하는 음식은? — 국수를 좋아해.'], ['Can I help you?', 'Yes, please.', '도와줄까? — 응, 부탁해.'],
-  ],
-  6: [
-    ['Where is the cat?', 'The cat is under the table.', '고양이는 어디 있어? — 탁자 밑에 있어.'], ['Who is that boy?', 'He is my cousin Tom.', '저 남자아이는 누구야? — 내 사촌 톰이야.'],
-    ['When do you get up?', 'I get up at seven.', '언제 일어나? — 일곱 시에 일어나.'], ['What are you doing?', 'I am reading a book.', '뭐 하고 있어? — 책을 읽고 있어.'],
-    ['Where do you live?', 'I live in Seoul.', '어디 살아? — 서울에 살아.'], ['Why are you sad?', 'Because I lost my toy.', '왜 슬퍼? — 장난감을 잃어버렸거든.'],
-    ['How do you go to school?', 'I go to school by bus.', '학교에 어떻게 가? — 버스로 가.'], ['Where is my hat?', 'It is on the chair.', '내 모자 어디 있어? — 의자 위에 있어.'],
-    ['When is your birthday?', 'It is in May.', '생일이 언제야? — 5월이야.'], ['What does he like?', 'He likes robots.', '그는 뭘 좋아해? — 로봇을 좋아해.'],
-    ['Who has the ball?', 'Mina has the ball.', '누가 공을 가지고 있어? — 미나가 가지고 있어.'], ['Where are the birds?', 'They are in the tree.', '새들은 어디 있어? — 나무에 있어.'],
-    ['What do you eat for lunch?', 'I eat rice and soup.', '점심에 뭘 먹어? — 밥이랑 국을 먹어.'], ['When do you sleep?', 'I sleep at nine.', '언제 자? — 아홉 시에 자.'],
-    ['Where is the library?', 'It is next to the bank.', '도서관은 어디야? — 은행 옆에 있어.'], ['Who is singing?', 'My brother is singing.', '누가 노래하고 있어? — 우리 형이 노래하고 있어.'],
-  ],
-};
-
-const VERBS = [
-  ['go', 'went'], ['eat', 'ate'], ['see', 'saw'], ['play', 'played'], ['drink', 'drank'], ['watch', 'watched'], ['help', 'helped'], ['jump', 'jumped'],
-  ['make', 'made'], ['read', 'read'], ['clean', 'cleaned'], ['have', 'had'], ['run', 'ran'], ['sing', 'sang'], ['write', 'wrote'], ['sleep', 'slept'],
-  ['come', 'came'], ['swim', 'swam'], ['walk', 'walked'], ['give', 'gave'],
-];
-const WRONG_PAST = { go: 'goed', eat: 'eated', see: 'seed', drink: 'drinked', make: 'maked', read: 'readed', have: 'haved', run: 'runned', sing: 'singed', write: 'writed', sleep: 'sleeped', come: 'comed', swim: 'swimmed', give: 'gived' };
-
-const STORIES = [
-  { id: 1, stage: 1, title: 'ABC Picnic', cover: '🧺', pages: [
-    ['A is for apple.', '🍎'], ['B is for banana.', '🍌'], ['C is for cookie.', '🍪'], ['We eat in the park.', '🌳'], ['Yum! What a fun picnic!', '😋'] ] },
-  { id: 2, stage: 2, title: 'The Fat Cat', cover: '🐈', pages: [
-    ['A cat sat on a mat.', '🐈'], ['The cat is fat.', '🐱'], ['A rat ran to the cat.', '🐀'], ['The cat had a nap.', '😴'], ['The rat got a hat!', '🎩'] ] },
-  { id: 3, stage: 3, title: 'My Family', cover: '👨‍👩‍👧', pages: [
-    ['This is my mom.', '👩'], ['This is my dad.', '👨'], ['This is my baby brother.', '👶'], ['We are a happy family.', '👨‍👩‍👦'], ['I love my family.', '❤️'] ] },
-  { id: 4, stage: 4, title: 'New Friend', cover: '🤝', pages: [
-    ['Hi! What is your name?', '👦'], ['My name is Lily.', '👧'], ['How old are you?', '👦'], ['I am seven years old.', '👧'], ['Let us be friends!', '🤝'] ] },
-  { id: 5, stage: 5, title: 'The Rainy Day', cover: '🌧️', pages: [
-    ['The sky is gray and dark.', '☁️'], ['Big drops fall on the roof.', '🌧️'], ['I wear my yellow boots.', '🥾'], ['The puddles are deep and fun.', '💦'], ['Now the sky is bright and blue!', '🌈'] ] },
-  { id: 6, stage: 6, title: 'Where Is Max?', cover: '🐶', pages: [
-    ['Where is Max the dog?', '🐶'], ['Is he under the bed? No!', '🛏️'], ['Is he in the kitchen? No!', '🍳'], ['He is behind the sofa.', '🛋️'], ['Max is sleeping. Shh!', '💤'] ] },
-  { id: 7, stage: 7, title: 'My Weekend', cover: '🎡', pages: [
-    ['On Saturday, I went to the zoo.', '🦒'], ['I saw a big elephant.', '🐘'], ['I ate ice cream with my dad.', '🍦'], ['On Sunday, I played with my friends.', '⚽'], ['I had a great weekend!', '🌟'] ] },
-  { id: 8, stage: 8, title: 'When I Grow Up', cover: '🚀', pages: [
-    ['What will you be?', '🤔'], ['I will be a pilot.', '🧑‍✈️'], ['I am going to fly around the world.', '✈️'], ['I will visit many countries.', '🌍'], ['My dream will come true!', '✨'] ] },
-];
+// 알파벳·파닉스·문장·질문·동사·스토리북은 content.js 에 있어요.
 
 // 레벨 테스트: stage가 높을수록 어려운 문항
 const LEVEL_TEST = [
@@ -175,7 +69,8 @@ const FAQ = [
   { cat: '학습', q: '별(⭐)은 어디에 쓰나요?', a: '레슨 별점, 스토리 완독, 말하기 80점 이상, 놀이터 게임으로 별을 모아요. 모은 별로 별 상점에서 스티커와 아바타 꾸미기 아이템을 살 수 있어요.' },
   { cat: '학습', q: '소리가 너무 크거나 작아요.', a: '레슨 화면 위쪽 🔊 버튼이나 부모페이지 > 설정에서 목소리와 효과음 볼륨을 따로 조절할 수 있어요.' },
   { cat: '학습', q: '워크시트는 어떻게 받나요?', a: '부모페이지 > 워크시트에서 레벨을 골라 바로 인쇄하거나 PDF로 저장해요. 인쇄한 날짜가 기록돼요.' },
-  { cat: '학습', q: '하루에 얼마나 학습하면 좋을까요?', a: '하루 10~20분, 레슨 1~2개를 권장해요. 부모페이지에서 하루 목표 레슨 수를 정할 수 있고, 목표를 채우면 학습 도장이 찍혀요.' },
+  { cat: '학습', q: '하루에 얼마나 학습하면 좋을까요?', a: '하루 10~15분, 레슨 1개를 권장해요. 더 하고 싶어 하면 2개까지 좋아요. 부모페이지에서 하루 목표 레슨 수를 정할 수 있고, 목표를 채우면 학습 도장이 찍혀요.' },
+  { cat: '학습', q: '전체 과정을 마치는 데 얼마나 걸리나요?', a: '8단계 26레벨, 레벨마다 10일(9일 학습 + 1일 복습)로 모두 260레슨이에요. 주 5일 하루 1레슨이면 약 1년, 하루 2레슨이면 약 6개월 걸려요. 레벨 진단으로 중간 단계부터 시작하면 더 짧아지고, 모험 지도에서 남은 기간을 확인할 수 있어요.' },
   { cat: '학습', q: '어느 레벨부터 시작해야 하나요?', a: '첫 프로필을 만들면 레벨 테스트를 볼 수 있어요. 결과에 따라 알맞은 레벨부터 시작하고, 이전 레벨도 언제든 복습할 수 있어요.' },
   { cat: '학습', q: 'AI 말하기가 작동하지 않아요.', a: 'AI 발음 코칭은 브라우저의 음성 인식 기능을 사용해요. Chrome 또는 Edge 브라우저에서 마이크 권한을 허용해 주세요. 지원하지 않는 브라우저에서는 듣고 따라 말하기 모드로 진행돼요.' },
   { cat: '학습', q: '틀린 문제는 다시 볼 수 있나요?', a: '틀린 문제는 자동으로 오답노트에 저장돼요. 오답노트에서 다시 풀어 맞히면 목록에서 사라져요.' },

@@ -168,6 +168,12 @@ const App = (() => {
 
   async function init() {
     await Store.init();
+    // AI 음성: 서버에 TTS 키가 있으면 /api/tts, 없으면 미리 만든 audio/manifest.json (있을 때만)
+    let manifest = null;
+    if (!(API.on && API.cfg.tts)) {
+      try { const r = await fetch('audio/manifest.json'); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
+    }
+    Speech.configure({ server: API.on && !!API.cfg.tts, manifest });
     // 서버 없이(예: GitHub Pages) 열렸을 때는 데모라는 걸 알려준다
     const banner = document.getElementById('demoBanner');
     let closed = false; try { closed = sessionStorage.getItem('sprout-demo-closed') === '1'; } catch (e) { /* ignore */ }

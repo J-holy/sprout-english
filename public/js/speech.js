@@ -4,33 +4,81 @@ const Speech = (() => {
   const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
   let voice = null;
   let rate = 0.85;
+  // 기본은 '자동': AI 음성이 있으면 AI 음성, 없으면 이 기기에서 가장 자연스러운 목소리
   // 목소리/효과음 볼륨을 따로 저장 (0~1)
   const vol = { voice: 1, sfx: 0.6 };
   try { Object.assign(vol, JSON.parse(localStorage.getItem('sprout-volume')) || {}); } catch (e) { /* ignore */ }
 
+  // ---------- 목소리 고르기 ----------
+  // 이름에 이런 말이 있으면 신경망(자연스러운) 목소리예요: Edge의 "Online (Natural)", Apple의 Premium/Enhanced 등
+  const NATURAL = /natural|neural|online|premium|enhanced|google/i;
+  const NICE = /ava|jenny|aria|emma|michelle|samantha|allison|zoe|evan|nathan|google us/i;
+  // macOS의 장난스러운 효과 목소리는 빼요
+  const NOVELTY = /albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|kathy|ralph|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy/i;
+  const quality = v => (NATURAL.test(v.name) ? 4 : 0) + (NICE.test(v.name) ? 2 : 0) + (/en[-_]US/i.test(v.lang) ? 1 : 0) + (v.localService ? 0 : 0.5);
+  let chosen = '';
+  try { chosen = localStorage.getItem('sprout-voice') || ''; } catch (e) { /* ignore */ }
+  const englishVoices = () => synth ? synth.getVoices().filter(v => /^en(-|_)/i.test(v.lang) && !NOVELTY.test(v.name)).sort((a, b) => quality(b) - quality(a)) : [];
   function pickVoice() {
-    if (!synth) return;
-    const vs = synth.getVoices().filter(v => /^en(-|_)/i.test(v.lang));
-    const pref = ['Samantha', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Karen', 'Daniel'];
-    voice = pref.map(n => vs.find(v => v.name.includes(n))).find(Boolean) || vs.find(v => /en-US/i.test(v.lang)) || vs[0] || null;
+    const vs = englishVoices();
+    voice = (chosen && chosen !== 'neural' && vs.find(v => v.voiceURI === chosen)) || vs[0] || null;
   }
   if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
 
-  function speak(text, { onBoundary, onEnd, slow } = {}) {
+  // ---------- AI 음성 (서버 /api/tts 또는 미리 만든 audio/ 파일) ----------
+  let neural = { server: false, manifest: null };
+  let audio = null, timers = [];
+  const useNeural = () => (neural.server || neural.manifest) && chosen !== 'browser' && !(chosen && chosen !== 'neural' && voice && voice.voiceURI === chosen);
+  function audioUrl(text, slow) {
+    if (neural.server) return `api/tts?text=${encodeURIComponent(text)}${slow ? '&slow=1' : ''}`;
+    const f = neural.manifest && neural.manifest[text.trim()];
+    return f ? `audio/${f}` : null;
+  }
+  function clearAudio() {
+    timers.forEach(clearTimeout); timers = [];
+    if (audio) { audio.onended = audio.onerror = null; audio.pause(); audio = null; }
+  }
+  function playNeural(text, { onBoundary, onEnd, slow }) {
+    const url = audioUrl(text, slow);
+    if (!url) return false;
+    const a = new Audio(url); audio = a;
+    a.volume = vol.voice;
+    // 서버는 천천히 버전을 따로 만들고, 미리 만든 파일은 재생 속도로 늦춘다
+    a.playbackRate = slow ? (neural.server ? 1 : 0.75) : rate / 0.85;
+    let ended = false;
+    const finish = () => { if (ended) return; ended = true; timers.forEach(clearTimeout); timers = []; onEnd && onEnd(); };
+    a.onended = finish;
+    a.onerror = () => { if (audio === a) { audio = null; speakBrowser(text, { onBoundary, onEnd, slow }); } };
+    if (onBoundary) a.onplaying = () => {
+      // 오디오에는 단어 위치 정보가 없어서 글자 수 비율로 단어 강조 시점을 계산한다
+      const total = (a.duration || text.length * 0.07) / a.playbackRate * 1000;
+      let at = 0;
+      text.split(' ').forEach(w => { const t = at / text.length * total; const ci = at; timers.push(setTimeout(() => onBoundary(ci), t)); at += w.length + 1; });
+    };
+    a.play().catch(() => { if (audio === a) { audio = null; speakBrowser(text, { onBoundary, onEnd, slow }); } });
+    return true;
+  }
+
+  function speakBrowser(text, { onBoundary, onEnd, slow } = {}) {
     if (!synth) { onEnd && onEnd(); return; }
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
     u.lang = voice ? voice.lang : 'en-US';
-    u.rate = slow ? 0.6 : rate;
-    u.pitch = 1.05;
+    u.rate = slow ? 0.65 : rate;
+    u.pitch = 1;
     u.volume = vol.voice;
     if (onBoundary) u.onboundary = e => { if (e.name === 'word' || e.name === undefined) onBoundary(e.charIndex); };
     u.onend = () => onEnd && onEnd();
     u.onerror = () => onEnd && onEnd();
     synth.speak(u);
   }
-  const stop = () => synth && synth.cancel();
+  function speak(text, opts = {}) {
+    stop();
+    if (useNeural() && playNeural(text, opts)) return;
+    speakBrowser(text, opts);
+  }
+  const stop = () => { clearAudio(); if (synth) synth.cancel(); };
 
   // 한 번 듣고 결과 후보 문장들을 돌려줌
   function listen({ timeout = 8000 } = {}) {
@@ -103,7 +151,15 @@ const Speech = (() => {
 
   return {
     speak, stop, listen, score, sfx,
-    get canSpeak() { return !!synth; }, get canListen() { return !!Rec; },
+    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return !!Rec; },
+    // 서버/정적 AI 음성 연결 (App.init에서 호출)
+    configure({ server, manifest }) { neural = { server: !!server, manifest: manifest || null }; },
+    get neuralAvailable() { return !!(neural.server || neural.manifest); },
+    get voiceChoice() { return chosen; },
+    get voiceName() { return useNeural() ? 'AI 자연 음성' : voice ? voice.name : '기본 목소리'; },
+    voices: () => englishVoices().map(v => ({ uri: v.voiceURI, name: v.name, lang: v.lang, natural: NATURAL.test(v.name) })),
+    // '' = 자동, 'neural' = AI 음성, 'browser' = 기기 목소리 자동, 그 외 = 특정 기기 목소리
+    setVoice(c) { chosen = c; try { localStorage.setItem('sprout-voice', c); } catch (e) { /* ignore */ } pickVoice(); },
     setRate(r) { rate = r; },
     get volume() { return { ...vol }; },
     setVolume(k, v) { vol[k] = v; try { localStorage.setItem('sprout-volume', JSON.stringify(vol)); } catch (e) { /* ignore */ } },

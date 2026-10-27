@@ -14,6 +14,7 @@ import {
 import { sendCodeMail, mailReady, verifyMailer } from './lib/mailer.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, validPlan, quote } from './lib/pricing.js';
+import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
 import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
 
 const app = express();
@@ -36,7 +37,21 @@ const PENDING_TTL = 30 * 60000;
 app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), tossClientKey: config.toss.clientKey || null,
-  plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code,
+  plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(),
+}));
+
+// ---------- AI 음성 (TTS) ----------
+app.get('/api/tts', wrap(async (req, res) => {
+  if (!ttsProvider()) return bad(res, 'AI 음성이 설정되지 않았어요.', 404);
+  const text = cleanText(req.query.text), slow = req.query.slow === '1';
+  if (!validText(text)) return bad(res, '읽을 수 없는 문장이에요.');
+  // 이미 만든 문장은 바로 보내고, 새로 만드는 요청만 IP별로 제한한다 (요금 보호)
+  if (!fs.existsSync(cacheFile(text, slow)) && !rateLimit('tts:' + clientIp(req), 300, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  let file;
+  try { ({ file } = await getSpeech(text, slow)); }
+  catch (err) { console.error('[TTS]', err.message); return bad(res, 'AI 음성을 만들지 못했어요.', 502); }
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  res.type(file.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg').sendFile(file);
 }));
 
 // ---------- 내 정보 / 학습 기록 동기화 ----------
@@ -284,7 +299,7 @@ app.get('/api/admin/stats', (req, res) => {
     revenue: db.prepare("SELECT COALESCE(SUM(amount),0) n FROM payments WHERE status = '결제완료'").get().n,
     reviews: db.prepare('SELECT COUNT(*) n FROM reviews').get().n,
     server: { node: process.version, uptimeMin: Math.round(process.uptime() / 60), load: os.loadavg()[0].toFixed(2), freeMemMB: Math.round(os.freemem() / 1048576), dbSizeKB: Math.round(fs.statSync(dbFile).size / 1024) },
-    setup: { mail: mailReady, providers: enabledProviders(), payments: paymentMode(), publicUrl: config.publicUrl },
+    setup: { mail: mailReady, providers: enabledProviders(), payments: paymentMode(), publicUrl: config.publicUrl, tts: ttsStats() },
   });
 });
 app.get('/api/admin/export', (req, res) => {
@@ -319,7 +334,7 @@ setTimeout(() => renewalJob().catch(err => console.error('[자동갱신]', err.m
 
 const server = app.listen(config.port, config.host, () => {
   console.log(`🌱 새싹영어 서버 시작: http://${config.host}:${config.port}  (공개 주소 ${config.publicUrl})`);
-  console.log(`   DB ${dbFile} · 결제 ${paymentMode()} · SNS ${Object.entries(enabledProviders()).filter(([, v]) => v).map(([k]) => k).join(', ') || '없음'} · 관리자 ${config.adminEmails.join(', ') || '없음'}`);
+  console.log(`   DB ${dbFile} · AI 음성 ${ttsProvider() || '없음'} · 결제 ${paymentMode()} · SNS ${Object.entries(enabledProviders()).filter(([, v]) => v).map(([k]) => k).join(', ') || '없음'} · 관리자 ${config.adminEmails.join(', ') || '없음'}`);
   verifyMailer();
 });
 const stop = () => { server.close(() => { db.close(); process.exit(0); }); setTimeout(() => process.exit(0), 5000).unref(); };

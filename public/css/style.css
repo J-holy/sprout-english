@@ -310,7 +310,7 @@ label.check { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .path-island::before { content: ''; position: absolute; inset: auto 0 0 0; height: 42%; background: color-mix(in srgb, var(--c) 25%, transparent); border-top: 3px dashed color-mix(in srgb, var(--c) 70%, var(--line)); }
 .path-island header { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; position: relative; }
 .path-island header b { font-family: var(--title); font-weight: 400; font-size: 1.3rem; }
-.path-island header .link-btn { margin-left: auto; }
+.path-island header > .link-btn { margin-left: auto; }
 .path-island .stage-tag { background: var(--c); }
 .nodes { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; position: relative; padding-top: 22px; }
 .node { background: none; border: 0; cursor: pointer; display: grid; justify-items: center; gap: 4px; position: relative; }
@@ -680,3 +680,17 @@ main.focus { min-height: 100vh; }
 .demo-banner .icon-btn { color: #fff; font-size: 1rem; }
 .demo-banner .icon-btn:hover { background: rgba(255, 255, 255, .15); }
 body.in-lesson .demo-banner { display: none; }
+
+/* ---------- 학습 기간 안내 ---------- */
+.course-prog { margin-top: 10px; display: grid; gap: 4px; max-width: 520px; }
+.course-prog .rb-bar i { background: var(--grass); }
+.course-prog small { color: var(--muted); }
+.duration-table td, .duration-table th { text-align: center; }
+.duration-table th small { display: block; color: var(--muted); font-family: var(--font); font-size: .78rem; }
+.plan-fit { margin: -4px 0 0; color: var(--grape); font-size: .9rem; font-weight: 700; }
+.day-list { grid-template-columns: repeat(2, 1fr); }
+.day-btn { padding: 10px 12px; }
+.day-btn.review { border-style: dashed; }
+.island-stories { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+@media (max-width: 600px) { .day-list { grid-template-columns: 1fr; } }
+.voice-row { flex-wrap: nowrap; } .voice-row select { flex: 1; min-width: 0; }

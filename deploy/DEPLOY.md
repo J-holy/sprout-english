@@ -169,7 +169,28 @@ sudo chown sprout:sprout /opt/sprout-english/server/secrets/AuthKey.p8 && sudo c
    - **환불:** 결제 후 7일 이내면 부모페이지에서 바로 환불돼요(토스 결제 취소 API 사용).
 - 토스 키가 없으면 `ALLOW_DEMO_PAYMENT=true`일 때만 데모 결제가 되고, 기본값(false)에서는 결제 버튼이 "준비 중"으로 표시돼요.
 
-### 4-4. 약관·개인정보 처리방침
+### 4-4. AI 음성 — 자연스러운 낭독 (선택, 강력 추천)
+
+키가 없으면 기기에 있는 목소리로 읽어줘요. 키를 넣으면 사람처럼 자연스러운 AI 음성으로 바뀌어요. 문장마다 한 번만 만들어 `data/tts`에 저장하고 다시 쓰니 비용이 거의 들지 않아요.
+
+| 공급자 | 준비 | .env |
+|---|---|---|
+| OpenAI (추천) | platform.openai.com › API keys에서 키 발급 (결제 수단 등록 필요) | `OPENAI_API_KEY`, 목소리 `OPENAI_TTS_VOICE=nova` (밝은 여성) |
+| Google Cloud | 프로젝트 › Text-to-Speech API 사용 설정 › API 키 발급 (월 100만 자 무료) | `GOOGLE_TTS_API_KEY`, 목소리 `GOOGLE_TTS_VOICE=en-US-Neural2-F` |
+
+키를 넣고 재시작한 뒤, 모든 학습 문장(약 1,200개)을 미리 만들어 두면 처음 듣는 문장도 바로 재생돼요.
+```bash
+sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts -- --dry'   # 문장 수 확인
+sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts'           # 만들기 (수 분)
+```
+- 관리자 콘솔 › 시스템에 **AI 음성 ✅**와 저장된 음성 개수가 보여요.
+- 부모님은 부모페이지 › 설정 › **읽어주는 목소리**에서 AI 음성과 기기 목소리 중 고를 수 있어요.
+- **GitHub Pages(서버 없는 데모)** 에도 AI 음성을 넣으려면 PC에서 다음 명령으로 `public/audio/`에 파일을 만들어 같이 올려요(약 10~20MB).
+  ```bash
+  cd server && OPENAI_API_KEY=키 npm run pregen-tts -- --static ../public/audio
+  ```
+
+### 4-5. 약관·개인정보 처리방침
 
 - `public/terms.html`, `public/privacy.html` 의 `[ ]` 부분을 실제 사업자 정보로 바꿔요.
 - 개인정보 처리방침 주소(`https://도메인/privacy.html`)는 카카오·네이버·Google·Apple 앱 심사에 필요해요.
@@ -229,6 +250,7 @@ sudo systemctl start sprout-english
 
 | 영역 | 동작 |
 |---|---|
+| AI 음성 | 문장마다 한 번 생성해 디스크에 저장, 새로 만드는 요청만 IP당 시간당 300회로 제한, 영어 문장만 허용 |
 | 로그인 | 비밀번호 없음. 이메일 6자리 코드(3분 유효, 5회 제한, 30초 재전송 제한) 또는 SNS(OAuth) |
 | 세션 | 60일, HttpOnly·Secure 쿠키. DB에는 해시만 저장 |
 | 보안 | 상태 변경 요청에 전용 헤더 필수(CSRF 방지), IP·이메일별 요청 제한, CSP·HSTS 등 보안 헤더 |

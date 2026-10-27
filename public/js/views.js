@@ -4,11 +4,19 @@ const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 const fmtDate = t => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const fmtDay = t => new Date(t).toLocaleDateString('ko-KR');
-const contentCount = () => LETTERS.length * 5 + Object.values(PHONICS).flat().length * 5 + Object.values(SENTENCES).flat().length * 5 + Object.values(QA).flat().length * 4 + STORIES.reduce((s, x) => s + x.pages.length, 0);
+// 알파벳 따라 말하기 문장 (X는 끝소리)
+const letterLine = (it, w = it.word) => it.ending ? `${w} ends with ${it.letter}` : `${it.letter} is for ${w}`;
+// 설정의 목소리 목록: 자동 / AI 음성 / 이 기기 목소리(자연스러운 순)
+const voiceOptions = () => [
+  `<option value="">자동 (가장 자연스러운 목소리)</option>`,
+  Speech.neuralAvailable ? `<option value="neural">🌟 AI 자연 음성</option>` : '',
+  ...Speech.voices().slice(0, 20).map(v => `<option value="${esc(v.uri)}">${v.natural ? '★ ' : ''}${esc(v.name)} (${esc(v.lang)})</option>`),
+].join('');
+const dayLabel = d => `Day ${d + 1}${Gen.isReviewDay(d) ? ' · 복습' : ''}`;
 const scoreClass = s => s >= 80 ? 'good' : s >= 60 ? 'mid' : 'low';
 const avatarHtml = (p, cls = '') => `<span class="avatar ${cls}">${p.avatar}${Store.accEmoji(p) ? `<i class="acc">${Store.accEmoji(p)}</i>` : ''}</span>`;
 // 놀이터·카드에 쓸 그림 단어 (알파벳 단어 + 파닉스 단어)
-const PICTURE_WORDS = [...LETTERS.map(l => ({ en: l.word, emoji: l.emoji })), ...Object.values(PHONICS).flat().map(([en, emoji]) => ({ en, emoji }))]
+const PICTURE_WORDS = [...LETTERS.flatMap(l => l.words.map(([en, emoji]) => ({ en, emoji }))), ...Object.values(PHONICS).flat().map(([en, emoji]) => ({ en, emoji }))]
   .filter((w, i, a) => a.findIndex(x => x.en === w.en) === i);
 
 const Views = {};
@@ -29,7 +37,7 @@ const UI = {
     const stage = $('.car-stage', root);
     const sample = s => Gen.levelItems(s.levels[0]).slice(0, 3).map(it => {
       const en = it.letter ? `${it.letter} ${it.word}` : it.en || it.q;
-      return `<button class="sample-chip" data-say="${esc(it.letter ? `${it.letter} is for ${it.word}` : en)}">${it.emoji || '💬'} ${esc(en)} 🔊</button>`;
+      return `<button class="sample-chip" data-say="${esc(it.letter ? letterLine(it) : en)}">${it.emoji || '💬'} ${esc(en)} 🔊</button>`;
     }).join('');
     const draw = () => {
       const s = STAGES[i];
@@ -39,6 +47,7 @@ const UI = {
         <em class="stage-tag">STAGE ${s.id} · ${s.title}섬</em>
         <div class="level-row">${s.levels.map(l => `<span class="level-box">${l}</span>`).join('')}</div>
         <p class="stage-desc">${s.desc}</p>
+        <p class="fine">레벨 ${s.levels.length}개 · ${s.levels.length * LESSONS_PER_LEVEL}일 (하루 1레슨이면 ${durationText(studyWeeks(s.levels.length * LESSONS_PER_LEVEL))})</p>
         <div class="chips center-chips">${s.skills.map(k => `<span class="chip">${k}</span>`).join('')}</div>
         <div class="stage-sample">${sample(s)}</div></div>`;
       $$('.car-dots button', root).forEach((b, k) => b.classList.toggle('on', k === i));
@@ -73,6 +82,7 @@ const UI = {
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
           ${months === 12 ? '<span class="ribbon">가장 저렴해요</span>' : ''}
           <h4>${months}개월</h4>
+          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 6: `하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: `하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
           <dl><dt>정가</dt><dd class="strike">월 ${won(P.list)}</dd>
           <dt>멤버십가</dt><dd><b>월 ${won(monthly)}</b> <small>${disc}%↓</small></dd>
           ${q.rate ? `<dt>쿠폰 적용</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
@@ -149,7 +159,7 @@ Views.home = el => {
          ['💬', '문장 말하기', '묻고 대답하며 대화해요', 'My name is Mia. I am seven.'], ['📖', '내 이야기', '어제 한 일, 내 꿈을 영어로 말해요', 'Yesterday I went to the park. I will be a doctor.']]
         .map(([e, t, d, say], k) => `<li><button class="grow-step" data-say="${esc(say)}"><span class="g-n">${k + 1}</span><span class="g-e">${e}</span><b>${t}</b><small>${d}</small><em>🔊 “${esc(say)}”</em></button></li>`).join('')}
     </ol>
-    <p class="center fine">미국 교과과정 기준 킨더~초등 2학년 수준까지 · 8단계 26레벨</p>
+    <p class="center fine">8단계 26레벨 · 레슨 ${TOTAL_LESSONS}개 · 하루 1레슨(주 5일)이면 ${durationText(studyWeeks(TOTAL_LESSONS))}, 하루 2레슨이면 ${durationText(studyWeeks(TOTAL_LESSONS, 2))} 과정</p>
     <div class="center"><a class="btn btn-ghost" href="#/study">📚 학습 내용 자세히 보기</a></div>
   </div></section>
 
@@ -300,6 +310,14 @@ Views.study = (el, params) => {
         .map(([n, e, t]) => `<li><span class="df-n">${n}</span><span class="df-e">${e}</span><b>${t}</b></li>`).join('')}
     </ol>
 
+    <h2 class="sec-sub">전체 과정은 얼마나 걸리나요?</h2>
+    <p class="sec-desc left">8단계 26레벨, 레벨마다 10일(9일 학습 + 1일 복습)이라 모두 <b>${TOTAL_LESSONS}레슨</b>이에요. 레슨 하나는 8문제, 10~15분이에요.</p>
+    <div class="table-wrap"><table class="table duration-table">
+      <thead><tr><th>학습 속도 (주 5일)</th><th>한 레벨</th><th>전체 과정</th></tr></thead>
+      <tbody>${[[1, '추천 · 무리 없이 꾸준히'], [2, '빠르게']].map(([n, t]) => `<tr><th>하루 ${n}레슨 <small>${t}</small></th><td>${durationText(studyWeeks(LESSONS_PER_LEVEL, n))}</td><td><b>${durationText(studyWeeks(TOTAL_LESSONS, n))}</b></td></tr>`).join('')}
+      <tr><th>주 3일 · 하루 1레슨</th><td>${durationText(studyWeeks(LESSONS_PER_LEVEL, 1, 3))}</td><td><b>${durationText(studyWeeks(TOTAL_LESSONS, 1, 3))}</b></td></tr></tbody></table></div>
+    <p class="fine">레벨 진단으로 중간 단계에서 시작하면 그만큼 짧아져요. 스토리북·놀이터·말하기는 레슨과 별도로 자유롭게 해요.</p>
+
     <h2 class="sec-sub">단계별 학습 내용 <small>레벨을 누르면 배우는 내용과 체험 레슨이 나와요</small></h2>
     <div class="az-grid">${STAGES.map(s => s.levels.map(l => `<button class="az" data-lv="${l}" style="--c:${s.color}"><b>${l}</b><small>${s.id}단계</small></button>`).join('')).join('')}</div>
     <div class="card lv-detail" id="lvDetail"></div>
@@ -319,8 +337,8 @@ Views.study = (el, params) => {
   const show = lv => {
     $$('.az', el).forEach(b => b.classList.toggle('on', b.dataset.lv === lv));
     const s = stageOf(lv), items = Gen.levelItems(lv);
-    const label = it => it.letter ? `${it.emoji} ${it.letter}${it.letter.toLowerCase()} · ${it.word}` : it.q ? `${it.q} → ${it.a}` : `${it.emoji || ''} ${it.en}`;
-    const sayOf = it => it.letter ? `${it.letter} is for ${it.word}` : it.q ? `${it.q} ${it.a}` : it.en;
+    const label = it => it.letter ? `${it.emoji} ${it.letter}${it.letter.toLowerCase()} · ${it.words.map(w => w[0]).join(', ')}` : it.q ? `${it.q} → ${it.a}` : `${it.emoji || ''} ${it.en}`;
+    const sayOf = it => it.letter ? letterLine(it) : it.q ? `${it.q} ${it.a}` : it.en;
     detail.innerHTML = `<div class="lvd-head"><span class="level-box" style="--c:${s.color}">${lv}</span><div><b>${s.id}단계 · ${s.title}</b><p>${s.desc}</p></div>
       <button class="btn btn-primary" data-sample>▶ 이 레벨 체험하기</button></div>
       <div class="lvd-items">${items.map(it => `<button class="sample-chip" data-say="${esc(sayOf(it))}">${esc(label(it))} 🔊</button>`).join('')}</div>`;
@@ -628,7 +646,14 @@ Views.profiles = el => {
 Views.learn = el => {
   const p = Store.profile(), a = Store.access(), cur = Store.currentLevel();
   const todayN = p.stamps[Store.today()] || 0;
-  const curIdx = Math.min(Store.lessonsDone(cur), LESSONS_PER_LEVEL - 1);
+  const curLessons = Store.levelProgress(cur).lessons;
+  let curIdx = Array.from({ length: LESSONS_PER_LEVEL }, (_, d) => d).find(d => !curLessons[d]);
+  if (curIdx === undefined) curIdx = LESSONS_PER_LEVEL - 1;
+  // 전체 진도와 남은 기간 (출발 레벨 앞쪽은 건너뛴 것으로 본다)
+  const startI = ALL_LEVELS.indexOf(p.startLevel);
+  const course = (ALL_LEVELS.length - startI) * LESSONS_PER_LEVEL;
+  const doneAll = ALL_LEVELS.slice(startI).reduce((n, lv) => n + Store.lessonsDone(lv), 0);
+  const left = Math.max(0, course - doneAll);
   const diff = Store.difficulty();
   const greet = todayN >= p.dailyGoal ? `오늘 목표 달성! 놀이터에서 놀아도 좋아 🎈` : todayN ? `잘하고 있어! 레슨 ${p.dailyGoal - todayN}개만 더 하면 목표 달성!` : `안녕 ${esc(p.name)}! 오늘도 같이 모험하자!`;
   el.innerHTML = `<div class="wrap sec">
@@ -643,7 +668,9 @@ Views.learn = el => {
     </div>
     ${UI.mascot(greet, todayN >= p.dailyGoal ? '🌻' : '🌱')}
     <div class="continue card">
-      <div><span class="chip">이어서 모험</span><h2>Level ${cur} · Day ${curIdx + 1}</h2><p>${stageOf(cur).title}섬 — ${stageOf(cur).desc}</p>
+      <div><span class="chip">이어서 모험</span><h2>Level ${cur} · ${dayLabel(curIdx)}</h2><p>${stageOf(cur).title}섬 — ${stageOf(cur).desc}</p>
+        <div class="course-prog"><div class="rb-bar"><i style="width:${doneAll / course * 100}%"></i></div>
+          <small>전체 ${course}레슨 중 <b>${doneAll}개</b> 완료 · ${left ? `하루 ${p.dailyGoal}레슨(주 5일)이면 완주까지 <b>${durationText(studyWeeks(left, p.dailyGoal))}</b>` : '🎉 전체 과정 완주!'}</small></div>
         <p class="fine">난이도: ${{ easy: '🐣 쉬움 (보기 2개 + 힌트)', normal: '🐥 보통', hard: '🦅 도전 (보기 4개)' }[diff]}${p.difficulty === 'auto' ? ' · 정답률에 맞춰 자동 조절' : ''}</p></div>
       <a class="btn btn-primary lg" href="#/lesson/${cur}/${curIdx}">▶ 출발!</a>
     </div>
@@ -658,7 +685,7 @@ Views.learn = el => {
     <div class="sw-head"><h2 class="sec-sub">🗺️ 모험 지도</h2><a class="link-btn" href="#/study?view=all">📚 전체 학습 내용 보기 →</a></div>
     <div class="path">${STAGES.map(s => `
       <section class="path-island" style="--c:${s.color}">
-        <header><em class="stage-tag">섬 ${s.id}</em><b>${s.title}</b><a class="link-btn" href="#/story/${s.id}">📖 ${esc(STORIES[s.id - 1].title)}</a></header>
+        <header><em class="stage-tag">섬 ${s.id}</em><b>${s.title}</b><span class="island-stories">${STORIES.filter(x => x.stage === s.id).map(x => `<a class="link-btn" href="#/story/${x.id}">📖 ${esc(x.title)}</a>`).join('')}</span></header>
         <div class="nodes">${s.levels.map((lv, k) => {
           const open = Store.isUnlocked(lv), done = Store.lessonsDone(lv);
           const best = Store.levelProgress(lv).lessons.filter(Boolean).reduce((m, r) => Math.max(m, r.score), 0);
@@ -674,7 +701,7 @@ Views.learn = el => {
     const m = App.modal(`<h2><span class="level-box" style="--c:${s.color}">${lv}</span> Level ${lv}</h2><p>${s.desc}</p>
       <div class="day-list">${Array.from({ length: LESSONS_PER_LEVEL }, (_, d) => {
         const r = lp.lessons[d]; const st = r ? (r.score >= 90 ? 3 : r.score >= 70 ? 2 : 1) : 0;
-        return `<a class="day-btn ${r ? 'done' : ''}" href="#/lesson/${lv}/${d}" data-close><b>Day ${d + 1}</b><span>${r ? '⭐'.repeat(st) + '☆'.repeat(3 - st) + ` ${r.score}%` : '아직 안 했어요'}</span></a>`;
+        return `<a class="day-btn ${r ? 'done' : ''} ${Gen.isReviewDay(d) ? 'review' : ''}" href="#/lesson/${lv}/${d}" data-close><b>${dayLabel(d)}</b><span>${r ? '⭐'.repeat(st) + '☆'.repeat(3 - st) + ` ${r.score}%` : '—'}</span></a>`;
       }).join('')}</div>
       <div class="row-center"><a class="btn btn-ghost" href="#/worksheet/${lv}" data-close>🖨️ 워크시트</a><button class="btn btn-ghost" data-close>닫기</button></div>`);
   });
@@ -690,13 +717,13 @@ Views.lesson = (el, lv, idx) => {
   el.innerHTML = '<div class="wrap lesson-wrap"></div>';
   const root = $('.lesson-wrap', el);
   Lesson.run(root, qs, {
-    title: `Level ${lv} · Day ${idx + 1}`, difficulty: Store.difficulty(),
+    title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(),
     onExit: () => (location.hash = '#/study'),
     onDone: r => {
       const { score, stars } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong });
       const nl = ALL_LEVELS[ALL_LEVELS.indexOf(lv) + 1];
       const next = idx + 1 < LESSONS_PER_LEVEL ? [lv, idx + 1] : nl ? [nl, 0] : null;
-      Views.result(root, { score, stars, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} Day ${next[1] + 1}` : '' });
+      Views.result(root, { score, stars, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
       App.refreshHeader();
     },
   });
@@ -720,7 +747,7 @@ Views.result = (root, { score, correct, total, again, next, nextLabel, sample, s
 /* ---------- AI 말하기 ---------- */
 Views.speak = el => {
   const p = Store.profile(), cur = Store.isAdmin() ? 'Z' : Store.currentLevel();
-  const pool = ALL_LEVELS.slice(0, ALL_LEVELS.indexOf(cur) + 1).flatMap(lv => Gen.levelItems(lv).map(it => it.letter ? `${it.letter} is for ${it.word}` : it.a || it.en));
+  const pool = ALL_LEVELS.slice(0, ALL_LEVELS.indexOf(cur) + 1).flatMap(lv => Gen.levelItems(lv).flatMap(it => it.letter ? it.words.map(([w]) => letterLine(it, w)) : [it.a || it.en]));
   const recent = p.speaking.slice(0, 8);
   const avg = recent.length ? Math.round(recent.reduce((s, x) => s + x.score, 0) / recent.length) : null;
   el.innerHTML = `<div class="wrap sec narrow">
@@ -1086,8 +1113,11 @@ const ParentTabs = {
     const p = Store.profile(), v = Speech.volume;
     el.innerHTML = `<form class="card settings">
       <h3>🔊 소리</h3>
-      <label>목소리(낭독·문제) 볼륨 <input type="range" name="voice" min="0" max="1" step="0.1" value="${v.voice}"></label>
+      <label>목소리(낭독·문제) 볼륨 <input type="range" name="vvol" min="0" max="1" step="0.1" value="${v.voice}"></label>
       <label>효과음 볼륨 <input type="range" name="sfx" min="0" max="1" step="0.1" value="${v.sfx}"></label>
+      <label>읽어주는 목소리 <small class="fine">(이 기기에 저장돼요)</small>
+        <div class="row voice-row"><select name="voice">${voiceOptions()}</select><button type="button" class="btn btn-ghost sm" data-preview>▶ 들어보기</button></div></label>
+      <p class="fine voice-help">${Speech.neuralAvailable ? '🌟 AI 자연 음성을 쓸 수 있어요. 가장 사람 같은 목소리예요.' : '★ 표시가 이 기기에서 가장 자연스러운 목소리예요. Edge 브라우저의 "Natural" 목소리나, iPhone·Mac의 설정 › 손쉬운 사용 › 읽기 및 말하기에서 받은 "고품질" 목소리가 가장 좋아요.'}</p>
       <label>읽어주기 속도<select name="rate"><option value="0.7">천천히</option><option value="0.85">보통</option><option value="1">빠르게</option></select></label>
       <h3>📚 학습</h3>
       ${p ? `<label>${esc(p.name)}의 하루 목표 레슨 수<select name="goal">${[1, 2, 3, 4, 5].map(n => `<option ${n === p.dailyGoal ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
@@ -1108,8 +1138,12 @@ const ParentTabs = {
       <button class="btn btn-ghost danger" data-leave>회원 탈퇴</button></div></div>`;
     const f = $('form', el);
     f.rate.value = String(App.rate || 0.85);
-    f.voice.oninput = () => Speech.setVolume('voice', +f.voice.value);
-    f.voice.onchange = () => Speech.speak('Hello!');
+    f.vvol.oninput = () => Speech.setVolume('voice', +f.vvol.value);
+    f.vvol.onchange = () => Speech.speak('Hello!');
+    f.voice.value = Speech.voiceChoice;
+    const preview = () => Speech.speak('Hello! A is for apple. I like to read books with you.');
+    f.voice.onchange = () => { Speech.setVoice(f.voice.value); preview(); };
+    $('[data-preview]', el).onclick = preview;
     f.sfx.oninput = () => { Speech.setVolume('sfx', +f.sfx.value); Speech.sfx.tap(); };
     f.onsubmit = async e => {
       e.preventDefault();
@@ -1219,7 +1253,8 @@ const AdminTabs = {
       <div class="card"><h3>연동 설정 <small>서버의 .env에서 바꿔요</small></h3><dl class="summary">
         <dt>인증코드 메일(SMTP)</dt><dd>${ok(stats.setup.mail)}</dd>
         ${Object.entries(stats.setup.providers).map(([k, v]) => `<dt>${k} 로그인</dt><dd>${ok(v)}</dd>`).join('')}
-        <dt>결제</dt><dd>${{ toss: '✅ 토스페이먼츠', demo: '🧪 데모 결제', off: '⚠️ 꺼짐' }[stats.setup.payments]}</dd></dl></div>
+        <dt>결제</dt><dd>${{ toss: '✅ 토스페이먼츠', demo: '🧪 데모 결제', off: '⚠️ 꺼짐' }[stats.setup.payments]}</dd>
+        <dt>AI 음성</dt><dd>${stats.setup.tts.provider ? `✅ ${esc(stats.setup.tts.provider)} (${esc(stats.setup.tts.voice)}) · 저장된 음성 ${stats.setup.tts.files}개, ${stats.setup.tts.sizeKB}KB` : '⚠️ 미설정 (기기 목소리 사용)'}</dd></dl></div>
       <div class="card"><h3>데이터</h3><p class="fine">매일 새벽 자동 백업돼요 (서버 data/backups). 지금 바로 받을 수도 있어요.</p>
         <div class="row"><a class="btn btn-ghost" href="api/admin/backup">💾 DB 백업 받기</a><a class="btn btn-ghost" href="api/admin/export">📄 전체 데이터 JSON</a></div></div>`
     : `<div class="card"><h3>로컬 데모 모드</h3><p class="fine">서버 없이 실행 중이라 데이터가 이 브라우저(localStorage)에만 있어요. 서버로 실행하면 회원·결제가 서버 DB에 저장돼요. (deploy/DEPLOY.md 참고)</p>

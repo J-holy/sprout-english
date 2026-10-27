@@ -1,0 +1,271 @@
+/* 새싹영어 — 학습 콘텐츠 (26레벨 × 10일 = 260레슨, 하루 1레슨·주 5일 기준 약 1년)
+ * 레벨마다 9일은 새 항목 + 앞에서 배운 항목 복습, 10일째는 레벨 전체 복습이에요.
+ */
+const LESSONS_PER_LEVEL = 10;
+const TOTAL_LESSONS = 26 * LESSONS_PER_LEVEL;
+
+// 1단계: 알파벳 — 글자마다 그림 단어 3개 (X는 끝소리 단어)
+const LETTER_WORDS = {
+  A: [['apple', '🍎'], ['ant', '🐜'], ['alligator', '🐊']], B: [['ball', '⚽'], ['bear', '🐻'], ['banana', '🍌']],
+  C: [['cat', '🐱'], ['car', '🚗'], ['cake', '🎂']], D: [['dog', '🐶'], ['duck', '🦆'], ['door', '🚪']],
+  E: [['egg', '🥚'], ['elephant', '🐘'], ['envelope', '✉️']], F: [['fish', '🐟'], ['frog', '🐸'], ['fox', '🦊']],
+  G: [['goat', '🐐'], ['grapes', '🍇'], ['gift', '🎁']], H: [['hat', '🎩'], ['horse', '🐴'], ['house', '🏠']],
+  I: [['insect', '🐞'], ['iguana', '🦎'], ['ink', '🖋️']], J: [['juice', '🧃'], ['jeans', '👖'], ['jet', '🛩️']],
+  K: [['kite', '🪁'], ['key', '🔑'], ['king', '🤴']], L: [['lion', '🦁'], ['lemon', '🍋'], ['leaf', '🍃']],
+  M: [['moon', '🌙'], ['monkey', '🐒'], ['milk', '🥛']], N: [['nose', '👃'], ['nut', '🥜'], ['net', '🥅']],
+  O: [['octopus', '🐙'], ['orange', '🍊'], ['otter', '🦦']], P: [['pig', '🐷'], ['panda', '🐼'], ['pizza', '🍕']],
+  Q: [['queen', '👸'], ['question', '❓'], ['quiet', '🤫']], R: [['rabbit', '🐰'], ['rainbow', '🌈'], ['robot', '🤖']],
+  S: [['sun', '☀️'], ['snake', '🐍'], ['star', '⭐']], T: [['tiger', '🐯'], ['tomato', '🍅'], ['train', '🚆']],
+  U: [['umbrella', '☂️'], ['up', '⬆️'], ['unicorn', '🦄']], V: [['van', '🚐'], ['violin', '🎻'], ['volcano', '🌋']],
+  W: [['whale', '🐳'], ['watch', '⌚'], ['water', '💧']], X: [['box', '📦'], ['fox', '🦊'], ['six', '6️⃣']],
+  Y: [['yo-yo', '🪀'], ['yellow', '💛'], ['yak', '🐃']], Z: [['zebra', '🦓'], ['zero', '0️⃣'], ['zipper', '🤐']],
+};
+const LETTERS = Object.entries(LETTER_WORDS).map(([letter, ws]) => ({ letter, word: ws[0][0], emoji: ws[0][1], words: ws, ending: letter === 'X' }));
+
+// 2단계: 파닉스 — [단어, 그림, 뜻]
+const PHONICS = {
+  C: [ // 짧은 a · 짧은 e
+    ['cat', '🐱', '고양이'], ['hat', '🎩', '모자'], ['bat', '🦇', '박쥐'], ['map', '🗺️', '지도'], ['van', '🚐', '승합차'], ['bag', '👜', '가방'],
+    ['can', '🥫', '깡통'], ['cap', '🧢', '야구 모자'], ['ham', '🍖', '햄'], ['rat', '🐀', '쥐'], ['pan', '🍳', '프라이팬'], ['dad', '👨', '아빠'],
+    ['sad', '😢', '슬픈'], ['man', '🧔', '남자'], ['bed', '🛏️', '침대'], ['hen', '🐔', '암탉'], ['net', '🥅', '그물'], ['pen', '🖊️', '펜'],
+    ['web', '🕸️', '거미줄'], ['leg', '🦵', '다리'], ['ten', '🔟', '열'], ['red', '🟥', '빨간'], ['jet', '🛩️', '제트기'], ['wet', '💦', '젖은']],
+  D: [ // 짧은 i · 짧은 o
+    ['pig', '🐷', '돼지'], ['pin', '📌', '핀'], ['six', '6️⃣', '여섯'], ['lip', '👄', '입술'], ['kid', '🧒', '아이'], ['zip', '🤐', '지퍼'],
+    ['mix', '🥣', '섞다'], ['dig', '⛏️', '파다'], ['sit', '🪑', '앉다'], ['win', '🏆', '이기다'], ['fix', '🔧', '고치다'], ['hill', '⛰️', '언덕'],
+    ['dog', '🐶', '개'], ['box', '📦', '상자'], ['fox', '🦊', '여우'], ['pot', '🍲', '냄비'], ['log', '🪵', '통나무'], ['hot', '🔥', '뜨거운'],
+    ['mop', '🧹', '대걸레'], ['sock', '🧦', '양말'], ['rock', '🪨', '바위'], ['mom', '👩', '엄마'], ['ox', '🐂', '황소'], ['hop', '🐇', '깡충 뛰다']],
+  E: [ // 짧은 u · sh · ch · th
+    ['sun', '☀️', '해'], ['bus', '🚌', '버스'], ['cup', '☕', '컵'], ['bug', '🐛', '벌레'], ['nut', '🥜', '견과'], ['hug', '🤗', '안아주기'],
+    ['duck', '🦆', '오리'], ['drum', '🥁', '북'], ['run', '🏃', '달리다'], ['tub', '🛁', '욕조'], ['gum', '🍬', '껌'], ['ship', '🚢', '배'],
+    ['fish', '🐟', '물고기'], ['shell', '🐚', '조개'], ['shop', '🏪', '가게'], ['brush', '🪥', '칫솔'], ['chick', '🐤', '병아리'], ['cheese', '🧀', '치즈'],
+    ['chair', '🪑', '의자'], ['lunch', '🍱', '점심'], ['three', '3️⃣', '셋'], ['bath', '🛁', '목욕'], ['thumb', '👍', '엄지'], ['teeth', '🦷', '이']],
+};
+
+// 문장 은행: [영어, 뜻, 그림]
+const SENTENCES = {
+  3: [
+    // F: be동사 · this/that
+    ['This is a cat.', '이것은 고양이예요.', '🐱'], ['That is a dog.', '저것은 개예요.', '🐶'], ['It is a big dog.', '그것은 큰 개예요.', '🐕'],
+    ['I am happy.', '나는 행복해요.', '😊'], ['I am six.', '나는 여섯 살이에요.', '6️⃣'], ['You are my friend.', '너는 내 친구야.', '🤝'],
+    ['She is my mom.', '그녀는 우리 엄마예요.', '👩'], ['He is my dad.', '그는 우리 아빠예요.', '👨'], ['We are kids.', '우리는 어린이예요.', '🧒'],
+    ['It is a pen.', '그것은 펜이에요.', '🖊️'], ['That is my bag.', '저것은 내 가방이에요.', '🎒'], ['This is my hat.', '이것은 내 모자예요.', '🎩'],
+    ['It is red.', '그것은 빨간색이에요.', '🔴'], ['The sun is hot.', '해가 뜨거워요.', '☀️'], ['The cup is blue.', '컵이 파래요.', '🥤'],
+    ['It is a fish.', '그것은 물고기예요.', '🐟'], ['I am a boy.', '나는 남자아이예요.', '👦'], ['I am a girl.', '나는 여자아이예요.', '👧'],
+    ['They are my toys.', '그것들은 내 장난감이에요.', '🧸'], ['This is a book.', '이것은 책이에요.', '📕'],
+    // G: have · like · see
+    ['I like apples.', '나는 사과를 좋아해요.', '🍎'], ['I like milk.', '나는 우유를 좋아해요.', '🥛'], ['I have a red ball.', '나는 빨간 공이 있어요.', '🔴'],
+    ['I see a bird.', '나는 새를 봐요.', '🐦'], ['I have a pet.', '나는 애완동물이 있어요.', '🐹'], ['I like cats.', '나는 고양이를 좋아해요.', '🐈'],
+    ['She has a doll.', '그녀는 인형이 있어요.', '👧'], ['He has a bike.', '그는 자전거가 있어요.', '🚲'], ['We like ice cream.', '우리는 아이스크림을 좋아해요.', '🍦'],
+    ['I see a big tree.', '나는 큰 나무를 봐요.', '🌳'], ['I have two hands.', '나는 손이 두 개 있어요.', '🙌'], ['I like my school.', '나는 우리 학교를 좋아해요.', '🏫'],
+    ['They have a car.', '그들은 차가 있어요.', '🚗'], ['I see the moon.', '나는 달을 봐요.', '🌙'], ['I like to read.', '나는 읽는 것을 좋아해요.', '📖'],
+    ['She likes pink.', '그녀는 분홍색을 좋아해요.', '🌸'], ['He likes trains.', '그는 기차를 좋아해요.', '🚆'], ['I have a little sister.', '나는 여동생이 있어요.', '👧'],
+    ['We see the stars.', '우리는 별을 봐요.', '⭐'], ['I like rainy days.', '나는 비 오는 날을 좋아해요.', '🌧️'],
+    // H: can · 위치 · 복수
+    ['We can run.', '우리는 달릴 수 있어요.', '🏃'], ['I can jump.', '나는 뛸 수 있어요.', '🦘'], ['I can swim.', '나는 수영할 수 있어요.', '🏊'],
+    ['A bird can fly.', '새는 날 수 있어요.', '🐦'], ['A fish can swim.', '물고기는 헤엄칠 수 있어요.', '🐟'], ['I can sing a song.', '나는 노래를 부를 수 있어요.', '🎤'],
+    ['The cat is on the bed.', '고양이가 침대 위에 있어요.', '🛏️'], ['The ball is in the box.', '공이 상자 안에 있어요.', '📦'], ['The dog is under the table.', '개가 탁자 밑에 있어요.', '🐕'],
+    ['I see three ducks.', '나는 오리 세 마리를 봐요.', '🦆'], ['There are two cats.', '고양이가 두 마리 있어요.', '🐱'], ['The apples are red.', '사과들이 빨개요.', '🍎'],
+    ['My shoes are new.', '내 신발은 새것이에요.', '👟'], ['Look at the frog.', '개구리를 봐요.', '🐸'], ['Open the door.', '문을 열어요.', '🚪'],
+    ['Sit down, please.', '앉아 주세요.', '🪑'], ['Let us play together.', '같이 놀자.', '🤸'], ['It is time to sleep.', '잘 시간이에요.', '😴'],
+    ['I can ride a bike.', '나는 자전거를 탈 수 있어요.', '🚲'], ['Wash your hands.', '손을 씻어요.', '🧼'],
+  ],
+  5: [
+    // M: 색깔 · 크기 · 모양
+    ['The big bear is brown.', '큰 곰은 갈색이에요.', '🐻'], ['I have a small yellow duck.', '나는 작은 노란 오리가 있어요.', '🦆'], ['The tall tree is green.', '키 큰 나무는 초록색이에요.', '🌳'],
+    ['Her dress is purple.', '그녀의 드레스는 보라색이에요.', '👗'], ['The long train is fast.', '긴 기차는 빨라요.', '🚆'], ['The tiny ant is black.', '작은 개미는 검은색이에요.', '🐜'],
+    ['I want the big red apple.', '나는 큰 빨간 사과를 원해요.', '🍎'], ['The little cat is soft.', '작은 고양이는 부드러워요.', '🐈'], ['My new shoes are white.', '내 새 신발은 하얀색이에요.', '👟'],
+    ['The old car is slow.', '그 낡은 차는 느려요.', '🚗'], ['The giraffe has a long neck.', '기린은 목이 길어요.', '🦒'], ['The mouse has small ears.', '쥐는 귀가 작아요.', '🐭'],
+    ['The ocean is deep and blue.', '바다는 깊고 파래요.', '🌊'], ['The snowman is round and white.', '눈사람은 둥글고 하얘요.', '⛄'], ['The pumpkin is big and orange.', '호박은 크고 주황색이에요.', '🎃'],
+    ['The grass is short and green.', '잔디는 짧고 초록색이에요.', '🌱'],
+    // N: 사람 · 감정
+    ['My sister is very kind.', '우리 언니는 아주 친절해요.', '👧'], ['He is strong and brave.', '그는 힘세고 용감해요.', '💪'], ['I feel sleepy today.', '나는 오늘 졸려요.', '😴'],
+    ['I am a little scared.', '나는 조금 무서워요.', '😨'], ['The old man is funny.', '그 할아버지는 재미있어요.', '👴'], ['She is happy and excited.', '그녀는 기쁘고 신이 나요.', '🤩'],
+    ['My brother is angry.', '우리 형은 화가 났어요.', '😠'], ['The baby is cute and small.', '아기는 귀엽고 작아요.', '👶'], ['My teacher is smart.', '우리 선생님은 똑똑해요.', '🧑‍🏫'],
+    ['I feel nervous before the test.', '나는 시험 전에 긴장돼요.', '😬'], ['Our coach is tall and fast.', '우리 코치님은 키가 크고 빨라요.', '🏃'], ['The girl looks surprised.', '그 여자아이는 놀란 것 같아요.', '😲'],
+    ['My friend is shy.', '내 친구는 수줍음이 많아요.', '😊'], ['Grandma is gentle and warm.', '할머니는 다정하고 따뜻해요.', '👵'], ['The clown is silly.', '광대는 우스꽝스러워요.', '🤡'],
+    ['I am proud of you.', '나는 네가 자랑스러워.', '🏅'],
+    // O: 맛 · 촉감 · 날씨 · 소리
+    ['The soup is too hot.', '수프가 너무 뜨거워요.', '🍲'], ['This cake is so sweet.', '이 케이크는 정말 달아요.', '🍰'], ['The lemon is sour.', '레몬은 셔요.', '🍋'],
+    ['The ice is cold and hard.', '얼음은 차갑고 단단해요.', '🧊'], ['The pillow is soft.', '베개는 부드러워요.', '🛏️'], ['The sky is dark.', '하늘이 어두워요.', '🌌'],
+    ['It is windy today.', '오늘은 바람이 불어요.', '🌬️'], ['It is a sunny day.', '화창한 날이에요.', '☀️'], ['The chips are salty.', '감자칩은 짜요.', '🍟'],
+    ['The rock is heavy.', '돌은 무거워요.', '🪨'], ['The feather is light.', '깃털은 가벼워요.', '🪶'], ['The road is wet after the rain.', '비가 온 뒤 길이 젖었어요.', '🌧️'],
+    ['The flowers smell nice.', '꽃들이 좋은 냄새가 나요.', '🌸'], ['The music is loud.', '음악 소리가 커요.', '🔊'], ['The library is quiet.', '도서관은 조용해요.', '📚'],
+    ['The kitten is warm and fuzzy.', '아기 고양이는 따뜻하고 보송보송해요.', '🐱'],
+    // P: 비교 · 장소
+    ['My room is clean.', '내 방은 깨끗해요.', '🛏️'], ['The flowers are pretty.', '꽃들이 예뻐요.', '🌸'], ['An elephant is bigger than a dog.', '코끼리는 개보다 커요.', '🐘'],
+    ['A turtle is slower than a rabbit.', '거북이는 토끼보다 느려요.', '🐢'], ['My bag is heavier than yours.', '내 가방은 네 것보다 무거워.', '🎒'], ['Summer is hotter than spring.', '여름은 봄보다 더워요.', '☀️'],
+    ['The park is big and green.', '공원은 크고 푸르러요.', '🏞️'], ['Our kitchen is small but cozy.', '우리 부엌은 작지만 아늑해요.', '🍳'], ['The beach has white sand.', '해변에는 하얀 모래가 있어요.', '🏖️'],
+    ['The city is busy and noisy.', '도시는 바쁘고 시끄러워요.', '🏙️'], ['The farm has many animals.', '농장에는 동물이 많아요.', '🐄'], ['This is the best day ever.', '오늘은 최고의 날이에요.', '🌟'],
+    ['The mountain is very high.', '산이 아주 높아요.', '⛰️'], ['My dad is taller than my mom.', '아빠는 엄마보다 키가 커요.', '👨'], ['The red car is faster than the blue car.', '빨간 차는 파란 차보다 빨라요.', '🏎️'],
+    ['The cheetah is the fastest animal.', '치타는 가장 빠른 동물이에요.', '🐆'],
+  ],
+  7: [
+    // U: 규칙 과거형 (-ed)
+    ['I played soccer yesterday.', '나는 어제 축구를 했어요.', '⚽'], ['They watched a movie.', '그들은 영화를 봤어요.', '🎬'], ['I helped my mom.', '나는 엄마를 도왔어요.', '🤲'],
+    ['The dog jumped high.', '개가 높이 뛰었어요.', '🐕'], ['She cleaned her room.', '그녀는 방을 청소했어요.', '🧹'], ['We walked to the park.', '우리는 공원까지 걸어갔어요.', '🚶'],
+    ['I washed my hands.', '나는 손을 씻었어요.', '🧼'], ['He opened the window.', '그는 창문을 열었어요.', '🪟'], ['We visited Grandma.', '우리는 할머니 댁을 방문했어요.', '👵'],
+    ['I painted a picture.', '나는 그림을 칠했어요.', '🎨'], ['She danced at the party.', '그녀는 파티에서 춤을 췄어요.', '💃'], ['The baby cried at night.', '아기가 밤에 울었어요.', '👶'],
+    ['We cooked pancakes.', '우리는 팬케이크를 만들었어요.', '🥞'], ['I climbed a tree.', '나는 나무에 올랐어요.', '🌳'], ['He brushed his teeth.', '그는 이를 닦았어요.', '🪥'],
+    ['The bus stopped here.', '버스가 여기에 섰어요.', '🚌'],
+    // V: 불규칙 과거형 1
+    ['We went to the park.', '우리는 공원에 갔어요.', '🏞️'], ['She ate a sandwich.', '그녀는 샌드위치를 먹었어요.', '🥪'], ['I saw a rainbow.', '나는 무지개를 봤어요.', '🌈'],
+    ['He drank some water.', '그는 물을 조금 마셨어요.', '💧'], ['We made a snowman.', '우리는 눈사람을 만들었어요.', '⛄'], ['I read a book last night.', '나는 어젯밤에 책을 읽었어요.', '📖'],
+    ['I had a good day.', '나는 좋은 하루를 보냈어요.', '🌟'], ['He ran to school.', '그는 학교로 뛰어갔어요.', '🏫'], ['We sang a song.', '우리는 노래를 불렀어요.', '🎤'],
+    ['I wrote a letter.', '나는 편지를 썼어요.', '✉️'], ['The baby slept well.', '아기가 잘 잤어요.', '👶'], ['I came home at five.', '나는 다섯 시에 집에 왔어요.', '🏠'],
+    ['We swam in the sea.', '우리는 바다에서 수영했어요.', '🏊'], ['She gave me a gift.', '그녀가 나에게 선물을 줬어요.', '🎁'], ['I got a new toy.', '나는 새 장난감을 받았어요.', '🧸'],
+    ['He sat on the bench.', '그는 벤치에 앉았어요.', '🪑'],
+    // W: 불규칙 과거형 2
+    ['I bought some bread.', '나는 빵을 샀어요.', '🍞'], ['We took a picture.', '우리는 사진을 찍었어요.', '📷'], ['The bird flew away.', '새가 날아갔어요.', '🐦'],
+    ['I drew a cat.', '나는 고양이를 그렸어요.', '🐱'], ['He rode a horse.', '그는 말을 탔어요.', '🐴'], ['I found my lost sock.', '나는 잃어버린 양말을 찾았어요.', '🧦'],
+    ['She caught the ball.', '그녀가 공을 잡았어요.', '⚾'], ['Our team won the game.', '우리 팀이 경기에서 이겼어요.', '🏆'], ['I felt sick yesterday.', '나는 어제 아팠어요.', '🤒'],
+    ['We met a new friend.', '우리는 새 친구를 만났어요.', '🤝'], ['I lost my pencil.', '나는 연필을 잃어버렸어요.', '✏️'], ['Dad brought a cake.', '아빠가 케이크를 가져왔어요.', '🎂'],
+    ['She told me a story.', '그녀가 나에게 이야기를 해줬어요.', '📖'], ['I wore my blue coat.', '나는 파란 코트를 입었어요.', '🧥'], ['We built a sandcastle.', '우리는 모래성을 쌓았어요.', '🏰'],
+    ['The plant grew tall.', '식물이 크게 자랐어요.', '🌱'],
+    // X: 일기 쓰기 (was/were · 순서)
+    ['Yesterday was my birthday.', '어제는 내 생일이었어요.', '🎂'], ['The movie was very funny.', '영화는 정말 재미있었어요.', '🎬'], ['We were at the beach.', '우리는 해변에 있었어요.', '🏖️'],
+    ['I did my homework.', '나는 숙제를 했어요.', '📝'], ['First, I woke up early.', '먼저, 나는 일찍 일어났어요.', '⏰'], ['Then, I ate breakfast.', '그다음, 나는 아침을 먹었어요.', '🍳'],
+    ['After school, I played outside.', '방과 후에 나는 밖에서 놀았어요.', '🛝'], ['At night, I read a story.', '밤에 나는 이야기를 읽었어요.', '🌙'], ['Last summer, we went camping.', '지난여름에 우리는 캠핑을 갔어요.', '🏕️'],
+    ['It rained all day.', '하루 종일 비가 왔어요.', '🌧️'], ['The concert was amazing.', '음악회는 정말 멋졌어요.', '🎻'], ['I was tired after the trip.', '여행 후에 나는 피곤했어요.', '😪'],
+    ['We had so much fun.', '우리는 정말 즐거웠어요.', '🥳'], ['I threw the ball far.', '나는 공을 멀리 던졌어요.', '🥎'], ['My friend and I laughed a lot.', '내 친구와 나는 많이 웃었어요.', '😂'],
+    ['We said goodbye to Grandpa.', '우리는 할아버지께 작별 인사를 했어요.', '👋'],
+  ],
+  8: [
+    // Y: will
+    ['I will be a doctor.', '나는 의사가 될 거예요.', '🧑‍⚕️'], ['It will rain tomorrow.', '내일 비가 올 거예요.', '🌧️'], ['She will visit her grandma.', '그녀는 할머니 댁에 갈 거예요.', '👵'],
+    ['I will study hard.', '나는 열심히 공부할 거예요.', '📚'], ['I will be an astronaut.', '나는 우주비행사가 될 거예요.', '🧑‍🚀'], ['They will play together.', '그들은 함께 놀 거예요.', '🤸'],
+    ['We will go to the beach.', '우리는 해변에 갈 거예요.', '🏖️'], ['I will call you later.', '나중에 전화할게.', '📞'], ['He will help his dad.', '그는 아빠를 도와줄 거예요.', '🤲'],
+    ['The bus will come soon.', '버스가 곧 올 거예요.', '🚌'], ['I will clean my room tonight.', '나는 오늘 밤 방을 청소할 거예요.', '🧹'], ['We will have a party.', '우리는 파티를 할 거예요.', '🎉'],
+    ['It will be sunny on Sunday.', '일요일에는 화창할 거예요.', '☀️'], ['I will share my snack.', '내 간식을 나눠 줄게요.', '🍪'], ['You will love this book.', '너는 이 책을 정말 좋아할 거야.', '📚'],
+    ['I will plant flowers in spring.', '나는 봄에 꽃을 심을 거예요.', '🌷'], ['Mom will make dinner.', '엄마가 저녁을 만드실 거예요.', '🍲'], ['I will try my best.', '나는 최선을 다할 거예요.', '💪'],
+    ['We will see a dolphin.', '우리는 돌고래를 볼 거예요.', '🐬'], ['I will never give up.', '나는 절대 포기하지 않을 거예요.', '🌟'],
+    // Z: be going to · 나의 꿈
+    ['I am going to bake cookies.', '나는 쿠키를 구울 거예요.', '🍪'], ['He is going to fly a kite.', '그는 연을 날릴 거예요.', '🪁'], ['We are going to plant a tree.', '우리는 나무를 심을 거예요.', '🌱'],
+    ['I am going to draw a picture.', '나는 그림을 그릴 거예요.', '🎨'], ['My dream is to be a singer.', '내 꿈은 가수가 되는 거예요.', '🎤'], ['I am going to visit Jeju.', '나는 제주도에 갈 거예요.', '✈️'],
+    ['She is going to learn piano.', '그녀는 피아노를 배울 거예요.', '🎹'], ['They are going to watch a play.', '그들은 연극을 볼 거예요.', '🎭'], ['I am going to read ten books.', '나는 책 열 권을 읽을 거예요.', '📚'],
+    ['We are going to build a robot.', '우리는 로봇을 만들 거예요.', '🤖'], ['When I grow up, I will be a pilot.', '나는 커서 조종사가 될 거예요.', '🧑‍✈️'], ['I want to be a chef.', '나는 요리사가 되고 싶어요.', '🧑‍🍳'],
+    ['My dream is to travel the world.', '내 꿈은 세계 여행이에요.', '🌍'], ['I am going to save money.', '나는 돈을 모을 거예요.', '🐷'], ['Next year, I will be eight.', '내년에 나는 여덟 살이 될 거예요.', '🎂'],
+    ['I hope to be a scientist.', '나는 과학자가 되기를 바라요.', '🔬'], ['We are going to go camping.', '우리는 캠핑을 갈 거예요.', '🏕️'], ['I am going to help animals.', '나는 동물들을 도울 거예요.', '🐾'],
+    ['Someday, I will fly to the moon.', '언젠가 나는 달에 갈 거예요.', '🚀'], ['I will keep learning English.', '나는 영어를 계속 배울 거예요.', '🌱'],
+  ],
+};
+
+// 질문/대답 은행: [질문, 대답, 뜻]
+const QA = {
+  4: [
+    // I: 인사 · 자기소개
+    ['What is your name?', 'My name is Mia.', '이름이 뭐니? — 내 이름은 미아야.'], ['How are you?', 'I am fine, thank you.', '어떻게 지내? — 잘 지내, 고마워.'],
+    ['How old are you?', 'I am seven years old.', '몇 살이니? — 나는 일곱 살이야.'], ['Nice to meet you.', 'Nice to meet you, too.', '만나서 반가워. — 나도 반가워.'],
+    ['Where are you from?', 'I am from Korea.', '어디에서 왔니? — 한국에서 왔어.'], ['Who is he?', 'He is my brother.', '그는 누구니? — 우리 형이야.'],
+    ['Who is she?', 'She is my teacher.', '그녀는 누구야? — 우리 선생님이야.'], ['Is this your bag?', 'Yes, it is.', '이거 네 가방이니? — 응, 맞아.'],
+    ['Are you a student?', 'Yes, I am.', '너는 학생이니? — 응, 맞아.'], ['Good morning!', 'Good morning, Mom!', '좋은 아침! — 좋은 아침이에요, 엄마!'],
+    ['How is the weather?', 'It is sunny.', '날씨가 어때? — 화창해.'], ['Do you have a brother?', 'No, I do not.', '형제가 있니? — 아니, 없어.'],
+    ['What is your favorite color?', 'My favorite color is blue.', '제일 좋아하는 색은? — 파란색이야.'], ['Can you help me?', 'Sure, I can.', '도와줄 수 있어? — 물론이지.'],
+    ['Are you hungry?', 'Yes, I am.', '배고프니? — 응, 배고파.'], ['Thank you!', 'You are welcome.', '고마워! — 천만에.'],
+    // J: 물건 · 색 · 수
+    ['What is this?', 'It is a pencil.', '이건 뭐야? — 연필이야.'], ['What color is it?', 'It is green.', '무슨 색이야? — 초록색이야.'],
+    ['Is it a cat?', 'No, it is a dog.', '고양이야? — 아니, 개야.'], ['How many apples?', 'There are three apples.', '사과가 몇 개야? — 사과가 세 개 있어.'],
+    ['What is that?', 'It is a kite.', '저건 뭐야? — 연이야.'], ['What color is the sky?', 'The sky is blue.', '하늘은 무슨 색이야? — 하늘은 파래.'],
+    ['How many legs does a dog have?', 'A dog has four legs.', '개는 다리가 몇 개야? — 개는 다리가 네 개야.'], ['Is it big?', 'No, it is small.', '그거 커? — 아니, 작아.'],
+    ['What shape is it?', 'It is a circle.', '무슨 모양이야? — 동그라미야.'], ['How many pencils do you have?', 'I have five pencils.', '연필 몇 자루 있어? — 다섯 자루 있어.'],
+    ['Whose book is this?', 'It is my book.', '이건 누구 책이야? — 내 책이야.'], ['Is the water cold?', 'Yes, it is very cold.', '물이 차가워? — 응, 아주 차가워.'],
+    ['What is in the box?', 'A teddy bear is in the box.', '상자 안에 뭐가 있어? — 곰 인형이 있어.'], ['What color are bananas?', 'Bananas are yellow.', '바나나는 무슨 색이야? — 바나나는 노란색이야.'],
+    ['Is this an egg?', 'Yes, it is an egg.', '이거 달걀이야? — 응, 달걀이야.'], ['What do you see?', 'I see a rainbow.', '뭐가 보여? — 무지개가 보여.'],
+    // K: 좋아하는 것 · 할 수 있는 것 · 원하는 것
+    ['Do you like pizza?', 'Yes, I do.', '피자 좋아해? — 응, 좋아해.'], ['Can you swim?', 'No, I can not.', '수영할 수 있어? — 아니, 못 해.'],
+    ['What do you want?', 'I want some juice.', '뭘 원해? — 주스를 원해.'], ['What is your favorite food?', 'I like noodles.', '제일 좋아하는 음식은? — 국수를 좋아해.'],
+    ['Do you have a pet?', 'Yes, I have a hamster.', '애완동물 있어? — 응, 햄스터가 있어.'], ['Can you play soccer?', 'Yes, I can.', '축구할 수 있어? — 응, 할 수 있어.'],
+    ['What do you like to do?', 'I like to draw.', '뭐 하는 걸 좋아해? — 그림 그리는 걸 좋아해.'], ['Do you like carrots?', 'No, I do not.', '당근 좋아해? — 아니, 안 좋아해.'],
+    ['What animal do you like?', 'I like pandas.', '어떤 동물을 좋아해? — 판다를 좋아해.'], ['Can I help you?', 'Yes, please.', '도와줄까? — 응, 부탁해.'],
+    ['Do you want some milk?', 'No, thank you.', '우유 좀 줄까? — 아니, 괜찮아.'], ['Can you count to ten?', 'Yes, I can.', '열까지 셀 수 있어? — 응, 할 수 있어.'],
+    ['What sport do you like?', 'I like basketball.', '어떤 운동을 좋아해? — 농구를 좋아해.'], ['Do you like music?', 'Yes, I love music.', '음악 좋아해? — 응, 정말 좋아해.'],
+    ['Can your dog run fast?', 'Yes, it can.', '너희 개는 빨리 달릴 수 있어? — 응, 할 수 있어.'], ['Which one do you want?', 'I want the red one.', '어떤 걸 원해? — 빨간 걸 원해.'],
+    // L: 시간 · 하루 일과 · 기분
+    ['What time is it?', 'It is two o\'clock.', '몇 시야? — 두 시야.'], ['What day is it today?', 'It is Monday.', '오늘 무슨 요일이야? — 월요일이야.'],
+    ['How do you feel?', 'I feel happy.', '기분이 어때? — 행복해.'], ['Are you tired?', 'Yes, I am sleepy.', '피곤하니? — 응, 졸려.'],
+    ['What time do you get up?', 'I get up at seven.', '몇 시에 일어나? — 일곱 시에 일어나.'], ['What do you eat for breakfast?', 'I eat bread and milk.', '아침으로 뭘 먹어? — 빵과 우유를 먹어.'],
+    ['Is it raining?', 'No, it is sunny.', '비가 와? — 아니, 화창해.'], ['Are you okay?', 'Yes, I am okay.', '괜찮아? — 응, 괜찮아.'],
+    ['Why are you happy?', 'Because it is my birthday.', '왜 기뻐? — 내 생일이거든.'], ['What season do you like?', 'I like summer.', '어떤 계절을 좋아해? — 여름을 좋아해.'],
+    ['Is it cold outside?', 'Yes, wear your coat.', '밖이 추워? — 응, 코트 입어.'], ['What time is lunch?', 'Lunch is at twelve.', '점심은 몇 시야? — 열두 시야.'],
+    ['How do you go home?', 'I walk home.', '집에 어떻게 가? — 걸어서 가.'], ['Do you brush your teeth?', 'Yes, every day.', '이 닦니? — 응, 매일.'],
+    ['Are you ready?', 'Yes, let us go.', '준비됐어? — 응, 가자.'], ['Good night!', 'Good night, Dad!', '잘 자! — 안녕히 주무세요, 아빠!'],
+  ],
+  6: [
+    // Q: Where · 전치사
+    ['Where is the cat?', 'The cat is under the table.', '고양이는 어디 있어? — 탁자 밑에 있어.'], ['Where is my hat?', 'It is on the chair.', '내 모자 어디 있어? — 의자 위에 있어.'],
+    ['Where are the birds?', 'They are in the tree.', '새들은 어디 있어? — 나무에 있어.'], ['Where is the library?', 'It is next to the bank.', '도서관은 어디야? — 은행 옆에 있어.'],
+    ['Where do you live?', 'I live in Seoul.', '어디 살아? — 서울에 살아.'], ['Where is the ball?', 'It is behind the door.', '공은 어디 있어? — 문 뒤에 있어.'],
+    ['Where are my shoes?', 'They are by the bed.', '내 신발 어디 있어? — 침대 옆에 있어.'], ['Where is Grandma?', 'She is in the kitchen.', '할머니는 어디 계셔? — 부엌에 계셔.'],
+    ['Where do you play?', 'I play in the park.', '어디서 놀아? — 공원에서 놀아.'], ['Where is the zoo?', 'It is near the school.', '동물원은 어디야? — 학교 근처야.'],
+    ['Where is the clock?', 'It is on the wall.', '시계는 어디 있어? — 벽에 있어.'], ['Where are you going?', 'I am going to school.', '어디 가? — 학교에 가.'],
+    ['Where is the bathroom?', 'It is down the hall.', '화장실은 어디야? — 복도 끝에 있어.'], ['Where are the keys?', 'They are in my bag.', '열쇠는 어디 있어? — 내 가방에 있어.'],
+    ['Where is the moon?', 'It is in the sky.', '달은 어디 있어? — 하늘에 있어.'], ['Where do fish live?', 'They live in the water.', '물고기는 어디 살아? — 물속에 살아.'],
+    // R: Who · What ~ing
+    ['Who is that boy?', 'He is my cousin Tom.', '저 남자아이는 누구야? — 내 사촌 톰이야.'], ['Who has the ball?', 'Mina has the ball.', '누가 공을 가지고 있어? — 미나가 가지고 있어.'],
+    ['Who is singing?', 'My brother is singing.', '누가 노래하고 있어? — 우리 형이 노래하고 있어.'], ['What are you doing?', 'I am reading a book.', '뭐 하고 있어? — 책을 읽고 있어.'],
+    ['What is she doing?', 'She is cooking dinner.', '그녀는 뭐 하고 있어? — 저녁을 요리하고 있어.'], ['What are they doing?', 'They are playing tag.', '그들은 뭐 하고 있어? — 술래잡기를 하고 있어.'],
+    ['Who is your best friend?', 'Jisu is my best friend.', '가장 친한 친구는 누구야? — 지수가 가장 친한 친구야.'], ['Who is at the door?', 'It is the mail carrier.', '문 앞에 누구야? — 집배원 아저씨야.'],
+    ['What is he drawing?', 'He is drawing a house.', '그는 뭘 그리고 있어? — 집을 그리고 있어.'], ['Who can help me?', 'I can help you.', '누가 나를 도와줄 수 있어? — 내가 도와줄게.'],
+    ['What is the baby doing?', 'The baby is sleeping.', '아기는 뭐 하고 있어? — 아기는 자고 있어.'], ['Who is your teacher?', 'Ms Kim is my teacher.', '선생님은 누구야? — 김 선생님이야.'],
+    ['What are you eating?', 'I am eating an apple.', '뭐 먹고 있어? — 사과를 먹고 있어.'], ['Who is the tallest?', 'Dad is the tallest.', '누가 제일 키가 커? — 아빠가 제일 커.'],
+    ['What is the dog doing?', 'The dog is digging a hole.', '개는 뭐 하고 있어? — 구멍을 파고 있어.'], ['Who wants cake?', 'I want cake!', '케이크 먹을 사람? — 나요!'],
+    // S: When · 시간
+    ['When do you get up?', 'I get up at seven.', '언제 일어나? — 일곱 시에 일어나.'], ['When is your birthday?', 'It is in May.', '생일이 언제야? — 5월이야.'],
+    ['When do you sleep?', 'I sleep at nine.', '언제 자? — 아홉 시에 자.'], ['When does school start?', 'School starts at nine.', '학교는 언제 시작해? — 아홉 시에 시작해.'],
+    ['When do you eat lunch?', 'I eat lunch at noon.', '점심은 언제 먹어? — 정오에 먹어.'], ['When is the party?', 'It is on Saturday.', '파티는 언제야? — 토요일이야.'],
+    ['When do you play outside?', 'I play after school.', '언제 밖에서 놀아? — 방과 후에 놀아.'], ['When is Christmas?', 'It is in December.', '크리스마스는 언제야? — 12월이야.'],
+    ['When do you take a bath?', 'I take a bath at night.', '언제 목욕해? — 밤에 목욕해.'], ['When does the bus come?', 'It comes at eight.', '버스는 언제 와? — 여덟 시에 와.'],
+    ['When do you do homework?', 'I do it after dinner.', '숙제는 언제 해? — 저녁 먹고 해.'], ['When is your piano lesson?', 'It is on Tuesday.', '피아노 수업은 언제야? — 화요일이야.'],
+    ['When do leaves fall?', 'They fall in autumn.', '나뭇잎은 언제 떨어져? — 가을에 떨어져.'], ['When do you visit Grandpa?', 'I visit him on Sundays.', '할아버지 댁에 언제 가? — 일요일마다 가.'],
+    ['When do you wake up on weekends?', 'I wake up at eight.', '주말에는 언제 일어나? — 여덟 시에 일어나.'], ['When does it snow?', 'It snows in winter.', '눈은 언제 와? — 겨울에 와.'],
+    // T: Why · How
+    ['Why are you sad?', 'Because I lost my toy.', '왜 슬퍼? — 장난감을 잃어버렸거든.'], ['How do you go to school?', 'I go to school by bus.', '학교에 어떻게 가? — 버스로 가.'],
+    ['Why are you late?', 'Because I missed the bus.', '왜 늦었어? — 버스를 놓쳤거든.'], ['How do you make a sandwich?', 'I put cheese on bread.', '샌드위치는 어떻게 만들어? — 빵에 치즈를 올려.'],
+    ['Why do you like dogs?', 'Because they are cute.', '왜 개를 좋아해? — 귀엽거든.'], ['How is your mom?', 'She is fine.', '어머니는 잘 계셔? — 잘 계셔.'],
+    ['How much is this?', 'It is two dollars.', '이거 얼마예요? — 2달러예요.'], ['Why is he crying?', 'Because he fell down.', '그는 왜 울어? — 넘어졌거든.'],
+    ['How do you say this in English?', 'It is a watermelon.', '이걸 영어로 뭐라고 해? — 수박이야.'], ['Why do we need water?', 'Because we need to drink.', '왜 물이 필요해? — 마셔야 하니까.'],
+    ['How tall are you?', 'I am one meter tall.', '키가 얼마야? — 1미터야.'], ['How many friends came?', 'Five friends came.', '친구가 몇 명 왔어? — 다섯 명 왔어.'],
+    ['Why is the sky dark?', 'Because it is night.', '하늘이 왜 어두워? — 밤이니까.'], ['How do you feel today?', 'I feel great.', '오늘 기분 어때? — 아주 좋아.'],
+    ['How do birds fly?', 'They flap their wings.', '새는 어떻게 날아? — 날개를 퍼덕여.'], ['Why are you smiling?', 'Because I am happy.', '왜 웃고 있어? — 행복하니까.'],
+  ],
+};
+
+// 과거형 동사 (7단계 문항용) — [원형, 과거형]
+const VERBS = [
+  ['go', 'went'], ['eat', 'ate'], ['see', 'saw'], ['play', 'played'], ['drink', 'drank'], ['watch', 'watched'], ['help', 'helped'], ['jump', 'jumped'],
+  ['make', 'made'], ['read', 'read'], ['clean', 'cleaned'], ['have', 'had'], ['run', 'ran'], ['sing', 'sang'], ['write', 'wrote'], ['sleep', 'slept'],
+  ['come', 'came'], ['swim', 'swam'], ['walk', 'walked'], ['give', 'gave'], ['wash', 'washed'], ['open', 'opened'], ['visit', 'visited'], ['paint', 'painted'],
+  ['dance', 'danced'], ['cry', 'cried'], ['cook', 'cooked'], ['climb', 'climbed'], ['brush', 'brushed'], ['stop', 'stopped'], ['get', 'got'], ['sit', 'sat'],
+  ['buy', 'bought'], ['take', 'took'], ['fly', 'flew'], ['draw', 'drew'], ['ride', 'rode'], ['find', 'found'], ['catch', 'caught'], ['win', 'won'],
+  ['feel', 'felt'], ['meet', 'met'], ['lose', 'lost'], ['bring', 'brought'], ['tell', 'told'], ['wear', 'wore'], ['build', 'built'], ['grow', 'grew'],
+  ['wake', 'woke'], ['throw', 'threw'], ['laugh', 'laughed'], ['say', 'said'], ['do', 'did'], ['rain', 'rained'],
+];
+const WRONG_PAST = {
+  go: 'goed', eat: 'eated', see: 'seed', drink: 'drinked', make: 'maked', read: 'readed', have: 'haved', run: 'runned', sing: 'singed', write: 'writed',
+  sleep: 'sleeped', come: 'comed', swim: 'swimmed', give: 'gived', get: 'getted', sit: 'sitted', buy: 'buyed', take: 'taked', fly: 'flied', draw: 'drawed',
+  ride: 'rided', find: 'finded', catch: 'catched', win: 'winned', feel: 'feeled', meet: 'meeted', lose: 'losed', bring: 'bringed', tell: 'telled',
+  wear: 'weared', build: 'builded', grow: 'growed', wake: 'waked', throw: 'throwed', say: 'sayed', do: 'doed', cry: 'cryed', stop: 'stoped',
+};
+
+// 스토리북 (단계마다 2권)
+const STORIES = [
+  { id: 1, stage: 1, title: 'ABC Picnic', cover: '🧺', pages: [['A is for apple.', '🍎'], ['B is for banana.', '🍌'], ['C is for cookie.', '🍪'], ['We eat in the park.', '🌳'], ['Yum! What a fun picnic!', '😋']] },
+  { id: 2, stage: 2, title: 'The Fat Cat', cover: '🐈', pages: [['A cat sat on a mat.', '🐈'], ['The cat is fat.', '🐱'], ['A rat ran to the cat.', '🐀'], ['The cat had a nap.', '😴'], ['The rat got a hat!', '🎩']] },
+  { id: 3, stage: 3, title: 'My Family', cover: '👨‍👩‍👧', pages: [['This is my mom.', '👩'], ['This is my dad.', '👨'], ['This is my baby brother.', '👶'], ['We are a happy family.', '👨‍👩‍👦'], ['I love my family.', '❤️']] },
+  { id: 4, stage: 4, title: 'New Friend', cover: '🤝', pages: [['Hi! What is your name?', '👦'], ['My name is Lily.', '👧'], ['How old are you?', '👦'], ['I am seven years old.', '👧'], ['Let us be friends!', '🤝']] },
+  { id: 5, stage: 5, title: 'The Rainy Day', cover: '🌧️', pages: [['The sky is gray and dark.', '☁️'], ['Big drops fall on the roof.', '🌧️'], ['I wear my yellow boots.', '🥾'], ['The puddles are deep and fun.', '💦'], ['Now the sky is bright and blue!', '🌈']] },
+  { id: 6, stage: 6, title: 'Where Is Max?', cover: '🐶', pages: [['Where is Max the dog?', '🐶'], ['Is he under the bed? No!', '🛏️'], ['Is he in the kitchen? No!', '🍳'], ['He is behind the sofa.', '🛋️'], ['Max is sleeping. Shh!', '💤']] },
+  { id: 7, stage: 7, title: 'My Weekend', cover: '🎡', pages: [['On Saturday, I went to the zoo.', '🦒'], ['I saw a big elephant.', '🐘'], ['I ate ice cream with my dad.', '🍦'], ['On Sunday, I played with my friends.', '⚽'], ['I had a great weekend!', '🌟']] },
+  { id: 8, stage: 8, title: 'When I Grow Up', cover: '🚀', pages: [['What will you be?', '🤔'], ['I will be a pilot.', '🧑‍✈️'], ['I am going to fly around the world.', '✈️'], ['I will visit many countries.', '🌍'], ['My dream will come true!', '✨']] },
+  { id: 9, stage: 1, title: 'Animal Parade', cover: '🦁', pages: [['A is for ant.', '🐜'], ['B is for bear.', '🐻'], ['C is for cow.', '🐄'], ['D is for duck.', '🦆'], ['They all walk in a line!', '🎉']] },
+  { id: 10, stage: 2, title: 'Ben and the Bus', cover: '🚌', pages: [['Ben has a red cap.', '🧢'], ['Ben gets on the bus.', '🚌'], ['The bus is hot.', '☀️'], ['Ben sits and naps.', '😴'], ['Ben is at the big zoo!', '🦓']] },
+  { id: 11, stage: 3, title: 'My Toy Box', cover: '🧸', pages: [['This is my toy box.', '📦'], ['I have a red car.', '🚗'], ['I have a little bear.', '🧸'], ['I like my blue ball.', '🔵'], ['I can play all day!', '🤸']] },
+  { id: 12, stage: 4, title: 'At the Shop', cover: '🏪', pages: [['Can I help you?', '🧑‍💼'], ['Yes, I want some apples.', '🍎'], ['How many apples?', '🤔'], ['Three apples, please.', '3️⃣'], ['Here you are. Thank you!', '😊']] },
+  { id: 13, stage: 5, title: 'The Big Red Kite', cover: '🪁', pages: [['I have a big red kite.', '🪁'], ['The wind is strong today.', '🌬️'], ['My kite flies high and far.', '☁️'], ['It looks so small in the sky.', '🔭'], ['What a happy, windy day!', '😄']] },
+  { id: 14, stage: 6, title: 'Busy Sunday', cover: '📅', pages: [['When do we wake up? At eight!', '⏰'], ['What do we eat? Pancakes!', '🥞'], ['Where do we go? To the park!', '🏞️'], ['Who do we see? Our friends!', '👫'], ['Why are we happy? We are together!', '💛']] },
+  { id: 15, stage: 7, title: 'The Lost Puppy', cover: '🐕', pages: [['Yesterday, I found a little puppy.', '🐶'], ['It was cold and hungry.', '🥶'], ['I gave it some milk.', '🥛'], ['We looked for its family.', '🔍'], ['The puppy went home happily.', '🏠']] },
+  { id: 16, stage: 8, title: 'Our Space Trip', cover: '🚀', pages: [['Tomorrow, we will go to space.', '🚀'], ['We are going to see the stars.', '✨'], ['I will wave to the Earth.', '🌍'], ['We will land on the moon.', '🌕'], ['It will be the best trip ever!', '🌟']] },
+];
+
+// 학습 기간 안내: 남은 레슨 수와 하루 레슨 수로 주 5일 기준 기간을 계산
+const studyWeeks = (lessons, perDay = 1, daysPerWeek = 5) => Math.ceil(lessons / (perDay * daysPerWeek));
+const durationText = weeks => weeks >= 52 ? `약 ${Math.round(weeks / 52 * 10) / 10}년` : weeks >= 8 ? `약 ${Math.round(weeks / 4.3)}개월` : `약 ${weeks}주`;
