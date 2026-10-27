@@ -688,9 +688,9 @@ Views.learn = el => {
         <header><em class="stage-tag">섬 ${s.id}</em><b>${s.title}</b><span class="island-stories">${STORIES.filter(x => x.stage === s.id).map(x => `<a class="link-btn" href="#/story/${x.id}">📖 ${esc(x.title)}</a>`).join('')}</span></header>
         <div class="nodes">${s.levels.map((lv, k) => {
           const open = Store.isUnlocked(lv), done = Store.lessonsDone(lv);
-          const best = Store.levelProgress(lv).lessons.filter(Boolean).reduce((m, r) => Math.max(m, r.score), 0);
+          const pct = Math.round(done / LESSONS_PER_LEVEL * 100); // 레벨 진도 (점수가 아니라 끝낸 날 수)
           return `<button class="node ${open ? '' : 'locked'} ${lv === cur ? 'current' : ''} ${done >= LESSONS_PER_LEVEL ? 'cleared' : ''}" data-lv="${lv}" style="--k:${k}" ${open ? '' : 'aria-disabled="true"'}>
-            <span class="node-ball">${open ? lv : '🔒'}</span><span class="node-prog">${done}/${LESSONS_PER_LEVEL}${best ? ' · ' + best + '%' : ''}</span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
+            <span class="node-ball">${open ? lv : '🔒'}</span><span class="node-prog" title="레벨 진도 ${pct}%">${done}/${LESSONS_PER_LEVEL}일</span><span class="node-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>`).join('')}</div>
   </div>`;
@@ -698,7 +698,9 @@ Views.learn = el => {
     const lv = b.dataset.lv;
     if (!Store.isUnlocked(lv)) return App.toast('앞 레벨을 마치면 열려요 🔒');
     const lp = Store.levelProgress(lv), s = stageOf(lv);
+    const doneN = Store.lessonsDone(lv);
     const m = App.modal(`<h2><span class="level-box" style="--c:${s.color}">${lv}</span> Level ${lv}</h2><p>${s.desc}</p>
+      <div class="course-prog"><div class="rb-bar"><i style="width:${doneN / LESSONS_PER_LEVEL * 100}%"></i></div><small>레벨 진도 <b>${doneN}/${LESSONS_PER_LEVEL}일</b> (${Math.round(doneN / LESSONS_PER_LEVEL * 100)}%) · 아래 %는 각 Day의 최고 정답률이에요</small></div>
       <div class="day-list">${Array.from({ length: LESSONS_PER_LEVEL }, (_, d) => {
         const r = lp.lessons[d]; const st = r ? (r.score >= 90 ? 3 : r.score >= 70 ? 2 : 1) : 0;
         return `<a class="day-btn ${r ? 'done' : ''} ${Gen.isReviewDay(d) ? 'review' : ''}" href="#/lesson/${lv}/${d}" data-close><b>${dayLabel(d)}</b><span>${r ? '⭐'.repeat(st) + '☆'.repeat(3 - st) + ` ${r.score}%` : '—'}</span></a>`;

@@ -694,3 +694,7 @@ body.in-lesson .demo-banner { display: none; }
 .island-stories { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
 @media (max-width: 600px) { .day-list { grid-template-columns: 1fr; } }
 .voice-row { flex-wrap: nowrap; } .voice-row select { flex: 1; min-width: 0; }
+
+/* 모험 지도: 레벨 진도 막대 */
+.node-bar { width: 64px; height: 7px; border-radius: 999px; background: var(--paper); border: 2px solid var(--line); overflow: hidden; }
+.node-bar i { display: block; height: 100%; background: var(--grass); }
