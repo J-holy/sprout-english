@@ -238,15 +238,15 @@ UI.miniQuiz = box => {
       <p class="mq-fb" aria-live="polite">눌러서 들어보세요 👆</p>`;
     const play = () => Speech.speak(ans.en);
     $('.mq-play', box).onclick = play;
-    if (n > 0) setTimeout(play, 300); // 첫 문제는 아이가 직접 🔊를 누르게 한다
+    if (n > 0) Speech.speakLater(ans.en, 300); // 첫 문제는 아이가 직접 🔊를 누르게 한다
     $$('.mq-opt', box).forEach(b => b.onclick = () => {
       const ok = b.dataset.en === ans.en;
       $$('.mq-opt', box).forEach(x => { x.disabled = true; if (x.dataset.en === ans.en) x.classList.add('right'); });
       if (!ok) b.classList.add('wrong'); else right++;
       ok ? Speech.sfx.correct() : Speech.sfx.wrong();
       $('.mq-fb', box).innerHTML = `${ok ? '정답! 👏' : '아쉬워요!'} <b>${esc(ans.en)}</b>`;
-      setTimeout(() => Speech.speak(ans.en), 300);
-      setTimeout(() => { n++; draw(); }, 1400);
+      Speech.speakLater(ans.en, 300);
+      setTimeout(() => { if (document.body.contains(box)) { n++; draw(); } }, 1400); // 다른 화면으로 가면 멈춘다
     });
   };
   draw();
@@ -775,7 +775,8 @@ Views.stories = el => {
 Views.story = (el, id) => {
   const s = STORIES.find(x => x.id === id); if (!s) return (location.hash = '#/stories');
   if (!Store.isUnlocked(STAGES[s.stage - 1].levels[0])) { App.toast('그 섬에 도착하면 열려요 🔒'); return (location.hash = '#/stories'); }
-  let pg = 0, auto = false; const t0 = Date.now();
+  let pg = 0, auto = false, turnTimer = null; const t0 = Date.now();
+  const cancelTurn = () => { clearTimeout(turnTimer); turnTimer = null; };
   el.innerHTML = `<div class="wrap sec narrow">
     <a class="link-btn" href="#/stories">← 스토리북 목록</a>
     <div class="reader card" style="--c:${STAGES[s.stage - 1].color}">
@@ -791,8 +792,10 @@ Views.story = (el, id) => {
     </div></div>`;
   const page = $('.reader-page', el);
   const draw = () => {
+    cancelTurn();
     if (pg >= s.pages.length) {
-      const first = Store.readStory(s.id); Store.addMinutes((Date.now() - t0) / 1000); auto = false;
+      const first = Store.readStory(s.id); Store.addMinutes((Date.now() - t0) / 1000);
+      stopAuto(); Speech.stop();
       page.innerHTML = `<div class="the-end anim-in"><div class="pic">🎉</div><h2>The End</h2><p>${first ? '첫 완독! 도장과 ⭐2개를 받았어요!' : '또 읽었어요! 정말 잘했어요.'}</p>
         <div class="row-center"><button class="btn btn-ghost" data-restart>처음부터</button><a class="btn btn-primary" href="#/stories">다른 책</a></div></div>`;
       $('[data-restart]', page).onclick = () => { pg = 0; draw(); };
@@ -800,7 +803,12 @@ Views.story = (el, id) => {
     }
     const [text, pic] = s.pages[pg];
     page.innerHTML = `<div class="anim-in"><div class="pic">${pic}</div><p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(w.replace(/[.,!?]/g, ''))}">${esc(w)}</span>`).join(' ')}</p></div>`;
-    $$('.reader-text span', page).forEach(sp => sp.onclick = () => { sp.classList.add('hl'); Speech.speak(sp.dataset.say, { onEnd: () => sp.classList.remove('hl') }); });
+    // 단어를 누르면 그 단어만 읽고, 자동 넘김은 잠시 멈춘다
+    $$('.reader-text span', page).forEach(sp => sp.onclick = () => {
+      stopAuto();
+      $$('.reader-text span', page).forEach(x => x.classList.remove('hl'));
+      sp.classList.add('hl'); Speech.speak(sp.dataset.say, { onEnd: () => sp.classList.remove('hl') });
+    });
     $('.reader-dots', el).innerHTML = s.pages.map((_, k) => `<i class="${k === pg ? 'on' : ''}"></i>`).join('');
     $('[data-prev]', el).disabled = pg === 0;
     if (auto) read();
@@ -810,11 +818,13 @@ Views.story = (el, id) => {
     let offset = 0; const starts = text.split(' ').map(w => { const o = offset; offset += w.length + 1; return o; });
     Speech.speak(text, {
       onBoundary: ci => { const k = starts.filter(x => x <= ci).length - 1; spans.forEach((sp, j) => sp.classList.toggle('hl', j === k)); },
-      onEnd: () => { spans.forEach(sp => sp.classList.remove('hl')); if (auto && document.body.contains(page)) setTimeout(() => { if (auto) { pg++; draw(); } }, 700); },
+      onEnd: () => { spans.forEach(sp => sp.classList.remove('hl')); if (auto && document.body.contains(page)) { cancelTurn(); turnTimer = setTimeout(() => { if (auto && document.body.contains(page)) { pg++; draw(); } }, 700); } },
     });
   };
-  $('[data-read]', el).onclick = read;
-  $('[data-auto]', el).onclick = e => { auto = !auto; e.target.textContent = auto ? '⏸ 멈추기' : '▶ 자동 넘김'; if (auto) read(); else Speech.stop(); };
+  const autoBtn = $('[data-auto]', el);
+  const stopAuto = () => { auto = false; cancelTurn(); autoBtn.textContent = '▶ 자동 넘김'; };
+  autoBtn.onclick = () => { if (auto) { stopAuto(); Speech.stop(); } else { auto = true; autoBtn.textContent = '⏸ 멈추기'; read(); } };
+  $('[data-read]', el).onclick = () => { cancelTurn(); read(); };
   $('[data-prev]', el).onclick = () => { if (pg > 0) { Speech.stop(); pg--; draw(); } };
   $('[data-nextp]', el).onclick = () => { Speech.stop(); pg++; draw(); };
   draw();
@@ -966,7 +976,7 @@ Views.play = (el, game) => {
       $$('.balloon', area).forEach(b => b.onclick = () => {
         if (b.dataset.en === answer.en) {
           if (!tried) score++;
-          b.classList.add('pop'); Speech.sfx.correct(); round++; setTimeout(next, 550);
+          b.classList.add('pop'); Speech.sfx.correct(); round++; setTimeout(() => { if (document.body.contains(area)) next(); }, 550);
         } else { tried = true; b.classList.add('nope'); Speech.sfx.wrong(); setTimeout(() => b.classList.remove('nope'), 400); }
       });
     };
@@ -990,7 +1000,7 @@ Views.play = (el, game) => {
       if (cards[a].id === cards[c].id && a !== c) {
         found++; Speech.sfx.correct(); Speech.speak(cards[a].id);
         $$(`.mcard[data-k="${a}"], .mcard[data-k="${c}"]`, area).forEach(x => x.classList.add('matched'));
-        if (found === picks.length) setTimeout(() => finish('match', Math.max(1, 10 - Math.max(0, moves - 6)), 10, `· ${moves}번 만에 성공`), 600);
+        if (found === picks.length) setTimeout(() => document.body.contains(area) && finish('match', Math.max(1, 10 - Math.max(0, moves - 6)), 10, `· ${moves}번 만에 성공`), 600);
       } else {
         lock = true;
         setTimeout(() => { $$(`.mcard[data-k="${a}"], .mcard[data-k="${c}"]`, area).forEach(x => x.classList.remove('flip')); lock = false; }, 900);

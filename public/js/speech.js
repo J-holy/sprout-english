@@ -73,12 +73,25 @@ const Speech = (() => {
     u.onerror = () => onEnd && onEnd();
     synth.speak(u);
   }
+  // 재생 번호: 멈추거나 새로 말하면 번호가 바뀌고, 지난 재생의 끝/단어 알림은 무시한다.
+  // (브라우저는 중간에 멈춘 문장에도 '끝남'을 보내서, 스토리북이 페이지를 한 번 더 넘기는 등 소리가 겹쳤다)
+  let gen = 0, later = [];
   function speak(text, opts = {}) {
     stop();
+    const my = gen;
+    const only = fn => fn && ((...a) => { if (my === gen) fn(...a); });
+    opts = { ...opts, onEnd: only(opts.onEnd), onBoundary: only(opts.onBoundary) };
     if (useNeural() && playNeural(text, opts)) return;
     speakBrowser(text, opts);
   }
-  const stop = () => { clearAudio(); if (synth) synth.cancel(); };
+  // 잠시 뒤에 말하기 — 그 사이 멈추거나 다른 소리가 나면 취소된다
+  function speakLater(text, ms, opts) { later.push(setTimeout(() => speak(text, opts), ms)); }
+  function stop() {
+    gen++;
+    later.forEach(clearTimeout); later = [];
+    clearAudio();
+    if (synth) synth.cancel();
+  }
 
   // 한 번 듣고 결과 후보 문장들을 돌려줌
   function listen({ timeout = 8000 } = {}) {
@@ -150,7 +163,7 @@ const Speech = (() => {
   };
 
   return {
-    speak, stop, listen, score, sfx,
+    speak, speakLater, stop, listen, score, sfx,
     get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return !!Rec; },
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
     configure({ server, manifest }) { neural = { server: !!server, manifest: manifest || null }; },

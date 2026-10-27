@@ -167,7 +167,7 @@ const Lesson = (() => {
         Speech.sfx.wrong();
         if (q.type !== 'trace' && q.type !== 'speak') wrong.push({ key: q.key, q });
       }
-      if (q.sayAfter) setTimeout(() => Speech.speak(q.sayAfter), 350);
+      if (q.sayAfter) Speech.speakLater(q.sayAfter, 350);
       const correctText = q.type === 'tiles' ? q.answer.join(q.joiner) : q.answer;
       fb.innerHTML = `
         <div class="fb-msg">${ok ? pick(['참 잘했어요! 🎉', '정답이에요! ⭐', '멋져요! 👏', '최고예요! 🌟']) : '아쉬워요! 다시 확인해봐요 💪'}
@@ -195,7 +195,7 @@ const Lesson = (() => {
   }
   function wireSay(el, q) {
     el.querySelectorAll('[data-say]').forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
-    if (q.say) setTimeout(() => Speech.speak(q.say), 250);
+    if (q.say) Speech.speakLater(q.say, 250);
   }
 
   const R = {
@@ -301,7 +301,7 @@ const Lesson = (() => {
       const res = el.querySelector('.speak-result');
       el.querySelector('[data-listen]').onclick = () => Speech.speak(q.target);
       el.querySelector('[data-slow]').onclick = () => Speech.speak(q.target, { slow: true });
-      setTimeout(() => Speech.speak(q.prompt ? q.prompt : q.target), 250);
+      Speech.speakLater(q.prompt ? q.prompt : q.target, 250);
       const self = el.querySelector('[data-self]');
       if (self) self.onclick = () => { el.querySelectorAll('button').forEach(b => b.disabled = true); done(true, q); };
       const skip = el.querySelector('[data-skip]');
