@@ -3,8 +3,8 @@ import { db, now } from './db.js';
 
 // 화면(public/js/data.js)과 같은 값. 1~2단계는 평생 무료, 3단계부터 플러스.
 export const PLANS = {
-  one: { list: 6900, m1: 6900, m6: 5900, m12: 4900 },
-  two: { list: 9900, m1: 9900, m6: 8400, m12: 6900 },
+  one: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
+  two: { list: 44900, m1: 44900, m6: 39900, m12: 35900 },
 };
 export const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인
 const round10 = n => Math.round(n / 10) * 10;

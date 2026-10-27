@@ -136,7 +136,7 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 가입 없이 3분 체험</a>
           <a class="btn btn-ghost lg" href="#/leveltest">🧪 무료 레벨 진단</a>
         </div>
-        <ul class="trust"><li>✅ 알파벳·파닉스 평생 무료</li><li>✅ 7일 전체 체험</li><li>✅ 카드 등록 없음</li><li>✅ 플러스도 월 4,900원부터</li></ul>
+        <ul class="trust"><li>✅ 알파벳·파닉스 평생 무료</li><li>✅ 7일 전체 체험</li><li>✅ 카드 등록 없음</li><li>✅ 플러스 월 ${won(PLANS.one.m12)}부터</li></ul>
       </div>
       <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div>
     </div>
@@ -422,7 +422,7 @@ Views.pricing = (el, params) => {
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
       <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '4권', '16권 전체'],
-        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', '월 4,900원부터 · 언제든 해지']]
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
@@ -1363,6 +1363,6 @@ const AdminTabs = {
 /* ---------- 이용권 만료 ---------- */
 Views.paywall = el => {
   el.innerHTML = `<div class="wrap sec narrow center"><div class="card intro">${UI.mascot('체험 기간이 끝났어! 그동안 모은 별과 기록은 그대로 있어. 다시 만나자!', '🥺')}
-    <h1>3단계부터는 플러스예요</h1><p>1~2단계는 평생 무료로 계속할 수 있어요. 플러스는 월 4,900원부터예요.</p>
+    <h1>3단계부터는 플러스예요</h1><p>1~2단계는 평생 무료로 계속할 수 있어요. 플러스는 월 ${won(PLANS.one.m12)}부터예요.</p>
     <a class="btn btn-primary lg" href="#/pricing">요금·할인 보기</a></div></div>`;
 };
