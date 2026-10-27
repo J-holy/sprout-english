@@ -253,7 +253,7 @@ const STORIES = [
     ['G is for grapes.', '🍇'], ['Mom has a big basket.', '🧺'], ['We sit on the grass.', '🌿'], ['We eat in the park.', '🌳'], ['Yum! What a fun picnic!', '😋']] },
   { id: 9, stage: 1, title: 'Animal Parade', cover: '🦁', pages: [
     ['A is for ant.', '🐜'], ['B is for bear.', '🐻'], ['C is for cow.', '🐄'], ['D is for duck.', '🦆'], ['E is for elephant.', '🐘'], ['F is for frog.', '🐸'],
-    ['G is for goat.', '🐐'], ['H is for horse.', '🐴'], ['They walk in a line.', '🚶'], ['Stomp, stomp, stomp!', '🥁'], ['What a fun parade!', '🎉']] },
+    ['G is for goat.', '🐐'], ['H is for horse.', '🐴'], ['I is for iguana.', '🦎'], ['The animals walk in a line.', '🚶'], ['What a fun parade!', '🎉']] },
   { id: 2, stage: 2, title: 'The Fat Cat', cover: '🐈', pages: [
     ['A cat sat on a mat.', '🐈'], ['The cat is fat.', '🐱'], ['A rat ran to the mat.', '🐀'], ['The rat has a red hat.', '🎩'], ['The cat sees the hat.', '👀'], ['The rat ran and hid.', '🫣'],
     ['The cat got up.', '🐈'], ['But the cat is so fat!', '😅'], ['The cat sat back on the mat.', '🐈'], ['The cat had a nap.', '😴'], ['The rat got the hat!', '🎩']] },
@@ -301,3 +301,21 @@ const STORIES = [
 // 학습 기간 안내: 남은 레슨 수와 하루 레슨 수로 주 5일 기준 기간을 계산
 const studyWeeks = (lessons, perDay = 1, daysPerWeek = 5) => Math.ceil(lessons / (perDay * daysPerWeek));
 const durationText = weeks => weeks >= 52 ? `약 ${Math.round(weeks / 52 * 10) / 10}년` : weeks >= 8 ? `약 ${Math.round(weeks / 4.3)}개월` : `약 ${weeks}주`;
+
+// 알파벳은 이름으로 읽게 바꿔서 보낸다. 엔진이 "A is for apple"의 A, 철자 "c, a, t"의 a를
+// 관사 a(어)로 읽는 일이 많아서. 화면 글자와 채점 문장은 그대로 두고 소리만 바꾼다.
+const LETTER_NAMES = { A: 'ay', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'eff', G: 'jee', H: 'aitch', I: 'eye', J: 'jay', K: 'kay', L: 'el', M: 'em',
+  N: 'en', O: 'oh', P: 'pee', Q: 'cue', R: 'ar', S: 'ess', T: 'tee', U: 'you', V: 'vee', W: 'double you', X: 'ex', Y: 'why', Z: 'zee' };
+const nameOf = l => LETTER_NAMES[l.toUpperCase()] || l;
+function speechText(t) {
+  const x = String(t).trim();
+  if (/^[A-Z]$/.test(x)) return nameOf(x);                                                 // "A" (소문자 a 한 글자는 관사일 수 있어 그대로)
+  if (/^([A-Za-z], )+[A-Za-z]\.\s/.test(x)) {                                              // "c, a, t. cat"
+    const cut = x.indexOf('. ');
+    return x.slice(0, cut).split(', ').map(nameOf).join(', ') + x.slice(cut);
+  }
+  if (/^[A-Za-z], /.test(x)) return x.split(', ').map(w => /^[A-Za-z]$/.test(w) ? nameOf(w) : w).join(', '); // "A, a, apple" 
+  return x.replace(/^([A-Z]) is for /, (m, l) => `${nameOf(l)}, is for `)                 // "A is for apple."
+          .replace(/ ends with ([A-Z])\.?$/, (m, l) => ` ends with ${nameOf(l)}.`)          // "box ends with X"
+          .replace(/^([A-Z]), ([A-Z])$/, (m, a, b) => `${nameOf(a)}, ${nameOf(b)}`);
+}

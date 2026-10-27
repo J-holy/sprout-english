@@ -17,10 +17,11 @@ const staticDir = args.includes('--static') ? path.resolve(args[args.indexOf('--
 // 화면 코드와 같은 콘텐츠 파일을 읽는다
 const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(config.publicDir, 'js/content.js'), 'utf8').replace(/^const (\w+)/gm, 'var $1'), ctx);
-const { LETTERS, PHONICS, SENTENCES, QA, VERBS, STORIES } = ctx;
+const { LETTERS, PHONICS, SENTENCES, QA, VERBS, STORIES, speechText } = ctx;
 
 const texts = new Set();
-const add = t => { t = cleanText(t); if (validText(t)) texts.add(t); };
+// 화면과 같은 방식으로 바꾼 문장(알파벳은 이름 발음)으로 만든다
+const add = t => { t = cleanText(speechText(t)); if (validText(t)) texts.add(t); };
 for (const L of LETTERS) {
   add(L.letter);
   for (const [w] of L.words) { add(w); add(L.ending ? `${w} ends with ${L.letter}` : `${L.letter} is for ${w}`); add(w.split('').join(', ') + '. ' + w); }

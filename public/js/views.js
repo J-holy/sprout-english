@@ -871,7 +871,7 @@ Views.story = (el, id) => {
     </div></div>`;
   const page = $('.reader-page', el), box = $('.follow-box', el), autoBtn = $('[data-auto]', el), followBtn = $('[data-follow]', el);
   const spans = () => $$('.reader-text span', page);
-  const clearHl = () => spans().forEach(sp => sp.classList.remove('hl', 'ok', 'mid', 'no'));
+  const clearHl = () => spans().forEach(sp => sp.classList.remove('hl', 'ok', 'mid', 'no', 'turn', 'turn-now'));
   const syncOpts = () => {
     $$('[data-speed]', el).forEach(b => { b.classList.toggle('on', b.dataset.speed === speed); b.setAttribute('aria-checked', b.dataset.speed === speed); });
     followBtn.classList.toggle('btn-primary', follow); followBtn.setAttribute('aria-pressed', follow);
@@ -908,13 +908,27 @@ Views.story = (el, id) => {
   const read = () => {
     cancelTurn(); box.hidden = true; clearHl();
     const [text] = s.pages[pg]; const sp = spans(); const my = run;
-    if (speed === 'word') {
-      // 단어마다 따로 천천히 읽어 아이가 한 단어씩 따라갈 수 있게 한다
-      const step = k => {
+    if (speed === 'word' || speed === 'slow') {
+      // 한 단어씩: 단어마다 / 천천히: 2~3단어 마디마다 끊어 읽고 잠깐 쉰다.
+      // 음성 속도만 낮추면 iPhone 등에서는 차이가 거의 안 나서, 끊어 읽기로 확실히 느리게 한다.
+      const groups = [];
+      if (speed === 'word') sp.forEach((_, k) => groups.push([k]));
+      else {
+        let cur = [];
+        sp.forEach((x, k) => {
+          cur.push(k);
+          // 쉼표·마침표에서 끊고, 아니면 3단어마다 끊는다 (마지막에 1단어만 남지 않게)
+          const left = sp.length - k - 1;
+          if (/[,.!?]$/.test(x.textContent) || (cur.length >= 3 && left !== 1) || (cur.length >= 2 && left === 0)) { groups.push(cur); cur = []; }
+        });
+        if (cur.length) groups.push(cur);
+      }
+      const step = g => {
         if (my !== run) return;
-        if (k >= sp.length) { clearHl(); return afterRead(); }
-        clearHl(); sp[k].classList.add('hl');
-        Speech.speak(sp[k].dataset.say, { slow: true, onEnd: () => later(() => step(k + 1), 450) });
+        if (g >= groups.length) { clearHl(); return afterRead(); }
+        clearHl(); groups[g].forEach(k => sp[k].classList.add('hl'));
+        const say = groups[g].map(k => sp[k].dataset.say).join(' ');
+        Speech.speak(say, { slow: true, onEnd: () => later(() => step(g + 1), speed === 'word' ? 450 : 550) });
       };
       return step(0);
     }
@@ -926,20 +940,32 @@ Views.story = (el, id) => {
     });
   };
 
-  // 따라 읽기: 문장 전체를 보여주고 아이 차례를 준다. 마이크가 있으면 발음도 확인한다.
+  // 따라 읽기: 읽어준 뒤 "아이 차례". 단어가 아이 속도로 하나씩 초록색으로 켜지면(노래방처럼) 보면서 소리 내어 읽는다.
+  // 마이크가 되는 기기에서는 🎤로 발음 점수도 받을 수 있다. (마이크가 없어도 따라 읽기는 그대로 된다)
   const afterRead = () => {
     const [text] = s.pages[pg];
-    const wait = 1800 + text.split(' ').length * 700;
     if (!follow) { if (auto) later(() => { pg++; draw(); }, 800); return; }
-    spans().forEach(x => x.classList.add('hl'));
+    const sp = spans(), per = speed === 'normal' ? 650 : 900; // 아이가 한 단어를 읽는 시간
     box.hidden = false;
-    box.innerHTML = `<p class="follow-say">🗣️ 이제 <b>따라 읽어 봐요!</b></p>
+    box.innerHTML = `<p class="follow-say">🗣️ <b>${Store.profile() ? esc(Store.profile().name) + '의' : '내'} 차례!</b> 초록색 단어를 따라 소리 내어 읽어요</p>
       <div class="row-center">
         <button class="btn btn-ghost sm" data-again>🔁 다시 듣기</button>
-        ${Speech.canListen ? '<button class="btn btn-primary sm mic" data-mic>🎤 따라 읽기</button>' : ''}
-        <button class="btn btn-ghost sm" data-go>다 읽었어요 ▶</button>
-      </div><div class="follow-result"></div>${Speech.canListen ? '' : `<p class="fine mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}`;
+        <button class="btn btn-ghost sm" data-turn>👀 다시 따라 읽기</button>
+        ${Speech.canListen ? '<button class="btn btn-ghost sm mic" data-mic>🎤 읽고 점수 받기</button>' : ''}
+        <button class="btn btn-primary sm" data-go>다 읽었어요 ▶</button>
+      </div><div class="follow-result"></div>`;
+    // 단어를 하나씩 켜 주는 아이 차례
+    const turn = () => {
+      cancelTurn(); clearHl();
+      sp.forEach((x, k) => later(() => { sp.forEach(y => y.classList.remove('turn-now')); x.classList.add('turn', 'turn-now'); }, 300 + k * per));
+      later(() => {
+        sp.forEach(y => y.classList.remove('turn-now'));
+        $('[data-go]', box).classList.add('pulse');
+        if (auto) later(() => { pg++; draw(); }, 1200);
+      }, 300 + sp.length * per);
+    };
     $('[data-again]', box).onclick = () => read();
+    $('[data-turn]', box).onclick = turn;
     $('[data-go]', box).onclick = () => { pg++; draw(); };
     const mic = $('[data-mic]', box);
     if (mic) mic.onclick = async () => {
@@ -948,18 +974,17 @@ Views.story = (el, id) => {
       const res = $('.follow-result', box);
       try {
         const r = Speech.score(text, await Speech.listen());
-        clearHl(); spans().forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
-        const got = Store.recordSpeaking(text, r.score);
+        clearHl(); sp.forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
+        const got = Store.profile() ? Store.recordSpeaking(text, r.score) : 0;
         res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= Lesson.passMark() ? '잘 읽었어요! 🌟' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;
         if (r.score >= Lesson.passMark()) Speech.sfx.correct();
         if (auto && r.score >= Lesson.passMark()) later(() => { pg++; draw(); }, 1800);
       } catch (e) {
-        res.textContent = Speech.micHelp(e.message);
+        res.innerHTML = `<span class="mic-hint">${esc(Speech.micHelp(e.message))}</span>`;
       }
-      mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 따라 읽기';
+      mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 점수 받기';
     };
-    // 자동 넘김이면 따라 읽을 시간을 준 뒤 넘긴다
-    if (auto) later(() => { pg++; draw(); }, wait);
+    turn();
   };
 
   $('[data-read]', el).onclick = () => read();

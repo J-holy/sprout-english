@@ -65,7 +65,7 @@ const Speech = (() => {
     const u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
     u.lang = voice ? voice.lang : 'en-US';
-    u.rate = slow ? 0.65 : rate;
+    u.rate = slow ? 0.5 : rate; // 천천히는 확실히 느리게 (기기마다 속도 반영 정도가 달라서 크게 차이를 둔다)
     u.pitch = 1;
     u.volume = vol.voice;
     if (onBoundary) u.onboundary = e => { if (e.name === 'word' || e.name === undefined) onBoundary(e.charIndex); };
@@ -76,7 +76,9 @@ const Speech = (() => {
   // 재생 번호: 멈추거나 새로 말하면 번호가 바뀌고, 지난 재생의 끝/단어 알림은 무시한다.
   // (브라우저는 중간에 멈춘 문장에도 '끝남'을 보내서, 스토리북이 페이지를 한 번 더 넘기는 등 소리가 겹쳤다)
   let gen = 0, later = [];
+  // 알파벳을 이름으로 읽게 바꾸는 speechText()는 content.js에 있어요 (AI 음성 미리 만들기와 같이 쓰려고)
   function speak(text, opts = {}) {
+    text = speechText(text);
     stop();
     const my = gen;
     const only = fn => fn && ((...a) => { if (my === gen) fn(...a); });

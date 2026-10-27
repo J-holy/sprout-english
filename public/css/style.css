@@ -817,3 +817,7 @@ body.in-lesson .demo-banner { display: none; }
 .pick2:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 1px 0 var(--line); }
 .pick2.right { background: var(--grass-soft); border-color: var(--grass); }
 .pick2.wrong { background: var(--bad-soft); border-color: var(--bad); animation: shake .4s; }
+/* 따라 읽기: 아이 차례 (노래방처럼 단어가 하나씩 켜짐) */
+.reader-text span.turn { color: var(--grass); }
+.reader-text span.turn-now { background: var(--grass); color: #fff; transform: scale(1.12); display: inline-block; }
+.btn.pulse { animation: pulse 1s infinite; }
