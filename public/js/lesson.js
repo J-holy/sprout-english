@@ -45,7 +45,7 @@ const Gen = (() => {
         () => ({ type: 'speak', key: `ltr-speak-${L.letter}-${word}`, title: '따라 말해요', target: sound, show: emoji }),
       ];
     },
-    2: W => {
+    2: (W, level) => {
       const all = Object.values(PHONICS).flat();
       const pool = all.map(([en, e]) => `${e} ${en}`);
       return [
@@ -54,6 +54,8 @@ const Gen = (() => {
         () => choice(`ph-first-${W.en}`, '첫소리는 무엇일까요?', W.en[0], pickOthers('bcdfghjklmnprstvwz'.split(''), 2, W.en[0]), { show: W.emoji, say: W.en }),
         () => choice(`ph-mean-${W.en}`, '뜻을 골라요', W.ko, pickOthers(all.map(x => x[2]), 2, W.ko), { show: W.en, say: W.en }),
         () => ({ type: 'speak', key: `ph-speak-${W.en}`, title: '따라 말해요', target: W.en, show: W.emoji }),
+        // Level E부터 듣고 철자를 직접 쳐 보는 타자 연습
+        ...(level === 'E' ? [() => ({ type: 'type', key: `ph-type-${W.en}`, title: '듣고 단어를 써 봐요 ⌨️', show: W.emoji, say: W.en, answer: W.en })] : []),
       ];
     },
     sentence: (S, t, st) => {
@@ -68,6 +70,8 @@ const Gen = (() => {
         () => choice(`s-listen-${S.en}`, '듣고 알맞은 문장을 골라요', S.en, pickOthers(bank, 2, S.en), { say: S.en, big: '🔊' }),
         () => ({ type: 'speak', key: `s-speak-${S.en}`, title: '문장을 따라 말해요', target: S.en, show: S.emoji, sub: S.ko }),
       ];
+      // 5단계부터는 빈칸 단어를 직접 쳐서 쓰기
+      if (st >= 5) list.push(() => ({ type: 'type', key: `s-type-${S.en}-${bi}`, title: '빈칸에 들어갈 단어를 써 봐요 ⌨️', answer: bw, show: ws.map((w, i) => i === bi ? '____' : w).join(' '), sub: S.ko, sayAfter: S.en }));
       if (st === 7) {
         const v = VERBS.find(([b, p]) => ws.includes(p)) || VERBS[t % VERBS.length];
         const wrong = WRONG_PAST[v[0]] || v[0] + 'ed';
@@ -90,7 +94,7 @@ const Gen = (() => {
   function lesson(level, idx, n = 8) {
     const st = stageOf(level).id;
     const items = lessonItems(level, idx);
-    const builders = items.map((it, t) => st === 1 ? B[1](it, t + idx) : st === 2 ? B[2](it) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st));
+    const builders = items.map((it, t) => st === 1 ? B[1](it, t + idx) : st === 2 ? B[2](it, level) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st));
     const qs = []; let r = idx;
     for (let i = 0; qs.length < n; i++) {
       const bs = builders[i % builders.length];
@@ -103,7 +107,92 @@ const Gen = (() => {
     for (const bs of builders) for (const b of bs) { if (out.length >= n) break; const q = b(); if (!seen.has(q.key)) { seen.add(q.key); out.push(q); } }
     return out.slice(0, n);
   }
-  return { lesson, levelItems, isReviewDay };
+  // 레슨 중간 ⚡챌린지: 1단계 알파벳 풍선, 2단계 단어 두더지, 3단계부터 문장 O/X
+  function challenge(level) {
+    const st = stageOf(level).id, upto = ALL_LEVELS.slice(0, ALL_LEVELS.indexOf(level) + 1);
+    const same = upto.filter(lv => stageOf(lv).id === st);
+    const pool = same.flatMap(levelItems);
+    if (st === 1) return { kind: 'balloon', title: '알파벳 풍선 팡팡', how: '소리를 듣고 맞는 글자 풍선을 터뜨려요!', pool: pool.map(L => L.letter) };
+    if (st === 2) return { kind: 'mole', title: '단어 두더지 잡기', how: '소리를 듣고 맞는 그림 두더지를 잡아요!', pool };
+    if (QA[st]) return { kind: 'ox', title: '대답 O/X 스피드', how: '질문을 듣고, 알맞은 대답이면 ⭕ 아니면 ❌!', pool: pool.map(x => ({ say: x.q, show: x.a, others: pool.map(y => y.a) })) };
+    return { kind: 'ox', title: '그림 문장 O/X 스피드', how: '문장을 듣고 그림과 맞으면 ⭕ 아니면 ❌!', pool: pool.map(x => ({ say: x.en, text: x.en, show: x.emoji, others: pool.map(y => y.emoji) })) };
+  }
+  return { lesson, levelItems, isReviewDay, challenge };
+})();
+
+/* ---------------- ⚡ 미니 챌린지 (20초 게임) ---------------- */
+const Challenge = (() => {
+  const SECONDS = 20;
+  // spec: Gen.challenge() 결과. onEnd(score)
+  function run(el, spec, onEnd) {
+    el.className = 'lesson-body anim-in';
+    el.innerHTML = `<div class="ch-intro"><div class="ch-badge">⚡ 챌린지!</div><h2>${esc(spec.title)}</h2><p>${esc(spec.how)}</p>
+      <p class="fine">${SECONDS}초 동안 몇 개나 맞힐 수 있을까요? 연속으로 맞히면 🔥콤보!</p>
+      <button class="btn btn-primary lg" data-go>▶ 시작!</button></div>`;
+    el.querySelector('[data-go]').onclick = () => play(el, spec, onEnd);
+  }
+  function play(el, spec, onEnd) {
+    let score = 0, combo = 0, best = 0, over = false, round = null;
+    const end = Date.now() + SECONDS * 1000;
+    el.innerHTML = `<div class="ch-head"><span>⚡ ${esc(spec.title)}</span><span class="ch-score">⭐ 0</span><span class="ch-combo"></span></div>
+      <div class="ch-time"><i></i></div><div class="ch-stage"></div>`;
+    const stage = el.querySelector('.ch-stage'), bar = el.querySelector('.ch-time i');
+    const tick = setInterval(() => {
+      if (!document.body.contains(el)) return clearInterval(tick);
+      const left = Math.max(0, end - Date.now()); bar.style.width = left / (SECONDS * 10) + '%';
+      if (!left) finish();
+    }, 100);
+    const finish = () => {
+      if (over) return; over = true; clearInterval(tick); Speech.stop();
+      onEnd({ score, best });
+    };
+    const hit = ok => {
+      if (over) return;
+      if (ok) { score++; combo++; best = Math.max(best, combo); Speech.sfx.correct(); } else { combo = 0; Speech.sfx.wrong(); }
+      el.querySelector('.ch-score').textContent = `⭐ ${score}`;
+      el.querySelector('.ch-combo').textContent = combo >= 2 ? `🔥 ${combo}콤보` : '';
+      setTimeout(() => { if (!over && document.body.contains(el)) next(); }, ok ? 350 : 700);
+    };
+    const pickOne = a => a[Math.floor(Math.random() * a.length)];
+    const next = () => {
+      if (spec.kind === 'balloon') {
+        const ans = pickOne(spec.pool);
+        const opts = shuffle([ans, ...pickOthers(LETTERS.map(l => l.letter), 3, ans)]);
+        const colors = ['#ff7aa8', '#ffd23f', '#5cc8ff', '#7ed957'];
+        stage.innerHTML = `<div class="sky ch-sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k]};--d:${k * 0.2}s;--x:${k * 25 + 2}%" data-v="${o}"><span class="ch-letter">${k % 2 ? o.toLowerCase() : o}</span></button>`).join('')}</div>`;
+        Speech.speak(ans);
+        stage.querySelectorAll('.balloon').forEach(b => b.onclick = () => {
+          const ok = b.dataset.v === ans; b.classList.add(ok ? 'pop' : 'nope');
+          stage.querySelectorAll('.balloon').forEach(x => x.disabled = true); hit(ok);
+        });
+      } else if (spec.kind === 'mole') {
+        const ans = pickOne(spec.pool);
+        const opts = shuffle([ans, ...pickOthers(spec.pool, 3, ans)]);
+        stage.innerHTML = `<div class="moles">${opts.map((o, k) => `<button class="mole" style="--d:${k * 0.08}s" data-v="${esc(o.en)}"><span class="mole-pic">${o.emoji}</span><small>${esc(o.en)}</small></button>`).join('')}</div>
+          <button class="btn btn-ghost sm ch-again" data-again>🔊 다시</button>`;
+        Speech.speak(ans.en);
+        stage.querySelector('[data-again]').onclick = () => Speech.speak(ans.en);
+        stage.querySelectorAll('.mole').forEach(b => b.onclick = () => {
+          const ok = b.dataset.v === ans.en; b.classList.add(ok ? 'whack' : 'nope');
+          stage.querySelectorAll('.mole').forEach(x => x.disabled = true); hit(ok);
+        });
+      } else {
+        const item = pickOne(spec.pool), truth = Math.random() < 0.5;
+        const shown = truth ? item.show : pickOne(item.others.filter(o => o !== item.show)) || item.show;
+        const isTrue = shown === item.show;
+        stage.innerHTML = `<div class="ox-card">${item.text ? `<p class="ox-text">${esc(item.text)}</p>` : `<p class="ox-q">🔊 ${esc(item.say)}</p>`}
+          <div class="ox-show ${item.text ? 'pic' : ''}">${esc(shown)}</div></div>
+          <div class="ox-btns"><button class="ox o" data-v="1" aria-label="맞아요">⭕</button><button class="ox x" data-v="0" aria-label="아니에요">❌</button></div>`;
+        Speech.speak(item.say);
+        stage.querySelectorAll('.ox').forEach(b => b.onclick = () => {
+          const ok = (b.dataset.v === '1') === isTrue; b.classList.add(ok ? 'right' : 'wrong');
+          stage.querySelectorAll('.ox').forEach(x => x.disabled = true); hit(ok);
+        });
+      }
+    };
+    next();
+  }
+  return { run, SECONDS };
 })();
 
 /* ---------------- 레슨 진행 엔진 ---------------- */
@@ -132,9 +221,10 @@ const Lesson = (() => {
     pop.querySelector('[data-k=voice]').onchange = () => Speech.speak('Hello!');
   }
 
-  function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal' } = {}) {
+  function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null } = {}) {
     questions = adjust(questions, difficulty);
-    let i = 0, correct = 0, answeredAt = -1; const wrong = []; const t0 = Date.now();
+    let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0; const wrong = []; const t0 = Date.now();
+    const challengeAt = Math.min(3, questions.length - 2); // 4번째 문제 다음에 ⚡챌린지
     const diffLabel = { easy: '🐣 쉬움', normal: '🐥 보통', hard: '🦅 도전' }[difficulty];
     root.innerHTML = `
       <div class="lesson">
@@ -163,23 +253,44 @@ const Lesson = (() => {
     function answer(ok, q, detail = '') {
       if (answeredAt === i) return; // 한 문제는 한 번만 채점한다
       answeredAt = i;
-      if (ok) { correct++; Speech.sfx.correct(); } else {
+      if (ok) { correct++; combo++; Speech.sfx.correct(); } else {
+        combo = 0;
         Speech.sfx.wrong();
         if (q.type !== 'trace' && q.type !== 'speak') wrong.push({ key: q.key, q });
       }
       if (q.sayAfter) Speech.speakLater(q.sayAfter, 350);
       const correctText = q.type === 'tiles' ? q.answer.join(q.joiner) : q.answer;
+      // 🔥 콤보: 3연속부터 표시, 5연속이면 보너스 별 (레슨마다 한 번, 하루 3개까지)
+      let comboHtml = combo >= 3 ? `<span class="combo-pill">🔥 ${combo}연속!</span>` : '';
+      if (combo === 5 && !comboStar && recordSpeech && Store.profile()) { comboStar = true; if (Store.addStars(1, 'combo', 3)) comboHtml += ' <span class="combo-pill star">⭐ 콤보 보너스!</span>'; }
       fb.innerHTML = `
-        <div class="fb-msg">${ok ? pick(['참 잘했어요! 🎉', '정답이에요! ⭐', '멋져요! 👏', '최고예요! 🌟']) : '아쉬워요! 다시 확인해봐요 💪'}
+        <div class="fb-msg">${comboHtml}${ok ? pick(['참 잘했어요! 🎉', '정답이에요! ⭐', '멋져요! 👏', '최고예요! 🌟']) : '아쉬워요! 다시 확인해봐요 💪'}
           ${!ok && correctText ? `<div class="fb-answer">정답: <b>${esc(correctText)}</b></div>` : ''}${detail}</div>
         <button class="btn btn-primary" data-next>${i + 1 < questions.length ? '계속하기' : '결과 보기'}</button>`;
       fb.className = 'lesson-feedback ' + (ok ? 'ok' : 'bad'); fb.hidden = false;
       const next = fb.querySelector('[data-next]'); next.focus();
-      next.onclick = () => { Speech.stop(); i++; i < questions.length ? show() : finish(); };
+      next.onclick = () => {
+        Speech.stop();
+        if (challenge && !played && i === challengeAt) { played = true; return playChallenge(); }
+        i++; i < questions.length ? show() : finish();
+      };
+    }
+    function playChallenge() {
+      fb.hidden = true;
+      root.querySelector('.lesson-count').textContent = '⚡';
+      Challenge.run(body, challenge, ({ score, best }) => {
+        const got = recordSpeech && Store.profile() ? Store.challengeResult(score) : 0;
+        bonus += score;
+        body.innerHTML = `<div class="ch-result anim-in"><div class="ch-badge">⚡ 챌린지 끝!</div><div class="ch-big">⭐ ${score}</div>
+          <p>${score >= 8 ? '대단해요! 챔피언이에요 🏆' : score >= 4 ? '잘했어요! 👏' : '좋아요, 다음엔 더 많이! 💪'}${best >= 3 ? ` · 최고 🔥${best}콤보` : ''}${got ? ` · 별 ${got}개 획득!` : ''}</p>
+          <button class="btn btn-primary lg" data-cont>레슨 계속하기 ▶</button></div>`;
+        Speech.sfx.cheer(); if (score >= 6) confetti();
+        body.querySelector('[data-cont]').onclick = () => { i++; show(); };
+      });
     }
     function finish() {
       root.querySelector('.bar').style.width = '100%';
-      onDone && onDone({ correct, total: questions.length, wrong, seconds: (Date.now() - t0) / 1000 });
+      onDone && onDone({ correct, total: questions.length, wrong, seconds: (Date.now() - t0) / 1000, bonus });
     }
     R.recordSpeech = recordSpeech;
     show();
@@ -208,6 +319,26 @@ const Lesson = (() => {
         if (!ok) b.classList.add('wrong');
         done(ok, q);
       });
+    },
+    type(el, q, done) {
+      el.innerHTML = head(q) + `<div class="type-slots" aria-hidden="true">${[...q.answer].map(c => `<i class="${c === ' ' ? 'sp' : ''}"></i>`).join('')}</div>
+        <form class="type-form" autocomplete="off"><input class="type-input" name="t" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="${q.answer.length + 4}" aria-label="정답을 써요">
+        <button class="btn btn-primary">확인</button></form>
+        ${q.hint ? '<button class="link-btn" data-hint>💡 첫 글자 보기</button>' : ''}`;
+      wireSay(el, q);
+      const f = el.querySelector('form'), input = f.t, slots = [...el.querySelectorAll('.type-slots i')];
+      const fill = () => slots.forEach((s, k) => { s.textContent = input.value[k] || ''; s.classList.toggle('on', !!input.value[k]); });
+      input.oninput = fill; setTimeout(() => input.focus(), 50);
+      const hint = el.querySelector('[data-hint]');
+      if (hint) hint.onclick = () => { input.value = q.answer[0]; fill(); input.focus(); hint.remove(); };
+      f.onsubmit = e => {
+        e.preventDefault(); if (!input.value.trim()) return input.focus();
+        const ok = input.value.trim().toLowerCase() === q.answer.toLowerCase();
+        input.disabled = true; el.querySelectorAll('button').forEach(b => b.disabled = true);
+        el.querySelector('.type-slots').classList.add(ok ? 'right' : 'wrong');
+        if (ok) Speech.speak(q.answer);
+        done(ok, q);
+      };
     },
     tiles(el, q, done) {
       const placed = [];

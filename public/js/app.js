@@ -128,6 +128,15 @@ const App = (() => {
     a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  // 새싹 나무 물 주기 (하루 한 번)
+  function waterTree(btn) {
+    const r = Store.water(); if (!r.ok) return;
+    btn.disabled = true; btn.className = 'btn btn-ghost sm'; btn.textContent = '💧 오늘 물 줬어요';
+    const pic = btn.closest('.tree-card').querySelector('.tree-pic'); pic.classList.add('happy', 'splash');
+    Speech.sfx.correct();
+    if (r.grow) { Lesson.confetti(); toast(`🌳 새싹 나무가 '${r.grow.name}'(으)로 자랐어요!`); setTimeout(route, 1200); } else toast('💧 쑥쑥! 새싹 나무가 좋아해요 (+5점)');
+  }
+
   // 무료 사용자가 3단계 이상을 누르면: 플러스 안내
   function upsell() {
     const m = modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>3단계부터는 플러스예요</h2>
@@ -168,7 +177,7 @@ const App = (() => {
     if (location.hash !== `#/sample/${lv}`) return go(`/sample/${lv}`);
     el.innerHTML = '<div class="wrap lesson-wrap"></div>';
     const root = el.querySelector('.lesson-wrap');
-    Lesson.run(root, Gen.lesson(lv, 0, 5), {
+    Lesson.run(root, Gen.lesson(lv, 0, 5), { challenge: Gen.challenge(lv),
       title: `샘플 레슨 · Level ${lv}`, recordSpeech: false,
       onExit: () => go('/study?view=all'),
       onDone: r => Views.result(root, { score: Math.round(r.correct / r.total * 100), ...r, again: `#/sample/${lv}`, sample: true }),
@@ -203,7 +212,7 @@ const App = (() => {
     setInterval(() => Store.checkReminder(), 60000);
   }
 
-  return { init, route, go, toast, modal, upsell, demoMail, download, buy, sampleLesson, refreshHeader, pinOk: false, rate: 0.85 };
+  return { init, route, go, toast, modal, upsell, waterTree, demoMail, download, buy, sampleLesson, refreshHeader, pinOk: false, rate: 0.85 };
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);

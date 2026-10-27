@@ -117,6 +117,46 @@ const UI = {
   },
 };
 
+// 🌱 새싹 나무 키우기 카드 (모험 지도)
+UI.treeCard = () => {
+  const t = Store.tree(), watered = Store.wateredToday();
+  return `<div class="card tree-card">
+    <div class="tree-pic ${watered ? 'happy' : ''}" aria-hidden="true">${t.emoji}</div>
+    <div class="tree-info"><b>새싹 나무 · ${t.name}</b>
+      <div class="rb-bar"><i style="width:${Math.round(t.pct * 100)}%"></i></div>
+      <small>${t.next ? `다음 '${t.next.name}' ${t.next.emoji}까지 ${t.toNext}점` : '최고 단계! 🌈'} · 레슨 +10점, 챌린지·스토리·말하기로 더 자라요</small></div>
+    <button class="btn ${watered ? 'btn-ghost' : 'btn-primary'} sm" data-water ${watered ? 'disabled' : ''}>${watered ? '💧 오늘 물 줬어요' : '💧 물 주기 +5'}</button>
+  </div>`;
+};
+
+// 🧩 이야기 순서 맞추기: 연속된 4쪽을 섞어 놓고 차례대로 고르기
+function storyOrder(box, s) {
+  const start = Math.floor(Math.random() * (s.pages.length - 3));
+  const pages = s.pages.slice(start, start + 4).map((pg, k) => ({ k, text: pg[0], pic: pg[1] }));
+  const cards = shuffle(pages);
+  let picked = [];
+  const draw = () => {
+    box.innerHTML = `<div class="order-game anim-in"><h3>🧩 일어난 순서대로 눌러요</h3>
+      <div class="order-line">${pages.map((_, k) => `<span class="order-slot">${picked[k] !== undefined ? `${k + 1}. ${pages[picked[k]].pic}` : k + 1}</span>`).join('')}</div>
+      <div class="order-cards">${cards.map(c => `<button class="order-card" data-k="${c.k}" ${picked.includes(c.k) ? 'disabled' : ''}><span>${c.pic}</span>${esc(c.text)}</button>`).join('')}</div>
+      <div class="row-center"><button class="btn btn-ghost sm" data-reset>처음부터</button></div></div>`;
+    box.querySelectorAll('.order-card').forEach(b => b.onclick = () => { Speech.speak(pages[+b.dataset.k].text); picked.push(+b.dataset.k); picked.length === pages.length ? check() : draw(); });
+    box.querySelector('[data-reset]').onclick = () => { picked = []; draw(); };
+  };
+  const check = () => {
+    const ok = picked.every((k, i) => k === i);
+    let got = 0;
+    if (ok && Store.profile()) { got = Store.addStars(1, 'order', 3); Store.addXp(5); }
+    box.innerHTML = `<div class="order-game anim-in"><div class="pic">${ok ? '🏆' : '🤔'}</div><h3>${ok ? '순서를 모두 맞혔어요!' : '조금 달라요. 이야기를 떠올려 볼까요?'}</h3>
+      <ol class="order-answer">${pages.map(p => `<li>${p.pic} ${esc(p.text)}</li>`).join('')}</ol>
+      ${got ? '<p>⭐ 별 1개 획득!</p>' : ''}
+      <div class="row-center">${ok ? '' : '<button class="btn btn-primary" data-retry>다시 해보기</button>'}<a class="btn btn-ghost" href="#/stories">다른 책</a></div></div>`;
+    ok ? (Speech.sfx.cheer(), Lesson.confetti()) : Speech.sfx.wrong();
+    const r = box.querySelector('[data-retry]'); if (r) r.onclick = () => { picked = []; draw(); };
+  };
+  draw();
+}
+
 /* ---------- 홈 ---------- */
 Views.home = el => {
   const u = Store.user();
@@ -673,6 +713,7 @@ Views.learn = el => {
       </div>
     </div>
     ${UI.mascot(greet, todayN >= p.dailyGoal ? '🌻' : '🌱')}
+    ${UI.treeCard()}
     <div class="continue card">
       <div><span class="chip">이어서 모험</span><h2>Level ${cur} · ${dayLabel(curIdx)}</h2><p>${stageOf(cur).title}섬 — ${stageOf(cur).desc}</p>
         <div class="course-prog"><div class="rb-bar"><i style="width:${doneAll / course * 100}%"></i></div>
@@ -696,10 +737,11 @@ Views.learn = el => {
           const open = Store.isUnlocked(lv), done = Store.lessonsDone(lv);
           const pct = Math.round(done / LESSONS_PER_LEVEL * 100); // 레벨 진도 (점수가 아니라 끝낸 날 수)
           return `<button class="node ${open ? '' : 'locked'} ${lv === cur ? 'current' : ''} ${done >= LESSONS_PER_LEVEL ? 'cleared' : ''}" data-lv="${lv}" style="--k:${k}" ${open ? '' : 'aria-disabled="true"'}>
-            <span class="node-ball">${open ? lv : Store.needsPlus(lv) ? '💎' : '🔒'}</span><span class="node-prog" title="레벨 진도 ${pct}%">${done}/${LESSONS_PER_LEVEL}일</span><span class="node-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
+            <span class="node-ball">${open ? lv : Store.needsPlus(lv) ? '💎' : '🔒'}${p.badges && p.badges[lv] ? '<i class="node-medal" title="레벨 배지">🏅</i>' : ''}</span><span class="node-prog" title="레벨 진도 ${pct}%">${done}/${LESSONS_PER_LEVEL}일</span><span class="node-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>`).join('')}</div>
   </div>`;
+  const wbtn = $('[data-water]', el); if (wbtn) wbtn.onclick = () => App.waterTree(wbtn);
   $$('.node', el).forEach(b => b.onclick = () => {
     const lv = b.dataset.lv;
     if (Store.needsPlus(lv)) return App.upsell();
@@ -727,23 +769,26 @@ Views.lesson = (el, lv, idx) => {
   el.innerHTML = '<div class="wrap lesson-wrap"></div>';
   const root = $('.lesson-wrap', el);
   Lesson.run(root, qs, {
-    title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(),
+    title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(), challenge: Gen.challenge(lv),
     onExit: () => (location.hash = '#/study'),
     onDone: r => {
-      const { score, stars } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong });
+      const { score, stars, badge, grow } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong, bonus: r.bonus });
       const nl = ALL_LEVELS[ALL_LEVELS.indexOf(lv) + 1];
       const next = idx + 1 < LESSONS_PER_LEVEL ? [lv, idx + 1] : nl ? [nl, 0] : null;
-      Views.result(root, { score, stars, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
+      Views.result(root, { score, stars, badge: badge && lv, grow, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
       App.refreshHeader();
     },
   });
 };
-Views.result = (root, { score, correct, total, again, next, nextLabel, sample, stars: earned }) => {
+Views.result = (root, { score, correct, total, again, next, nextLabel, sample, stars: earned, badge, grow }) => {
   const stars = score >= 90 ? 3 : score >= 70 ? 2 : 1;
   root.innerHTML = `<div class="result card anim-in">
     <div class="stamp">${score >= 70 ? '참<br>잘했어요' : '노력<br>했어요'}</div>
     <div class="stars">${[1, 2, 3].map(k => `<span class="${k <= stars ? 'on' : ''}" style="animation-delay:${k * 0.2}s">★</span>`).join('')}</div>
     <h2>${correct} / ${total} 정답 · ${score}%</h2>
+    ${badge ? `<div class="badge-get anim-in"><span>🏅</span><b>Level ${badge} 배지 획득!</b><small>레벨을 끝까지 해냈어요</small></div>` : ''}
+    ${grow ? `<div class="badge-get grow anim-in"><span>${grow.emoji}</span><b>새싹 나무가 '${grow.name}'(으)로 자랐어요!</b></div>` : ''}
+    ${!sample && Store.profile() ? `<p class="fine">🌱 새싹 나무 ${Store.tree().emoji} ${Store.tree().name}${Store.tree().next ? ` · 다음 단계까지 ${Store.tree().toNext}점` : ''}</p>` : ''}
     <p>${sample ? '샘플 레슨은 기록되지 않아요. 시작하면 진도와 별이 저장돼요!' : `⭐ 별 ${earned || 0}개를 받았어요! ${score >= 90 ? '완벽해요 🌟' : '틀린 문제는 오답노트에 저장했어요.'}`}</p>
     <div class="row-center">
       <a class="btn btn-ghost" href="${again}" data-again>다시 하기</a>
@@ -751,7 +796,7 @@ Views.result = (root, { score, correct, total, again, next, nextLabel, sample, s
     </div></div>`;
   const a = $('[data-again]', root);
   if (location.hash === again) a.onclick = e => { e.preventDefault(); App.route(); };
-  Speech.sfx.cheer(); if (score >= 70) Lesson.confetti();
+  Speech.sfx.cheer(); if (score >= 70 || badge || grow) Lesson.confetti();
 };
 
 /* ---------- AI 말하기 ---------- */
@@ -829,8 +874,9 @@ Views.story = (el, id) => {
       const first = Store.readStory(s.id); Store.addMinutes((Date.now() - t0) / 1000);
       stopAuto();
       page.innerHTML = `<div class="the-end anim-in"><div class="pic">🎉</div><h2>The End</h2><p>${first ? '첫 완독! 도장과 ⭐2개를 받았어요!' : '또 읽었어요! 정말 잘했어요.'}</p>
-        <div class="row-center"><button class="btn btn-ghost" data-restart>처음부터</button><a class="btn btn-primary" href="#/stories">다른 책</a></div></div>`;
+        <div class="row-center"><button class="btn btn-primary" data-order>🧩 이야기 순서 맞추기</button><button class="btn btn-ghost" data-restart>처음부터</button><a class="btn btn-ghost" href="#/stories">다른 책</a></div></div>`;
       $('[data-restart]', page).onclick = () => { pg = 0; draw(); };
+      $('[data-order]', page).onclick = () => storyOrder(page, s);
       $('.reader-page-no', el).textContent = '';
       Speech.sfx.cheer(); if (first) Lesson.confetti(); App.refreshHeader(); return;
     }
@@ -972,7 +1018,7 @@ Views.wrong = el => {
     const root = $('.lesson-wrap', el);
     const results = [];
     const wrap = name => { const o = Lesson.renderers[name]; Lesson.renderers[name] = (b, q, d) => o(b, q, (ok, qq, x) => { results.push({ key: qq.key, ok }); d(ok, qq, x); }); return () => (Lesson.renderers[name] = o); };
-    const undo = [wrap('choice'), wrap('tiles')];
+    const undo = [wrap('choice'), wrap('tiles'), wrap('type')];
     const restore = () => undo.forEach(f => f());
     Lesson.run(root, qs, {
       title: '오답 복습', onExit: () => { restore(); location.hash = '#/wrong'; },
@@ -1002,6 +1048,8 @@ Views.shop = el => {
       <div class="shop-grid">${SHOP.filter(i => i.kind === 'acc').map(item).join('')}</div>
       <h2 class="sec-sub">스티커</h2>
       <div class="shop-grid">${SHOP.filter(i => i.kind === 'sticker').map(item).join('')}</div>
+      <h2 class="sec-sub">🏅 레벨 배지 <small>${Object.keys(p.badges || {}).length}/${ALL_LEVELS.length} · 레벨 마지막 날(복습)을 70% 이상으로 통과하면 받아요</small></h2>
+      <div class="badge-book">${ALL_LEVELS.map(lv => `<span class="bslot ${p.badges && p.badges[lv] ? 'got' : ''}" style="--c:${stageOf(lv).color}" title="Level ${lv}">${p.badges && p.badges[lv] ? '🏅' : ''}<b>${lv}</b></span>`).join('')}</div>
       <h2 class="sec-sub">📒 내 스티커북 <small>${p.owned.filter(id => id.startsWith('st-')).length}/${SHOP.filter(i => i.kind === 'sticker').length}</small></h2>
       <div class="sticker-book">${SHOP.filter(i => i.kind === 'sticker').map(i => `<span class="slot ${p.owned.includes(i.id) ? 'got' : ''}" title="${i.name}">${p.owned.includes(i.id) ? i.emoji : '?'}</span>`).join('')}</div>
     </div>`;
@@ -1152,7 +1200,7 @@ const ParentTabs = {
           <div class="kpi"><small>완료 레슨</small><b>${lessons}개</b></div>
           <div class="kpi"><small>정답률</small><b>${acc}%</b></div>
           <div class="kpi"><small>평균 발음</small><b>${spAvg}${sp.length ? '점' : ''}</b></div>
-          <div class="kpi"><small>모은 별</small><b>⭐${p.stars || 0}</b></div>
+          <div class="kpi"><small>모은 별 · 배지</small><b>⭐${p.stars || 0} · 🏅${Object.keys(p.badges || {}).length}</b></div>
         </div>
         <div class="two-col top">
           <div class="card"><h3>최근 7일 학습 시간</h3><div class="bars">${days.map((d, k) => `<div class="bar-col"><span class="bv">${mins[k] || ''}</span><i style="height:${mins[k] / maxM * 100}%"></i><small>${['일', '월', '화', '수', '목', '금', '토'][new Date(d).getDay()]}</small></div>`).join('')}</div></div>

@@ -63,7 +63,7 @@ const Store = (() => {
     if (p.recentScores) p.recentScores = p.recentScores.map(x => Math.min(100, x));
     if (p.stats && p.stats.correct > p.stats.answered) p.stats.correct = p.stats.answered;
     return Object.assign({ progress: {}, stamps: {}, minutes: {}, stats: { answered: 0, correct: 0 }, wrong: [], speaking: [], stories: {}, dailyGoal: 2,
-      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false }, p);
+      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {} }, p);
   }
   async function loadMe() {
     try {
@@ -291,7 +291,7 @@ const Store = (() => {
     const avg = r.reduce((a, b) => a + b, 0) / r.length;
     return avg < 55 ? 'easy' : avg >= 90 ? 'hard' : 'normal';
   }
-  function finishLesson({ level, index, correct, total, seconds, wrongItems }) {
+  function finishLesson({ level, index, correct, total, seconds, wrongItems, bonus = 0 }) {
     const p = profile(); const d = today();
     const lp = p.progress[level] || (p.progress[level] = { lessons: [] });
     const score = Math.min(100, Math.round(correct / total * 100));
@@ -304,10 +304,15 @@ const Store = (() => {
     const stars = score >= 90 ? 3 : score >= 70 ? 2 : 1;
     addStars(stars, 'lesson');
     addWrong(wrongItems);
+    // 레벨 마지막 날(복습)을 70% 이상으로 통과하면 레벨 배지
+    let badge = false;
+    if (index === LESSONS_PER_LEVEL - 1 && score >= 70 && !p.badges[level]) { p.badges[level] = d; badge = true; }
+    const grow = addXp(10 + stars * 2 + bonus);
     save();
     notify(`📚 [학습알림] ${p.name}(이)가 Level ${level} Day ${index + 1}을 완료했어요! 정답률 ${score}%`, 'lesson', true);
+    if (badge) notify(`🏅 ${p.name}(이)가 Level ${level} 배지를 받았어요!`, 'goal', true);
     if (p.stamps[d] === p.dailyGoal) notify(`🏅 ${p.name}(이)가 오늘의 목표(${p.dailyGoal}개 레슨)를 달성했어요!`, 'goal', true);
-    return { score, stars };
+    return { score, stars, badge, grow };
   }
   function addWrong(items = []) {
     const p = profile();
@@ -319,13 +324,13 @@ const Store = (() => {
   function recordSpeaking(text, score) {
     const p = profile(); p.speaking.unshift({ text, score, date: Date.now() }); p.speaking = p.speaking.slice(0, 100);
     let got = 0;
-    if (score >= 80) got = addStars(1, 'speak', 5); // 말하기 별은 하루 5개까지
+    if (score >= 80) { got = addStars(1, 'speak', 5); addXp(2); } // 말하기 별은 하루 5개까지
     save(); return got;
   }
   function readStory(id) {
     const p = profile(); const first = !p.stories[id];
     p.stories[id] = (p.stories[id] || 0) + 1;
-    if (first) { const d = today(); p.stamps[d] = (p.stamps[d] || 0) + 1; addStars(2, 'story'); }
+    if (first) { const d = today(); p.stamps[d] = (p.stamps[d] || 0) + 1; addStars(2, 'story'); addXp(15); }
     save(); return first;
   }
   function streak(p = profile()) {
@@ -359,8 +364,40 @@ const Store = (() => {
     const p = profile(); p.games = p.games || {};
     const best = p.games[game] || 0; p.games[game] = Math.max(best, score);
     const got = addStars(score >= 8 ? 3 : score >= 5 ? 2 : score >= 2 ? 1 : 0, 'game', 6);
+    addXp(Math.min(10, score));
     save(); return { best: p.games[game], newBest: score > best, got };
   }
+
+  // ---------- 새싹 나무 키우기 ----------
+  // 레슨·게임·스토리·말하기로 경험치를 모으면 씨앗이 나무로 자란다. 하루 한 번 물 주기.
+  const TREE = [
+    { xp: 0, emoji: '🌰', name: '씨앗' }, { xp: 30, emoji: '🌱', name: '새싹' }, { xp: 100, emoji: '🌿', name: '어린 줄기' },
+    { xp: 220, emoji: '🪴', name: '작은 나무' }, { xp: 400, emoji: '🌷', name: '꽃 핀 나무' }, { xp: 650, emoji: '🌳', name: '큰 나무' },
+    { xp: 1000, emoji: '🍎', name: '열매 나무' }, { xp: 1500, emoji: '🌈', name: '무지개 나무' },
+  ];
+  function tree(p = profile()) {
+    const xp = (p && p.xp) || 0;
+    let i = 0; while (i + 1 < TREE.length && xp >= TREE[i + 1].xp) i++;
+    const next = TREE[i + 1];
+    return { ...TREE[i], stage: i, xp, next, toNext: next ? next.xp - xp : 0, pct: next ? (xp - TREE[i].xp) / (next.xp - TREE[i].xp) : 1, last: TREE.length - 1 };
+  }
+  // 경험치를 더하고, 나무가 자랐으면 새 단계를 돌려준다
+  function addXp(n) {
+    const p = profile(); if (!p || n <= 0) return null;
+    const before = tree(p).stage;
+    p.xp = (p.xp || 0) + n; save();
+    const after = tree(p);
+    if (after.stage > before) { notify(`🌳 ${p.name}의 새싹 나무가 '${after.name}'(으)로 자랐어요!`, 'goal'); return after; }
+    return null;
+  }
+  function water() {
+    const p = profile(); if (!p || p.watered === today()) return { ok: false };
+    p.watered = today(); const grow = addXp(5); save();
+    return { ok: true, grow };
+  }
+  const wateredToday = (p = profile()) => !!p && p.watered === today();
+  // 레슨 중 미니 챌린지 결과 (별은 하루 9개까지)
+  function challengeResult(score) { const got = addStars(score >= 8 ? 3 : score >= 5 ? 2 : score >= 1 ? 1 : 0, 'challenge', 9); return got; }
   function markWorksheet(lv) { const u = user(); u.worksheets = u.worksheets || {}; u.worksheets[lv] = Date.now(); save(); }
 
   // ---------- 알림 ----------
@@ -451,6 +488,7 @@ const Store = (() => {
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, accEmoji, gameResult, markWorksheet,
+    tree, addXp, water, wateredToday, challengeResult, TREE,
     notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, setTheme, exportData, importData, persist, hash,
   };
 })();

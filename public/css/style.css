@@ -719,3 +719,80 @@ body.in-lesson .demo-banner { display: none; }
 .upsell { text-align: center; display: grid; gap: 10px; } .upsell h2 { justify-content: center; margin: 0; } .upsell p { margin: 0; }
 .upsell .perks { text-align: left; }
 .price-table td small { color: var(--muted); }
+
+/* ---------- ⚡ 레슨 중간 챌린지 ---------- */
+.ch-intro, .ch-result { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 10px 0; }
+.ch-intro h2, .ch-result h2 { margin: 0; font-size: 1.8rem; }
+.ch-badge { background: var(--sun); color: var(--sun-ink); border: var(--bw) solid var(--line); border-radius: 14px; padding: 2px 14px; font-family: var(--title); font-size: 1.2rem; transform: rotate(-3deg); box-shadow: var(--shadow-sm); }
+.ch-big { font-family: var(--title); font-size: 3.4rem; }
+.ch-head { display: flex; justify-content: space-between; align-items: center; width: 100%; font-family: var(--title); font-size: 1.15rem; gap: 8px; }
+.ch-combo { color: var(--berry); min-width: 70px; text-align: right; }
+.ch-time { width: 100%; height: 14px; background: var(--paper); border: var(--bw) solid var(--line); border-radius: 999px; overflow: hidden; }
+.ch-time i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--berry), var(--sun)); transition: width .1s linear; }
+.ch-stage { width: 100%; display: grid; gap: 12px; justify-items: center; }
+.ch-sky { height: 330px; width: 100%; }
+.ch-letter { font-family: var(--en); font-weight: 700; font-size: 2.6rem; color: #24305e; }
+.moles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 460px; }
+.mole { aspect-ratio: 1.2; border: var(--bw) solid var(--line); border-radius: 50% 50% 22px 22px; background: radial-gradient(ellipse at 50% 100%, #8d6e63 0 38%, #a1887f 39% 100%); cursor: pointer; display: grid; place-items: center; align-content: center; box-shadow: var(--shadow-sm); animation: moleUp .35s cubic-bezier(.3, 1.6, .5, 1) both; animation-delay: var(--d); }
+.mole-pic { font-size: 3rem; background: var(--paper); border: var(--bw) solid var(--line); border-radius: 50%; width: 76px; height: 76px; display: grid; place-items: center; }
+.mole small { font-family: var(--en); font-weight: 700; color: #fff; text-shadow: 1px 1px 0 #000; font-size: 1rem; }
+.mole.whack { animation: whack .4s forwards; }
+.mole.nope, .ox.wrong { animation: shake .4s; }
+@keyframes moleUp { from { transform: translateY(40px) scale(.8); opacity: 0; } }
+@keyframes whack { 40% { transform: scale(.85) rotate(-6deg); } to { transform: scale(0); opacity: 0; } }
+.ox-card { background: var(--paper); border: var(--bw) solid var(--line); border-radius: 22px; padding: 18px; width: 100%; max-width: 480px; box-shadow: var(--shadow); }
+.ox-text { font-family: var(--en); font-weight: 700; font-size: 1.5rem; margin: 0 0 8px; }
+.ox-q { font-family: var(--en); font-weight: 700; font-size: 1.3rem; margin: 0 0 8px; color: var(--grape); }
+.ox-show { font-family: var(--en); font-weight: 700; font-size: 1.4rem; }
+.ox-show.pic { font-size: 4.5rem; line-height: 1.1; }
+.ox-btns { display: flex; gap: 20px; }
+.ox { width: 110px; height: 110px; border-radius: 50%; border: var(--bw) solid var(--line); font-size: 3rem; cursor: pointer; background: var(--paper); box-shadow: 0 6px 0 var(--line); }
+.ox:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--line); }
+.ox.right { background: var(--grass-soft); }
+.ch-again { margin-top: -4px; }
+
+/* 콤보 · 배지 · 타자 */
+.combo-pill { display: inline-block; background: var(--berry); color: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 0 10px; font-size: 1rem; margin-right: 6px; animation: pop .3s; }
+.combo-pill.star { background: var(--sun); color: var(--sun-ink); }
+.badge-get { display: flex; align-items: center; gap: 10px; background: var(--sun); color: var(--sun-ink); border: var(--bw) solid var(--line); border-radius: 18px; padding: 8px 16px; box-shadow: var(--shadow-sm); flex-wrap: wrap; justify-content: center; }
+.badge-get span { font-size: 2.2rem; } .badge-get b { font-family: var(--title); font-weight: 400; font-size: 1.2rem; } .badge-get small { width: 100%; text-align: center; }
+.badge-get.grow { background: var(--grass-soft); color: var(--ink); }
+.node-medal { position: absolute; bottom: -8px; left: -8px; font-style: normal; font-size: 1.3rem; text-shadow: none; }
+.badge-book { display: grid; grid-template-columns: repeat(13, 1fr); gap: 8px; }
+.bslot { aspect-ratio: 1; border: 3px dashed var(--muted); border-radius: 50%; display: grid; place-items: center; position: relative; color: var(--muted); }
+.bslot b { font-family: var(--en); font-size: .9rem; position: absolute; bottom: -2px; right: -2px; background: var(--paper); border-radius: 8px; padding: 0 4px; }
+.bslot.got { border: var(--bw) solid var(--line); background: var(--c); font-size: 1.6rem; color: inherit; }
+.type-slots { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.type-slots i { width: 40px; height: 48px; border-bottom: 4px solid var(--line); font-style: normal; font-family: var(--en); font-weight: 700; font-size: 1.8rem; display: grid; place-items: center; }
+.type-slots i.sp { border: 0; width: 14px; }
+.type-slots i.on { color: var(--grape); }
+.type-slots.right i { color: var(--grass); border-color: var(--grass); } .type-slots.wrong i { color: var(--bad); border-color: var(--bad); }
+.type-form { display: flex; gap: 8px; width: 100%; max-width: 380px; }
+.type-input { font-family: var(--en) !important; font-size: 1.4rem !important; text-align: center; }
+
+/* 🌱 새싹 나무 */
+.tree-card { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; background: linear-gradient(90deg, var(--grass-soft), var(--paper)); }
+.tree-pic { font-size: 3.4rem; width: 76px; height: 76px; display: grid; place-items: center; background: var(--paper); border: var(--bw) solid var(--line); border-radius: 50%; }
+.tree-pic.happy { animation: bob 2s ease-in-out infinite; }
+.tree-pic.splash { animation: wiggle .5s 3; }
+.tree-info { flex: 1; min-width: 200px; display: grid; gap: 4px; }
+.tree-info b { font-family: var(--title); font-weight: 400; font-size: 1.2rem; }
+.tree-info .rb-bar i { background: var(--grass); }
+.tree-info small { color: var(--muted); }
+
+/* 🧩 이야기 순서 */
+.order-game { display: grid; gap: 12px; justify-items: center; width: 100%; }
+.order-game h3 { margin: 0; }
+.order-line { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.order-slot { min-width: 64px; padding: 6px 10px; border: 3px dashed var(--muted); border-radius: 14px; font-family: var(--title); font-size: 1.2rem; }
+.order-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
+.order-card { border: var(--bw) solid var(--line); border-radius: 18px; background: var(--paper); padding: 10px; cursor: pointer; font-family: var(--en); font-weight: 700; display: grid; gap: 4px; box-shadow: var(--shadow-sm); }
+.order-card span { font-size: 2.2rem; }
+.order-card:disabled { opacity: .3; }
+.order-answer { text-align: left; font-family: var(--en); }
+@media (max-width: 600px) { .badge-book { grid-template-columns: repeat(7, 1fr); } .order-cards { grid-template-columns: 1fr; } .ox { width: 90px; height: 90px; } .ch-sky { height: 280px; } }
+/* 챌린지 풍선은 위로 날아가지 않고 제자리에서 둥실둥실 (글자가 잘리지 않게) */
+.ch-sky .balloon { bottom: 70px; width: 21%; animation: floaty 1.8s ease-in-out var(--d) infinite alternate; }
+.ch-sky .balloon.pop { animation: popb .5s forwards; }
+.ch-sky .balloon.nope { animation: shake .4s; }
+@keyframes floaty { from { transform: translateY(0); } to { transform: translateY(-40px); } }
