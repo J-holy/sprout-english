@@ -767,7 +767,7 @@ Views.stories = el => {
   const p = Store.profile();
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">📖 스토리북</h1>
-    <p class="sec-desc left">낭독을 들으며 단어를 따라 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
+    <p class="sec-desc left">책마다 11쪽. 🐢 천천히·👆 한 단어씩 들으며 🗣️ 따라 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
     <div class="book-grid">${STORIES.map(s => { const open = Store.isUnlocked(STAGES[s.stage - 1].levels[0]); return `
       <a class="book ${open ? '' : 'locked'}" href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${STAGES[s.stage - 1].color}">
         <span class="cover">${open ? s.cover : '🔒'}</span><b>${esc(s.title)}</b><small>섬 ${s.stage} ${p.stories[s.id] ? `· ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>
@@ -777,58 +777,132 @@ Views.stories = el => {
 Views.story = (el, id) => {
   const s = STORIES.find(x => x.id === id); if (!s) return (location.hash = '#/stories');
   if (!Store.isUnlocked(STAGES[s.stage - 1].levels[0])) { App.toast('그 섬에 도착하면 열려요 🔒'); return (location.hash = '#/stories'); }
-  let pg = 0, auto = false, turnTimer = null; const t0 = Date.now();
-  const cancelTurn = () => { clearTimeout(turnTimer); turnTimer = null; };
+  const pref = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const keep = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } };
+  // 읽기 속도: normal(보통) · slow(천천히) · word(한 단어씩), 따라 읽기: 읽은 뒤 아이가 따라 말할 시간을 준다
+  let pg = 0, auto = false, speed = pref('sprout-story-speed') || 'slow', follow = pref('sprout-story-follow') === '1';
+  let timers = [], run = 0; const t0 = Date.now();
+  const cancelTurn = () => { timers.forEach(clearTimeout); timers = []; run++; };
+  const later = (fn, ms) => { const my = run; timers.push(setTimeout(() => { if (my === run && document.body.contains(page)) fn(); }, ms)); };
   el.innerHTML = `<div class="wrap sec narrow">
     <a class="link-btn" href="#/stories">← 스토리북 목록</a>
     <div class="reader card" style="--c:${STAGES[s.stage - 1].color}">
-      <div class="reader-title">${esc(s.title)}</div>
+      <div class="reader-title">${esc(s.title)} <span class="reader-page-no"></span></div>
       <div class="reader-page"></div>
+      <div class="follow-box" hidden aria-live="polite"></div>
       <div class="reader-ctrl">
         <button class="icon-btn big" data-prev aria-label="이전 쪽">◀</button>
-        <button class="btn btn-ghost" data-read>🔊 읽어주기</button>
-        <button class="btn btn-ghost" data-auto>▶ 자동 넘김</button>
+        <button class="btn btn-primary" data-read>🔊 읽어주기</button>
         <button class="icon-btn big" data-nextp aria-label="다음 쪽">▶</button>
+      </div>
+      <div class="reader-opts">
+        <div class="seg speed-seg" role="radiogroup" aria-label="읽는 속도">
+          <button data-speed="normal" role="radio">보통</button><button data-speed="slow" role="radio">🐢 천천히</button><button data-speed="word" role="radio">👆 한 단어씩</button>
+        </div>
+        <button class="btn btn-ghost sm" data-follow aria-pressed="false">🗣️ 따라 읽기</button>
+        <button class="btn btn-ghost sm" data-auto>▶ 자동 넘김</button>
       </div>
       <div class="reader-dots"></div>
     </div></div>`;
-  const page = $('.reader-page', el);
+  const page = $('.reader-page', el), box = $('.follow-box', el), autoBtn = $('[data-auto]', el), followBtn = $('[data-follow]', el);
+  const spans = () => $$('.reader-text span', page);
+  const clearHl = () => spans().forEach(sp => sp.classList.remove('hl', 'ok', 'mid', 'no'));
+  const syncOpts = () => {
+    $$('[data-speed]', el).forEach(b => { b.classList.toggle('on', b.dataset.speed === speed); b.setAttribute('aria-checked', b.dataset.speed === speed); });
+    followBtn.classList.toggle('btn-primary', follow); followBtn.setAttribute('aria-pressed', follow);
+    autoBtn.textContent = auto ? '⏸ 멈추기' : '▶ 자동 넘김';
+  };
+  const stopAuto = () => { auto = false; syncOpts(); };
+
   const draw = () => {
-    cancelTurn();
+    cancelTurn(); Speech.stop(); box.hidden = true;
     if (pg >= s.pages.length) {
       const first = Store.readStory(s.id); Store.addMinutes((Date.now() - t0) / 1000);
-      stopAuto(); Speech.stop();
+      stopAuto();
       page.innerHTML = `<div class="the-end anim-in"><div class="pic">🎉</div><h2>The End</h2><p>${first ? '첫 완독! 도장과 ⭐2개를 받았어요!' : '또 읽었어요! 정말 잘했어요.'}</p>
         <div class="row-center"><button class="btn btn-ghost" data-restart>처음부터</button><a class="btn btn-primary" href="#/stories">다른 책</a></div></div>`;
       $('[data-restart]', page).onclick = () => { pg = 0; draw(); };
+      $('.reader-page-no', el).textContent = '';
       Speech.sfx.cheer(); if (first) Lesson.confetti(); App.refreshHeader(); return;
     }
     const [text, pic] = s.pages[pg];
     page.innerHTML = `<div class="anim-in"><div class="pic">${pic}</div><p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(w.replace(/[.,!?]/g, ''))}">${esc(w)}</span>`).join(' ')}</p></div>`;
-    // 단어를 누르면 그 단어만 읽고, 자동 넘김은 잠시 멈춘다
-    $$('.reader-text span', page).forEach(sp => sp.onclick = () => {
-      stopAuto();
-      $$('.reader-text span', page).forEach(x => x.classList.remove('hl'));
-      sp.classList.add('hl'); Speech.speak(sp.dataset.say, { onEnd: () => sp.classList.remove('hl') });
+    // 단어를 누르면 그 단어만 천천히 읽고, 자동 넘김은 멈춘다
+    spans().forEach(sp => sp.onclick = () => {
+      stopAuto(); cancelTurn(); clearHl();
+      sp.classList.add('hl'); Speech.speak(sp.dataset.say, { slow: true, onEnd: () => sp.classList.remove('hl') });
     });
+    $('.reader-page-no', el).textContent = `${pg + 1} / ${s.pages.length}`;
     $('.reader-dots', el).innerHTML = s.pages.map((_, k) => `<i class="${k === pg ? 'on' : ''}"></i>`).join('');
     $('[data-prev]', el).disabled = pg === 0;
-    if (auto) read();
+    if (auto) later(read, 400);
   };
+
+  // 한 쪽 읽기 → 끝나면 afterRead
   const read = () => {
-    const [text] = s.pages[pg]; const spans = $$('.reader-text span', page);
+    cancelTurn(); box.hidden = true; clearHl();
+    const [text] = s.pages[pg]; const sp = spans(); const my = run;
+    if (speed === 'word') {
+      // 단어마다 따로 천천히 읽어 아이가 한 단어씩 따라갈 수 있게 한다
+      const step = k => {
+        if (my !== run) return;
+        if (k >= sp.length) { clearHl(); return afterRead(); }
+        clearHl(); sp[k].classList.add('hl');
+        Speech.speak(sp[k].dataset.say, { slow: true, onEnd: () => later(() => step(k + 1), 450) });
+      };
+      return step(0);
+    }
     let offset = 0; const starts = text.split(' ').map(w => { const o = offset; offset += w.length + 1; return o; });
     Speech.speak(text, {
-      onBoundary: ci => { const k = starts.filter(x => x <= ci).length - 1; spans.forEach((sp, j) => sp.classList.toggle('hl', j === k)); },
-      onEnd: () => { spans.forEach(sp => sp.classList.remove('hl')); if (auto && document.body.contains(page)) { cancelTurn(); turnTimer = setTimeout(() => { if (auto && document.body.contains(page)) { pg++; draw(); } }, 700); } },
+      slow: speed === 'slow',
+      onBoundary: ci => { const k = starts.filter(x => x <= ci).length - 1; sp.forEach((x, j) => x.classList.toggle('hl', j === k)); },
+      onEnd: () => { clearHl(); afterRead(); },
     });
   };
-  const autoBtn = $('[data-auto]', el);
-  const stopAuto = () => { auto = false; cancelTurn(); autoBtn.textContent = '▶ 자동 넘김'; };
-  autoBtn.onclick = () => { if (auto) { stopAuto(); Speech.stop(); } else { auto = true; autoBtn.textContent = '⏸ 멈추기'; read(); } };
-  $('[data-read]', el).onclick = () => { cancelTurn(); read(); };
-  $('[data-prev]', el).onclick = () => { if (pg > 0) { Speech.stop(); pg--; draw(); } };
-  $('[data-nextp]', el).onclick = () => { Speech.stop(); pg++; draw(); };
+
+  // 따라 읽기: 문장 전체를 보여주고 아이 차례를 준다. 마이크가 있으면 발음도 확인한다.
+  const afterRead = () => {
+    const [text] = s.pages[pg];
+    const wait = 1800 + text.split(' ').length * 700;
+    if (!follow) { if (auto) later(() => { pg++; draw(); }, 800); return; }
+    spans().forEach(x => x.classList.add('hl'));
+    box.hidden = false;
+    box.innerHTML = `<p class="follow-say">🗣️ 이제 <b>따라 읽어 봐요!</b></p>
+      <div class="row-center">
+        <button class="btn btn-ghost sm" data-again>🔁 다시 듣기</button>
+        ${Speech.canListen ? '<button class="btn btn-primary sm mic" data-mic>🎤 따라 읽기</button>' : ''}
+        <button class="btn btn-ghost sm" data-go>다 읽었어요 ▶</button>
+      </div><div class="follow-result"></div>`;
+    $('[data-again]', box).onclick = () => read();
+    $('[data-go]', box).onclick = () => { pg++; draw(); };
+    const mic = $('[data-mic]', box);
+    if (mic) mic.onclick = async () => {
+      cancelTurn(); // 아이가 말하는 동안은 자동으로 넘기지 않는다
+      mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
+      const res = $('.follow-result', box);
+      try {
+        const r = Speech.score(text, await Speech.listen());
+        clearHl(); spans().forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
+        const got = Store.recordSpeaking(text, r.score);
+        res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= Lesson.passMark() ? '잘 읽었어요! 🌟' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;
+        if (r.score >= Lesson.passMark()) Speech.sfx.correct();
+        if (auto && r.score >= Lesson.passMark()) later(() => { pg++; draw(); }, 1800);
+      } catch (e) {
+        res.textContent = e.message === 'not-allowed' ? '마이크 권한을 허용해 주세요.' : '소리를 듣지 못했어요. 다시 해볼까요?';
+      }
+      mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 따라 읽기';
+    };
+    // 자동 넘김이면 따라 읽을 시간을 준 뒤 넘긴다
+    if (auto) later(() => { pg++; draw(); }, wait);
+  };
+
+  $('[data-read]', el).onclick = () => read();
+  $('[data-prev]', el).onclick = () => { if (pg > 0) { pg--; draw(); } };
+  $('[data-nextp]', el).onclick = () => { pg++; draw(); };
+  $$('[data-speed]', el).forEach(b => b.onclick = () => { speed = b.dataset.speed; keep('sprout-story-speed', speed); syncOpts(); read(); });
+  followBtn.onclick = () => { follow = !follow; keep('sprout-story-follow', follow ? '1' : '0'); syncOpts(); if (!follow) box.hidden = true; };
+  autoBtn.onclick = () => { if (auto) { stopAuto(); cancelTurn(); Speech.stop(); } else { auto = true; syncOpts(); read(); } };
+  syncOpts();
   draw();
 };
 

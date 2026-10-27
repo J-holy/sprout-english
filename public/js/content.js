@@ -246,24 +246,56 @@ const WRONG_PAST = {
   wear: 'weared', build: 'builded', grow: 'growed', wake: 'waked', throw: 'throwed', say: 'sayed', do: 'doed', cry: 'cryed', stop: 'stoped',
 };
 
-// 스토리북 (단계마다 2권)
+// 스토리북 (단계마다 2권, 권마다 11쪽) — 단계에서 배운 표현으로만 써서 아이가 혼자 따라 읽을 수 있어요
 const STORIES = [
-  { id: 1, stage: 1, title: 'ABC Picnic', cover: '🧺', pages: [['A is for apple.', '🍎'], ['B is for banana.', '🍌'], ['C is for cookie.', '🍪'], ['We eat in the park.', '🌳'], ['Yum! What a fun picnic!', '😋']] },
-  { id: 2, stage: 2, title: 'The Fat Cat', cover: '🐈', pages: [['A cat sat on a mat.', '🐈'], ['The cat is fat.', '🐱'], ['A rat ran to the cat.', '🐀'], ['The cat had a nap.', '😴'], ['The rat got a hat!', '🎩']] },
-  { id: 3, stage: 3, title: 'My Family', cover: '👨‍👩‍👧', pages: [['This is my mom.', '👩'], ['This is my dad.', '👨'], ['This is my baby brother.', '👶'], ['We are a happy family.', '👨‍👩‍👦'], ['I love my family.', '❤️']] },
-  { id: 4, stage: 4, title: 'New Friend', cover: '🤝', pages: [['Hi! What is your name?', '👦'], ['My name is Lily.', '👧'], ['How old are you?', '👦'], ['I am seven years old.', '👧'], ['Let us be friends!', '🤝']] },
-  { id: 5, stage: 5, title: 'The Rainy Day', cover: '🌧️', pages: [['The sky is gray and dark.', '☁️'], ['Big drops fall on the roof.', '🌧️'], ['I wear my yellow boots.', '🥾'], ['The puddles are deep and fun.', '💦'], ['Now the sky is bright and blue!', '🌈']] },
-  { id: 6, stage: 6, title: 'Where Is Max?', cover: '🐶', pages: [['Where is Max the dog?', '🐶'], ['Is he under the bed? No!', '🛏️'], ['Is he in the kitchen? No!', '🍳'], ['He is behind the sofa.', '🛋️'], ['Max is sleeping. Shh!', '💤']] },
-  { id: 7, stage: 7, title: 'My Weekend', cover: '🎡', pages: [['On Saturday, I went to the zoo.', '🦒'], ['I saw a big elephant.', '🐘'], ['I ate ice cream with my dad.', '🍦'], ['On Sunday, I played with my friends.', '⚽'], ['I had a great weekend!', '🌟']] },
-  { id: 8, stage: 8, title: 'When I Grow Up', cover: '🚀', pages: [['What will you be?', '🤔'], ['I will be a pilot.', '🧑‍✈️'], ['I am going to fly around the world.', '✈️'], ['I will visit many countries.', '🌍'], ['My dream will come true!', '✨']] },
-  { id: 9, stage: 1, title: 'Animal Parade', cover: '🦁', pages: [['A is for ant.', '🐜'], ['B is for bear.', '🐻'], ['C is for cow.', '🐄'], ['D is for duck.', '🦆'], ['They all walk in a line!', '🎉']] },
-  { id: 10, stage: 2, title: 'Ben and the Bus', cover: '🚌', pages: [['Ben has a red cap.', '🧢'], ['Ben gets on the bus.', '🚌'], ['The bus is hot.', '☀️'], ['Ben sits and naps.', '😴'], ['Ben is at the big zoo!', '🦓']] },
-  { id: 11, stage: 3, title: 'My Toy Box', cover: '🧸', pages: [['This is my toy box.', '📦'], ['I have a red car.', '🚗'], ['I have a little bear.', '🧸'], ['I like my blue ball.', '🔵'], ['I can play all day!', '🤸']] },
-  { id: 12, stage: 4, title: 'At the Shop', cover: '🏪', pages: [['Can I help you?', '🧑‍💼'], ['Yes, I want some apples.', '🍎'], ['How many apples?', '🤔'], ['Three apples, please.', '3️⃣'], ['Here you are. Thank you!', '😊']] },
-  { id: 13, stage: 5, title: 'The Big Red Kite', cover: '🪁', pages: [['I have a big red kite.', '🪁'], ['The wind is strong today.', '🌬️'], ['My kite flies high and far.', '☁️'], ['It looks so small in the sky.', '🔭'], ['What a happy, windy day!', '😄']] },
-  { id: 14, stage: 6, title: 'Busy Sunday', cover: '📅', pages: [['When do we wake up? At eight!', '⏰'], ['What do we eat? Pancakes!', '🥞'], ['Where do we go? To the park!', '🏞️'], ['Who do we see? Our friends!', '👫'], ['Why are we happy? We are together!', '💛']] },
-  { id: 15, stage: 7, title: 'The Lost Puppy', cover: '🐕', pages: [['Yesterday, I found a little puppy.', '🐶'], ['It was cold and hungry.', '🥶'], ['I gave it some milk.', '🥛'], ['We looked for its family.', '🔍'], ['The puppy went home happily.', '🏠']] },
-  { id: 16, stage: 8, title: 'Our Space Trip', cover: '🚀', pages: [['Tomorrow, we will go to space.', '🚀'], ['We are going to see the stars.', '✨'], ['I will wave to the Earth.', '🌍'], ['We will land on the moon.', '🌕'], ['It will be the best trip ever!', '🌟']] },
+  { id: 1, stage: 1, title: 'ABC Picnic', cover: '🧺', pages: [
+    ['A is for apple.', '🍎'], ['B is for banana.', '🍌'], ['C is for cookie.', '🍪'], ['D is for donut.', '🍩'], ['E is for egg.', '🥚'], ['F is for fruit.', '🍓'],
+    ['G is for grapes.', '🍇'], ['Mom has a big basket.', '🧺'], ['We sit on the grass.', '🌿'], ['We eat in the park.', '🌳'], ['Yum! What a fun picnic!', '😋']] },
+  { id: 9, stage: 1, title: 'Animal Parade', cover: '🦁', pages: [
+    ['A is for ant.', '🐜'], ['B is for bear.', '🐻'], ['C is for cow.', '🐄'], ['D is for duck.', '🦆'], ['E is for elephant.', '🐘'], ['F is for frog.', '🐸'],
+    ['G is for goat.', '🐐'], ['H is for horse.', '🐴'], ['They walk in a line.', '🚶'], ['Stomp, stomp, stomp!', '🥁'], ['What a fun parade!', '🎉']] },
+  { id: 2, stage: 2, title: 'The Fat Cat', cover: '🐈', pages: [
+    ['A cat sat on a mat.', '🐈'], ['The cat is fat.', '🐱'], ['A rat ran to the mat.', '🐀'], ['The rat has a red hat.', '🎩'], ['The cat sees the hat.', '👀'], ['The rat ran and hid.', '🫣'],
+    ['The cat got up.', '🐈'], ['But the cat is so fat!', '😅'], ['The cat sat back on the mat.', '🐈'], ['The cat had a nap.', '😴'], ['The rat got the hat!', '🎩']] },
+  { id: 10, stage: 2, title: 'Ben and the Bus', cover: '🚌', pages: [
+    ['Ben has a red cap.', '🧢'], ['Ben runs to the bus.', '🏃'], ['The bus is big and red.', '🚌'], ['Ben gets on the bus.', '🚌'], ['Ben sits with his pal Tom.', '👦'], ['The bus is hot.', '☀️'],
+    ['Tom has a bag of nuts.', '🥜'], ['Ben and Tom nap.', '😴'], ['The bus stops.', '🛑'], ['Ben and Tom hop off.', '🐇'], ['They are at the big zoo!', '🦓']] },
+  { id: 3, stage: 3, title: 'My Family', cover: '👨‍👩‍👧', pages: [
+    ['This is my mom.', '👩'], ['She is kind.', '💗'], ['This is my dad.', '👨'], ['He is tall.', '📏'], ['This is my sister.', '👧'], ['She is six.', '6️⃣'],
+    ['This is my baby brother.', '👶'], ['He is very small.', '🍼'], ['This is my dog, Coco.', '🐶'], ['We are a happy family.', '👨‍👩‍👧‍👦'], ['I love my family.', '❤️']] },
+  { id: 11, stage: 3, title: 'My Toy Box', cover: '🧸', pages: [
+    ['This is my toy box.', '📦'], ['It is big and blue.', '🟦'], ['I have a red car.', '🚗'], ['I have a little bear.', '🧸'], ['I have a ball.', '⚽'], ['I like my blue ball.', '🔵'],
+    ['I have a robot.', '🤖'], ['It can walk.', '🚶'], ['I see a puzzle.', '🧩'], ['I can play all day!', '🤸'], ['Now I put my toys away.', '📦']] },
+  { id: 4, stage: 4, title: 'New Friend', cover: '🤝', pages: [
+    ['Hi! What is your name?', '👦'], ['My name is Lily.', '👧'], ['My name is Sam.', '👦'], ['How old are you?', '👦'], ['I am seven years old.', '👧'], ['Me too!', '😄'],
+    ['Do you like soccer?', '⚽'], ['Yes, I do!', '👧'], ['Can you play with me?', '👦'], ['Sure, let us play!', '🤝'], ['We are good friends now.', '💛']] },
+  { id: 12, stage: 4, title: 'At the Shop', cover: '🏪', pages: [
+    ['Can I help you?', '🧑‍💼'], ['Yes, I want some apples.', '🍎'], ['How many apples?', '🤔'], ['Three apples, please.', '3️⃣'], ['Do you want bananas, too?', '🍌'], ['No, thank you.', '🙅'],
+    ['How much is it?', '💰'], ['It is two dollars.', '💵'], ['Here you are.', '🤲'], ['Thank you! Have a nice day!', '😊'], ['You too! Bye!', '👋']] },
+  { id: 5, stage: 5, title: 'The Rainy Day', cover: '🌧️', pages: [
+    ['The sky is gray and dark.', '☁️'], ['I hear a loud sound. Boom!', '⛈️'], ['Big drops fall on the roof.', '🌧️'], ['I wear my yellow boots.', '🥾'], ['I take my red umbrella.', '☂️'], ['The puddles are deep and fun.', '💦'],
+    ['I jump in a big puddle. Splash!', '🤸'], ['My socks are wet and cold.', '🧦'], ['Mom gives me warm milk.', '🥛'], ['Now the sun is out.', '☀️'], ['The sky is bright and blue!', '🌈']] },
+  { id: 13, stage: 5, title: 'The Big Red Kite', cover: '🪁', pages: [
+    ['I have a big red kite.', '🪁'], ['It has a long tail.', '🎀'], ['The wind is strong today.', '🌬️'], ['Dad and I go to the hill.', '⛰️'], ['I run fast with my kite.', '🏃'], ['My kite flies high and far.', '☁️'],
+    ['It looks so small in the sky.', '🔭'], ['A bird flies next to it.', '🐦'], ['The string is long and thin.', '🧵'], ['My kite comes down slowly.', '🍂'], ['What a happy, windy day!', '😄']] },
+  { id: 6, stage: 6, title: 'Where Is Max?', cover: '🐶', pages: [
+    ['Where is Max the dog?', '🐶'], ['Is he under the bed? No!', '🛏️'], ['Is he in the kitchen? No!', '🍳'], ['Is he in the bathroom? No!', '🛁'], ['Is he in the garden? No!', '🌷'], ['Who can help me?', '🤔'],
+    ['My sister can help me.', '👧'], ['We look behind the door. No!', '🚪'], ['Look! He is behind the sofa.', '🛋️'], ['What is he doing?', '👀'], ['Max is sleeping. Shh!', '💤']] },
+  { id: 14, stage: 6, title: 'Busy Sunday', cover: '📅', pages: [
+    ['When do we wake up? At eight!', '⏰'], ['What do we eat? Pancakes!', '🥞'], ['Who makes them? Dad does!', '👨‍🍳'], ['Where do we go? To the park!', '🏞️'], ['How do we go? By bike!', '🚲'], ['Who do we see? Our friends!', '👫'],
+    ['What do we play? Tag!', '🏃'], ['When do we eat lunch? At noon!', '🕛'], ['Where do we read? Under a tree!', '🌳'], ['How do we feel? Tired but happy!', '😊'], ['Why are we happy? We are together!', '💛']] },
+  { id: 7, stage: 7, title: 'My Weekend', cover: '🎡', pages: [
+    ['On Saturday, I went to the zoo.', '🦒'], ['I saw a tall giraffe.', '🦒'], ['I saw a big elephant.', '🐘'], ['The monkeys jumped and played.', '🐒'], ['I ate ice cream with my dad.', '🍦'], ['It was cold and sweet.', '🍨'],
+    ['On Sunday, it rained all morning.', '🌧️'], ['I read books with my mom.', '📚'], ['In the afternoon, I played with my friends.', '⚽'], ['We laughed a lot.', '😂'], ['I had a great weekend!', '🌟']] },
+  { id: 15, stage: 7, title: 'The Lost Puppy', cover: '🐕', pages: [
+    ['Yesterday, I walked to the park.', '🚶'], ['I heard a small sound.', '👂'], ['I found a little puppy.', '🐶'], ['It was cold and hungry.', '🥶'], ['I took it home.', '🏠'], ['I gave it some milk.', '🥛'],
+    ['Mom made a poster.', '📝'], ['We looked for its family.', '🔍'], ['A girl saw the poster.', '👧'], ['The girl was so happy.', '😊'], ['The puppy went home happily.', '🏠']] },
+  { id: 8, stage: 8, title: 'When I Grow Up', cover: '🚀', pages: [
+    ['What will you be?', '🤔'], ['I will be a pilot.', '🧑‍✈️'], ['I am going to fly around the world.', '✈️'], ['I will visit many countries.', '🌍'], ['My sister will be a doctor.', '🧑‍⚕️'], ['She is going to help sick people.', '🏥'],
+    ['My friend will be a chef.', '🧑‍🍳'], ['He is going to cook tasty food.', '🍝'], ['What about you?', '👉'], ['You can be anything!', '🌈'], ['Our dreams will come true!', '✨']] },
+  { id: 16, stage: 8, title: 'Our Space Trip', cover: '🚀', pages: [
+    ['Tomorrow, we will go to space.', '🚀'], ['We are going to wear space suits.', '🧑‍🚀'], ['Three, two, one, blast off!', '🔥'], ['We will fly past the clouds.', '☁️'], ['We are going to see the stars.', '✨'], ['I will wave to the Earth.', '🌍'],
+    ['We will land on the moon.', '🌕'], ['We are going to jump very high.', '🦘'], ['We will take pictures.', '📷'], ['Then we will fly home.', '🏠'], ['It will be the best trip ever!', '🌟']] },
 ];
 
 // 학습 기간 안내: 남은 레슨 수와 하루 레슨 수로 주 5일 기준 기간을 계산

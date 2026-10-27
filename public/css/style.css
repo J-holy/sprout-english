@@ -698,3 +698,16 @@ body.in-lesson .demo-banner { display: none; }
 /* 모험 지도: 레벨 진도 막대 */
 .node-bar { width: 64px; height: 7px; border-radius: 999px; background: var(--paper); border: 2px solid var(--line); overflow: hidden; }
 .node-bar i { display: block; height: 100%; background: var(--grass); }
+
+/* ---------- 스토리북: 속도·따라 읽기 ---------- */
+.reader-page-no { font-family: var(--font); font-weight: 400; font-size: .85rem; margin-left: 6px; }
+.reader-opts { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.speed-seg { margin: 0; }
+.speed-seg button { padding: 6px 12px; font-size: .95rem; }
+.follow-box { margin: 4px auto 10px; max-width: 520px; background: var(--grass-soft); border: 2px dashed var(--grass); border-radius: 18px; padding: 10px 14px; }
+.follow-say { margin: 0; font-family: var(--title); font-size: 1.2rem; }
+.follow-result { margin-top: 6px; min-height: 1.4em; }
+.reader-text span.ok { color: var(--grass); }
+.reader-text span.mid { color: var(--mid); }
+.reader-text span.no { color: var(--bad); }
+@media (max-width: 600px) { .speed-seg button { padding: 6px 8px; font-size: .85rem; } }
