@@ -42,7 +42,7 @@ const Store = (() => {
   // ---------- 시작 / 저장 ----------
   function loadLocal() {
     try { const raw = JSON.parse(localStorage.getItem(KEY)); if (raw && raw.users) db = raw; } catch (e) { /* storage unavailable */ }
-    Object.values(db.users).forEach(u => { u.id = u.id || u.email; }); // 예전 데이터에는 id가 없다
+    Object.values(db.users).forEach(u => { u.id = u.id || u.email; u.profiles = (u.profiles || []).map(normalizeProfile); }); // 예전 데이터 보정
   }
   async function init() {
     try { db.theme = localStorage.getItem('sprout-theme'); } catch (e) { /* ignore */ }
@@ -58,6 +58,10 @@ const Store = (() => {
     await Promise.all([loadMe(), loadReviews()]);
   }
   function normalizeProfile(p) {
+    // 예전 버전에서 100%를 넘게 저장된 점수를 바로잡는다
+    for (const lv of Object.values(p.progress || {})) (lv.lessons || []).forEach(r => { if (r && r.score > 100) r.score = 100; });
+    if (p.recentScores) p.recentScores = p.recentScores.map(x => Math.min(100, x));
+    if (p.stats && p.stats.correct > p.stats.answered) p.stats.correct = p.stats.answered;
     return Object.assign({ progress: {}, stamps: {}, minutes: {}, stats: { answered: 0, correct: 0 }, wrong: [], speaking: [], stories: {}, dailyGoal: 2,
       stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false }, p);
   }
@@ -285,7 +289,7 @@ const Store = (() => {
   function finishLesson({ level, index, correct, total, seconds, wrongItems }) {
     const p = profile(); const d = today();
     const lp = p.progress[level] || (p.progress[level] = { lessons: [] });
-    const score = Math.round(correct / total * 100);
+    const score = Math.min(100, Math.round(correct / total * 100));
     const prev = lp.lessons[index];
     lp.lessons[index] = { score: Math.max(score, prev ? prev.score : 0), date: d };
     p.stats.answered += total; p.stats.correct += correct;

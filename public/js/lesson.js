@@ -125,7 +125,7 @@ const Lesson = (() => {
 
   function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal' } = {}) {
     questions = adjust(questions, difficulty);
-    let i = 0, correct = 0; const wrong = []; const t0 = Date.now();
+    let i = 0, correct = 0, answeredAt = -1; const wrong = []; const t0 = Date.now();
     const diffLabel = { easy: '🐣 쉬움', normal: '🐥 보통', hard: '🦅 도전' }[difficulty];
     root.innerHTML = `
       <div class="lesson">
@@ -152,6 +152,8 @@ const Lesson = (() => {
       (R[q.type] || R.choice)(body, q, answer);
     }
     function answer(ok, q, detail = '') {
+      if (answeredAt === i) return; // 한 문제는 한 번만 채점한다
+      answeredAt = i;
       if (ok) { correct++; Speech.sfx.correct(); } else {
         Speech.sfx.wrong();
         if (q.type !== 'trace' && q.type !== 'speak') wrong.push({ key: q.key, q });
@@ -308,7 +310,8 @@ const Lesson = (() => {
           res.innerHTML = `<div class="score-pill ${r.score >= 80 ? 'good' : r.score >= 60 ? 'mid' : 'low'}">${r.score}점</div><div class="heard">들은 말: "${esc(r.heard)}"</div>`;
           if (r.score >= pass || tries >= 3) {
             el.querySelectorAll('button').forEach(b => b.disabled = true);
-            done(r.score >= pass, q, `<div class="fb-answer">${coach(r)}</div>`);
+            mic.classList.remove('rec'); mic.textContent = '✅ 완료';
+            return done(r.score >= pass, q, `<div class="fb-answer">${coach(r)}</div>`); // 채점이 끝나면 마이크를 다시 켜지 않는다
           } else {
             res.innerHTML += `<div class="hint">${coach(r)} (${3 - tries}번 더 해볼 수 있어요)</div>`;
           }
