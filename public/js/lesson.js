@@ -94,7 +94,7 @@ const Gen = (() => {
   function lesson(level, idx, n = 8) {
     const st = stageOf(level).id;
     const items = lessonItems(level, idx);
-    const builders = items.map((it, t) => st === 1 ? B[1](it, t + idx) : st === 2 ? B[2](it, level) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st));
+    const builders = items.map((it, t) => tag(it, level, buildersFor(it, t + (st === 1 ? idx : 0), st, level)));
     const qs = []; let r = idx;
     for (let i = 0; qs.length < n; i++) {
       const bs = builders[i % builders.length];
@@ -107,6 +107,29 @@ const Gen = (() => {
     for (const bs of builders) for (const b of bs) { if (out.length >= n) break; const q = b(); if (!seen.has(q.key)) { seen.add(q.key); out.push(q); } }
     return out.slice(0, n);
   }
+  // 항목(단어·문장)마다의 문항 만들기 — 레슨과 복습이 같이 쓴다
+  const buildersFor = (it, t, st, level) => st === 1 ? B[1](it, t) : st === 2 ? B[2](it, level) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st);
+  // 문항마다 어떤 항목인지 붙인다 (복습·리포트용)
+  const itemId = it => it.letter ? 'L:' + it.letter : it.q ? 'Q:' + it.q : 'E:' + it.en;
+  const tag = (it, level, bs) => bs.map(b => () => ({ ...b(), item: itemId(it), level }));
+  // 항목 id → { level, it } (처음 쓸 때 만든다)
+  let index = null;
+  const itemIndex = () => index || (index = Object.fromEntries(ALL_LEVELS.flatMap(lv => levelItems(lv).map(it => [itemId(it), { level: lv, it }]))));
+  // 🔁 복습 문항: 복습할 항목마다 빠르게 풀 문항 하나씩 (따라 쓰기·말하기는 빼고)
+  function reviewQuestions(ids, n = 8) {
+    const out = [];
+    for (const id of ids) {
+      const hit = itemIndex()[id]; if (!hit) continue;
+      const st = stageOf(hit.level).id;
+      const bs = tag(hit.it, hit.level, buildersFor(hit.it, Math.floor(Math.random() * 3), st, hit.level));
+      const qs = bs.map(b => b()).filter(q => q.type !== 'trace' && q.type !== 'speak');
+      if (qs.length) out.push(qs[Math.floor(Math.random() * qs.length)]);
+      if (out.length >= n) break;
+    }
+    return out;
+  }
+  const itemLabel = id => { const h = itemIndex()[id]; if (!h) return id.slice(2); const it = h.it; return it.letter ? `${it.letter} (${it.word})` : it.q ? it.a : it.en; };
+
   // 레슨 중간 ⚡챌린지: 1단계 알파벳 풍선, 2단계 단어 두더지, 3단계부터 문장 O/X
   function challenge(level) {
     const st = stageOf(level).id, upto = ALL_LEVELS.slice(0, ALL_LEVELS.indexOf(level) + 1);
@@ -125,7 +148,8 @@ const Gen = (() => {
         return { say: x.en, prompt: ws.map((v, k) => k === i ? '____' : v).join(' '), answer: w, wrong: allWords.filter(v => v.toLowerCase() !== w.toLowerCase()) };
       }) };
   }
-  return { lesson, levelItems, isReviewDay, challenge };
+  const itemInfo = id => itemIndex()[id] || null;
+  return { lesson, levelItems, isReviewDay, challenge, reviewQuestions, itemLabel, itemId, itemInfo };
 })();
 
 /* ---------------- ⚡ 미니 챌린지 (20초 게임) ---------------- */
@@ -205,6 +229,15 @@ const Challenge = (() => {
   return { run, SECONDS };
 })();
 
+/* 문항이 키우는 영역: 듣기 · 읽기 · 말하기 · 쓰기 */
+const SKILLS = { listen: '👂 듣기', read: '📖 읽기', speak: '🗣️ 말하기', write: '✏️ 쓰기' };
+function skillOf(q) {
+  if (q.type === 'speak') return 'speak';
+  if (['tiles', 'type', 'trace'].includes(q.type)) return 'write';
+  if (q.big || /^(ltr-listen|ph-listen|s-listen|qa-pick)/.test(q.key || '')) return 'listen';
+  return 'read';
+}
+
 /* ---------------- 레슨 진행 엔진 ---------------- */
 const Lesson = (() => {
   // 난이도: 쉬움=보기 2개+힌트, 어려움=보기 4개
@@ -233,7 +266,7 @@ const Lesson = (() => {
 
   function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null } = {}) {
     questions = adjust(questions, difficulty);
-    let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0; const wrong = []; const t0 = Date.now();
+    let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0; const wrong = [], results = []; const t0 = Date.now();
     const challengeAt = Math.min(3, questions.length - 2); // 4번째 문제 다음에 ⚡챌린지
     const diffLabel = { easy: '🐣 쉬움', normal: '🐥 보통', hard: '🦅 도전' }[difficulty];
     root.innerHTML = `
@@ -263,6 +296,7 @@ const Lesson = (() => {
     function answer(ok, q, detail = '') {
       if (answeredAt === i) return; // 한 문제는 한 번만 채점한다
       answeredAt = i;
+      results.push({ item: q.item, skill: skillOf(q), ok: !!ok });
       if (ok) { correct++; combo++; Speech.sfx.correct(); } else {
         combo = 0;
         Speech.sfx.wrong();
@@ -300,7 +334,7 @@ const Lesson = (() => {
     }
     function finish() {
       root.querySelector('.bar').style.width = '100%';
-      onDone && onDone({ correct, total: questions.length, wrong, seconds: (Date.now() - t0) / 1000, bonus });
+      onDone && onDone({ correct, total: questions.length, wrong, seconds: (Date.now() - t0) / 1000, bonus, results });
     }
     R.recordSpeech = recordSpeech;
     show();

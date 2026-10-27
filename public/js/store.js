@@ -63,7 +63,7 @@ const Store = (() => {
     if (p.recentScores) p.recentScores = p.recentScores.map(x => Math.min(100, x));
     if (p.stats && p.stats.correct > p.stats.answered) p.stats.correct = p.stats.answered;
     return Object.assign({ progress: {}, stamps: {}, minutes: {}, stats: { answered: 0, correct: 0 }, wrong: [], speaking: [], stories: {}, dailyGoal: 2,
-      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {} }, p);
+      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {} }, p);
   }
   async function loadMe() {
     try {
@@ -291,7 +291,7 @@ const Store = (() => {
     const avg = r.reduce((a, b) => a + b, 0) / r.length;
     return avg < 55 ? 'easy' : avg >= 90 ? 'hard' : 'normal';
   }
-  function finishLesson({ level, index, correct, total, seconds, wrongItems, bonus = 0 }) {
+  function finishLesson({ level, index, correct, total, seconds, wrongItems, bonus = 0, results = [] }) {
     const p = profile(); const d = today();
     const lp = p.progress[level] || (p.progress[level] = { lessons: [] });
     const score = Math.min(100, Math.round(correct / total * 100));
@@ -308,11 +308,18 @@ const Store = (() => {
     let badge = false;
     if (index === LESSONS_PER_LEVEL - 1 && score >= 70 && !p.badges[level]) { p.badges[level] = d; badge = true; }
     const grow = addXp(10 + stars * 2 + bonus);
+    applyResults(results);
+    bumpDaily('lesson');
+    // 단계의 모든 레벨을 끝내면 수료증
+    const st = stageOf(level);
+    let cert = null;
+    if (!p.certs[st.id] && st.levels.every(lv => lessonsDone(lv, p) >= LESSONS_PER_LEVEL)) { p.certs[st.id] = d; cert = st; }
     save();
+    if (cert) notify(`🎓 ${p.name}(이)가 ${cert.id}단계 '${cert.title}'를 마치고 수료증을 받았어요!`, 'goal', true);
     notify(`📚 [학습알림] ${p.name}(이)가 Level ${level} Day ${index + 1}을 완료했어요! 정답률 ${score}%`, 'lesson', true);
     if (badge) notify(`🏅 ${p.name}(이)가 Level ${level} 배지를 받았어요!`, 'goal', true);
     if (p.stamps[d] === p.dailyGoal) notify(`🏅 ${p.name}(이)가 오늘의 목표(${p.dailyGoal}개 레슨)를 달성했어요!`, 'goal', true);
-    return { score, stars, badge, grow };
+    return { score, stars, badge, grow, cert };
   }
   function addWrong(items = []) {
     const p = profile();
@@ -323,6 +330,7 @@ const Store = (() => {
   function addMinutes(sec) { const p = profile(); if (!p) return; const d = today(); p.minutes[d] = (p.minutes[d] || 0) + Math.max(1, Math.round(sec / 60)); save(); }
   function recordSpeaking(text, score) {
     const p = profile(); p.speaking.unshift({ text, score, date: Date.now() }); p.speaking = p.speaking.slice(0, 100);
+    if (score >= 45) bumpDaily('speak');
     let got = 0;
     if (score >= 80) { got = addStars(1, 'speak', 5); addXp(2); } // 말하기 별은 하루 5개까지
     save(); return got;
@@ -330,6 +338,7 @@ const Store = (() => {
   function readStory(id) {
     const p = profile(); const first = !p.stories[id];
     p.stories[id] = (p.stories[id] || 0) + 1;
+    bumpDaily('story');
     if (first) { const d = today(); p.stamps[d] = (p.stamps[d] || 0) + 1; addStars(2, 'story'); addXp(15); }
     save(); return first;
   }
@@ -366,6 +375,75 @@ const Store = (() => {
     const got = addStars(score >= 8 ? 3 : score >= 5 ? 2 : score >= 2 ? 1 : 0, 'game', 6);
     addXp(Math.min(10, score));
     save(); return { best: p.games[game], newBest: score > best, got };
+  }
+
+  // ---------- 영역별 기록 · 망각 곡선 복습 ----------
+  // 문항 결과로 영역(듣기·읽기·말하기·쓰기) 정답률과 항목별 복습 일정을 갱신한다
+  const INTERVALS = [1, 3, 7, 14, 30, 60]; // 맞힐수록 다음 복습까지 간격이 길어진다 (일)
+  const addDays = (n, from = new Date()) => { const d = new Date(from); d.setDate(d.getDate() + n); return today(d); };
+  function applyResults(results = [], p = profile()) {
+    if (!p || !results.length) return;
+    const d = today(); p.skillDays[d] = p.skillDays[d] || {};
+    const byItem = {};
+    for (const r of results) {
+      const s = p.skills[r.skill] || (p.skills[r.skill] = [0, 0]); s[1]++; if (r.ok) s[0]++;
+      const sd = p.skillDays[d][r.skill] || (p.skillDays[d][r.skill] = [0, 0]); sd[1]++; if (r.ok) sd[0]++;
+      if (r.item) byItem[r.item] = (byItem[r.item] !== false) && r.ok; // 한 번이라도 틀리면 틀린 것으로
+    }
+    for (const [id, ok] of Object.entries(byItem)) {
+      const c = p.srs[id] || { box: -1, seen: d };
+      c.box = ok ? Math.min(INTERVALS.length - 1, c.box + 1) : 0;
+      c.due = addDays(ok ? INTERVALS[c.box] : 1);
+      c.last = d; p.srs[id] = c;
+    }
+    // 오래된 하루 기록은 정리 (최근 60일만)
+    const keys = Object.keys(p.skillDays).sort(); keys.slice(0, Math.max(0, keys.length - 60)).forEach(k => delete p.skillDays[k]);
+  }
+  const dueItems = (p = profile()) => !p ? [] : Object.entries(p.srs).filter(([, c]) => c.due <= today()).sort((a, b) => a[1].due < b[1].due ? -1 : 1).map(([id]) => id);
+  function finishReview({ results, seconds, correct, total }) {
+    const p = profile(); applyResults(results);
+    p.stats.answered += total; p.stats.correct += correct;
+    const d = today(); p.stamps[d] = (p.stamps[d] || 0); addMinutes(seconds);
+    bumpDaily('review'); addXp(5 + correct);
+    save();
+  }
+  function wordStats(p = profile()) {
+    const list = Object.values((p && p.srs) || {});
+    return { learned: list.length, mastered: list.filter(c => c.box >= 3).length, due: dueItems(p).length };
+  }
+  // 이번 주(최근 7일)와 지난주 영역별 정답률
+  function skillWeek(p = profile(), offset = 0) {
+    const out = {};
+    for (let k = 0; k < 7; k++) {
+      const day = p.skillDays[addDays(-k - offset * 7)]; if (!day) continue;
+      for (const [sk, [c, t]] of Object.entries(day)) { const o = out[sk] || (out[sk] = [0, 0]); o[0] += c; o[1] += t; }
+    }
+    return out;
+  }
+
+  // ---------- 🎯 오늘의 미션 ----------
+  const MISSIONS = [
+    { id: 'lesson', icon: '📚', text: '레슨 1개 하기', done: d => d.lesson >= 1 },
+    { id: 'review', icon: '🔁', text: '오늘의 복습 또는 스토리북 1번', done: d => d.review >= 1 || d.story >= 1 },
+    { id: 'speak', icon: '🎤', text: '소리 내어 말하기 3번', done: d => d.speak >= 3 },
+  ];
+  function daily(p = profile()) {
+    if (!p) return null;
+    if (!p.daily || p.daily.date !== today()) p.daily = { date: today(), lesson: 0, review: 0, story: 0, speak: 0, claimed: false };
+    return p.daily;
+  }
+  function bumpDaily(kind) { const d = daily(); if (d) { d[kind] = (d[kind] || 0) + 1; save(); } }
+  function missions(p = profile()) {
+    const d = daily(p); if (!d) return null;
+    const list = MISSIONS.map(m => ({ ...m, ok: m.done(d) }));
+    return { list, all: list.every(m => m.ok), claimed: d.claimed, progress: { lesson: d.lesson, review: d.review, story: d.story, speak: d.speak } };
+  }
+  function claimMissions() {
+    const p = profile(), m = missions(p); if (!m || !m.all || m.claimed) return null;
+    p.daily.claimed = true;
+    p.stars = (p.stars || 0) + 5; const grow = addXp(20); save();
+    notify(`🎁 ${p.name}(이)가 오늘의 미션 3개를 모두 끝냈어요!`, 'goal');
+    return { stars: 5, xp: 20, grow };
   }
 
   // ---------- 새싹 나무 키우기 ----------
@@ -489,6 +567,7 @@ const Store = (() => {
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, accEmoji, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
+    dueItems, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
     notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, setTheme, exportData, importData, persist, hash,
   };
 })();

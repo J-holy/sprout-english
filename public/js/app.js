@@ -3,7 +3,7 @@ const App = (() => {
   const main = () => document.getElementById('app');
   const NAV = [['/', '🏠 홈'], ['/study', '📚 학습하기'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
   // 하위 화면도 해당 메뉴를 켜준다
-  const navOf = path => /^\/(study|learn|lesson|sample|speak|stor|wrong|shop|play|worksheet|leveltest|profiles)/.test(path) ? '/study' : path;
+  const navOf = path => /^\/(study|learn|lesson|sample|speak|stor|wrong|review|certificate|words|free|shop|play|worksheet|leveltest|profiles)/.test(path) ? '/study' : path;
   const next = () => encodeURIComponent(location.hash.slice(1));
 
   // 로그인 + 프로필 + 이용권이 필요한 화면 (관리자는 이용권 검사 통과)
@@ -37,6 +37,10 @@ const App = (() => {
     [/^\/stories$/, learner(el => Views.stories(el))],
     [/^\/story\/(\d+)$/, learner((el, m) => Views.story(el, +m[1]))],
     [/^\/wrong$/, learner(el => Views.wrong(el))],
+    [/^\/review$/, learner(el => Views.review(el))],
+    [/^\/words$/, learner(el => Views.words(el))],
+    [/^\/free$/, learner(el => Views.free(el))],
+    [/^\/certificate\/(\d)$/, learner((el, m) => Views.certificate(el, +m[1]))],
     [/^\/shop$/, learner(el => Views.shop(el))],
     [/^\/play(?:\/(balloon|match))?$/, learner((el, m) => Views.play(el, m[1]))],
     [/^\/worksheet\/([A-Z])$/, authed((el, m) => Views.worksheet(el, m[1]))],
@@ -151,7 +155,7 @@ const App = (() => {
   function upsell() {
     const m = modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>3단계부터는 플러스예요</h2>
       <p>1~2단계(알파벳·파닉스)는 지금처럼 <b>평생 무료</b>로 계속할 수 있어요.</p>
-      <ul class="perks"><li>📚 3~8단계 문장·대화·과거·미래 <b>210레슨</b></li><li>📖 스토리북 12권 더 (모두 16권)</li><li>💸 <b>월 ${won(PLANS.one.m12)}</b>부터 · 하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)}</li><li>🎟️ 첫 결제 ${Math.round(WELCOME_RATE * 100)}% 쿠폰 · 언제든 해지</li></ul>
+      <ul class="perks"><li>📚 3~8단계 문장·대화·과거·미래 <b>210레슨</b></li><li>📖 스토리북 12권 더 (모두 16권)</li><li>🔁 망각 곡선 복습 · 📊 영역별 분석 · 🎓 수료증</li><li>💸 <b>월 ${won(PLANS.one.m12)}</b>부터 · 하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)}</li><li>🎟️ 첫 결제 ${Math.round(WELCOME_RATE * 100)}% 쿠폰 · 언제든 해지</li></ul>
       <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 플러스 보기</a></div></div>`);
     return m;
   }

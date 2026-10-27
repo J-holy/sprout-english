@@ -117,6 +117,147 @@ const UI = {
   },
 };
 
+/* ---------- 📒 내 단어장 ---------- */
+// 배운 단어·문장을 모두 모아 보고 듣는다. 망각 곡선 복습의 익힘 정도(box)로 단계를 보여준다.
+const MASTERY = b => b >= 4 ? { k: 'master', label: '완전히 익힘', icon: '🌳' } : b >= 2 ? { k: 'good', label: '익숙해요', icon: '🌿' } : { k: 'new', label: '배우는 중', icon: '🌱' };
+Views.words = el => {
+  const p = Store.profile();
+  const rows = Object.entries(p.srs || {}).map(([id, c]) => {
+    const info = Gen.itemInfo(id); if (!info) return null;
+    const it = info.it, m = MASTERY(c.box);
+    const en = it.letter ? `${it.letter} ${it.letter.toLowerCase()} · ${it.words.map(w => w[0]).join(', ')}` : it.q ? `${it.q} — ${it.a}` : it.en;
+    const say = it.letter ? letterLine(it) : it.q ? `${it.q} ${it.a}` : it.en;
+    const ko = it.ko || (it.letter ? '알파벳' : '');
+    return { id, en, say, ko, emoji: it.emoji || (it.letter ? it.emoji : '💬'), level: info.level, m, due: c.due, seen: c.seen || '' };
+  }).filter(Boolean).sort((a, b) => (b.seen > a.seen ? 1 : -1));
+  let filter = 'all', q = '';
+  el.innerHTML = `<div class="wrap sec">
+    <h1 class="page-title">📒 내 단어장 <small>${rows.length}개</small></h1>
+    <p class="sec-desc left">레슨에서 배운 단어와 문장이 자동으로 모여요. 눌러서 들어 보고, 🌱→🌿→🌳 로 자라는 걸 확인해요.</p>
+    <input class="search" type="search" placeholder="영어나 우리말로 찾기" aria-label="단어 찾기">
+    <div class="chips filter">${[['all', '전체'], ['new', '🌱 배우는 중'], ['good', '🌿 익숙해요'], ['master', '🌳 완전히 익힘']].map(([k, t]) => `<button class="chip ${k === 'all' ? 'on' : ''}" data-f="${k}">${t} <small>${k === 'all' ? rows.length : rows.filter(r => r.m.k === k).length}</small></button>`).join('')}</div>
+    <div class="word-list"></div>
+  </div>`;
+  const list = $('.word-list', el);
+  const draw = () => {
+    const shown = rows.filter(r => (filter === 'all' || r.m.k === filter) && (!q || (r.en + ' ' + r.ko).toLowerCase().includes(q.toLowerCase())));
+    list.innerHTML = shown.length ? shown.map(r => `<button class="word-row" data-say="${esc(r.say)}">
+      <span class="wr-pic">${r.emoji}</span><span class="wr-text"><b>${esc(r.en)}</b><small>${esc(r.ko)}</small></span>
+      <span class="wr-meta"><span class="wr-m ${r.m.k}">${r.m.icon} ${r.m.label}</span><small>Level ${r.level} · 다음 복습 ${r.due.slice(5).replace('-', '/')}</small></span><span class="wr-play">🔊</span></button>`).join('')
+      : UI.empty('📒', rows.length ? '찾는 단어가 없어요.' : '아직 단어장이 비어 있어요. 레슨을 하면 배운 단어가 모여요!', rows.length ? '' : '<a class="btn btn-primary" href="#/study">레슨 하러 가기</a>');
+    $$('[data-say]', list).forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
+  };
+  $('.search', el).oninput = e => { q = e.target.value.trim(); draw(); };
+  $$('[data-f]', el).forEach(b => b.onclick = () => { filter = b.dataset.f; $$('[data-f]', el).forEach(x => x.classList.toggle('on', x === b)); draw(); });
+  draw();
+};
+
+/* ---------- 🧭 자유 학습 (Free Choice) ---------- */
+Views.free = el => {
+  const p = Store.profile(), w = Store.wordStats();
+  const cards = [
+    ['#/review', '🔁', '오늘의 복습', w.due ? `${w.due}개 기다려요` : '오늘은 끝!', '#4fc3f7'],
+    ['#/words', '📒', '내 단어장', `${w.learned}개 모았어요`, '#ffd23f'],
+    ['#/stories', '📖', '스토리북', `${Object.keys(p.stories).length}/${STORIES.length}권 읽음`, '#7ed957'],
+    ['#/speak', '🎤', 'AI 말하기', '발음 점수 받기', '#b388ff'],
+    ['#/play/balloon', '🎈', '풍선 팡팡', `최고 ${(p.games || {}).balloon || 0}점`, '#ff8a65'],
+    ['#/play/match', '🃏', '짝꿍 카드', `최고 ${(p.games || {}).match || 0}점`, '#4db6ac'],
+    ['#/wrong', '✏️', '오답노트', `${p.wrong.length}문제`, '#f06292'],
+    ['#/shop', '🛍️', '별 상점', `⭐ ${p.stars || 0}`, '#ffb74d'],
+    ['#/worksheet/' + Store.currentLevel(), '🖨️', '워크시트', `Level ${Store.currentLevel()} 인쇄`, '#90a4ae'],
+    ['#/leveltest', '🧪', '레벨 테스트', p.placed ? '다시 보기' : '출발 레벨 찾기', '#64b5f6'],
+  ];
+  el.innerHTML = `<div class="wrap sec">
+    <h1 class="page-title">🧭 자유 학습</h1>
+    ${UI.mascot('오늘은 뭐 하고 놀까? 하고 싶은 걸 골라 봐!')}
+    <div class="free-grid">${cards.map(([h, e, t, d, c]) => `<a class="free-card" href="${h}" style="--c:${c}"><span>${e}</span><b>${t}</b><small>${esc(d)}</small></a>`).join('')}</div>
+  </div>`;
+};
+
+// 📊 영역별 학습 분석 (부모 리포트)
+UI.skillReport = p => {
+  const now = Store.skillWeek(p, 0), prev = Store.skillWeek(p, 1), all = p.skills || {}, w = Store.wordStats(p);
+  const pct = a => a && a[1] ? Math.round(a[0] / a[1] * 100) : null;
+  const rows = Object.entries(SKILLS).map(([k, label]) => {
+    const n = pct(now[k]), b = pct(prev[k]), total = pct(all[k]);
+    const diff = n !== null && b !== null ? n - b : null;
+    return { k, label, n, b, total, diff, count: (now[k] || [0, 0])[1] };
+  });
+  const scored = rows.filter(r => (r.n ?? r.total) !== null);
+  const weak = scored.length ? scored.reduce((m, r) => ((r.n ?? r.total) < (m.n ?? m.total) ? r : m)) : null;
+  const tips = { listen: '🔊 스토리북 "읽어주기"를 천천히로 들으며 단어를 짚어 주세요.', read: '📖 레슨의 뜻 고르기·빈칸 문제를 소리 내어 읽게 해 주세요.', speak: '🗣️ 스토리북 "따라 읽기"를 켜고 하루 한 권 따라 읽어요.', write: '✏️ 워크시트를 인쇄해 따라 쓰기를 해 보세요.' };
+  const certs = Object.keys(p.certs || {});
+  return `<div class="card skill-card">
+    <h3>📊 영역별 학습 분석 <small>최근 7일 정답률 · 지난주와 비교</small></h3>
+    <div class="skill-rows">${rows.map(r => `<div class="skill-row"><span class="sk-label">${r.label}</span>
+      <div class="rb-bar"><i style="width:${r.n ?? r.total ?? 0}%"></i></div>
+      <b>${r.n !== null ? r.n + '%' : r.total !== null ? r.total + '%' : '-'}</b>
+      <small class="${r.diff > 0 ? 'up' : r.diff < 0 ? 'down' : ''}">${r.diff === null ? (r.n === null ? '이번 주 기록 없음' : '첫 주') : r.diff > 0 ? `▲ ${r.diff}` : r.diff < 0 ? `▼ ${-r.diff}` : '그대로'}</small></div>`).join('')}</div>
+    <div class="word-stats"><div><b>${w.learned}</b><small>배운 단어·문장</small></div><div><b>${w.mastered}</b><small>완전히 익힘</small></div><div><b>${w.due}</b><small>오늘 복습할 것</small></div><div><b>${certs.length}</b><small>수료증</small></div></div>
+    ${weak ? `<p class="tip">💡 <b>${weak.label}</b> 영역을 더 연습하면 좋아요. ${tips[weak.k]}</p>` : '<p class="fine">레슨을 하면 영역별 분석이 나와요.</p>'}
+    ${certs.length ? `<p class="certs">🎓 ${certs.map(id => `<a href="#/certificate/${id}">${id}단계 ${esc(STAGES[id - 1].title)} 수료증</a>`).join(' · ')}</p>` : ''}
+  </div>`;
+};
+
+// 🎯 오늘 카드: 미션 3개와 망각 곡선 복습
+UI.todayCard = () => {
+  const m = Store.missions(), w = Store.wordStats();
+  return `<div class="today-grid">
+    <div class="card mission-card">
+      <h3>🎯 오늘의 미션 <small>${m.list.filter(x => x.ok).length}/3</small></h3>
+      <ul class="missions">${m.list.map(x => `<li class="${x.ok ? 'ok' : ''}"><span>${x.ok ? '✅' : x.icon}</span>${x.text}${x.id === 'speak' && !x.ok ? ` <small>(${m.progress.speak}/3)</small>` : ''}</li>`).join('')}</ul>
+      ${m.claimed ? '<p class="fine">🎉 오늘 보상을 받았어요. 내일 또 만나요!</p>' : `<button class="btn ${m.all ? 'btn-primary pulse' : 'btn-ghost'} sm" data-claim ${m.all ? '' : 'disabled'}>🎁 보상 상자 ${m.all ? '열기' : '(미션을 모두 끝내면)'}</button>`}
+    </div>
+    <div class="card review-card-today">
+      <h3>🔁 오늘의 복습</h3>
+      <p class="big-num">${w.due}<small>개</small></p>
+      <p class="fine">배운 단어·문장 ${w.learned}개 · 완전히 익힌 것 ${w.mastered}개<br>잊을 때쯤 다시 나와서 오래 기억해요 (1·3·7·14·30일 간격)</p>
+      ${w.due ? '<a class="btn btn-primary sm" href="#/review">▶ 복습 시작</a>' : '<p class="fine">✅ 오늘 복습할 게 없어요!</p>'}
+    </div></div>`;
+};
+
+// 🔁 망각 곡선 복습 세션
+Views.review = el => {
+  const due = Store.dueItems();
+  if (!due.length) { el.innerHTML = `<div class="wrap sec narrow">${UI.empty('✅', '오늘 복습할 게 없어요. 레슨을 하면 복습할 단어가 생겨요!', '<a class="btn btn-primary" href="#/study">모험 지도</a>')}</div>`; return; }
+  const qs = Gen.reviewQuestions(shuffle(due.slice(0, 20)), 8);
+  el.innerHTML = '<div class="wrap lesson-wrap"></div>';
+  const root = $('.lesson-wrap', el);
+  Lesson.run(root, qs, {
+    title: `오늘의 복습 · ${due.length}개 중 ${qs.length}개`, difficulty: Store.difficulty(),
+    onExit: () => (location.hash = '#/study'),
+    onDone: r => {
+      Store.finishReview(r);
+      const left = Store.dueItems().length, score = Math.round(r.correct / r.total * 100);
+      root.innerHTML = `<div class="result card anim-in"><div class="stamp">복습<br>완료</div><h2>${r.correct} / ${r.total} 정답 · ${score}%</h2>
+        <p>맞힌 것은 더 오래 뒤에, 틀린 것은 내일 다시 나와요.${left ? ` 남은 복습 ${left}개` : ' 오늘 복습을 다 했어요! 🎉'}</p>
+        <div class="row-center">${left ? '<a class="btn btn-primary" href="#/review" data-again>복습 더 하기</a>' : ''}<a class="btn btn-ghost" href="#/study">모험 지도</a></div></div>`;
+      const again = $('[data-again]', root); if (again) again.onclick = e => { e.preventDefault(); App.route(); };
+      Speech.sfx.cheer(); if (score >= 70) Lesson.confetti(); App.refreshHeader();
+    },
+  });
+};
+
+// 🎓 단계 수료증 (인쇄용)
+Views.certificate = (el, stageId) => {
+  const p = Store.profile(), st = STAGES[stageId - 1];
+  if (!st || !p.certs || !p.certs[stageId]) { el.innerHTML = `<div class="wrap sec narrow">${UI.empty('🎓', '아직 받지 않은 수료증이에요. 단계의 모든 레벨을 마치면 받을 수 있어요.', '<a class="btn btn-primary" href="#/study">모험 지도</a>')}</div>`; return; }
+  const items = st.levels.flatMap(lv => Gen.levelItems(lv));
+  el.innerHTML = `<div class="wrap sec narrow">
+    <div class="no-print row"><a class="link-btn" href="#/parent/report">← 부모페이지</a><button class="btn btn-primary" data-print>🖨️ 인쇄 / PDF 저장</button></div>
+    <article class="certificate">
+      <div class="cert-top">🌱 새싹영어</div>
+      <h1>수 료 증</h1>
+      <p class="cert-name">${esc(p.name)}</p>
+      <p class="cert-body">위 어린이는 새싹영어 <b>${st.id}단계 「${esc(st.title)}」</b>의 레벨 ${st.levels.join('·')} 과정<br>${st.levels.length * LESSONS_PER_LEVEL}레슨을 모두 훌륭하게 마쳤기에 이 증서를 드립니다.</p>
+      <p class="cert-learned">배운 내용: ${esc(st.skills.join(' · '))}</p>
+      <p class="cert-learned">익힌 표현 ${items.length}개 · 예) ${esc(items.slice(0, 3).map(it => it.letter ? it.letter + ' is for ' + it.word : it.en || it.a).join(' / '))}</p>
+      <p class="cert-date">${new Date(p.certs[stageId]).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <div class="cert-seal">🏅</div>
+    </article></div>`;
+  $('[data-print]', el).onclick = () => window.print();
+};
+
 // 🌱 새싹 나무 키우기 카드 (모험 지도)
 UI.treeCard = () => {
   const t = Store.tree(), watered = Store.wateredToday();
@@ -446,7 +587,19 @@ Views.pricing = (el, params) => {
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
 
-    <h2 class="sec-sub">💎 플러스 <small>3~8단계 문장·대화·시제까지 · 스토리북 16권 전체</small></h2>
+    <h2 class="sec-sub">💎 플러스에 들어 있는 것 <small>하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)} (12개월 기준)</small></h2>
+    <div class="value-grid">${[
+      ['📚', '1년 커리큘럼', `8단계 26레벨 ${TOTAL_LESSONS}레슨 · 미국 킨더~초2 수준`],
+      ['🔁', '망각 곡선 복습', '배운 단어·문장을 1·3·7·14·30일에 다시 꺼내 오래 기억'],
+      ['📊', '영역별 분석 리포트', '듣기·읽기·말하기·쓰기 정답률, 주간 변화, 맞춤 추천'],
+      ['🎤', 'AI 발음 코치', '단어마다 초록·노랑·빨강으로 발음 피드백'],
+      ['📖', '스토리북 16권', '천천히·한 단어씩 읽어주기, 노래방식 따라 읽기, 순서 맞추기'],
+      ['🎮', '게임으로 학습', '⚡ 레슨 중 챌린지, 🔥 콤보, 🏅 배지 26개, 🌱 새싹 나무'],
+      ['🎯', '매일 미션', '레슨·복습·말하기 미션과 보상 상자로 매일 습관'],
+      ['🎓', '단계 수료증 · 워크시트', '단계를 마칠 때마다 수료증, 레벨별 인쇄 워크시트'],
+    ].map(([i, t, d]) => `<div class="value-item"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
+
+    <h2 class="sec-sub">💎 플러스 요금 <small>3~8단계 문장·대화·시제까지 · 스토리북 16권 전체</small></h2>
     ${UI.plans()}
 
     <h2 class="sec-sub">🎟️ 첫 결제 쿠폰가</h2>
@@ -724,6 +877,7 @@ Views.learn = el => {
       </div>
     </div>
     ${UI.mascot(greet, todayN >= p.dailyGoal ? '🌻' : '🌱')}
+    ${UI.todayCard()}
     ${UI.treeCard()}
     <div class="continue card">
       <div><span class="chip">이어서 모험</span><h2>Level ${cur} · ${dayLabel(curIdx)}</h2><p>${stageOf(cur).title}섬 — ${stageOf(cur).desc}</p>
@@ -733,12 +887,12 @@ Views.learn = el => {
       ${Store.needsPlus(cur) ? `<a class="btn btn-primary lg" href="#/pricing">💎 플러스로 이어가기</a>` : `<a class="btn btn-primary lg" href="#/lesson/${cur}/${curIdx}">▶ 출발!</a>`}
     </div>
     <div class="quick">
-      <a class="quick-card" href="#/play" style="--r:-2deg"><span>🎈</span><b>놀이터</b><small>풍선·카드 게임</small></a>
-      <a class="quick-card" href="#/speak" style="--r:1.5deg"><span>🎤</span><b>AI 말하기</b><small>발음 점수 받기</small></a>
-      <a class="quick-card" href="#/stories" style="--r:-1deg"><span>📖</span><b>스토리북</b><small>${Object.keys(p.stories).length}/${STORIES.length}권 읽음</small></a>
-      <a class="quick-card" href="#/wrong" style="--r:2deg"><span>🔁</span><b>오답노트</b><small>${p.wrong.length}문제</small></a>
-      <a class="quick-card" href="#/shop" style="--r:-1.5deg"><span>🛍️</span><b>별 상점</b><small>스티커·꾸미기</small></a>
-      <a class="quick-card" href="#/leveltest" style="--r:1deg"><span>🧪</span><b>레벨 테스트</b><small>${p.placed ? '다시 보기' : '출발 섬 정하기'}</small></a>
+      <a class="quick-card" href="#/free" style="--r:-2deg"><span>🧭</span><b>자유 학습</b><small>하고 싶은 것 고르기</small></a>
+      <a class="quick-card" href="#/words" style="--r:1.5deg"><span>📒</span><b>내 단어장</b><small>${Store.wordStats().learned}개 모음</small></a>
+      <a class="quick-card" href="#/review" style="--r:-1deg"><span>🔁</span><b>오늘의 복습</b><small>${Store.wordStats().due}개</small></a>
+      <a class="quick-card" href="#/stories" style="--r:2deg"><span>📖</span><b>스토리북</b><small>${Object.keys(p.stories).length}/${STORIES.length}권 읽음</small></a>
+      <a class="quick-card" href="#/speak" style="--r:-1.5deg"><span>🎤</span><b>AI 말하기</b><small>발음 점수 받기</small></a>
+      <a class="quick-card" href="#/play" style="--r:1deg"><span>🎈</span><b>놀이터</b><small>풍선·카드 게임</small></a>
     </div>
     <div class="sw-head"><h2 class="sec-sub">🗺️ 모험 지도</h2><a class="link-btn" href="#/study?view=all">📚 전체 학습 내용 보기 →</a></div>
     <div class="path">${STAGES.map(s => `
@@ -753,6 +907,13 @@ Views.learn = el => {
       </section>`).join('')}</div>
   </div>`;
   const wbtn = $('[data-water]', el); if (wbtn) wbtn.onclick = () => App.waterTree(wbtn);
+  const claim = $('[data-claim]', el);
+  if (claim) claim.onclick = () => {
+    const r = Store.claimMissions(); if (!r) return;
+    Speech.sfx.cheer(); Lesson.confetti();
+    App.toast(`🎁 보상 상자! ⭐ +${r.stars}, 새싹 나무 +${r.xp}점${r.grow ? ` · '${r.grow.name}'(으)로 자랐어요!` : ''}`);
+    App.route();
+  };
   $$('.node', el).forEach(b => b.onclick = () => {
     const lv = b.dataset.lv;
     if (Store.needsPlus(lv)) return App.upsell();
@@ -783,21 +944,22 @@ Views.lesson = (el, lv, idx) => {
     title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(), challenge: Gen.challenge(lv),
     onExit: () => (location.hash = '#/study'),
     onDone: r => {
-      const { score, stars, badge, grow } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong, bonus: r.bonus });
+      const { score, stars, badge, grow, cert } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong, bonus: r.bonus, results: r.results });
       const nl = ALL_LEVELS[ALL_LEVELS.indexOf(lv) + 1];
       const next = idx + 1 < LESSONS_PER_LEVEL ? [lv, idx + 1] : nl ? [nl, 0] : null;
-      Views.result(root, { score, stars, badge: badge && lv, grow, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
+      Views.result(root, { score, stars, badge: badge && lv, grow, cert, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
       App.refreshHeader();
     },
   });
 };
-Views.result = (root, { score, correct, total, again, next, nextLabel, sample, stars: earned, badge, grow }) => {
+Views.result = (root, { score, correct, total, again, next, nextLabel, sample, stars: earned, badge, grow, cert }) => {
   const stars = score >= 90 ? 3 : score >= 70 ? 2 : 1;
   root.innerHTML = `<div class="result card anim-in">
     <div class="stamp">${score >= 70 ? '참<br>잘했어요' : '노력<br>했어요'}</div>
     <div class="stars">${[1, 2, 3].map(k => `<span class="${k <= stars ? 'on' : ''}" style="animation-delay:${k * 0.2}s">★</span>`).join('')}</div>
     <h2>${correct} / ${total} 정답 · ${score}%</h2>
     ${badge ? `<div class="badge-get anim-in"><span>🏅</span><b>Level ${badge} 배지 획득!</b><small>레벨을 끝까지 해냈어요</small></div>` : ''}
+    ${cert ? `<a class="badge-get cert anim-in" href="#/certificate/${cert.id}"><span>🎓</span><b>${cert.id}단계 '${esc(cert.title)}' 수료증이 나왔어요!</b><small>눌러서 보고 인쇄해요</small></a>` : ''}
     ${grow ? `<div class="badge-get grow anim-in"><span>${grow.emoji}</span><b>새싹 나무가 '${grow.name}'(으)로 자랐어요!</b></div>` : ''}
     ${!sample && Store.profile() ? `<p class="fine">🌱 새싹 나무 ${Store.tree().emoji} ${Store.tree().name}${Store.tree().next ? ` · 다음 단계까지 ${Store.tree().toNext}점` : ''}</p>` : ''}
     <p>${sample ? '샘플 레슨은 기록되지 않아요. 시작하면 진도와 별이 저장돼요!' : `⭐ 별 ${earned || 0}개를 받았어요! ${score >= 90 ? '완벽해요 🌟' : '틀린 문제는 오답노트에 저장했어요.'}`}</p>
@@ -807,7 +969,7 @@ Views.result = (root, { score, correct, total, again, next, nextLabel, sample, s
     </div></div>`;
   const a = $('[data-again]', root);
   if (location.hash === again) a.onclick = e => { e.preventDefault(); App.route(); };
-  Speech.sfx.cheer(); if (score >= 70 || badge || grow) Lesson.confetti();
+  Speech.sfx.cheer(); if (score >= 70 || badge || grow || cert) Lesson.confetti();
 };
 
 /* ---------- AI 말하기 ---------- */
@@ -1061,7 +1223,7 @@ Views.wrong = el => {
       onDone: r => {
         restore();
         const solved = results.filter(x => x.ok); solved.forEach(x => Store.clearWrong(x.key));
-        Store.addMinutes(r.seconds);
+        Store.addMinutes(r.seconds); Store.bumpDaily('review');
         const got = Store.addStars(solved.length ? 1 : 0, 'review', 3);
         Views.result(root, { score: Math.round(r.correct / r.total * 100), ...r, stars: got, again: '#/wrong', next: null });
         $('p', root).textContent = `${solved.length}문제가 오답노트에서 졸업했어요!${got ? ' ⭐ +1' : ''}`;
@@ -1238,6 +1400,7 @@ const ParentTabs = {
           <div class="kpi"><small>평균 발음</small><b>${spAvg}${sp.length ? '점' : ''}</b></div>
           <div class="kpi"><small>모은 별 · 배지</small><b>⭐${p.stars || 0} · 🏅${Object.keys(p.badges || {}).length}</b></div>
         </div>
+        ${UI.skillReport(p)}
         <div class="two-col top">
           <div class="card"><h3>최근 7일 학습 시간</h3><div class="bars">${days.map((d, k) => `<div class="bar-col"><span class="bv">${mins[k] || ''}</span><i style="height:${mins[k] / maxM * 100}%"></i><small>${['일', '월', '화', '수', '목', '금', '토'][new Date(d).getDay()]}</small></div>`).join('')}</div></div>
           <div class="card"><h3>${m + 1}월 학습 도장</h3><div class="cal">${['일', '월', '화', '수', '목', '금', '토'].map(w => `<b>${w}</b>`).join('')}${'<span></span>'.repeat(first)}${[...Array(dim)].map((_, k) => { const d = Store.today(new Date(y, m, k + 1)); const n = p.stamps[d] || 0; return `<span class="${n ? 'stamped' : ''} ${d === Store.today() ? 'today' : ''}" title="${n}개">${n ? '🌱' : k + 1}</span>`; }).join('')}</div></div>
