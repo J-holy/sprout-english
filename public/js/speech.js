@@ -34,10 +34,30 @@ const Speech = (() => {
     const f = neural.manifest && neural.manifest[text.trim()];
     return f ? `audio/${f}` : null;
   }
-  let tickTimer = 0;
+  // ---------- iPhone·iPad 소리 잠금 풀기 ----------
+  // iOS(아이패드 Chrome 포함)는 손가락으로 누른 순간에만 새 소리를 켤 수 있어서, 자동 넘김처럼 시간이 지나 재생하면 막혔다.
+  // 플레이어 하나를 계속 쓰고, 첫 터치 때 무음으로 한 번 켜 두면 그 뒤로는 누르지 않아도 재생된다.
+  const player = typeof Audio === 'function' ? new Audio() : null;
+  let unlocked = false, playId = 0, tickTimer = 0;
+  function silentWav() { // 0.05초 무음 WAV
+    const n = 400, b = new Uint8Array(44 + n * 2), v = new DataView(b.buffer);
+    const put = (o, t) => [...t].forEach((c, i) => { b[o + i] = c.charCodeAt(0); });
+    put(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); put(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); put(36, 'data'); v.setUint32(40, n * 2, true);
+    return 'data:audio/wav;base64,' + btoa(String.fromCharCode(...b));
+  }
+  function unlock() {
+    if (unlocked) return;
+    unlocked = true;
+    // 지금 읽고 있지 않을 때만 무음을 켠다 (읽는 중이면 그 소리로 이미 풀렸다)
+    if (player && !audio) { player.src = silentWav(); player.play().catch(() => {}); }
+    if (synth) { try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } catch (e) { /* ignore */ } }
+  }
+  ['touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, unlock, { capture: true, passive: true }));
+
   function clearAudio() {
-    timers.forEach(clearTimeout); timers = []; clearTimeout(tickTimer);
-    if (audio) { audio.onended = audio.onerror = audio.onplaying = null; audio.pause(); audio = null; }
+    playId++; timers.forEach(clearTimeout); timers = []; clearTimeout(tickTimer);
+    if (audio) { audio.pause(); audio = null; }
   }
   // AI 음성 파일에는 단어 위치 정보가 없어서, 단어 길이와 문장부호 쉼으로 단어마다 시간을 나눈다.
   // 앞뒤의 짧은 무음은 빼고, 실제 재생 위치(currentTime)를 보고 단어를 켜므로 잠깐 끊겨도 어긋나지 않는다.
@@ -53,26 +73,40 @@ const Speech = (() => {
   function playNeural(text, { onWord, onEnd, slow }) {
     const url = audioUrl(text, slow);
     if (!url) return false;
-    const a = new Audio(url); audio = a;
+    const id = ++playId, a = player || new Audio();
+    audio = a;
+    a.src = url;
     a.volume = vol.voice;
     // 서버는 천천히 버전을 따로 만들고, 미리 만든 파일은 재생 속도로 늦춘다
-    a.playbackRate = slow ? (neural.server ? 1 : 0.75) : rate / 0.85;
-    let ended = false;
-    const finish = () => { if (ended) return; ended = true; clearTimeout(tickTimer); onEnd && onEnd(); };
-    a.onended = finish;
-    a.onerror = () => { if (audio === a) { audio = null; speakBrowser(text, { onWord, onEnd, slow }); } };
-    if (onWord) a.onplaying = () => {
+    a.defaultPlaybackRate = a.playbackRate = slow ? (neural.server ? 1 : 0.75) : rate / 0.85;
+    let ended = false, guard = 0;
+    const alive = () => id === playId && !ended;
+    const stopHere = () => { ended = true; clearTimeout(tickTimer); clearTimeout(guard); if (audio === a) audio = null; };
+    const finish = () => { if (!alive()) return; stopHere(); onEnd && onEnd(); };
+    const fallback = () => { if (!alive()) return; stopHere(); a.pause(); speakBrowser(text, { onWord, onEnd, slow }); };
+    // 지킴이: 4초 안에 소리가 시작되지 않으면 기기 목소리로 읽고, 시작했는데 끝 알림이 안 오면 길이만큼 지나서 끝낸다
+    // (아이패드에서 소리가 막히거나 알림이 빠지면 자동 넘김이 그 자리에서 멈췄다)
+    guard = setTimeout(fallback, 4000);
+    a.onended = () => { if (audio === a || alive()) finish(); };
+    a.onerror = () => fallback();
+    a.onplaying = () => {
+      if (!alive()) return;
+      clearTimeout(guard);
+      const dur = isFinite(a.duration) && a.duration > 0 ? a.duration : text.length * 0.08;
+      guard = setTimeout(finish, Math.max(0, dur - a.currentTime) / (a.playbackRate || 1) * 1000 + 2500);
+      if (!onWord) return;
       clearTimeout(tickTimer);
-      const marks = wordTimeline(text, a.duration || text.length * 0.07);
+      const marks = wordTimeline(text, dur);
       const tick = () => {
-        if (audio !== a || ended) return;
+        if (!alive()) return;
         let k = 0; while (k + 1 < marks.length && a.currentTime >= marks[k + 1]) k++;
         onWord(k);
         tickTimer = setTimeout(tick, 40);
       };
       tick();
     };
-    a.play().catch(() => { if (audio === a) { audio = null; speakBrowser(text, { onWord, onEnd, slow }); } });
+    // 다음 소리로 바꿀 때 나는 AbortError는 정상, 그 밖(재생이 막힘 등)은 기기 목소리로
+    a.play().catch(err => { if (err && err.name === 'AbortError') return; fallback(); });
     return true;
   }
 
@@ -91,13 +125,17 @@ const Speech = (() => {
       u.onboundary = e => { if (e.name === 'word' || e.name === undefined) onWord(Math.max(0, starts.filter(x => x <= e.charIndex).length - 1)); };
     }
     // 일부 기기(특히 iPhone)는 cancel() 바로 뒤에 말하면 소리 없이 '끝남'을 먼저 보낸다 → 시작 전에 온 끝남은 한 번 다시 말한다
-    let started = false, retried = false;
-    u.onstart = () => { started = true; if (onWord) onWord(0); };
+    // 지킴이: 끝 알림이 아예 안 오는 기기도 있어서, 넉넉한 시간이 지나면 끝난 것으로 본다 (자동 넘김이 멈추지 않게)
+    let started = false, retried = false, done = false;
+    const limit = () => 2500 + text.split(' ').length * (slow ? 1000 : 550);
+    const end = () => { if (done) return; done = true; clearTimeout(guard); onEnd && onEnd(); };
+    let guard = setTimeout(end, limit() + 2000);
+    u.onstart = () => { started = true; clearTimeout(guard); guard = setTimeout(end, limit()); if (onWord) onWord(0); };
     u.onend = () => {
       if (!started && !retried) { retried = true; setTimeout(() => synth.speak(u), 120); return; }
-      onEnd && onEnd();
+      end();
     };
-    u.onerror = e => { if (e.error === 'interrupted' || e.error === 'canceled') return; onEnd && onEnd(); };
+    u.onerror = e => { if (e.error === 'interrupted' || e.error === 'canceled') return; end(); };
     // 말하던 중이었다면 잠깐 쉬었다가 (끊긴 소리와 겹치지 않게)
     if (busy) setTimeout(() => synth.speak(u), 60); else synth.speak(u);
   }
@@ -153,7 +191,8 @@ const Speech = (() => {
     // 앱 안의 브라우저 (카카오톡·인스타그램·페이스북·네이버·라인·밴드 등)는 마이크가 막힌 경우가 많다
     inApp: /KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|; wv\)|Line\/|BAND\/|DaumApps|everytimeApp|SamsungBrowser\/.*CrossApp/i.test(ua),
   };
-  env.iosNotSafari = env.ios && /CriOS|FxiOS|EdgiOS|Whale|NAVER|DaumApps|KAKAOTALK/i.test(ua);
+  // 아이패드 Chrome은 Mac처럼 보이는 주소(UA)를 쓰기도 해서, Chrome이 넣는 __gCrWeb 로도 알아본다
+  env.iosNotSafari = env.ios && (/CriOS|FxiOS|EdgiOS|Whale|NAVER|DaumApps|KAKAOTALK/i.test(ua) || typeof window.__gCrWeb !== 'undefined');
   env.secure = window.isSecureContext !== false;
   // 외부 브라우저로 열기 주소 (카카오톡은 전용 주소, 안드로이드는 Chrome 인텐트)
   function externalUrl(url = location.href) {
@@ -168,7 +207,7 @@ const Speech = (() => {
     if (Rec && env.secure && !env.inApp && !env.iosNotSafari) return '';
     if (!env.secure) return '보안 연결(https)이 아니라 마이크를 쓸 수 없어요. https:// 주소로 열어 주세요.';
     if (env.inApp) return env.ios ? '앱 안의 브라우저에서는 말하기가 안 돼요. 오른쪽 아래 공유(⋯) 버튼 › "Safari로 열기"로 열어 주세요.' : '앱 안의 브라우저에서는 말하기가 안 돼요. 위쪽 "Chrome으로 열기"를 눌러 주세요.';
-    if (env.iosNotSafari) return 'iPhone에서는 Safari에서만 말하기(마이크)가 돼요. 위쪽 "Safari로 열기"를 눌러 주세요.';
+    if (env.iosNotSafari) return 'iPhone·iPad에서는 Safari에서만 말하기(마이크)가 돼요. 위쪽 "Safari로 열기"를 눌러 주세요. (듣기·따라 읽기는 지금 브라우저에서도 돼요)';
     if (env.ios) return 'iOS 14.5 이상의 Safari에서 말하기를 쓸 수 있어요. iPhone을 업데이트하거나 Safari로 열어 주세요.';
     return '이 브라우저는 음성 인식을 지원하지 않아요. Chrome·Edge·삼성 인터넷 최신 버전으로 열어 주세요.';
   }
@@ -178,7 +217,7 @@ const Speech = (() => {
     const permAndroid = '주소창 왼쪽 자물쇠(ⓘ) › 권한 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     const permPC = '주소창 왼쪽 자물쇠 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     // iPhone의 Chrome·네이버 앱 등은 권한을 줘도 음성 인식이 막혀 있다
-    if (env.iosNotSafari && ['not-allowed', 'service-not-allowed', 'unsupported'].includes(code)) return '🎤 iPhone에서는 Safari에서만 말하기 점수가 나와요. 공유 버튼 › "Safari로 열기"로 열어 주세요.';
+    if (env.iosNotSafari && ['not-allowed', 'service-not-allowed', 'unsupported'].includes(code)) return '🎤 iPhone·iPad에서는 Safari에서만 말하기 점수가 나와요. 공유 버튼 › "Safari로 열기"로 열어 주세요.';
     switch (code) {
       case 'not-allowed': return '🎤 마이크가 꺼져 있어요. ' + (env.ios ? permIOS : env.android ? permAndroid : permPC);
       case 'service-not-allowed': return env.ios ? '🎤 iPhone 받아쓰기가 꺼져 있어요. 설정 › 일반 › 키보드 › "받아쓰기"를 켜고 Safari로 열어 주세요.' : unsupportedReason() || '🎤 이 브라우저에서 음성 인식을 쓸 수 없어요. Chrome으로 열어 주세요.';
