@@ -415,10 +415,46 @@ main.focus { min-height: 100vh; }
 .reader-title { font-family: var(--en); font-weight: 700; color: var(--muted); }
 .reader-page { min-height: 320px; display: grid; place-items: center; }
 .reader-page .pic { font-size: clamp(5rem, 18vw, 8rem); animation: bob 3s ease-in-out infinite; }
-.reader-page .pic.scene { display: flex; justify-content: center; align-items: flex-end; flex-wrap: wrap; gap: .12em; font-size: clamp(3.2rem, 12vw, 5.5rem); line-height: 1.1; animation: none; }
-.pic.scene span { display: inline-block; animation: pop-in .4s ease both, bob 3s ease-in-out .4s infinite; }
-.pic.scene .main { font-size: 1.35em; }
-.pic.scene .tag { align-self: center; font-family: var(--en); font-weight: 700; font-size: .38em; padding: .15em .6em; border-radius: 999px; background: var(--paper); border: var(--bw) solid var(--line); }
+/* 스토리북 장면: 배경 + 땅 + 꾸밈 + 그림 친구들 */
+.story-art { position: relative; width: min(100%, 560px); aspect-ratio: 16 / 10; margin: 0 auto 14px; border-radius: 22px; overflow: hidden; border: var(--bw) solid var(--line); box-shadow: var(--shadow-sm); background: linear-gradient(#bfe6ff, #eaf8ff 75%); }
+.story-art .ground { position: absolute; left: -10%; right: -10%; bottom: 0; height: 30%; border-radius: 50% 50% 0 0 / 34px 34px 0 0; background: linear-gradient(#93d46b, #6cbf48); }
+.story-art .deco { position: absolute; font-size: clamp(1.4rem, 5vw, 2.4rem); line-height: 1; opacity: .9; }
+.story-art .s1 { top: 7%; right: 7%; font-size: clamp(2rem, 7vw, 3.2rem); }
+.story-art .c1 { top: 9%; left: 8%; animation: drift 14s ease-in-out infinite alternate; } .story-art .c2 { top: 18%; left: 42%; opacity: .7; animation: drift 18s ease-in-out infinite alternate-reverse; } .story-art .c3 { top: 6%; right: 26%; opacity: .6; }
+.story-art .g1 { bottom: 20%; left: 5%; } .story-art .g2 { bottom: 18%; right: 6%; }
+.story-art .w1 { top: 12%; left: 9%; font-size: clamp(2rem, 7vw, 3.2rem); } .story-art .w2 { top: 12%; right: 10%; } .story-art .w3 { bottom: 40%; right: 12%; }
+.story-art .f1 { top: 10%; left: 12%; } .story-art .f2 { top: 26%; left: 48%; font-size: 1.2rem; } .story-art .f3 { top: 14%; right: 30%; }
+.story-art .actors { position: absolute; left: 4%; right: 4%; bottom: 12%; display: flex; justify-content: center; align-items: flex-end; flex-wrap: nowrap; gap: 2%; font-size: clamp(3rem, 13vw, 4.6rem); line-height: 1; }
+.story-art .actors.solo { font-size: clamp(4rem, 18vw, 6.2rem); }
+.story-art .actors span { display: inline-block; filter: drop-shadow(0 6px 3px rgba(0, 0, 0, .18)); animation: pop-in .4s ease both, bob 3s ease-in-out .4s infinite; }
+.story-art .actors .main { font-size: 1.3em; }
+.story-art .actors .tag { align-self: center; font-family: var(--en); font-weight: 700; font-size: .36em; padding: .15em .6em; border-radius: 999px; background: #fff; color: #2b2d42; border: 3px solid #2b2d42; filter: none; }
+.scene-farm .ground { background: repeating-linear-gradient(90deg, transparent 0 18px, #c98a4a 18px 22px) top / 100% 26px no-repeat, linear-gradient(#a6d66f, #79c24f); }
+.scene-road .ground { background: linear-gradient(#9aa3ad, #7d8691); border-radius: 0; height: 26%; }
+.scene-road .ground::after { content: ''; position: absolute; left: 0; right: 0; top: 46%; height: 6px; background: repeating-linear-gradient(90deg, #fff 0 34px, transparent 34px 64px); }
+.scene-home, .scene-party { background: repeating-linear-gradient(90deg, #ffeccf 0 26px, #ffe3bd 26px 52px); }
+.scene-home .ground, .scene-party .ground, .scene-school .ground, .scene-shop .ground { left: 0; right: 0; border-radius: 0; height: 28%; background: repeating-linear-gradient(90deg, #d7a46a 0 46px, #c99558 46px 92px); }
+.scene-school { background: #e3f1e4; }
+.scene-school::before { content: ''; position: absolute; top: 10%; left: 18%; width: 46%; height: 34%; background: #2f5d4a; border: 6px solid #a7774a; border-radius: 6px; }
+.scene-shop { background: #fff3e0; }
+.scene-shop::before { content: ''; position: absolute; top: 12%; left: 6%; right: 6%; height: 44%; background: repeating-linear-gradient(#fff3e0 0 34px, #c99558 34px 40px); border: 5px solid #c99558; border-radius: 6px; opacity: .8; }
+.scene-sea { background: linear-gradient(#9fdcff, #dff4ff 46%, #4fb8e8 46%, #2f9fd6 64%); }
+.scene-sea .ground { background: linear-gradient(#f7e2ad, #edcf8c); border-radius: 60% 40% 0 0 / 30px 24px 0 0; }
+.scene-rain { background: linear-gradient(#90a3b4, #c9d5de); }
+.scene-rain::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(105deg, transparent 0 22px, rgba(255, 255, 255, .55) 22px 24px); background-size: 100% 200%; animation: rainfall 1.2s linear infinite; }
+.scene-rain .ground { background: linear-gradient(#78a560, #5d8f4b); }
+.scene-snow { background: linear-gradient(#cfe0ef, #eef5fb); }
+.scene-snow .ground { background: linear-gradient(#fff, #e6eef6); }
+.scene-snow .deco.f1, .scene-snow .deco.f2, .scene-snow .deco.f3 { animation: snowfall 6s linear infinite; }
+.scene-night { background: linear-gradient(#18244a, #34497a); }
+.scene-night .ground { background: linear-gradient(#2f5f3c, #224a2e); }
+.scene-space { background: radial-gradient(circle at 70% 20%, #4a2f86, #1a1033 70%); }
+.scene-space .ground { background: radial-gradient(circle at 30% 40%, #b9b9c9 0 8px, transparent 9px), radial-gradient(circle at 70% 60%, #b9b9c9 0 12px, transparent 13px), linear-gradient(#d4d4e0, #a9a9bb); }
+.scene-sky { background: linear-gradient(#8fd0ff, #e3f5ff); }
+.scene-sky .ground { display: none; } .scene-sky .actors { bottom: 22%; }
+@keyframes drift { to { transform: translateX(24px); } }
+@keyframes rainfall { to { background-position: -40px 100%; } }
+@keyframes snowfall { from { transform: translateY(-10px); } to { transform: translateY(40px) rotate(90deg); } }
 @keyframes pop-in { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .reader-text { font-size: clamp(1.6rem, 4.8vw, 2.4rem); font-family: var(--en); font-weight: 700; }
 .reader-text span { cursor: pointer; border-radius: 10px; padding: 0 4px; transition: background .15s; }

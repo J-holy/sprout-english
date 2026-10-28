@@ -270,11 +270,32 @@ UI.treeCard = () => {
   </div>`;
 };
 
-// 스토리북 그림: 그림 여러 개를 한 장면으로 (첫 그림이 주인공이라 크게, 영어 글자는 이름표로)
-const sceneHtml = pic => {
+// 스토리북 그림: 쪽마다 배경(공원·집·농장·바다·비·눈·밤·우주…)을 그리고, 그림 친구들이 그 장면 땅 위에 서 있게 한다.
+// 첫 그림이 주인공이라 크게, 영어 글자는 이름표로. 책마다 기본 장소가 있고, 문장에 비·눈·밤·바다·집 안이 나오면 그 장면으로 바꾼다.
+const STORY_PLACE = { 1: 'park', 9: 'park', 17: 'shop', 18: 'park', 2: 'home', 10: 'road', 19: 'farm', 20: 'farm', 3: 'home', 11: 'home', 21: 'school', 22: 'farm',
+  4: 'park', 12: 'shop', 23: 'home', 24: 'party', 5: 'rain', 13: 'park', 25: 'home', 26: 'snow', 6: 'home', 14: 'park', 27: 'home', 28: 'sea',
+  7: 'park', 15: 'park', 29: 'park', 30: 'park', 8: 'sky', 31: 'sea', 16: 'space', 32: 'home' };
+function placeOf(s, text) {
+  const t = text.toLowerCase(), base = STORY_PLACE[s.id] || 'park';
+  if (base === 'space' || base === 'sky') return base;
+  if (/\bsnow|winter|snowball|snowman/.test(t)) return 'snow';
+  if (/\b(rain|rained|umbrella|puddle|drops|raincoat|boots)\b/.test(t) && !/stopped/.test(t)) return 'rain';
+  if (/\b(night|tonight|stars|owl|dark|hoo|slept|good night)\b/.test(t)) return 'night';
+  if (/\b(beach|sea|sand|sandcastle|crab|lake|pool|ocean)\b/.test(t)) return 'sea';
+  if (/\b(home|house|kitchen|bed|sofa|bathroom|bath|room|inside|door|window|poster|diary)\b/.test(t)) return /school|shop/.test(base) ? base : 'home';
+  if (/\b(garden|park|outside|hill|tree|zoo|farm|grass|picnic)\b/.test(t) && /home|school|shop|party|rain/.test(base)) return 'park';
+  if (/sun is out|bright and blue|rainbow/.test(t)) return 'park';
+  return base;
+}
+const SCENE_DECO = { park: ['☀️ s1', '☁️ c1', '☁️ c2', '🌳 g1', '🌼 g2'], farm: ['☀️ s1', '☁️ c1', '🌾 g1', '🌾 g2'], road: ['☁️ c1', '☁️ c2', '🌳 g1'],
+  home: ['🪟 w1', '🖼️ w2', '🪴 g1'], party: ['🎈 w1', '🎉 w2', '🎈 g2'], school: ['🕘 w2', '🪴 g1'], shop: ['🛒 g1', '🏷️ w2'],
+  sea: ['☀️ s1', '☁️ c1', '⛵ w3'], rain: ['☁️ c1', '☁️ c2', '☁️ c3'], snow: ['❄️ f1', '❄️ f2', '❄️ f3', '🌲 g1'], night: ['🌙 s1', '✨ f1', '⭐ f2', '✨ f3'],
+  space: ['🪐 s1', '✨ f1', '⭐ f2', '✨ f3'], sky: ['☁️ c1', '☁️ c2', '☁️ c3'] };
+const sceneHtml = (pic, place = 'park') => {
   const parts = pic.split(' ');
-  if (parts.length === 1) return `<div class="pic">${pic}</div>`;
-  return `<div class="pic scene">${parts.map((x, i) => `<span class="${/^[A-Za-z]+$/.test(x) ? 'tag' : i === 0 ? 'main' : ''}" style="animation-delay:${i * 0.15}s">${esc(x)}</span>`).join('')}</div>`;
+  const deco = (SCENE_DECO[place] || []).map(d => d.split(' ')).filter(([e]) => !parts.includes(e));
+  return `<div class="story-art scene-${place}"><div class="ground"></div>${deco.map(([e, c]) => `<span class="deco ${c}">${e}</span>`).join('')}
+    <div class="actors ${parts.length === 1 ? 'solo' : ''}">${parts.map((x, i) => `<span class="${/^[A-Za-z]+$/.test(x) ? 'tag' : i === 0 ? 'main' : ''}" style="animation-delay:${i * 0.15}s">${esc(x)}</span>`).join('')}</div></div>`;
 };
 // 🧩 이야기 순서 맞추기: 연속된 4쪽을 섞어 놓고 차례대로 고르기
 function storyOrder(box, s) {
@@ -1092,7 +1113,7 @@ Views.story = (el, id) => {
       Speech.sfx.cheer(); if (first) Lesson.confetti(); App.refreshHeader(); return;
     }
     const [text, pic] = s.pages[pg];
-    page.innerHTML = `<div class="anim-in">${sceneHtml(pic)}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(storyWord(text, w))}">${esc(w)}</span>`).join(' ')}</p></div>`;
+    page.innerHTML = `<div class="anim-in">${sceneHtml(pic, placeOf(s, text))}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(storyWord(text, w))}">${esc(w)}</span>`).join(' ')}</p></div>`;
     // 단어를 누르면 그 단어만 천천히 읽고, 자동 넘김은 멈춘다
     spans().forEach(sp => sp.onclick = () => {
       stopAuto(); cancelTurn(); clearHl();
