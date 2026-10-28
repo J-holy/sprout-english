@@ -323,7 +323,7 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 가입 없이 3분 체험</a>
           <a class="btn btn-ghost lg" href="#/leveltest">🧪 무료 레벨 진단</a>
         </div>
-        <ul class="trust"><li>✅ 알파벳·파닉스 평생 무료</li><li>✅ 7일 전체 체험</li><li>✅ 카드 등록 없음</li><li>✅ 플러스 월 ${won(PLANS.one.m12)}부터</li></ul>
+        <ul class="trust"><li>✅ 알파벳·파닉스 평생 무료</li><li>✅ 7일 전체 체험</li><li>✅ 말하면 바로 AI 발음 점수</li><li>✅ 스토리북 ${STORIES.length}권 · 원어민 AI 음성</li></ul>
       </div>
       <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div>
     </div>
