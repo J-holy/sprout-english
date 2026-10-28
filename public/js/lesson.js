@@ -6,16 +6,31 @@ const words = s => s.replace(/[.?!,]/g, '').split(/\s+/);
 
 const Gen = (() => {
   // 스테이지 은행을 레벨 수만큼 나눠 각 레벨 몫을 돌려줌
+  // 3단계부터는 손으로 쓴 문장 뒤에 자동 생성 문장(generator.js)을 더해 열흘 동안 겹치지 않게 한다
+  const GEN_PER_LEVEL = 36;
+  const itemCache = {};
   function levelItems(level) {
+    if (itemCache[level]) return itemCache[level];
     const st = stageOf(level), k = st.levels.indexOf(level), n = st.levels.length;
     let bank;
     if (st.id === 1) bank = LETTERS;
-    else if (st.id === 2) return PHONICS[level].map(([en, emoji, ko]) => ({ en, emoji, ko }));
+    else if (st.id === 2) return (itemCache[level] = PHONICS[level].map(([en, emoji, ko]) => ({ en, emoji, ko })));
     else if (QA[st.id]) bank = QA[st.id].map(([q, a, ko]) => ({ q, a, ko }));
     else bank = SENTENCES[st.id].map(([en, ko, emoji]) => ({ en, ko, emoji }));
     const size = Math.ceil(bank.length / n);
-    return bank.slice(k * size, k * size + size);
+    const own = bank.slice(k * size, k * size + size);
+    if (st.id === 1) return (itemCache[level] = own);
+    // 같은 단계의 다른 레벨에 이미 있는 문장은 빼고 만든다
+    const gen = GEN.forLevel(level, GEN_PER_LEVEL, bank).map(x => ({ ...x, gen: true }));
+    return (itemCache[level] = own.concat(gen));
   }
+  // 단계 전체 문장 (오답 보기용)
+  const stageCache = {};
+  const stageItems = st => stageCache[st] || (stageCache[st] = STAGES.find(s => s.id === st).levels.flatMap(levelItems));
+  // 질문 종류 (첫 두 단어) — 같은 종류 질문의 대답은 오답 보기로 쓰지 않는다 (둘 다 맞는 답이 될 수 있어서)
+  const qKind = q => { const w = q.toLowerCase().split(' '); return ['where', 'when', 'who', 'how'].includes(w[0]) ? w[0] : w.slice(0, 2).join(' '); };
+  const wrongAnswers = (Q, pool) => pool.filter(x => qKind(x.q) !== qKind(Q.q) && x.a !== Q.a).map(x => x.a);
+  const wrongQuestions = (Q, pool) => pool.filter(x => qKind(x.q) !== qKind(Q.q)).map(x => x.q);
   // 레벨마다 1~9일째: 새 항목 + 앞에서 배운 항목 복습, 10일째: 레벨 전체 복습
   const isReviewDay = idx => idx >= LESSONS_PER_LEVEL - 1;
   function lessonItems(level, idx) {
@@ -31,6 +46,21 @@ const Gen = (() => {
 
   const choice = (key, title, answer, others, extra = {}) => ({ type: 'choice', key, title, answer, options: shuffle([answer, ...others]), ...extra });
 
+  // 빠진 모음 고르기: c_t
+  function vowelQ(W) {
+    const i = W.en.search(/[aeiou]/); if (i <= 0) return [];
+    const v = W.en[i];
+    return [() => choice(`ph-vowel-${W.en}`, '빠진 모음을 골라요', v, pickOthers('aeiou'.split(''), 2, v), { show: `${W.emoji} ${W.en.slice(0, i)}_${W.en.slice(i + 1)}`, say: W.en })];
+  }
+  // 끝소리가 같은 단어 (cat — hat)
+  function rhymeQ(W, all) {
+    const end = W.en.slice(-2), same = all.filter(x => x[0] !== W.en && x[0].slice(-2) === end);
+    if (!same.length) return [];
+    const [r, re] = same[Math.floor(Math.random() * same.length)];
+    const others = pickOthers(all.filter(x => x[0].slice(-2) !== end && x[0].slice(-1) !== W.en.slice(-1)).map(x => `${x[1]} ${x[0]}`), 2);
+    return [() => choice(`ph-rhyme-${W.en}`, '끝소리가 같은 단어를 골라요', `${re} ${r}`, others, { show: `${W.emoji} ${W.en}`, say: W.en })];
+  }
+
   const B = {
     1: (L, t) => {
       const pool = LETTERS.map(x => x.letter);
@@ -43,6 +73,22 @@ const Gen = (() => {
         () => choice(`ltr-start-${L.letter}-${word}`, L.ending ? '어떤 글자로 끝날까요?' : '어떤 글자로 시작할까요?', L.letter, pickOthers(pool, 2, L.letter), { show: emoji, sub: word, say: word }),
         () => ({ type: 'trace', key: `ltr-trace-${L.letter}-${t % 2}`, title: '글자를 따라 써요', letter: t % 2 ? L.letter.toLowerCase() : L.letter, say: L.letter }),
         () => ({ type: 'speak', key: `ltr-speak-${L.letter}-${word}`, title: '따라 말해요', target: sound, show: emoji }),
+        // 이 글자로 시작하는(끝나는) 그림 고르기
+        () => {
+          const others = pickOthers(LETTERS.filter(x => x.letter !== L.letter && !x.ending), 2).map(x => { const [w, e] = x.words[t % x.words.length]; return `${e} ${w}`; });
+          return choice(`ltr-pic-${L.letter}-${word}`, L.ending ? `${L.letter}로 끝나는 그림을 골라요` : `${L.letter}로 시작하는 그림을 골라요`, `${emoji} ${word}`, others, { show: `${L.letter} ${L.letter.toLowerCase()}`, say: L.letter, sayAfter: word });
+        },
+        // 빈칸 글자: _pple
+        () => {
+          const lo = L.letter.toLowerCase(), at = L.ending ? word.length - 1 : 0;
+          return choice(`ltr-miss-${L.letter}-${word}`, '빈칸에 들어갈 글자를 골라요', lo, pickOthers(pool, 2, L.letter).map(x => x.toLowerCase()), { show: `${emoji} ${word.slice(0, at)}_${word.slice(at + 1)}`, sayAfter: word });
+        },
+        // 알파벳 순서
+        () => {
+          const i = pool.indexOf(L.letter);
+          const show = i >= 2 ? `${pool[i - 2]}  ${pool[i - 1]}  ?` : `?  ${pool[i + 1]}  ${pool[i + 2]}`;
+          return choice(`ltr-order-${L.letter}`, i >= 2 ? '다음에 올 알파벳을 골라요' : '앞에 올 알파벳을 골라요', L.letter, pickOthers(pool.filter(x => Math.abs(pool.indexOf(x) - i) > 1), 2), { show, sayAfter: L.letter });
+        },
       ];
     },
     2: (W, level) => {
@@ -56,17 +102,23 @@ const Gen = (() => {
         () => ({ type: 'speak', key: `ph-speak-${W.en}`, title: '따라 말해요', target: W.en, show: W.emoji }),
         // Level E부터 듣고 철자를 직접 쳐 보는 타자 연습
         ...(level === 'E' ? [() => ({ type: 'type', key: `ph-type-${W.en}`, title: '듣고 단어를 써 봐요 ⌨️', show: W.emoji, say: W.en, answer: W.en })] : []),
+        // 소리 없이 읽고 그림 고르기
+        () => choice(`ph-read-${W.en}`, '단어를 읽고 알맞은 그림을 골라요', W.emoji, pickOthers(all.filter(x => x[0] !== W.en).map(x => x[1]), 2, W.emoji), { show: W.en, sayAfter: W.en }),
+        // 끝소리
+        () => choice(`ph-last-${W.en}`, '끝소리는 무엇일까요?', W.en.slice(-1), pickOthers('bdgklmnprstx'.split(''), 2, W.en.slice(-1)), { show: `${W.emoji} ${W.en.slice(0, -1)}_`, say: W.en }),
+        ...vowelQ(W), ...rhymeQ(W, all),
       ];
     },
     sentence: (S, t, st) => {
-      const bank = SENTENCES[st].map(x => x[0]);
+      const pool = stageItems(st), bank = pool.map(x => x.en);
       const ws = words(S.en), blankable = ws.map((w, i) => [w, i]).filter(([w]) => w.length > 2);
       const [bw, bi] = blankable[t % blankable.length] || [ws[0], 0];
       const distract = pickOthers(bank.flatMap(words).filter(w => w.length > 2 && w.toLowerCase() !== bw.toLowerCase()), 2);
       const list = [
         () => ({ type: 'tiles', key: `s-order-${S.en}`, title: '단어를 순서대로 놓아 문장을 만들어요', sub: S.ko, say: S.en, show: S.emoji, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
         () => choice(`s-fill-${S.en}-${bi}`, '빈칸에 알맞은 단어를 골라요', bw, distract, { show: ws.map((w, i) => i === bi ? '____' : w).join(' '), sub: S.ko, sayAfter: S.en }),
-        () => choice(`s-mean-${S.en}`, '문장의 뜻을 골라요', S.ko, pickOthers(SENTENCES[st].map(x => x[1]), 2, S.ko), { show: S.en, say: S.en }),
+        () => choice(`s-mean-${S.en}`, '문장의 뜻을 골라요', S.ko, pickOthers(pool.map(x => x.ko), 2, S.ko), { show: S.en, say: S.en }),
+        () => choice(`s-hear-${S.en}`, '듣고 뜻을 골라요', S.ko, pickOthers(pool.map(x => x.ko), 2, S.ko), { say: S.en, big: '🔊', show: S.emoji }),
         () => choice(`s-listen-${S.en}`, '듣고 알맞은 문장을 골라요', S.en, pickOthers(bank, 2, S.en), { say: S.en, big: '🔊' }),
         () => ({ type: 'speak', key: `s-speak-${S.en}`, title: '문장을 따라 말해요', target: S.en, show: S.emoji, sub: S.ko }),
       ];
@@ -80,37 +132,45 @@ const Gen = (() => {
       return list;
     },
     qa: (Q, t, st) => {
-      const answers = QA[st].map(x => x[1]);
-      const ws = words(Q.a);
+      const pool = stageItems(st), k = `${Q.q}|${Q.a}`;
+      const ws = words(Q.a), qws = words(Q.q);
       return [
-        () => choice(`qa-pick-${Q.q}`, '질문에 알맞은 대답을 골라요', Q.a, pickOthers(answers, 2, Q.a), { show: Q.q, say: Q.q, sayAfter: Q.a }),
-        () => ({ type: 'tiles', key: `qa-order-${Q.q}`, title: '대답을 순서대로 만들어요', show: Q.q, say: Q.q, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
-        () => choice(`qa-mean-${Q.q}`, '대화의 뜻을 골라요', Q.ko, pickOthers(QA[st].map(x => x[2]), 2, Q.ko), { show: `${Q.q}\n${Q.a}`, say: `${Q.q} ${Q.a}` }),
-        () => ({ type: 'speak', key: `qa-speak-${Q.q}`, title: '질문을 듣고 대답해요', target: Q.a, prompt: Q.q, sub: Q.ko.split(' — ')[1] }),
+        () => choice(`qa-pick-${k}`, '질문에 알맞은 대답을 골라요', Q.a, pickOthers(wrongAnswers(Q, pool), 2, Q.a), { show: Q.q, say: Q.q, sayAfter: Q.a }),
+        () => ({ type: 'tiles', key: `qa-order-${k}`, title: '대답을 순서대로 만들어요', show: Q.q, say: Q.q, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
+        () => choice(`qa-mean-${k}`, '대화의 뜻을 골라요', Q.ko, pickOthers(pool.map(x => x.ko), 2, Q.ko), { show: `${Q.q}\n${Q.a}`, say: `${Q.q} ${Q.a}` }),
+        () => ({ type: 'speak', key: `qa-speak-${k}`, title: '질문을 듣고 대답해요', target: Q.a, prompt: Q.q, sub: Q.ko.split(' — ')[1] }),
+        // 대답을 보고 알맞은 질문 고르기
+        () => choice(`qa-ask-${k}`, '이 대답에 어울리는 질문을 골라요', Q.q, pickOthers(wrongQuestions(Q, pool), 2, Q.q), { show: Q.a, sub: Q.ko.split(' — ')[1], sayAfter: `${Q.q} ${Q.a}` }),
+        // 질문 단어 순서 맞추기
+        ...(qws.length >= 4 ? [() => ({ type: 'tiles', key: `qa-qorder-${k}`, title: '질문을 순서대로 만들어요', sub: Q.ko.split(' — ')[0], say: Q.q, answer: qws, tiles: shuffle(qws), joiner: ' ' })] : []),
       ];
     },
   };
 
-  function lesson(level, idx, n = 8) {
+  // 항목을 돌아가며 문항을 고른다. 최근에 푼 문항(avoid)과 바로 앞과 같은 종류(ltr-listen, s-fill…)는 피하고,
+  // 말하기·따라 쓰기는 한 레슨에 두 번까지만.
+  function lesson(level, idx, n = 8, avoid = new Set()) {
     const st = stageOf(level).id;
-    const items = lessonItems(level, idx);
-    const builders = items.map((it, t) => tag(it, level, buildersFor(it, t + (st === 1 ? idx : 0), st, level)));
-    const qs = []; let r = idx;
-    for (let i = 0; qs.length < n; i++) {
-      const bs = builders[i % builders.length];
-      qs.push(bs[(r + Math.floor(i / builders.length) + i) % bs.length]());
-      r++;
+    const items = shuffle(lessonItems(level, idx));
+    const cands = items.map((it, t) => shuffle(tag(it, level, buildersFor(it, t + idx, st, level)).map(b => b())));
+    const out = [], seen = new Set(), count = {};
+    const kind = q => q.key.split('-').slice(0, 2).join('-');
+    const cost = (q, last) => (avoid.has(q.key) ? 4 : 0) + (kind(q) === last ? 1 : 0) + ((q.type === 'speak' || q.type === 'trace') && count[q.type] >= 2 ? 8 : 0);
+    for (let round = 0; out.length < n && round < 12; round++) {
+      for (const qs of cands) {
+        if (out.length >= n) break;
+        const last = out.length ? kind(out[out.length - 1]) : null;
+        const best = qs.filter(q => !seen.has(q.key)).sort((a, b) => cost(a, last) - cost(b, last))[0];
+        if (!best) continue;
+        seen.add(best.key); out.push(best); count[best.type] = (count[best.type] || 0) + 1;
+      }
     }
-    // 같은 문항 중복 제거 후 부족하면 보충
-    const seen = new Set(); const out = [];
-    for (const q of qs) if (!seen.has(q.key)) { seen.add(q.key); out.push(q); }
-    for (const bs of builders) for (const b of bs) { if (out.length >= n) break; const q = b(); if (!seen.has(q.key)) { seen.add(q.key); out.push(q); } }
-    return out.slice(0, n);
+    return out;
   }
   // 항목(단어·문장)마다의 문항 만들기 — 레슨과 복습이 같이 쓴다
   const buildersFor = (it, t, st, level) => st === 1 ? B[1](it, t) : st === 2 ? B[2](it, level) : QA[st] ? B.qa(it, t, st) : B.sentence(it, t, st);
   // 문항마다 어떤 항목인지 붙인다 (복습·리포트용)
-  const itemId = it => it.letter ? 'L:' + it.letter : it.q ? 'Q:' + it.q : 'E:' + it.en;
+  const itemId = it => it.letter ? 'L:' + it.letter : it.q ? 'Q:' + it.q + (it.gen ? '|' + it.a : '') : 'E:' + it.en;
   const tag = (it, level, bs) => bs.map(b => () => ({ ...b(), item: itemId(it), level }));
   // 항목 id → { level, it } (처음 쓸 때 만든다)
   let index = null;
@@ -139,13 +199,13 @@ const Gen = (() => {
     if (st === 2) return { kind: 'mole', title: '단어 두더지 잡기', how: '소리를 듣고 맞는 그림 두더지를 잡아요!', pool };
     // 3단계부터: 큰 버튼 두 개 중 하나를 빠르게 고르는 게임 (그림 없이 문장으로)
     if (QA[st]) return { kind: 'pick2', title: '알맞은 대답 스피드', how: '질문을 듣고, 알맞은 대답을 빨리 골라요!',
-      pool: pool.map(x => ({ say: x.q, prompt: x.q, answer: x.a, wrong: pool.map(y => y.a).filter(a => a !== x.a) })) };
+      pool: pool.map(x => ({ say: x.q, prompt: x.q, answer: x.a, wrong: wrongAnswers(x, stageItems(st)) })) };
     const allWords = pool.flatMap(x => words(x.en)).filter(w => w.length > 2);
     return { kind: 'pick2', title: '빈칸 단어 스피드', how: '문장을 듣고, 빈칸에 들어갈 단어를 빨리 골라요!',
       pool: pool.map(x => {
         const ws = words(x.en), cand = ws.map((w, i) => [w, i]).filter(([w]) => w.length > 2);
         const [w, i] = cand[Math.floor(Math.random() * cand.length)] || [ws[0], 0];
-        return { say: x.en, prompt: ws.map((v, k) => k === i ? '____' : v).join(' '), answer: w, wrong: allWords.filter(v => v.toLowerCase() !== w.toLowerCase()) };
+        return { say: x.en, prompt: ws.map((v, k) => k === i ? '____' : v).join(' '), answer: w, wrong: allWords.filter(v => v.toLowerCase() !== w.toLowerCase() && !(GEN.classOf(v) && GEN.classOf(v) === GEN.classOf(w))) };
       }) };
   }
   const itemInfo = id => itemIndex()[id] || null;

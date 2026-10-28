@@ -63,7 +63,7 @@ const Store = (() => {
     if (p.recentScores) p.recentScores = p.recentScores.map(x => Math.min(100, x));
     if (p.stats && p.stats.correct > p.stats.answered) p.stats.correct = p.stats.answered;
     return Object.assign({ progress: {}, stamps: {}, minutes: {}, stats: { answered: 0, correct: 0 }, wrong: [], speaking: [], stories: {}, dailyGoal: 2,
-      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {} }, p);
+      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {}, recent: [] }, p);
   }
   async function loadMe() {
     try {
@@ -560,8 +560,14 @@ const Store = (() => {
   }
   function persist() { save(); }
 
+  // 최근에 푼 문항 (다음 레슨에서 같은 문항을 피하려고 120개까지 기억)
+  const recentKeys = () => new Set((profile() || {}).recent || []);
+  function rememberKeys(keys) {
+    const p = profile(); if (!p) return;
+    p.recent = [...(p.recent || []).filter(k => !keys.includes(k)), ...keys].slice(-120); save();
+  }
   return {
-    get db() { return db; }, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, completeSignup, pendingSignup,
+    get db() { return db; }, recentKeys, rememberKeys, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,

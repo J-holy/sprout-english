@@ -937,13 +937,14 @@ Views.lesson = (el, lv, idx) => {
   if (!ALL_LEVELS.includes(lv) || !(idx >= 0 && idx < LESSONS_PER_LEVEL)) return (location.hash = '#/study');
   if (Store.needsPlus(lv)) { location.hash = '#/study'; return App.upsell(); }
   if (!Store.isUnlocked(lv)) { App.toast('이전 레벨을 먼저 마쳐야 열려요 🔒'); return (location.hash = '#/study'); }
-  const qs = Gen.lesson(lv, idx);
+  const qs = Gen.lesson(lv, idx, 8, Store.recentKeys());
   el.innerHTML = '<div class="wrap lesson-wrap"></div>';
   const root = $('.lesson-wrap', el);
   Lesson.run(root, qs, {
     title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(), challenge: Gen.challenge(lv),
     onExit: () => (location.hash = '#/study'),
     onDone: r => {
+      Store.rememberKeys(qs.map(q => q.key));
       const { score, stars, badge, grow, cert } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong, bonus: r.bonus, results: r.results });
       const nl = ALL_LEVELS[ALL_LEVELS.indexOf(lv) + 1];
       const next = idx + 1 < LESSONS_PER_LEVEL ? [lv, idx + 1] : nl ? [nl, 0] : null;
