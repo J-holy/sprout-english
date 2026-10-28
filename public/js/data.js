@@ -15,21 +15,7 @@ const stageOf = lv => STAGES.find(s => s.levels.includes(lv));
 
 // 알파벳·파닉스·문장·질문·동사·스토리북은 content.js 에 있어요.
 
-// 레벨 테스트: stage가 높을수록 어려운 문항
-const LEVEL_TEST = [
-  { stage: 1, type: 'listen', say: 'B', q: '들리는 알파벳을 고르세요.', options: ['B', 'D', 'P'], answer: 'B' },
-  { stage: 1, type: 'pick', q: '"g"의 대문자는?', options: ['J', 'G', 'Q'], answer: 'G' },
-  { stage: 2, type: 'listen', say: 'cat', q: '들리는 단어를 고르세요.', options: ['🐱 cat', '🐶 dog', '🐷 pig'], answer: '🐱 cat' },
-  { stage: 2, type: 'pick', q: '"sun"의 첫소리는?', options: ['s', 'z', 'c'], answer: 's' },
-  { stage: 3, type: 'pick', q: '빈칸에 알맞은 말: I ___ happy.', options: ['am', 'is', 'are'], answer: 'am' },
-  { stage: 3, type: 'pick', q: '"This is a dog."의 뜻은?', options: ['이것은 개예요.', '저것은 고양이예요.', '나는 개를 좋아해요.'], answer: '이것은 개예요.' },
-  { stage: 4, type: 'pick', q: '"How old are you?"에 알맞은 대답은?', options: ['I am seven.', 'I am fine.', 'It is red.'], answer: 'I am seven.' },
-  { stage: 5, type: 'pick', q: '알맞은 순서는?', options: ['a big red ball', 'a red big ball ball', 'ball a big red'], answer: 'a big red ball' },
-  { stage: 6, type: 'pick', q: '"Where is the cat?"에 알맞은 대답은?', options: ['It is under the bed.', 'It is at seven.', 'It is my cat.'], answer: 'It is under the bed.' },
-  { stage: 7, type: 'pick', q: '"go"의 과거형은?', options: ['goed', 'went', 'gone'], answer: 'went' },
-  { stage: 7, type: 'pick', q: 'Yesterday I ___ a cake.', options: ['eat', 'ate', 'will eat'], answer: 'ate' },
-  { stage: 8, type: 'pick', q: 'Tomorrow I ___ visit my grandma.', options: ['will', 'did', 'was'], answer: 'will' },
-];
+// 레벨 테스트 문항은 레슨 문항에서 섬마다 새로 뽑아요 (views.js testBlock)
 
 const AVATARS = ['🐰', '🐻', '🦊', '🐼', '🐯', '🐨', '🐸', '🦁', '🐧', '🦄'];
 

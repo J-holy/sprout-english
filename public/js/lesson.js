@@ -326,9 +326,11 @@ const Lesson = (() => {
     pop.querySelector('[data-k=voice]').onchange = () => Speech.speak('Hello!');
   }
 
-  function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null } = {}) {
+  // test: 레벨 테스트용 — 정답을 알려주지 않고(다음 문제에서 힌트가 되지 않게), 콤보·별 없이 바로 다음 문제로 넘어간다.
+  // 문제마다 푸는 데 걸린 시간(ms)을 결과에 담아, 너무 빨리 찍은 정답을 가려낼 수 있게 한다.
+  function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null, test = false } = {}) {
     questions = adjust(questions, difficulty);
-    let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0; const wrong = [], results = []; const t0 = Date.now();
+    let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0, shownAt = 0; const wrong = [], results = []; const t0 = Date.now();
     const challengeAt = Math.min(3, questions.length - 2); // 4번째 문제 다음에 ⚡챌린지
     const diffLabel = { easy: '🐣 쉬움', normal: '🐥 보통', hard: '🦅 도전' }[difficulty];
     root.innerHTML = `
@@ -353,12 +355,21 @@ const Lesson = (() => {
       root.querySelector('.lesson-count').textContent = `${i + 1} / ${questions.length}`;
       fb.hidden = true; fb.className = 'lesson-feedback';
       body.innerHTML = ''; body.className = 'lesson-body anim-in';
+      shownAt = Date.now();
       (R[q.type] || R.choice)(body, q, answer);
     }
     function answer(ok, q, detail = '') {
       if (answeredAt === i) return; // 한 문제는 한 번만 채점한다
       answeredAt = i;
-      results.push({ item: q.item, skill: skillOf(q), ok: !!ok });
+      results.push({ item: q.item, skill: skillOf(q), ok: !!ok, ms: Date.now() - shownAt, listen: !!q.say });
+      if (test) {
+        if (ok) correct++;
+        Speech.sfx.tap();
+        fb.innerHTML = `<div class="fb-msg">${pick(['좋아요! 다음 문제 ▶', '잘하고 있어요! ▶', '다음 문제로 가요 ▶'])}</div>`;
+        fb.className = 'lesson-feedback'; fb.hidden = false;
+        setTimeout(() => { if (!document.body.contains(body)) return; Speech.stop(); i++; i < questions.length ? show() : finish(); }, 700);
+        return;
+      }
       if (ok) { correct++; combo++; Speech.sfx.correct(); } else {
         combo = 0;
         Speech.sfx.wrong();

@@ -318,8 +318,30 @@ const Store = (() => {
     if (cert) notify(`🎓 ${p.name}(이)가 ${cert.id}단계 '${cert.title}'를 마치고 수료증을 받았어요!`, 'goal', true);
     notify(`📚 [학습알림] ${p.name}(이)가 Level ${level} Day ${index + 1}을 완료했어요! 정답률 ${score}%`, 'lesson', true);
     if (badge) notify(`🏅 ${p.name}(이)가 Level ${level} 배지를 받았어요!`, 'goal', true);
+    // 레벨 테스트로 정한 출발 레벨이 맞는지 처음 두 레슨으로 확인 (찍어서 올라간 경우 한 섬 앞으로)
+    let placeDown = null;
+    const pc = p.placeCheck;
+    if (pc && level === pc.level && index < 2) {
+      pc.scores[index] = score;
+      if (pc.scores.filter(x => x !== undefined && x !== null).length >= 2) {
+        const avg = (pc.scores[0] + pc.scores[1]) / 2, prevStage = STAGES[stageOf(pc.level).id - 2];
+        if (avg < 60 && prevStage) {
+          placeDown = prevStage.levels[0]; p.startLevel = placeDown;
+          notify(`🌱 ${p.name}(이)에게 Level ${pc.level}이 조금 어려웠어요(처음 두 레슨 평균 ${Math.round(avg)}점). Level ${placeDown}부터 다시 시작하도록 맞췄어요.`, 'info', true);
+        }
+        p.placeCheck = null;
+      }
+      save();
+    }
     if (p.stamps[d] === p.dailyGoal) notify(`🏅 ${p.name}(이)가 오늘의 목표(${p.dailyGoal}개 레슨)를 달성했어요!`, 'goal', true);
-    return { score, stars, badge, grow, cert };
+    return { score, stars, badge, grow, cert, placeDown };
+  }
+  // 레벨 테스트 결과로 출발 레벨 정하기 (A가 아니면 처음 두 레슨으로 한 번 더 확인)
+  function placeAt(level) {
+    const p = profile(); if (!p) return;
+    p.startLevel = level; p.placed = true;
+    p.placeCheck = level !== 'A' ? { level, scores: [] } : null;
+    save();
   }
   function addWrong(items = []) {
     const p = profile();
@@ -567,7 +589,7 @@ const Store = (() => {
     p.recent = [...(p.recent || []).filter(k => !keys.includes(k)), ...keys].slice(-120); save();
   }
   return {
-    get db() { return db; }, recentKeys, rememberKeys, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, completeSignup, pendingSignup,
+    get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
