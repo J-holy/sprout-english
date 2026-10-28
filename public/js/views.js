@@ -508,7 +508,7 @@ Views.study = (el, params) => {
     <p class="fine">레벨 진단으로 중간 단계에서 시작하면 그만큼 짧아져요. 스토리북·놀이터·말하기는 레슨과 별도로 자유롭게 해요.</p>
 
     <h2 class="sec-sub">단계별 학습 내용 <small>레벨을 누르면 배우는 내용과 체험 레슨이 나와요</small></h2>
-    <div class="az-grid">${STAGES.map(s => s.levels.map(l => `<button class="az" data-lv="${l}" style="--c:${s.color}"><b>${l}</b><small>${s.id}단계</small></button>`).join('')).join('')}</div>
+    <div class="az-grid">${STAGES.map(s => s.levels.map(l => `<button class="az" data-lv="${l}" style="--c:${s.color}"><b>${l}</b><small>${s.title}</small></button>`).join('')).join('')}</div>
     <div class="card lv-detail" id="lvDetail"></div>
 
     <h2 class="sec-sub">8단계 한눈에 보기</h2>
