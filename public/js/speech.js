@@ -34,11 +34,23 @@ const Speech = (() => {
     const f = neural.manifest && neural.manifest[text.trim()];
     return f ? `audio/${f}` : null;
   }
+  let tickTimer = 0;
   function clearAudio() {
-    timers.forEach(clearTimeout); timers = [];
-    if (audio) { audio.onended = audio.onerror = null; audio.pause(); audio = null; }
+    timers.forEach(clearTimeout); timers = []; clearTimeout(tickTimer);
+    if (audio) { audio.onended = audio.onerror = audio.onplaying = null; audio.pause(); audio = null; }
   }
-  function playNeural(text, { onBoundary, onEnd, slow }) {
+  // AI 음성 파일에는 단어 위치 정보가 없어서, 단어 길이와 문장부호 쉼으로 단어마다 시간을 나눈다.
+  // 앞뒤의 짧은 무음은 빼고, 실제 재생 위치(currentTime)를 보고 단어를 켜므로 잠깐 끊겨도 어긋나지 않는다.
+  function wordTimeline(text, duration) {
+    const ws = text.split(' ');
+    const weight = ws.map((w, i) => w.replace(/[^A-Za-z0-9]/g, '').length + 2 + (i < ws.length - 1 && /[,.!?]$/.test(w) ? 4 : 0));
+    // 실제 AI 음성 파일을 재 보면 앞 무음은 약 0.1초, 끝 무음은 약 0.25초(물음표)~0.45초(마침표)
+    const lead = Math.min(0.11, duration * 0.08), tail = Math.min(/\?$/.test(text) ? 0.25 : 0.42, duration * 0.18);
+    const span = Math.max(0.1, duration - lead - tail), total = weight.reduce((a, b) => a + b, 0);
+    let acc = 0;
+    return weight.map(x => { const at = lead + acc / total * span; acc += x; return at; });
+  }
+  function playNeural(text, { onWord, onEnd, slow }) {
     const url = audioUrl(text, slow);
     if (!url) return false;
     const a = new Audio(url); audio = a;
@@ -46,21 +58,27 @@ const Speech = (() => {
     // 서버는 천천히 버전을 따로 만들고, 미리 만든 파일은 재생 속도로 늦춘다
     a.playbackRate = slow ? (neural.server ? 1 : 0.75) : rate / 0.85;
     let ended = false;
-    const finish = () => { if (ended) return; ended = true; timers.forEach(clearTimeout); timers = []; onEnd && onEnd(); };
+    const finish = () => { if (ended) return; ended = true; clearTimeout(tickTimer); onEnd && onEnd(); };
     a.onended = finish;
-    a.onerror = () => { if (audio === a) { audio = null; speakBrowser(text, { onBoundary, onEnd, slow }); } };
-    if (onBoundary) a.onplaying = () => {
-      // 오디오에는 단어 위치 정보가 없어서 글자 수 비율로 단어 강조 시점을 계산한다
-      const total = (a.duration || text.length * 0.07) / a.playbackRate * 1000;
-      let at = 0;
-      text.split(' ').forEach(w => { const t = at / text.length * total; const ci = at; timers.push(setTimeout(() => onBoundary(ci), t)); at += w.length + 1; });
+    a.onerror = () => { if (audio === a) { audio = null; speakBrowser(text, { onWord, onEnd, slow }); } };
+    if (onWord) a.onplaying = () => {
+      clearTimeout(tickTimer);
+      const marks = wordTimeline(text, a.duration || text.length * 0.07);
+      const tick = () => {
+        if (audio !== a || ended) return;
+        let k = 0; while (k + 1 < marks.length && a.currentTime >= marks[k + 1]) k++;
+        onWord(k);
+        tickTimer = setTimeout(tick, 40);
+      };
+      tick();
     };
-    a.play().catch(() => { if (audio === a) { audio = null; speakBrowser(text, { onBoundary, onEnd, slow }); } });
+    a.play().catch(() => { if (audio === a) { audio = null; speakBrowser(text, { onWord, onEnd, slow }); } });
     return true;
   }
 
-  function speakBrowser(text, { onBoundary, onEnd, slow } = {}) {
+  function speakBrowser(text, { onWord, onEnd, slow } = {}) {
     if (!synth) { onEnd && onEnd(); return; }
+    const busy = synth.speaking || synth.pending;
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
@@ -68,10 +86,20 @@ const Speech = (() => {
     u.rate = slow ? 0.5 : rate; // 천천히는 확실히 느리게 (기기마다 속도 반영 정도가 달라서 크게 차이를 둔다)
     u.pitch = 1;
     u.volume = vol.voice;
-    if (onBoundary) u.onboundary = e => { if (e.name === 'word' || e.name === undefined) onBoundary(e.charIndex); };
-    u.onend = () => onEnd && onEnd();
-    u.onerror = () => onEnd && onEnd();
-    synth.speak(u);
+    if (onWord) {
+      let offset = 0; const starts = text.split(' ').map(w => { const o = offset; offset += w.length + 1; return o; });
+      u.onboundary = e => { if (e.name === 'word' || e.name === undefined) onWord(Math.max(0, starts.filter(x => x <= e.charIndex).length - 1)); };
+    }
+    // 일부 기기(특히 iPhone)는 cancel() 바로 뒤에 말하면 소리 없이 '끝남'을 먼저 보낸다 → 시작 전에 온 끝남은 한 번 다시 말한다
+    let started = false, retried = false;
+    u.onstart = () => { started = true; if (onWord) onWord(0); };
+    u.onend = () => {
+      if (!started && !retried) { retried = true; setTimeout(() => synth.speak(u), 120); return; }
+      onEnd && onEnd();
+    };
+    u.onerror = e => { if (e.error === 'interrupted' || e.error === 'canceled') return; onEnd && onEnd(); };
+    // 말하던 중이었다면 잠깐 쉬었다가 (끊긴 소리와 겹치지 않게)
+    if (busy) setTimeout(() => synth.speak(u), 60); else synth.speak(u);
   }
   // 재생 번호: 멈추거나 새로 말하면 번호가 바뀌고, 지난 재생의 끝/단어 알림은 무시한다.
   // (브라우저는 중간에 멈춘 문장에도 '끝남'을 보내서, 스토리북이 페이지를 한 번 더 넘기는 등 소리가 겹쳤다)
@@ -82,7 +110,11 @@ const Speech = (() => {
     stop();
     const my = gen;
     const only = fn => fn && ((...a) => { if (my === gen) fn(...a); });
-    opts = { ...opts, onEnd: only(opts.onEnd), onBoundary: only(opts.onBoundary) };
+    // 같은 단어로 여러 번 알리지 않는다 (강조가 깜빡이지 않게)
+    let lastWord = -1;
+    const userWord = opts.onWord;
+    const onWord = userWord && only(k => { if (k !== lastWord) { lastWord = k; userWord(k); } });
+    opts = { ...opts, onEnd: only(opts.onEnd), onWord };
     if (useNeural() && playNeural(text, opts)) return;
     speakBrowser(text, opts);
   }

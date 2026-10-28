@@ -1085,31 +1085,19 @@ Views.story = (el, id) => {
     if (speed === 'word' || speed === 'slow') {
       // 한 단어씩: 단어마다 / 천천히: 2~3단어 마디마다 끊어 읽고 잠깐 쉰다.
       // 음성 속도만 낮추면 iPhone 등에서는 차이가 거의 안 나서, 끊어 읽기로 확실히 느리게 한다.
-      const groups = [];
-      if (speed === 'word') sp.forEach((_, k) => groups.push([k]));
-      else {
-        let cur = [];
-        sp.forEach((x, k) => {
-          cur.push(k);
-          // 쉼표·마침표에서 끊고, 아니면 3단어마다 끊는다 (마지막에 1단어만 남지 않게)
-          const left = sp.length - k - 1;
-          if (/[,.!?]$/.test(x.textContent) || (cur.length >= 3 && left !== 1) || (cur.length >= 2 && left === 0)) { groups.push(cur); cur = []; }
-        });
-        if (cur.length) groups.push(cur);
-      }
+      // 마디 나누기는 AI 음성 미리 만들기와 같은 storyChunks()를 쓴다 (마디마다 AI 음성 파일이 있게)
+      const groups = speed === 'word' ? sp.map((_, k) => [k]) : storyChunks(text);
       const step = g => {
         if (my !== run) return;
         if (g >= groups.length) { clearHl(); return afterRead(); }
-        clearHl(); groups[g].forEach(k => sp[k].classList.add('hl'));
-        const say = groups[g].map(k => sp[k].dataset.say).join(' ');
+        sp.forEach((x, k) => x.classList.toggle('hl', groups[g].includes(k)));
+        const say = chunkSay(text, groups[g]);
         Speech.speak(say, { slow: true, onEnd: () => later(() => step(g + 1), speed === 'word' ? 450 : 550) });
       };
       return step(0);
     }
-    let offset = 0; const starts = text.split(' ').map(w => { const o = offset; offset += w.length + 1; return o; });
     Speech.speak(text, {
-      slow: speed === 'slow',
-      onBoundary: ci => { const k = starts.filter(x => x <= ci).length - 1; sp.forEach((x, j) => x.classList.toggle('hl', j === k)); },
+      onWord: k => sp.forEach((x, j) => x.classList.toggle('hl', j === k)),
       onEnd: () => { clearHl(); afterRead(); },
     });
   };

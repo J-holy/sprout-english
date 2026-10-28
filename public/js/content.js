@@ -323,6 +323,18 @@ const durationText = weeks => weeks >= 52 ? `약 ${Math.round(weeks / 52 * 10) /
 const LETTER_NAMES = { A: 'ay', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'eff', G: 'jee', H: 'aitch', I: 'eye', J: 'jay', K: 'kay', L: 'el', M: 'em',
   N: 'en', O: 'oh', P: 'pee', Q: 'cue', R: 'ar', S: 'ess', T: 'tee', U: 'you', V: 'vee', W: 'double you', X: 'ex', Y: 'why', Z: 'zee' };
 const nameOf = l => LETTER_NAMES[l.toUpperCase()] || l;
+// 스토리북 '천천히' 읽기의 마디: 쉼표·마침표에서, 아니면 3단어마다 끊는다 (마지막에 한 단어만 남지 않게).
+// 화면과 AI 음성 미리 만들기가 같은 마디를 쓴다. 단어 번호 묶음을 돌려준다.
+function storyChunks(text) {
+  const ws = text.split(' '), groups = []; let cur = [];
+  ws.forEach((w, k) => {
+    cur.push(k);
+    const left = ws.length - k - 1;
+    if (/[,.!?]$/.test(w) || (cur.length >= 3 && left !== 1) || left === 0) { groups.push(cur); cur = []; }
+  });
+  return groups;
+}
+const chunkSay = (text, g) => g.map(k => text.split(' ')[k].replace(/[.,!?]/g, '')).join(' ');
 function speechText(t) {
   const x = String(t).trim();
   if (/^[A-Z]$/.test(x)) return nameOf(x);                                                 // "A" (소문자 a 한 글자는 관사일 수 있어 그대로)

@@ -17,7 +17,7 @@ const staticDir = args.includes('--static') ? path.resolve(args[args.indexOf('--
 // 화면 코드와 같은 콘텐츠 파일을 읽는다
 const ctx = {}; vm.createContext(ctx);
 for (const f of ['content.js', 'data.js', 'generator.js', 'lesson.js']) vm.runInContext(fs.readFileSync(path.join(config.publicDir, 'js', f), 'utf8').replace(/^const (\w+)/gm, 'var $1'), ctx);
-const { LETTERS, PHONICS, SENTENCES, QA, VERBS, STORIES, speechText, Gen, ALL_LEVELS } = ctx;
+const { LETTERS, PHONICS, SENTENCES, QA, VERBS, STORIES, speechText, storyChunks, chunkSay, Gen, ALL_LEVELS } = ctx;
 
 const texts = new Set();
 // 화면과 같은 방식으로 바꾼 문장(알파벳은 이름 발음)으로 만든다
@@ -32,7 +32,8 @@ for (const [q, a] of Object.values(QA).flat()) { add(q); add(a); add(`${q} ${a}`
 // 자동 생성 문장
 for (const it of ALL_LEVELS.flatMap(lv => Gen.levelItems(lv)).filter(x => x.gen)) { if (it.en) add(it.en); else { add(it.q); add(it.a); add(`${it.q} ${it.a}`); } }
 for (const [b, p] of VERBS) add(`${b}, ${p}`);
-for (const s of STORIES) for (const [t] of s.pages) { add(t); t.split(' ').forEach(w => add(w.replace(/[.,!?]/g, ''))); }
+// 스토리북: 문장 전체, '천천히' 마디, 한 단어씩
+for (const s of STORIES) for (const [t] of s.pages) { add(t); storyChunks(t).forEach(g => add(chunkSay(t, g))); t.split(' ').forEach(w => add(w.replace(/[.,!?]/g, ''))); }
 ['Hello!', 'Hello! Can you hear me?', 'Hello! A is for apple. I like to read books with you.', 'Listen!', 'Play!', 'Speak!', 'Read!'].forEach(add);
 
 const list = [...texts];
