@@ -15,6 +15,7 @@ import { sendCodeMail, mailReady, verifyMailer } from './lib/mailer.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, validPlan, quote } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
+import { sttProvider, checkWav, recognize } from './lib/stt.js';
 import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
 
 const app = express();
@@ -37,7 +38,7 @@ const PENDING_TTL = 30 * 60000;
 app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), tossClientKey: config.toss.clientKey || null,
-  plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(),
+  plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
 }));
 
 // ---------- AI 음성 (TTS) ----------
@@ -52,6 +53,18 @@ app.get('/api/tts', wrap(async (req, res) => {
   catch (err) { console.error('[TTS]', err.message); return bad(res, 'AI 음성을 만들지 못했어요.', 502); }
   res.set('Cache-Control', 'public, max-age=31536000, immutable');
   res.type(file.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg').sendFile(file);
+}));
+
+// ---------- 말하기 채점용 음성 인식 (STT) ----------
+// 브라우저에 음성 인식이 없는 기기(아이패드·아이폰 Chrome 등)는 녹음한 WAV를 보내 채점한다. 로그인한 사용자만, 시간당 횟수 제한.
+app.post('/api/stt', requireUser, express.raw({ type: ['audio/wav', 'application/octet-stream'], limit: '700kb' }), wrap(async (req, res) => {
+  if (!sttProvider()) return bad(res, '음성 인식이 설정되지 않았어요.', 404);
+  const hint = cleanText(req.query.text);
+  if (hint && !validText(hint)) return bad(res, '읽을 수 없는 문장이에요.');
+  if (!checkWav(req.body)) return bad(res, '녹음 파일을 읽을 수 없어요.');
+  if (!rateLimit('stt:' + req.user.id, 400, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  try { res.json({ alts: await recognize(req.body, hint) }); }
+  catch (err) { console.error('[STT]', err.message); bad(res, '음성을 알아듣지 못했어요.', 502); }
 }));
 
 // ---------- 내 정보 / 학습 기록 동기화 ----------

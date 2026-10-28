@@ -205,7 +205,7 @@ const App = (() => {
     if (!(API.on && API.cfg.tts)) {
       try { const r = await fetch('audio/manifest.json'); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
     }
-    Speech.configure({ server: API.on && !!API.cfg.tts, manifest });
+    Speech.configure({ server: API.on && !!API.cfg.tts, manifest, stt: API.on && !!API.cfg.stt });
     if (Speech.env.inApp || Speech.env.iosNotSafari) inAppBanner();
     // 서버 없이(예: GitHub Pages) 열렸을 때는 데모라는 걸 알려준다
     const banner = document.getElementById('demoBanner');

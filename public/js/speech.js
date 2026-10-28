@@ -160,13 +160,79 @@ const Speech = (() => {
   function speakLater(text, ms, opts) { later.push(setTimeout(() => speak(text, opts), ms)); }
   function stop() {
     gen++;
+    if (recording) recording.stop();
     later.forEach(clearTimeout); later = [];
     clearAudio();
     if (synth) synth.cancel();
   }
 
-  // 한 번 듣고 결과 후보 문장들을 돌려줌
-  function listen({ timeout = 8000 } = {}) {
+  // ---------- 녹음 (브라우저에 음성 인식이 없는 기기용) ----------
+  // 아이패드·아이폰의 Chrome 등은 브라우저 음성 인식이 막혀 있어서, 직접 녹음해 서버(/api/stt)로 채점하거나
+  // 서버가 없으면 내 목소리와 원어민 소리를 비교해 듣게 한다. 말이 끝나고 조용해지면 저절로 멈춘다.
+  let sttOn = false, recording = null;
+  const webSpeechOk = () => !!Rec && env.secure && !env.inApp && !env.iosNotSafari;
+  const canRecord = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!(window.AudioContext || window.webkitAudioContext) && env.secure && !env.inApp;
+  function toWav(chunks, inRate) {
+    const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0;
+    chunks.forEach(c => { all.set(c, o); o += c.length; });
+    const ratio = inRate / 16000, n = Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * 2));
+    const put = (at, t) => [...t].forEach((c, i) => b.setUint8(at + i, c.charCodeAt(0)));
+    put(0, 'RIFF'); b.setUint32(4, 36 + n * 2, true); put(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, 1, true); b.setUint16(22, 1, true);
+    b.setUint32(24, 16000, true); b.setUint32(28, 32000, true); b.setUint16(32, 2, true); b.setUint16(34, 16, true); put(36, 'data'); b.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) {
+      // 16kHz로 줄일 때 구간 평균을 내서 거친 소리를 막는다
+      const s0 = Math.floor(i * ratio), s1 = Math.max(s0 + 1, Math.floor((i + 1) * ratio)); let v = 0;
+      for (let j = s0; j < s1; j++) v += all[j];
+      b.setInt16(44 + i * 2, Math.max(-1, Math.min(1, v / (s1 - s0))) * 0x7fff, true);
+    }
+    return new Blob([b], { type: 'audio/wav' });
+  }
+  async function record({ maxMs = 8000, silenceMs = 1300 } = {}) {
+    stop();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1);
+    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0;
+    return new Promise(resolve => {
+      const finish = () => {
+        if (!recording) return; recording = null;
+        proc.onaudioprocess = null; proc.disconnect(); src.disconnect();
+        stream.getTracks().forEach(t => t.stop()); ctx.close().catch(() => {}); // 마이크를 바로 꺼서 소리 크기가 돌아오게
+        resolve(heard ? toWav(chunks, ctx.sampleRate) : null);
+      };
+      recording = { stop: finish };
+      proc.onaudioprocess = ev => {
+        const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
+        let e = 0; for (let i = 0; i < d.length; i += 4) e += d[i] * d[i];
+        const now = Date.now();
+        if (Math.sqrt(e / (d.length / 4)) > 0.02) { heard = true; quiet = now; }
+        if ((heard && now - quiet > silenceMs) || now - t0 > maxMs) finish();
+      };
+      src.connect(proc); proc.connect(ctx.destination);
+    });
+  }
+  const stopRecording = () => recording && recording.stop();
+  async function listenServer(hint) {
+    let wav;
+    try { wav = await record(); } catch (e) { throw new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'); }
+    if (!wav) throw new Error('no-speech');
+    let r;
+    try {
+      r = await fetch('api/stt' + (hint ? '?text=' + encodeURIComponent(hint.replace(/\s+/g, ' ').trim().slice(0, 200)) : ''), {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'audio/wav', 'X-Sprout': '1' }, body: wav,
+      });
+    } catch (e) { throw new Error('network'); }
+    if (r.status === 401) throw new Error('login');
+    if (!r.ok) throw new Error(r.status === 429 ? 'busy' : 'network');
+    const { alts } = await r.json();
+    if (!alts || !alts.length) throw new Error('no-speech');
+    return alts;
+  }
+
+  // 한 번 듣고 결과 후보 문장들을 돌려줌 (hint: 아이가 읽으려는 문장 — 서버 인식이 알아듣는 데 쓴다)
+  function listen({ timeout = 8000, hint = '' } = {}) {
+    if (!webSpeechOk() && sttOn && canRecord()) return listenServer(hint);
     return new Promise((resolve, reject) => {
       if (!Rec) return reject(new Error('unsupported'));
       stop();
@@ -217,7 +283,8 @@ const Speech = (() => {
     const permAndroid = '주소창 왼쪽 자물쇠(ⓘ) › 권한 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     const permPC = '주소창 왼쪽 자물쇠 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     // iPhone의 Chrome·네이버 앱 등은 권한을 줘도 음성 인식이 막혀 있다
-    if (env.iosNotSafari && ['not-allowed', 'service-not-allowed', 'unsupported'].includes(code)) return '🎤 iPhone·iPad에서는 Safari에서만 말하기 점수가 나와요. 공유 버튼 › "Safari로 열기"로 열어 주세요.';
+    if (code === 'login') return '🎤 말하기 점수는 로그인하면 받을 수 있어요.';
+    if (env.iosNotSafari && !sttOn && ['not-allowed', 'service-not-allowed', 'unsupported'].includes(code)) return '🎤 iPhone·iPad에서는 Safari에서만 말하기 점수가 나와요. 공유 버튼 › "Safari로 열기"로 열어 주세요.';
     switch (code) {
       case 'not-allowed': return '🎤 마이크가 꺼져 있어요. ' + (env.ios ? permIOS : env.android ? permAndroid : permPC);
       case 'service-not-allowed': return env.ios ? '🎤 iPhone 받아쓰기가 꺼져 있어요. 설정 › 일반 › 키보드 › "받아쓰기"를 켜고 Safari로 열어 주세요.' : unsupportedReason() || '🎤 이 브라우저에서 음성 인식을 쓸 수 없어요. Chrome으로 열어 주세요.';
@@ -287,10 +354,11 @@ const Speech = (() => {
 
   return {
     speak, speakLater, stop, listen, score, sfx,
-    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return !!Rec && env.secure && !env.inApp && !env.iosNotSafari; },
+    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return webSpeechOk() || (sttOn && canRecord()); },
     env, externalUrl, unsupportedReason, micHelp, micPermission,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
-    configure({ server, manifest }) { neural = { server: !!server, manifest: manifest || null }; },
+    configure({ server, manifest, stt }) { neural = { server: !!server, manifest: manifest || null }; sttOn = !!stt; },
+    record, stopRecording, get canRecord() { return canRecord(); }, get usesServerStt() { return !webSpeechOk() && sttOn && canRecord(); },
     get neuralAvailable() { return !!(neural.server || neural.manifest); },
     get voiceChoice() { return chosen; },
     get voiceName() { return useNeural() ? 'AI 자연 음성' : voice ? voice.name : '기본 목소리'; },

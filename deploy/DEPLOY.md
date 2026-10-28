@@ -190,6 +190,18 @@ sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts'    
   cd server && OPENAI_API_KEY=키 npm run pregen-tts -- --static ../public/audio
   ```
 
+### 4-4-1. 말하기 채점 음성 인식 — 아이패드·아이폰 Chrome용 (선택, 추천)
+
+말하기 점수는 보통 브라우저의 음성 인식으로 매겨요. 그런데 **아이폰·아이패드의 Chrome·네이버·카카오 브라우저**는 애플 정책 때문에 음성 인식이 막혀 있어요.
+서버에 음성 인식을 켜 두면, 이런 기기에서는 화면이 아이 목소리를 녹음해 서버로 보내 채점해요.
+
+- AI 음성에 쓰는 **Google Cloud 프로젝트**에서 **Cloud Speech-to-Text API**를 "사용 설정"만 하면 돼요. 같은 키(`GOOGLE_TTS_API_KEY`)를 그대로 써요.
+  - 매달 60분 무료, 그 뒤로 1분에 약 0.016달러(문장 하나가 2~3초라 1,000번 말해도 약 1달러)
+  - 다른 키를 쓰려면 `.env`에 `GOOGLE_STT_API_KEY=키`, 끄려면 `STT_PROVIDER=off`
+- OpenAI 키만 있으면 OpenAI 음성 인식을 써요.
+- 로그인한 사용자만, 시간당 400번까지 쓸 수 있어요.
+- 서버가 없는 GitHub Pages 데모에서는 채점 대신 **녹음해서 내 목소리와 원어민 소리를 비교해 듣기**로 바뀌어요.
+
 ### 4-5. 약관·개인정보 처리방침
 
 - `public/terms.html`, `public/privacy.html` 의 `[ ]` 부분을 실제 사업자 정보로 바꿔요.
@@ -251,6 +263,7 @@ sudo systemctl start sprout-english
 | 영역 | 동작 |
 |---|---|
 | AI 음성 | 문장마다 한 번 생성해 디스크에 저장, 새로 만드는 요청만 IP당 시간당 300회로 제한, 영어 문장만 허용 |
+| 음성 인식(STT) | 로그인한 사용자만, 사용자당 시간당 400회, 16kHz WAV 15초 이하만 받음, 녹음은 저장하지 않음 |
 | 로그인 | 비밀번호 없음. 이메일 6자리 코드(3분 유효, 5회 제한, 30초 재전송 제한) 또는 SNS(OAuth) |
 | 세션 | 60일, HttpOnly·Secure 쿠키. DB에는 해시만 저장 |
 | 보안 | 상태 변경 요청에 전용 헤더 필수(CSRF 방지), IP·이메일별 요청 제한, CSP·HSTS 등 보안 헤더 |

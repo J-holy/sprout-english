@@ -450,17 +450,42 @@ Views.speakWidget = (box, sentences, record = true) => {
       <div class="speak-target big">${words(s).map(w => `<span>${esc(w)}</span>`).join(' ')}</div>
       <div class="speak-result" aria-live="polite"></div>
       <div class="row-center"><button class="btn btn-ghost" data-listen>🔊 듣기</button><button class="btn btn-ghost" data-slow>🐢 천천히</button>
-      ${Speech.canListen ? '<button class="btn btn-primary mic" data-mic>🎤 말하기</button>' : ''}</div>
-      ${Speech.canListen ? '' : `<p class="hint mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}`;
+      ${Speech.canListen ? '<button class="btn btn-primary mic" data-mic>🎤 말하기</button>' : Speech.canRecord ? '<button class="btn btn-primary mic" data-rec>🎙️ 녹음해서 비교하기</button>' : ''}</div>
+      ${Speech.canListen ? '' : Speech.canRecord
+        ? '<p class="hint mic-hint">🎙️ 이 브라우저는 점수를 매길 수 없어서, 내 목소리를 녹음해 원어민 소리와 비교해 들어요. 점수는 Safari(아이폰·아이패드)나 Chrome(컴퓨터·안드로이드)에서 받을 수 있어요.</p>'
+        : `<p class="hint mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}`;
     $('[data-next]', box).onclick = () => { k = (k + 1) % sentences.length; draw(); };
     $('[data-listen]', box).onclick = () => Speech.speak(s);
     $('[data-slow]', box).onclick = () => Speech.speak(s, { slow: true });
-    const mic = $('[data-mic]', box);
-    if (mic) mic.onclick = async () => {
-      mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
+    // 점수를 못 매기는 브라우저: 녹음해서 내 목소리와 원어민 소리를 번갈아 듣기
+    const rec = $('[data-rec]', box);
+    if (rec) rec.onclick = async () => {
+      if (rec.classList.contains('rec')) return Speech.stopRecording(); // 한 번 더 누르면 멈춤
+      rec.classList.add('rec'); rec.textContent = '🎙️ 녹음 중… 다 말하면 저절로 멈춰요';
       const res = $('.speak-result', box);
       try {
-        const r = Speech.score(s, await Speech.listen());
+        const wav = await Speech.record();
+        if (!wav) throw new Error('no-speech');
+        const url = URL.createObjectURL(wav);
+        res.innerHTML = `<div class="row-center"><button class="btn btn-ghost" data-mine>▶ 내 목소리</button><button class="btn btn-ghost" data-native>🔊 원어민</button></div>
+          <div class="hint">두 소리를 번갈아 들어 보고, 다른 부분을 다시 말해 봐요.</div>`;
+        let mine = null;
+        $('[data-mine]', res).onclick = () => { Speech.stop(); if (mine) mine.pause(); mine = new Audio(url); mine.play().catch(() => {}); };
+        $('[data-native]', res).onclick = () => { if (mine) mine.pause(); Speech.speak(s); };
+        if (record && Store.profile()) Store.bumpDaily && Store.bumpDaily('speak');
+      } catch (e) {
+        res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.name === 'NotAllowedError' ? 'not-allowed' : e.message))}</div>`;
+      }
+      rec.classList.remove('rec'); rec.textContent = '🎙️ 다시 녹음하기';
+    };
+    const mic = $('[data-mic]', box);
+    if (mic) mic.onclick = async () => {
+      if (mic.classList.contains('rec')) return Speech.stopRecording(); // 녹음 방식이면 한 번 더 눌러 멈출 수 있다
+      mic.classList.add('rec'); mic.textContent = Speech.usesServerStt ? '🎙️ 듣고 있어요… 다 말하면 저절로 멈춰요' : '🎙️ 듣고 있어요…';
+      if (!Speech.usesServerStt) mic.disabled = true;
+      const res = $('.speak-result', box);
+      try {
+        const r = Speech.score(s, await Speech.listen({ hint: s }));
         $$('.speak-target span', box).forEach((sp, j) => { const w = r.words[j]; if (w) sp.className = w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'; });
         const miss = r.words.filter(w => w.ok < 1).map(w => w.w);
         let got = 0;
@@ -1135,7 +1160,7 @@ Views.story = (el, id) => {
       mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
       const res = $('.follow-result', box);
       try {
-        const r = Speech.score(text, await Speech.listen());
+        const r = Speech.score(text, await Speech.listen({ hint: text }));
         clearHl(); sp.forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
         const got = Store.profile() ? Store.recordSpeaking(text, r.score) : 0;
         res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= Lesson.passMark() ? '잘 읽었어요! 🌟' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;
