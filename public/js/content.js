@@ -334,7 +334,10 @@ function storyChunks(text) {
   });
   return groups;
 }
-const chunkSay = (text, g) => g.map(k => text.split(' ')[k].replace(/[.,!?]/g, '')).join(' ');
+// 스토리북에서 단어 하나를 읽을 소리: 'A cat sat'의 A는 관사라서 'a'(어)로, 'A is for apple'의 A만 글자 이름(에이)으로
+const isLetterLine = text => /^[A-Z] is for |ends with [A-Z]\.?$/.test(text);
+const storyWord = (text, w) => { const x = w.replace(/[.,!?]/g, ''); return x === 'A' && !isLetterLine(text) ? 'a' : x; };
+const chunkSay = (text, g) => g.map(k => storyWord(text, text.split(' ')[k])).join(' ');
 // 그림이 비슷해서 헷갈리는 단어 묶음 — 같은 문제의 보기로 함께 나오지 않게 한다
 const LOOKALIKE = [['insect', 'bug'], ['hat', 'cap'], ['jet', 'airplane'], ['van', 'bus', 'car', 'cab', 'truck'], ['mom', 'dad', 'kid'],
   ['pot', 'pan', 'cup', 'can', 'dish'], ['rock', 'log'], ['bear', 'panda'], ['duck', 'chick', 'hen'], ['rat', 'mouse'], ['orange', 'lemon'],

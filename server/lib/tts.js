@@ -22,8 +22,27 @@ const ext = () => (ttsProvider() === 'test' ? 'wav' : 'mp3');
 // 영어 학습 문장만 받는다 (요금 남용 방지)
 export const cleanText = t => String(t || '').replace(/\s+/g, ' ').trim();
 export const validText = t => t.length > 0 && t.length <= 300 && /^[A-Za-z0-9 .,!?'’\-:;"]+$/.test(t);
+// 관사 발음 바로잡기: AI 음성은 짧은 마디나 단어 하나만 읽을 때 the를 '디', a를 '에이'로 강하게 읽는다.
+// 알파벳 이름은 화면의 speechText()가 이미 'ay' 등으로 바꿔 두므로, 여기까지 남은 a/the는 모두 관사다.
+// Google 음성에 SSML 발음 기호로 the는 '더'(모음 소리 앞은 '디'), a는 '어'로 읽게 한다.
+const ARTICLE_FIX = 'art2'; // 바꾸면 해당 문장 음성을 다시 만든다
+export const hasArticle = t => /(^|\s)(a|the)([.,!?]*)(\s|$)/i.test(t);
+const vowelSound = w => /^(hour|honest)/i.test(w) || /^(a|e|i|o|u(?!ni|se|su|ro|ke|fo))/i.test(w);
+const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+export function articleSsml(text) {
+  const ws = text.split(' ');
+  return '<speak>' + ws.map((w, i) => {
+    const m = w.match(/^(a|the)([.,!?]*)$/i);
+    if (!m) return xml(w);
+    const ph = m[1].toLowerCase() === 'a' ? 'ə' : vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə';
+    return `<phoneme alphabet="ipa" ph="${ph}">${m[1]}</phoneme>${xml(m[2])}`;
+  }).join(' ') + '</speak>';
+}
+const fixed = text => ttsProvider() === 'google' && hasArticle(text);
+// 미리 만든 정적 파일 이름에도 쓴다 (발음을 고친 파일은 이름이 바뀌어 브라우저에 남은 옛 소리를 쓰지 않게)
+export const audioTag = text => (fixed(text) ? '|' + ARTICLE_FIX : '');
 export const cacheFile = (text, slow) => {
-  const h = crypto.createHash('sha256').update(`${ttsProvider()}|${voiceId()}|${slow ? 'slow' : 'normal'}|${text}`).digest('hex').slice(0, 32);
+  const h = crypto.createHash('sha256').update(`${ttsProvider()}|${voiceId()}|${slow ? 'slow' : 'normal'}|${text}${audioTag(text)}`).digest('hex').slice(0, 32);
   return path.join(DIR, `${h}.${ext()}`);
 };
 
@@ -43,7 +62,7 @@ async function synthOpenAI(text, slow) {
 async function synthGoogle(text, slow) {
   const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(e.GOOGLE_TTS_API_KEY)}`, {
     method: 'POST', signal: AbortSignal.timeout(30000), headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input: { text }, voice: { languageCode: voiceId().slice(0, 5), name: voiceId() }, audioConfig: { audioEncoding: 'MP3', speakingRate: slow ? 0.7 : 0.92 } }),
+    body: JSON.stringify({ input: hasArticle(text) ? { ssml: articleSsml(text) } : { text }, voice: { languageCode: voiceId().slice(0, 5), name: voiceId() }, audioConfig: { audioEncoding: 'MP3', speakingRate: slow ? 0.7 : 0.92 } }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`Google TTS ${r.status}: ${j.error?.message || ''}`.slice(0, 200));
