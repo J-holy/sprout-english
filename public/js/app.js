@@ -155,7 +155,7 @@ const App = (() => {
   function upsell() {
     const m = modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>3단계부터는 플러스예요</h2>
       <p>1~2단계(알파벳·파닉스)는 지금처럼 <b>평생 무료</b>로 계속할 수 있어요.</p>
-      <ul class="perks"><li>📚 3~8단계 문장·대화·과거·미래 <b>210레슨</b></li><li>📖 스토리북 12권 더 (모두 16권)</li><li>🔁 망각 곡선 복습 · 📊 영역별 분석 · 🎓 수료증</li><li>💸 <b>월 ${won(PLANS.one.m12)}</b>부터 · 하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)}</li><li>🎟️ 첫 결제 ${Math.round(WELCOME_RATE * 100)}% 쿠폰 · 언제든 해지</li></ul>
+      <ul class="perks"><li>📚 3~8단계 문장·대화·과거·미래 <b>210레슨</b></li><li>📖 스토리북 24권 더 (모두 32권)</li><li>🔁 망각 곡선 복습 · 📊 영역별 분석 · 🎓 수료증</li><li>💸 <b>월 ${won(PLANS.one.m12)}</b>부터 · 하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)}</li><li>🎟️ 첫 결제 ${Math.round(WELCOME_RATE * 100)}% 쿠폰 · 언제든 해지</li></ul>
       <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 플러스 보기</a></div></div>`);
     return m;
   }

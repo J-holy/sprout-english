@@ -409,6 +409,7 @@ main.focus { min-height: 100vh; }
 .book:hover { transform: translateY(-5px) rotate(-2deg); }
 .book .cover { font-size: 3.8rem; } .book b { font-family: var(--en); font-size: 1.2rem; } .book small { color: var(--muted); }
 .book.locked { filter: grayscale(.8); opacity: .65; }
+.book-stage { margin: 22px 0 10px; padding-left: 12px; border-left: 8px solid var(--c); font-family: var(--title); }
 .reader { margin-top: 12px; border-top: 14px solid var(--c); text-align: center; }
 .reader-title { font-family: var(--en); font-weight: 700; color: var(--muted); }
 .reader-page { min-height: 320px; display: grid; place-items: center; }

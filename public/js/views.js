@@ -588,7 +588,7 @@ Views.pricing = (el, params) => {
 
     <div class="free-plan card">
       <div><span class="chip">무료</span><h2>알파벳·파닉스는 평생 무료</h2>
-        <p>1~2단계(Level A~E, <b>50레슨</b>)와 스토리북 4권, 놀이터·AI 말하기·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
+        <p>1~2단계(Level A~E, <b>50레슨</b>)와 스토리북 8권, 놀이터·AI 말하기·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
         가입하면 <b>7일 동안은 전체 단계를</b> 모두 써볼 수 있어요. 카드 등록도 자동결제도 없어요.</p></div>
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
@@ -599,13 +599,13 @@ Views.pricing = (el, params) => {
       ['🔁', '망각 곡선 복습', '배운 단어·문장을 1·3·7·14·30일에 다시 꺼내 오래 기억'],
       ['📊', '영역별 분석 리포트', '듣기·읽기·말하기·쓰기 정답률, 주간 변화, 맞춤 추천'],
       ['🎤', 'AI 발음 코치', '단어마다 초록·노랑·빨강으로 발음 피드백'],
-      ['📖', '스토리북 16권', '천천히·한 단어씩 읽어주기, 노래방식 따라 읽기, 순서 맞추기'],
+      ['📖', '스토리북 32권', '천천히·한 단어씩 읽어주기, 노래방식 따라 읽기, 순서 맞추기'],
       ['🎮', '게임으로 학습', '⚡ 레슨 중 챌린지, 🔥 콤보, 🏅 배지 26개, 🌱 새싹 나무'],
       ['🎯', '매일 미션', '레슨·복습·말하기 미션과 보상 상자로 매일 습관'],
       ['🎓', '단계 수료증 · 워크시트', '단계를 마칠 때마다 수료증, 레벨별 인쇄 워크시트'],
     ].map(([i, t, d]) => `<div class="value-item"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
 
-    <h2 class="sec-sub">💎 플러스 요금 <small>3~8단계 문장·대화·시제까지 · 스토리북 16권 전체</small></h2>
+    <h2 class="sec-sub">💎 플러스 요금 <small>3~8단계 문장·대화·시제까지 · 스토리북 32권 전체</small></h2>
     ${UI.plans()}
 
     <h2 class="sec-sub">🎟️ 첫 결제 쿠폰가</h2>
@@ -620,7 +620,7 @@ Views.pricing = (el, params) => {
     <h2 class="sec-sub">무료 vs 플러스</h2>
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
-      <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '4권', '16권 전체'],
+      <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '8권', '32권 전체'],
         ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
@@ -1000,13 +1000,17 @@ Views.stories = el => {
   const p = Store.profile();
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">📖 스토리북</h1>
-    <p class="sec-desc left">책마다 11쪽. 🐢 천천히·👆 한 단어씩 들으며 🗣️ 따라 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
-    <div class="book-grid">${STORIES.map(s => { const open = Store.isUnlocked(STAGES[s.stage - 1].levels[0]); return `
-      <a class="book ${open ? '' : 'locked'}" href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${STAGES[s.stage - 1].color}">
-        <span class="cover">${open ? s.cover : Store.needsPlus(STAGES[s.stage - 1].levels[0]) ? '💎' : '🔒'}</span><b>${esc(s.title)}</b><small>섬 ${s.stage} ${p.stories[s.id] ? `· ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>
+    <p class="sec-desc left">섬마다 4권, 모두 ${STORIES.length}권이에요. 🐢 천천히·👆 한 단어씩 들으며 🗣️ 따라 읽어요. 읽다 멈춘 책은 그 쪽부터 이어 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
+    ${STAGES.map(st => `<h3 class="book-stage" style="--c:${st.color}">섬 ${st.id} · ${st.title}</h3>
+    <div class="book-grid">${STORIES.filter(s => s.stage === st.id).map(s => { const open = Store.isUnlocked(st.levels[0]), at = storyMark(s); return `
+      <a class="book ${open ? '' : 'locked'}" href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${st.color}">
+        <span class="cover">${open ? s.cover : Store.needsPlus(st.levels[0]) ? '💎' : '🔒'}</span><b>${esc(s.title)}</b><small>${s.pages.length}쪽${at ? ` · 📑 ${at + 1}쪽부터` : ''}${p.stories[s.id] ? ` · ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>`).join('')}
   </div>`;
   $$('.book.locked', el).forEach(b => b.onclick = e => { e.preventDefault(); b.innerText.includes('💎') ? App.upsell() : App.toast('그 섬에 도착하면 열려요 🔒'); });
 };
+// 읽다 멈춘 쪽 (이 기기에만 기억)
+const storyMark = s => { try { const v = +localStorage.getItem('sprout-story-pg-' + s.id); return v > 0 && v < s.pages.length ? v : 0; } catch (e) { return 0; } };
+const setStoryMark = (s, v) => { try { v > 0 && v < s.pages.length ? localStorage.setItem('sprout-story-pg-' + s.id, v) : localStorage.removeItem('sprout-story-pg-' + s.id); } catch (e) { /* ignore */ } };
 Views.story = (el, id) => {
   const s = STORIES.find(x => x.id === id); if (!s) return (location.hash = '#/stories');
   if (Store.needsPlus(STAGES[s.stage - 1].levels[0])) { location.hash = '#/stories'; return App.upsell(); }
@@ -1014,7 +1018,7 @@ Views.story = (el, id) => {
   const pref = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const keep = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } };
   // 읽기 속도: normal(보통) · slow(천천히) · word(한 단어씩), 따라 읽기: 읽은 뒤 아이가 따라 말할 시간을 준다
-  let pg = 0, auto = false, speed = pref('sprout-story-speed') || 'slow', follow = pref('sprout-story-follow') === '1';
+  let pg = storyMark(s), auto = false, speed = pref('sprout-story-speed') || 'slow', follow = pref('sprout-story-follow') === '1';
   let timers = [], run = 0; const t0 = Date.now();
   const cancelTurn = () => { timers.forEach(clearTimeout); timers = []; run++; };
   const later = (fn, ms) => { const my = run; timers.push(setTimeout(() => { if (my === run && document.body.contains(page)) fn(); }, ms)); };
@@ -1050,6 +1054,7 @@ Views.story = (el, id) => {
 
   const draw = () => {
     cancelTurn(); Speech.stop(); box.hidden = true;
+    setStoryMark(s, pg);
     if (pg >= s.pages.length) {
       const first = Store.readStory(s.id); Store.addMinutes((Date.now() - t0) / 1000);
       stopAuto();
