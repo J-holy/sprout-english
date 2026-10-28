@@ -270,6 +270,12 @@ UI.treeCard = () => {
   </div>`;
 };
 
+// 스토리북 그림: 그림 여러 개를 한 장면으로 (첫 그림이 주인공이라 크게, 영어 글자는 이름표로)
+const sceneHtml = pic => {
+  const parts = pic.split(' ');
+  if (parts.length === 1) return `<div class="pic">${pic}</div>`;
+  return `<div class="pic scene">${parts.map((x, i) => `<span class="${/^[A-Za-z]+$/.test(x) ? 'tag' : i === 0 ? 'main' : ''}" style="animation-delay:${i * 0.15}s">${esc(x)}</span>`).join('')}</div>`;
+};
 // 🧩 이야기 순서 맞추기: 연속된 4쪽을 섞어 놓고 차례대로 고르기
 function storyOrder(box, s) {
   const start = Math.floor(Math.random() * (s.pages.length - 3));
@@ -278,7 +284,7 @@ function storyOrder(box, s) {
   let picked = [];
   const draw = () => {
     box.innerHTML = `<div class="order-game anim-in"><h3>🧩 일어난 순서대로 눌러요</h3>
-      <div class="order-line">${pages.map((_, k) => `<span class="order-slot">${picked[k] !== undefined ? `${k + 1}. ${pages[picked[k]].pic}` : k + 1}</span>`).join('')}</div>
+      <div class="order-line">${pages.map((_, k) => `<span class="order-slot">${picked[k] !== undefined ? `${k + 1}. ${pages[picked[k]].pic.split(' ')[0]}` : k + 1}</span>`).join('')}</div>
       <div class="order-cards">${cards.map(c => `<button class="order-card" data-k="${c.k}" ${picked.includes(c.k) ? 'disabled' : ''}><span>${c.pic}</span>${esc(c.text)}</button>`).join('')}</div>
       <div class="row-center"><button class="btn btn-ghost sm" data-reset>처음부터</button></div></div>`;
     box.querySelectorAll('.order-card').forEach(b => b.onclick = () => { Speech.speak(pages[+b.dataset.k].text); picked.push(+b.dataset.k); picked.length === pages.length ? check() : draw(); });
@@ -1055,7 +1061,7 @@ Views.story = (el, id) => {
       Speech.sfx.cheer(); if (first) Lesson.confetti(); App.refreshHeader(); return;
     }
     const [text, pic] = s.pages[pg];
-    page.innerHTML = `<div class="anim-in"><div class="pic">${pic}</div><p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(w.replace(/[.,!?]/g, ''))}">${esc(w)}</span>`).join(' ')}</p></div>`;
+    page.innerHTML = `<div class="anim-in">${sceneHtml(pic)}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(w.replace(/[.,!?]/g, ''))}">${esc(w)}</span>`).join(' ')}</p></div>`;
     // 단어를 누르면 그 단어만 천천히 읽고, 자동 넘김은 멈춘다
     spans().forEach(sp => sp.onclick = () => {
       stopAuto(); cancelTurn(); clearHl();
