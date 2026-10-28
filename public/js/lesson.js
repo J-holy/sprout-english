@@ -57,7 +57,8 @@ const Gen = (() => {
     const end = W.en.slice(-2), same = all.filter(x => x[0] !== W.en && x[0].slice(-2) === end);
     if (!same.length) return [];
     const [r, re] = same[Math.floor(Math.random() * same.length)];
-    const others = pickOthers(all.filter(x => x[0].slice(-2) !== end && x[0].slice(-1) !== W.en.slice(-1)).map(x => `${x[1]} ${x[0]}`), 2);
+    const cands = all.filter(x => x[0].slice(-2) !== end && x[0].slice(-1) !== W.en.slice(-1)).map(([en, emoji]) => ({ en, emoji }));
+    const others = pictureOthers(cands, 2, { en: r, emoji: re }).map(x => `${x.emoji} ${x.en}`);
     return [() => choice(`ph-rhyme-${W.en}`, '끝소리가 같은 단어를 골라요', `${re} ${r}`, others, { show: `${W.emoji} ${W.en}`, say: W.en })];
   }
 
@@ -75,7 +76,8 @@ const Gen = (() => {
         () => ({ type: 'speak', key: `ltr-speak-${L.letter}-${word}`, title: '따라 말해요', target: sound, show: emoji }),
         // 이 글자로 시작하는(끝나는) 그림 고르기
         () => {
-          const others = pickOthers(LETTERS.filter(x => x.letter !== L.letter && !x.ending), 2).map(x => { const [w, e] = x.words[t % x.words.length]; return `${e} ${w}`; });
+          const cands = LETTERS.filter(x => x.letter !== L.letter && !x.ending).map(x => { const [en, e] = x.words[t % x.words.length]; return { en, emoji: e }; });
+          const others = pictureOthers(cands, 2, { en: word, emoji }).map(x => `${x.emoji} ${x.en}`);
           return choice(`ltr-pic-${L.letter}-${word}`, L.ending ? `${L.letter}로 끝나는 그림을 골라요` : `${L.letter}로 시작하는 그림을 골라요`, `${emoji} ${word}`, others, { show: `${L.letter} ${L.letter.toLowerCase()}`, say: L.letter, sayAfter: word });
         },
         // 빈칸 글자: _pple
@@ -93,9 +95,9 @@ const Gen = (() => {
     },
     2: (W, level) => {
       const all = Object.values(PHONICS).flat();
-      const pool = all.map(([en, e]) => `${e} ${en}`);
+      const pics = all.map(([en, e]) => ({ en, emoji: e }));
       return [
-        () => choice(`ph-listen-${W.en}`, '소리를 듣고 단어를 골라요', `${W.emoji} ${W.en}`, pickOthers(pool, 2, `${W.emoji} ${W.en}`), { say: W.en, big: '🔊' }),
+        () => choice(`ph-listen-${W.en}`, '소리를 듣고 단어를 골라요', `${W.emoji} ${W.en}`, pictureOthers(pics, 2, W).map(x => `${x.emoji} ${x.en}`), { say: W.en, big: '🔊' }),
         () => ({ type: 'tiles', key: `ph-spell-${W.en}`, title: '글자를 순서대로 눌러 단어를 만들어요', show: W.emoji, say: W.en, answer: W.en.split(''), tiles: shuffle(W.en.split('').concat(pickOthers('abcdefghijklmnopqrstuvwxyz'.split(''), 2, W.en[0]))), joiner: '' }),
         () => choice(`ph-first-${W.en}`, '첫소리는 무엇일까요?', W.en[0], pickOthers('bcdfghjklmnprstvwz'.split(''), 2, W.en[0]), { show: W.emoji, say: W.en }),
         () => choice(`ph-mean-${W.en}`, '뜻을 골라요', W.ko, pickOthers(all.map(x => x[2]), 2, W.ko), { show: W.en, say: W.en }),
@@ -103,7 +105,7 @@ const Gen = (() => {
         // Level E부터 듣고 철자를 직접 쳐 보는 타자 연습
         ...(level === 'E' ? [() => ({ type: 'type', key: `ph-type-${W.en}`, title: '듣고 단어를 써 봐요 ⌨️', show: W.emoji, say: W.en, answer: W.en })] : []),
         // 소리 없이 읽고 그림 고르기
-        () => choice(`ph-read-${W.en}`, '단어를 읽고 알맞은 그림을 골라요', W.emoji, pickOthers(all.filter(x => x[0] !== W.en).map(x => x[1]), 2, W.emoji), { show: W.en, sayAfter: W.en }),
+        () => choice(`ph-read-${W.en}`, '단어를 읽고 알맞은 그림을 골라요', W.emoji, pictureOthers(pics, 2, W).map(x => x.emoji), { show: W.en, sayAfter: W.en }),
         // 끝소리
         () => choice(`ph-last-${W.en}`, '끝소리는 무엇일까요?', W.en.slice(-1), pickOthers('bdgklmnprstx'.split(''), 2, W.en.slice(-1)), { show: `${W.emoji} ${W.en.slice(0, -1)}_`, say: W.en }),
         ...vowelQ(W), ...rhymeQ(W, all),
@@ -259,7 +261,7 @@ const Challenge = (() => {
         });
       } else if (spec.kind === 'mole') {
         const ans = pickOne(spec.pool);
-        const opts = shuffle([ans, ...pickOthers(spec.pool, 3, ans)]);
+        const opts = shuffle([ans, ...pictureOthers(spec.pool, 3, ans)]);
         stage.innerHTML = `<div class="moles">${opts.map((o, k) => `<button class="mole" style="--d:${k * 0.08}s" data-v="${esc(o.en)}"><span class="mole-pic">${o.emoji}</span><small>${esc(o.en)}</small></button>`).join('')}</div>
           <button class="btn btn-ghost sm ch-again" data-again>🔊 다시</button>`;
         Speech.speak(ans.en);

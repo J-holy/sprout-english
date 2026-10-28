@@ -419,7 +419,7 @@ UI.miniQuiz = box => {
       return;
     }
     const ans = pool[Math.floor(Math.random() * pool.length)];
-    const opts = shuffle([ans, ...pickOthers(pool, 2, ans)]);
+    const opts = shuffle([ans, ...pictureOthers(pool, 2, ans)]);
     box.innerHTML = `<span class="sticker-label">바로 해보기 ${n + 1}/3</span>
       <p class="mq-q">소리를 듣고 그림을 골라요</p>
       <button class="mq-play" aria-label="다시 듣기">🔊</button>
@@ -1298,7 +1298,7 @@ Views.play = (el, game) => {
     const next = () => {
       if (round >= ROUNDS) return finish('balloon', score, ROUNDS);
       const answer = pool[Math.floor(Math.random() * pool.length)];
-      const opts = shuffle([answer, ...pickOthers(pool, 3, answer)]);
+      const opts = shuffle([answer, ...pictureOthers(pool, 3, answer)]);
       area.innerHTML = `<div class="game-head"><span>🎈 ${round + 1}/${ROUNDS}</span><span>⭐ ${score}</span><button class="btn btn-ghost sm" data-say>🔊 다시 듣기</button></div>
         <div class="sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k % 5]};--d:${k * 0.25}s;--x:${k * 25 + 4}%" data-en="${esc(o.en)}"><span>${o.emoji}</span><small>${esc(o.en)}</small></button>`).join('')}</div>`;
       Speech.speak(answer.en);
@@ -1315,7 +1315,8 @@ Views.play = (el, game) => {
   }
 
   if (game === 'match') {
-    const picks = shuffle(pool).slice(0, 6);
+    const first = pool[Math.floor(Math.random() * pool.length)];
+    const picks = [first, ...pictureOthers(pool, 5, first)]; // 그림이 비슷한 카드끼리는 같이 안 나오게
     const cards = shuffle(picks.flatMap(w => [{ id: w.en, face: w.emoji, kind: 'pic' }, { id: w.en, face: w.en, kind: 'word' }]));
     let open = [], found = 0, moves = 0, lock = false;
     area.innerHTML = `<div class="game-head"><span>🃏 짝꿍 카드</span><span class="moves">시도 0</span></div>

@@ -8,17 +8,17 @@ const TOTAL_LESSONS = 26 * LESSONS_PER_LEVEL;
 const LETTER_WORDS = {
   A: [['apple', '🍎'], ['ant', '🐜'], ['alligator', '🐊']], B: [['ball', '⚽'], ['bear', '🐻'], ['banana', '🍌']],
   C: [['cat', '🐱'], ['car', '🚗'], ['cake', '🎂']], D: [['dog', '🐶'], ['duck', '🦆'], ['door', '🚪']],
-  E: [['egg', '🥚'], ['elephant', '🐘'], ['envelope', '✉️']], F: [['fish', '🐟'], ['frog', '🐸'], ['fox', '🦊']],
+  E: [['egg', '🥚'], ['elephant', '🐘'], ['envelope', '✉️']], F: [['fish', '🐟'], ['frog', '🐸'], ['fork', '🍴']],
   G: [['goat', '🐐'], ['grapes', '🍇'], ['gift', '🎁']], H: [['hat', '🎩'], ['horse', '🐴'], ['house', '🏠']],
-  I: [['insect', '🐞'], ['iguana', '🦎'], ['ink', '🖋️']], J: [['juice', '🧃'], ['jeans', '👖'], ['jet', '🛩️']],
+  I: [['insect', '🐞'], ['iguana', '🦎'], ['ice', '🧊']], J: [['juice', '🧃'], ['jeans', '👖'], ['jet', '🛩️']],
   K: [['kite', '🪁'], ['key', '🔑'], ['king', '🤴']], L: [['lion', '🦁'], ['lemon', '🍋'], ['leaf', '🍃']],
   M: [['moon', '🌙'], ['monkey', '🐒'], ['milk', '🥛']], N: [['nose', '👃'], ['nut', '🥜'], ['net', '🥅']],
   O: [['octopus', '🐙'], ['orange', '🍊'], ['otter', '🦦']], P: [['pig', '🐷'], ['panda', '🐼'], ['pizza', '🍕']],
   Q: [['queen', '👸'], ['question', '❓'], ['quiet', '🤫']], R: [['rabbit', '🐰'], ['rainbow', '🌈'], ['robot', '🤖']],
   S: [['sun', '☀️'], ['snake', '🐍'], ['star', '⭐']], T: [['tiger', '🐯'], ['tomato', '🍅'], ['train', '🚆']],
   U: [['umbrella', '☂️'], ['up', '⬆️'], ['unicorn', '🦄']], V: [['van', '🚐'], ['violin', '🎻'], ['volcano', '🌋']],
-  W: [['whale', '🐳'], ['watch', '⌚'], ['water', '💧']], X: [['box', '📦'], ['fox', '🦊'], ['six', '6️⃣']],
-  Y: [['yo-yo', '🪀'], ['yellow', '💛'], ['yak', '🐃']], Z: [['zebra', '🦓'], ['zero', '0️⃣'], ['zipper', '🤐']],
+  W: [['whale', '🐳'], ['watch', '⌚'], ['worm', '🪱']], X: [['box', '📦'], ['fox', '🦊'], ['six', '6️⃣']],
+  Y: [['yo-yo', '🪀'], ['yarn', '🧶'], ['yak', '🐃']], Z: [['zebra', '🦓'], ['zero', '0️⃣']],
 };
 const LETTERS = Object.entries(LETTER_WORDS).map(([letter, ws]) => ({ letter, word: ws[0][0], emoji: ws[0][1], words: ws, ending: letter === 'X' }));
 
@@ -26,17 +26,17 @@ const LETTERS = Object.entries(LETTER_WORDS).map(([letter, ws]) => ({ letter, wo
 const PHONICS = {
   C: [ // 짧은 a · 짧은 e
     ['cat', '🐱', '고양이'], ['hat', '🎩', '모자'], ['bat', '🦇', '박쥐'], ['map', '🗺️', '지도'], ['van', '🚐', '승합차'], ['bag', '👜', '가방'],
-    ['can', '🥫', '깡통'], ['cap', '🧢', '야구 모자'], ['ham', '🍖', '햄'], ['rat', '🐀', '쥐'], ['pan', '🍳', '프라이팬'], ['dad', '👨', '아빠'],
-    ['sad', '😢', '슬픈'], ['man', '🧔', '남자'], ['bed', '🛏️', '침대'], ['hen', '🐔', '암탉'], ['net', '🥅', '그물'], ['pen', '🖊️', '펜'],
-    ['web', '🕸️', '거미줄'], ['leg', '🦵', '다리'], ['ten', '🔟', '열'], ['red', '🟥', '빨간'], ['jet', '🛩️', '제트기'], ['wet', '💦', '젖은']],
+    ['can', '🥫', '깡통'], ['cap', '🧢', '야구 모자'], ['ram', '🐏', '숫양'], ['rat', '🐀', '쥐'], ['pan', '🍳', '프라이팬'], ['dad', '👨', '아빠'],
+    ['cab', '🚕', '택시'], ['fan', '🪭', '부채'], ['bed', '🛏️', '침대'], ['hen', '🐔', '암탉'], ['net', '🥅', '그물'], ['pen', '🖊️', '펜'],
+    ['web', '🕸️', '거미줄'], ['leg', '🦵', '다리'], ['ten', '🔟', '열'], ['red', '🟥', '빨간'], ['jet', '🛩️', '제트기'], ['bell', '🔔', '종']],
   D: [ // 짧은 i · 짧은 o
-    ['pig', '🐷', '돼지'], ['pin', '📌', '핀'], ['six', '6️⃣', '여섯'], ['lip', '👄', '입술'], ['kid', '🧒', '아이'], ['zip', '🤐', '지퍼'],
-    ['mix', '🥣', '섞다'], ['dig', '⛏️', '파다'], ['sit', '🪑', '앉다'], ['win', '🏆', '이기다'], ['fix', '🔧', '고치다'], ['hill', '⛰️', '언덕'],
-    ['dog', '🐶', '개'], ['box', '📦', '상자'], ['fox', '🦊', '여우'], ['pot', '🍲', '냄비'], ['log', '🪵', '통나무'], ['hot', '🔥', '뜨거운'],
-    ['mop', '🧹', '대걸레'], ['sock', '🧦', '양말'], ['rock', '🪨', '바위'], ['mom', '👩', '엄마'], ['ox', '🐂', '황소'], ['hop', '🐇', '깡충 뛰다']],
+    ['pig', '🐷', '돼지'], ['pin', '📌', '핀'], ['six', '6️⃣', '여섯'], ['lip', '👄', '입술'], ['kid', '🧒', '아이'], ['wink', '😉', '윙크'],
+    ['dish', '🍽️', '접시'], ['pill', '💊', '알약'], ['bin', '🗑️', '쓰레기통'], ['ring', '💍', '반지'], ['swim', '🏊', '수영하다'], ['hill', '⛰️', '언덕'],
+    ['dog', '🐶', '개'], ['box', '📦', '상자'], ['fox', '🦊', '여우'], ['pot', '🍲', '냄비'], ['log', '🪵', '통나무'], ['frog', '🐸', '개구리'],
+    ['clock', '🕰️', '시계'], ['sock', '🧦', '양말'], ['rock', '🪨', '바위'], ['mom', '👩', '엄마'], ['doll', '🪆', '인형'], ['lock', '🔒', '자물쇠']],
   E: [ // 짧은 u · sh · ch · th
-    ['sun', '☀️', '해'], ['bus', '🚌', '버스'], ['cup', '☕', '컵'], ['bug', '🐛', '벌레'], ['nut', '🥜', '견과'], ['hug', '🤗', '안아주기'],
-    ['duck', '🦆', '오리'], ['drum', '🥁', '북'], ['run', '🏃', '달리다'], ['tub', '🛁', '욕조'], ['gum', '🍬', '껌'], ['ship', '🚢', '배'],
+    ['sun', '☀️', '해'], ['bus', '🚌', '버스'], ['cup', '☕', '컵'], ['bug', '🐛', '벌레'], ['nut', '🥜', '견과'], ['plug', '🔌', '플러그'],
+    ['duck', '🦆', '오리'], ['drum', '🥁', '북'], ['truck', '🚚', '트럭'], ['hut', '🛖', '오두막'], ['skunk', '🦨', '스컹크'], ['ship', '🚢', '배'],
     ['fish', '🐟', '물고기'], ['shell', '🐚', '조개'], ['shop', '🏪', '가게'], ['brush', '🪥', '칫솔'], ['chick', '🐤', '병아리'], ['cheese', '🧀', '치즈'],
     ['chair', '🪑', '의자'], ['lunch', '🍱', '점심'], ['three', '3️⃣', '셋'], ['bath', '🛁', '목욕'], ['thumb', '👍', '엄지'], ['teeth', '🦷', '이']],
 };
@@ -335,6 +335,22 @@ function storyChunks(text) {
   return groups;
 }
 const chunkSay = (text, g) => g.map(k => text.split(' ')[k].replace(/[.,!?]/g, '')).join(' ');
+// 그림이 비슷해서 헷갈리는 단어 묶음 — 같은 문제의 보기로 함께 나오지 않게 한다
+const LOOKALIKE = [['insect', 'bug'], ['hat', 'cap'], ['jet', 'airplane'], ['van', 'bus', 'car', 'cab', 'truck'], ['mom', 'dad', 'kid'],
+  ['pot', 'pan', 'cup', 'can', 'dish'], ['rock', 'log'], ['bear', 'panda'], ['duck', 'chick', 'hen'], ['rat', 'mouse'], ['orange', 'lemon'],
+  ['tomato', 'apple'], ['lip', 'teeth', 'nose'], ['bed', 'bath'], ['frog', 'iguana'], ['ice', 'cheese']];
+const lookGroup = w => LOOKALIKE.findIndex(g => g.includes(w));
+// 그림 보기 고르기: 정답과 (그리고 서로) 그림이 같거나 비슷한 단어는 빼고 n개
+function pictureOthers(pool, n, ans) {
+  const out = [], pics = new Set([ans.emoji]), groups = new Set([lookGroup(ans.en)]);
+  for (const w of shuffle(pool)) {
+    if (out.length >= n) break;
+    const g = lookGroup(w.en);
+    if (w.en === ans.en || pics.has(w.emoji) || (g >= 0 && groups.has(g))) continue;
+    out.push(w); pics.add(w.emoji); groups.add(g);
+  }
+  return out;
+}
 function speechText(t) {
   const x = String(t).trim();
   if (/^[A-Z]$/.test(x)) return nameOf(x);                                                 // "A" (소문자 a 한 글자는 관사일 수 있어 그대로)
