@@ -85,6 +85,12 @@ const BOOKS = {
   32: ['a cozy future home', [[NAR, 'an 8-year-old boy with short black hair in an orange hoodie'], [`Bolt|robot|\\b(he|his)\\b|${WE}`, 'Bolt, a friendly round white and blue robot with big round eyes'], ['dog', 'a small dog']]],
 };
 
+// 문장만으로는 장면이 애매한 쪽: '책-쪽' → [나올 인물(모습에서 찾을 말), 그릴 장면]
+const SCENES = {
+  '2-5': ['cat|rat', 'the fat orange cat stares longingly at the red knit beanie on the rat\'s head and reaches one paw toward it'],
+  '2-14': ['cat|rat', 'in front, the small gray rat with gray fur smiles proudly and holds its red knit beanie on its head with both paws; far behind it, the cat sleeps curled up on the mat'],
+};
+
 const ctx = {}; vm.createContext(ctx);
 for (const f of ['content.js', 'data.js', 'generator.js', 'lesson.js']) vm.runInContext(fs.readFileSync(path.join(config.publicDir, 'js', f), 'utf8').replace(/^const (\w+)/gm, 'var $1'), ctx);
 const { LETTERS, PHONICS, SENTENCES, STORIES, ALL_LEVELS, Gen, isLetterLine } = ctx;
@@ -114,15 +120,16 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
   s.pages.forEach(([text], i) => {
     const letter = isLetterLine(text);
     const thing = letter && text.replace(/^[A-Z] is for | ends with [A-Z]\.?$/g, '').replace(/\.$/, '');
-    let who = letter ? [] : cast.filter(([k]) => k === '*' || new RegExp(k, 'i').test(text));
+    const scene = SCENES[`${s.id}-${i}`];
+    let who = letter ? [] : scene ? cast.filter(c => new RegExp(scene[0]).test(c[1])) : cast.filter(([k]) => k === '*' || new RegExp(k, 'i').test(text));
     // 대명사만 있으면 앞 쪽 인물을 이어 쓰고, 그때만 앞 문장을 함께 준다 (다른 인물이 덤으로 그려지지 않게)
-    const carried = !letter && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text);
+    const carried = !letter && !scene && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text);
     if (carried) who = last;
     last = who; who = who.slice(0, 4); // 기준 그림은 4장까지
     const prev = carried && i && !isLetterLine(s.pages[i - 1][0]) ? ` Just before this, ${plain(s.pages[i - 1][0])}.` : '';
     const prompt = letter
       ? `${STYLE}. One single full-page illustration: a big cute ${thing}, in ${place}.`
-      : `${STYLE}. One single full-page illustration of this moment, with the action shown clearly: ${plain(text)}.${prev} `
+      : `${STYLE}. One single full-page illustration of this moment, with the action shown clearly: ${scene ? scene[1] : plain(text)}.${prev} `
         + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. ${['', 'Only one character', 'Only two characters', 'Only three characters', 'Only four characters'][who.length]} in the whole picture, each appearing once. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
         + ` Background: ${place}, drawn in the same style as the characters, everything illustrated, not a photo, not realistic.${note && who.some(c => new RegExp(note[0]).test(c[1])) ? ` ${note[1]}` : ''}`;
     const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(styleName + d).slice(0, 12)}.png`); refs[f] = d; return f; });
@@ -196,7 +203,8 @@ async function worker() {
       for (const f of j.refFiles || []) await refMade(f);
       save(await draw(j.prompt, SIZE[j.kind], seedOf(j), j.refFiles), path.join(outDir, j.file));
       man[j.kind][j.key] = j.file; man.h[j.kind + j.key] = hash(j.prompt).slice(0, 10);
-      if (++done % 10 === 0) { writeMan(); console.log(`  ${done} / ${todo.length}`); }
+      writeMan(); // 한 장마다 저장: 중간에 Mac을 꺼도 그린 그림은 남는다
+      if (++done % 10 === 0) console.log(`  ${done} / ${todo.length}`);
     } catch (err) {
       if (err instanceof Quota) { stopped = err.message; break; }
       fail++; console.error(`실패: ${j.key} "${j.label}" — ${err.message}`);
