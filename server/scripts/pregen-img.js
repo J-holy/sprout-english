@@ -18,14 +18,26 @@ const args = process.argv.slice(2);
 const arg = k => (args.includes(k) ? args[args.indexOf(k) + 1] : null);
 const dry = args.includes('--dry'), only = arg('--only'), book = arg('--book') && +arg('--book');
 const redo = new Set((arg('--redo') || '').split(',').filter(Boolean));
-const outDir = path.join(config.publicDir, 'img');
+const outDir = arg('--out') ? path.resolve(arg('--out')) : path.join(config.publicDir, 'img');
+const keys = arg('--keys') && new Set(arg('--keys').split(',')); // 이 그림들만 (그림체 비교용)
 const refDir = path.join(config.dataDir || path.resolve('data'), 'img-ref');
 const MODEL = '@cf/black-forest-labs/flux-2-klein-4b';
 // 가로·세로 512px 칸 단위로 뉴런이 든다: 단어 384×384 = 1칸, 스토리 768×480 = 2칸, 주인공 기준 그림 448×448 = 1칸
 const SIZE = { w: [384, 384], s: [768, 480], ref: [448, 448] };
-const COST = { w: 27, s: 58, ref: 27 }; // 예상 뉴런 (출력 칸 26 + 기준 그림 입력 칸 5)
+const COST = { w: 55, s: 110, ref: 55 }; // 실제로 써 보니 그림 한 장에 약 100 뉴런 (요금표 계산의 약 2배)
 
-const STYLE = 'Children\'s picture book illustration, soft watercolor with colored pencil lines, warm gentle pastel colors, rounded friendly shapes, cute and kind, simple uncluttered composition, no text, no letters, no words, no numbers, no signs';
+// 그림체: --style 이름 (기본 watercolor). 그림체를 바꾸면 그림 설명이 달라져 모든 그림을 새로 그린다
+const STYLES = {
+  watercolor: 'soft watercolor with colored pencil lines, warm gentle pastel colors',
+  crayon: 'textured wax crayon and colored pencil drawing on paper, bright cheerful colors, playful hand-drawn lines',
+  flat: 'clean flat vector illustration, bold simple shapes, bright solid colors, minimal shading, thick smooth outlines',
+  clay: 'cute 3D clay animation look, soft plasticine textures, rounded chunky shapes, soft studio lighting',
+  paper: 'cut paper collage, layered textured colored paper shapes with soft shadows between layers',
+  gouache: 'rich gouache painting, thick soft brush strokes, warm deep colors, classic storybook feel',
+};
+const styleName = arg('--style') || process.env.IMG_STYLE || 'watercolor';
+if (!STYLES[styleName]) { console.error(`그림체 이름은 ${Object.keys(STYLES).join(', ')} 중 하나예요.`); process.exit(1); }
+const STYLE = `Children's picture book illustration, ${STYLES[styleName]}, rounded friendly shapes, cute and kind, simple uncluttered composition, no text, no letters, no words, no numbers, no signs`;
 
 // 책마다 장소와 등장인물을 정해 둔다. 인물마다 [문장에서 찾을 말(정규식), 모습]이고, 인물별 기준 그림을 먼저 그려
 // 그 쪽 문장에 나오는 인물만 기준 그림과 함께 그린다 (모든 쪽에 같은 모습으로, 안 나오는 인물은 빼고).
@@ -33,7 +45,8 @@ const STYLE = 'Children\'s picture book illustration, soft watercolor with color
 const NAR = '\\b(I|me|my|we|us|our)\\b', WE = '\\b(we|us|our)\\b';
 const BOOKS = {
   1: ['a sunny city park with green grass and big trees', [[NAR, 'a cheerful 5-year-old girl with black pigtails in a red dress'], [`mom|${WE}`, 'her mom with a brown ponytail and a green blouse'], [WE, 'her dad with glasses and a blue sweater']]],
-  2: ['a cozy living room with a round woven mat and a cardboard box', [['cat', 'a big round fat orange tabby cat'], ['rat', 'a small gray rat wearing a little red pointed hat']]],
+  2: ['a cozy living room with a round woven mat and a cardboard box', [['cat', 'a big round fat orange tabby cat'], ['rat|hat', 'a small gray rat wearing a small red knit beanie hat with a white pom-pom']],
+    'The cat has bare fur on its head. The rat\'s small red knit beanie with a white pom-pom is the only hat in the picture.'],
   3: ['a warm family home with a garden', [[NAR, 'a 7-year-old boy with short black hair in a yellow T-shirt'], ['mom|family', 'his kind mom with a bun and a white apron'], ['dad|family', 'his tall dad with a short beard'], ['sister|family', 'his 6-year-old sister in a pink dress'], ['baby', 'a chubby baby brother in a blue onesie'], ['grandma', 'a grandma with gray curly hair and a flower cardigan'], ['grandpa', 'a grandpa with a white mustache and a big straw hat'], ['dog|Coco', 'Coco, a small brown dog with floppy ears']]],
   4: ['a sunny neighborhood park', [['*', 'Lily, a 7-year-old girl with long brown hair in a purple shirt'], ['*', 'Sam, a 7-year-old boy with curly black hair in a green shirt']]],
   5: ['a small house and a street on a rainy day', [[NAR, 'a 6-year-old girl with a short black bob in a green raincoat and yellow rain boots, carrying a red umbrella'], ['dog', 'her small white puppy'], ['frog', 'a little shiny green frog'], ['mom', 'her mom with a brown ponytail and a cozy sweater']]],
@@ -88,7 +101,7 @@ if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
 const refs = {}; // 인물 기준 그림: 파일 경로 → 그림 설명
 if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
   if (book && s.id !== book) continue;
-  const [place, cast] = BOOKS[s.id] || ['a bright place', []];
+  const [place, cast, note] = BOOKS[s.id] || ['a bright place', []];
   let last = [];
   s.pages.forEach(([text], i) => {
     const letter = isLetterLine(text);
@@ -101,8 +114,8 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
       ? `${STYLE}. A page from the alphabet picture book "${s.title}": a big cute ${thing}, in ${place}.`
       : `${STYLE}. Picture book "${s.title}". Illustrate exactly this moment, showing the action clearly: "${text}"${prev}. `
         + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. Do not add other people or animals. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
-        + ` Background: ${place}, hand-drawn in the same soft watercolor and colored pencil style as the characters, everything illustrated, not a photo, not realistic.`;
-    const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(d).slice(0, 12)}.png`); refs[f] = d; return f; });
+        + ` Background: ${place}, drawn in the same style as the characters, everything illustrated, not a photo, not realistic.${note ? ` ${note}` : ''}`;
+    const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(styleName + d).slice(0, 12)}.png`); refs[f] = d; return f; });
     jobs.push({ kind: 's', key: `${s.id}-${i}`, refFiles, label: text, prompt, file: `s/${s.id}-${i}.jpg` });
   });
 }
@@ -111,7 +124,7 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
 const manPath = path.join(outDir, 'manifest.json');
 let man = { w: {}, s: {}, h: {}, n: {} };
 try { man = { ...man, ...JSON.parse(fs.readFileSync(manPath, 'utf8')) }; } catch (e) { /* 처음 */ }
-const todo = jobs.filter(j => redo.has(j.key) || !man[j.kind][j.key] || man.h[j.kind + j.key] !== hash(j.prompt).slice(0, 10) || !fs.existsSync(path.join(outDir, man[j.kind][j.key])));
+const todo = jobs.filter(j => !keys || keys.has(j.key)).filter(j => redo.has(j.key) || !man[j.kind][j.key] || man.h[j.kind + j.key] !== hash(j.prompt).slice(0, 10) || !fs.existsSync(path.join(outDir, man[j.kind][j.key])));
 const needRefs = new Set(todo.flatMap(j => j.refFiles || []).filter(f => !fs.existsSync(f)));
 const neurons = todo.reduce((n, j) => n + COST[j.kind], 0) + needRefs.size * COST.ref;
 console.log(`단어 그림 ${jobs.filter(j => j.kind === 'w').length}개 · 스토리 ${jobs.filter(j => j.kind === 's').length}쪽 중 그릴 것 ${todo.length}개`);
