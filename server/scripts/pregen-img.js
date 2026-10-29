@@ -334,10 +334,11 @@ const SCENES = {
   '1-10': ['', 'a fresh green kiwi fruit cut in half next to a whole brown kiwi fruit'],
   '3-2': ['mom', 'his mom stirs a pot of soup on the stove in the kitchen'],
   '3-5': ['dad', 'his tall dad sings happily with his mouth open, little music notes floating around'],
-  '3-8': ['sister', 'his sister hugs a fluffy orange cat and smiles'],
+  '3-7': ['sister', 'his sister smiles next to a birthday cake with six candles'],
+  '3-8': ['sister', 'his sister sits on the grass and gently pets a small gray kitten on her lap'],
   '3-11': ['baby', 'the baby brother sits on a rug and happily holds a yellow rubber toy duck'],
-  '3-18': ['boy|mom|dad|sister|baby|Coco', 'the whole family stands together smiling in the garden: the boy, his mom, his dad, his sister holding the baby, and the dog'],
-  '3-19': ['boy|mom|dad|sister', 'the boy hugs his mom, dad and sister in a big family hug, hearts floating above'],
+  '3-18': ['boy|mom|dad|sister|baby|grandma|grandpa|Coco', 'the whole family stands together smiling in the garden: grandpa, grandma, dad, mom, the boy, his sister, the baby brother sitting in front, and the dog Coco'],
+  '3-19': ['boy|mom|dad|sister|baby|grandma|grandpa|Coco', 'the whole family in one big warm group hug in the garden: grandpa, grandma, dad, mom holding the baby brother, the boy, his sister, and the dog Coco jumping up, hearts floating above'],
   '4-2': ['Lily|Sam', 'Lily smiles and asks Sam a question, one hand raised in a friendly wave'],
   '4-4': ['Lily|Sam', 'Sam asks Lily a question with a curious smile, tilting his head'],
   '4-7': ['Lily|Sam', 'Sam asks Lily a question while they walk together on the park path'],
@@ -514,12 +515,12 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
     // 대명사만 있으면 앞 쪽 인물을 이어 쓰고, 그때만 앞 문장을 함께 준다 (다른 인물이 덤으로 그려지지 않게)
     const carried = !letter && !scene && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text);
     if (carried) who = last;
-    last = who; who = who.slice(0, 4); // 기준 그림은 4장까지
+    last = who; who = who.slice(0, 8); // 5명이 넘으면 기준 그림을 한 장에 모아서 준다 (groupRef)
     const prev = carried && i && !isLetterLine(s.pages[i - 1][0]) ? ` Just before this, ${plain(s.pages[i - 1][0])}.` : '';
     const prompt = letter
       ? `${STYLE}. One single full-page illustration: ${scene ? scene[1] : `a big cute ${thing}`}, in ${place}.`
       : `${STYLE}. One single full-page illustration of this moment, with the action shown clearly: ${scene ? scene[1] : plain(text)}.${prev} `
-        + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. ${['', 'Only one character', 'Only two characters', 'Only three characters', 'Only four characters'][who.length]} in the whole picture, each appearing once. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
+        + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. ${['', 'Only one character', 'Only two characters', 'Only three characters', 'Only four characters', 'Exactly five characters', 'Exactly six characters', 'Exactly seven characters', 'Exactly eight characters'][who.length]} in the whole picture, each appearing once.${who.length > 4 ? ' The reference sheet shows them in this order, left to right, top row first.' : ''} Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
         + ` Background: ${place}, drawn in the same style as the characters, everything illustrated, not a photo, not realistic.${note && who.some(c => new RegExp(note[0]).test(c[1])) ? ` ${note[1]}` : ''}`;
     const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(styleName + d).slice(0, 12)}.png`); refs[f] = d; return f; });
     jobs.push({ kind: 's', key: `${s.id}-${i}`, refFiles, label: text, prompt, draw: prompt + NOTEXT, file: `s/${s.id}-${i}.jpg` });
@@ -585,12 +586,20 @@ const queue = [...todo].sort((a, b) => (a.kind === 's' ? 0 : 1) - (b.kind === 's
 const refJobs = {};
 const refMade = f => fs.existsSync(f) ? null : (refJobs[f] ||= draw(`${STYLE}. Character reference: ${refs[f]}, alone, full body, standing, facing forward, plain white background.`, SIZE.ref, parseInt(hash(f).slice(0, 7), 16), [])
   .then(buf => { save(buf, f, false); console.log(`  인물 기준 그림: ${refs[f]}`); }));
+// 5명 이상(온 가족)이 나오는 쪽: 기준 그림은 4장까지라서 모두를 나란히 붙인 한 장으로 준다
+const GROUP_PY = 'import sys\nfrom PIL import Image\nims=[Image.open(p).convert("RGB") for p in sys.argv[2:]]\nH=384\nims=[i.resize((max(1,i.width*H//i.height),H)) for i in ims]\ncols=4\nW=max(i.width for i in ims)\nrows=(len(ims)+cols-1)//cols\nc=Image.new("RGB",(W*cols,H*rows),"white")\nfor k,i in enumerate(ims):\n  c.paste(i,((k%cols)*W,(k//cols)*H))\nc.save(sys.argv[1])';
+function groupRef(files) {
+  if (files.length <= 4) return files;
+  const f = path.join(refDir, `group-${hash(files.join('|')).slice(0, 12)}.png`);
+  if (!fs.existsSync(f)) execFileSync(path.join(MFLUX, '.venv/bin/python'), ['-I', '-c', GROUP_PY, f, ...files]);
+  return [f];
+}
 async function worker() {
   while (queue.length && !stopped) {
     const j = queue.shift();
     try {
       for (const f of j.refFiles || []) await refMade(f);
-      save(await draw(j.draw || j.prompt, SIZE[j.kind], seedOf(j), j.refFiles), path.join(outDir, j.file));
+      save(await draw(j.draw || j.prompt, SIZE[j.kind], seedOf(j), groupRef(j.refFiles || [])), path.join(outDir, j.file));
       man[j.kind][j.key] = j.file; man.h[j.kind + j.key] = hash(j.prompt).slice(0, 10);
       writeMan(); // 한 장마다 저장: 중간에 Mac을 꺼도 그린 그림은 남는다
       if (++done % 10 === 0) console.log(`  ${done} / ${todo.length}`);
