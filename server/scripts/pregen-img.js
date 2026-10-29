@@ -27,40 +27,43 @@ const COST = { w: 27, s: 58, ref: 27 }; // 예상 뉴런 (출력 칸 26 + 기준
 
 const STYLE = 'Children\'s picture book illustration, soft watercolor with colored pencil lines, warm gentle pastel colors, rounded friendly shapes, cute and kind, simple uncluttered composition, no text, no letters, no words, no numbers, no signs';
 
-// 책마다 등장인물과 장소를 정해 두고, 주인공 기준 그림을 먼저 그려 모든 쪽에 같은 모습으로 나오게 한다
+// 책마다 장소와 등장인물을 정해 둔다. 인물마다 [문장에서 찾을 말(정규식), 모습]이고, 인물별 기준 그림을 먼저 그려
+// 그 쪽 문장에 나오는 인물만 기준 그림과 함께 그린다 (모든 쪽에 같은 모습으로, 안 나오는 인물은 빼고).
+// '*'는 모든 쪽에 나오는 인물(대화 책). 찾는 말이 없고 he/she/it 같은 대명사만 있으면 앞 쪽 인물을 이어 쓴다.
+const NAR = '\\b(I|me|my|we|us|our)\\b', WE = '\\b(we|us|our)\\b';
 const BOOKS = {
-  1: ['a cheerful 5-year-old girl with black pigtails in a red dress, her mom with a ponytail and green blouse, her dad with glasses and a blue sweater', 'a sunny city park with grass and big trees'],
-  2: ['a big round fat orange tabby cat, a small gray rat wearing a little red hat', 'a cozy room with a mat and a cardboard box'],
-  3: ['a 7-year-old boy with short black hair in a yellow T-shirt (the narrator), his kind mom with an apron, his tall dad, his 6-year-old sister in a pink dress, a baby brother, a grandma, a grandpa with a big straw hat, a small brown dog named Coco', 'a warm family home and garden'],
-  4: ['Lily, a 7-year-old girl with long brown hair in a purple shirt, Sam, a 7-year-old boy with curly black hair in a green shirt, a soccer ball', 'a sunny neighborhood park'],
-  5: ['a 6-year-old girl with a short black bob wearing yellow rain boots, a green raincoat and a red umbrella, her small white puppy, her mom', 'a house and a street on a rainy day'],
-  6: ['a 7-year-old boy with short black hair in a striped shirt, his older sister with a ponytail, Max, a fluffy small brown dog with a red ball', 'inside a cozy house'],
-  7: ['an 8-year-old girl with a black ponytail in a blue T-shirt, her mom with short hair, her dad with glasses', 'a zoo, then home and a park'],
-  8: ['a group of cheerful kids imagining their future jobs: a boy pilot, a girl doctor, a boy chef, a boy firefighter, a girl artist', 'bright dreamy scenes of each job'],
-  9: ['friendly cartoon animals marching in a parade with drums and trumpets', 'a festive parade road with flags'],
-  10: ['Ben, a 6-year-old boy wearing a red cap, Tom, his friend with curly hair and a blue shirt, a big red bus', 'a bus ride to the zoo'],
-  11: ['a 6-year-old boy with short black hair in an orange shirt, his big blue toy box with a red car, a brown teddy bear, a ball, a robot and a drum', 'a bright kid bedroom'],
-  12: ['a 7-year-old girl with two buns in a yellow jacket holding a shopping bag, a friendly shopkeeper with a mustache and a green apron', 'a small neighborhood grocery store'],
-  13: ['a 7-year-old boy with short black hair in a blue hoodie, his very tall dad with a beard, a big red kite with a long yellow and green tail', 'a high green hill on a windy day'],
-  14: ['a family on a Sunday: a 7-year-old girl with a black bob, her dad, her friend Mina with pigtails, a happy small white dog', 'home, a park with trees, bikes'],
-  15: ['a 7-year-old girl with long black hair in a pink jacket, a small fluffy cream puppy with a blue collar, her mom, another girl who owns the puppy', 'a park with benches, and a cozy home'],
-  16: ['two kids in white space suits with round helmets, a girl with black hair and a boy with brown hair, a teddy bear, a red and white rocket', 'outer space, stars and the moon'],
-  17: ['a 5-year-old boy with short black hair in a green shirt, his dad with glasses', 'a colorful toy shop'],
-  18: ['a 5-year-old girl with a black bob in a yellow raincoat, her grandpa with white hair and a walking stick', 'a forest trail with flowers and a pond'],
-  19: ['a red hen, a sly orange fox, ten eggs in a nest, fluffy yellow chicks', 'a farm hen pen and a fox den'],
-  20: ['a pink pig, a white duck, Kim, a girl with a ponytail holding a garden hose', 'a muddy farmyard on a hot sunny day'],
-  21: ['a 7-year-old boy with short black hair and a green school bag (the narrator), a nice teacher with long hair, his friend Jisu, a girl who loves drawing', 'a bright elementary school'],
-  22: ['a 6-year-old girl with pigtails in overalls, a friendly farmer with a straw hat, a black and white cow, a pink pig, a white sheep, a brown horse, a yellow chick, goats', 'a green farm with a red barn and a red tractor'],
-  23: ['a 7-year-old boy with short black hair in pajamas who has a cold, a kind doctor with glasses and a white coat', 'a clean doctor\'s office'],
-  24: ['an 8-year-old girl with a black ponytail wearing a party hat, her friends, a toy robot, a pink and white birthday cake with candles', 'a home birthday party with balloons'],
-  25: ['a 6-year-old girl with a short black bob in a green shirt, a small flower pot on a windowsill', 'a sunny windowsill at home'],
-  26: ['a 7-year-old girl with black hair in a warm coat, red hat and blue gloves, her younger brother in a green coat, their mom', 'a snowy yard on a winter morning'],
-  27: ['a 7-year-old girl with black pigtails, her dad reading, her mom working at a laptop, her sleeping older sister, Coco, a small brown dog', 'a home with a garden'],
-  28: ['a 7-year-old girl with a black bob in a sun hat, her little brother, her dad with a beach umbrella, her mom reading, a little red crab', 'a sunny sandy beach by the blue sea'],
-  29: ['an 8-year-old boy with short black hair in a red jacket, his dad with a beard, his mom with a ponytail', 'a campsite by a lake in the mountains'],
-  30: ['an 8-year-old girl with long black hair in a yellow dress, her gentle grandma with gray hair and glasses', 'a country house with a big colorful garden'],
-  31: ['an 8-year-old boy with short black hair and a backpack, his dad, his mom, his older sister with a ponytail', 'Jeju Island in Korea: sea, orange trees, mountains'],
-  32: ['an 8-year-old boy with short black hair in an orange hoodie, Bolt, a friendly round white and blue robot with big round eyes, a small dog', 'a cozy future home'],
+  1: ['a sunny city park with green grass and big trees', [[NAR, 'a cheerful 5-year-old girl with black pigtails in a red dress'], [`mom|${WE}`, 'her mom with a brown ponytail and a green blouse'], [WE, 'her dad with glasses and a blue sweater']]],
+  2: ['a cozy living room with a round woven mat and a cardboard box', [['cat', 'a big round fat orange tabby cat'], ['rat', 'a small gray rat wearing a little red pointed hat']]],
+  3: ['a warm family home with a garden', [[NAR, 'a 7-year-old boy with short black hair in a yellow T-shirt'], ['mom|family', 'his kind mom with a bun and a white apron'], ['dad|family', 'his tall dad with a short beard'], ['sister|family', 'his 6-year-old sister in a pink dress'], ['baby', 'a chubby baby brother in a blue onesie'], ['grandma', 'a grandma with gray curly hair and a flower cardigan'], ['grandpa', 'a grandpa with a white mustache and a big straw hat'], ['dog|Coco', 'Coco, a small brown dog with floppy ears']]],
+  4: ['a sunny neighborhood park', [['*', 'Lily, a 7-year-old girl with long brown hair in a purple shirt'], ['*', 'Sam, a 7-year-old boy with curly black hair in a green shirt']]],
+  5: ['a small house and a street on a rainy day', [[NAR, 'a 6-year-old girl with a short black bob in a green raincoat and yellow rain boots, carrying a red umbrella'], ['dog', 'her small white puppy'], ['frog', 'a little shiny green frog'], ['mom', 'her mom with a brown ponytail and a cozy sweater']]],
+  6: ['inside a cozy house', [[NAR, 'a 7-year-old boy with short black hair in a red and white striped shirt'], [`sister|${WE}`, 'his older sister with a long black ponytail in a yellow hoodie'], ['Max|dog|\\b(he|his)\\b', 'Max, a fluffy small brown dog'], ['ball', 'a red ball']]],
+  7: ['a zoo, a cozy home kitchen, or a park, whichever fits this moment', [[NAR, 'an 8-year-old girl with a black ponytail in a blue T-shirt'], ['mom', 'her mom with short brown hair'], ['dad', 'her dad with glasses and a gray jacket'], ['friends', 'two friends, a boy and a girl']]],
+  8: ['a bright dreamy scene showing that job', [['\\bI\\b|pilot', 'a boy with short black hair dressed as a pilot'], ['sister|doctor', 'a girl with a black ponytail dressed as a doctor'], ['friend|chef', 'a boy with curly hair dressed as a chef'], ['brother|firefighter', 'a boy dressed as a firefighter'], ['cousin|artist', 'a girl with braids dressed as an artist'], ['teacher', 'a smiling teacher with glasses']]],
+  9: ['a festive parade road with colorful flags', []],
+  10: ['a big red bus and a sunny zoo', [['Ben|they', 'Ben, a 6-year-old boy wearing a red cap'], ['Tom|they', 'Tom, a 6-year-old boy with curly hair in a blue shirt']]],
+  11: ['a bright kid bedroom', [[NAR, 'a 6-year-old boy with short black hair in an orange shirt'], [`friend|${WE}`, 'his friend, a girl with two braids'], ['toy box|\\bbox\\b', 'a big blue toy box']]],
+  12: ['a small neighborhood grocery store with fruit shelves', [['*', 'a 7-year-old girl with two hair buns in a yellow jacket'], ['*', 'a friendly shopkeeper with a mustache and a green apron']]],
+  13: ['a high green hill on a windy day', [[NAR, 'a 7-year-old boy with short black hair in a blue hoodie'], ['dad|\\bhe\\b', 'his very tall dad with a beard'], ['kite|tail|string|\\bit\\b', 'a big red diamond-shaped kite with a long yellow and green tail'], ['bird', 'a little brown bird']]],
+  14: ['home, or a park with big trees, whichever fits this moment', [[WE, 'a 7-year-old girl with a black bob in a pink shirt'], ['dad', 'her dad in a blue apron'], ['dog', 'a happy small white dog'], ['Mina|friends', 'Mina, a girl with pigtails in a green dress']]],
+  15: ['a park with benches, or a cozy home, whichever fits this moment', [[NAR, 'a 7-year-old girl with long black hair in a pink jacket'], ['puppy|\\b(it|its)\\b', 'a small fluffy cream puppy with a blue collar'], [`mom|${WE}`, 'her mom with short brown hair'], ['girl|\\b(she|her)\\b', 'another girl with red braids, the puppy\'s owner']]],
+  16: ['outer space with stars and the moon', [['*', 'a girl with black hair in a white space suit and a round helmet'], ['*', 'a boy with brown hair in a white space suit and a round helmet'], ['rocket', 'a red and white rocket']]],
+  17: ['a colorful toy shop', [[NAR, 'a 5-year-old boy with short black hair in a green shirt'], ['Dad|\\bwe\\b', 'his dad with glasses']]],
+  18: ['a forest trail with flowers and a pond', [[NAR, 'a 5-year-old girl with a black bob in a yellow raincoat'], ['Grandpa', 'her grandpa with white hair and a walking stick']]],
+  19: ['a farm with a hen pen and a fox den', [['hen', 'a red hen'], ['fox', 'a sly orange fox'], ['egg', 'ten white eggs in a straw nest'], ['chick', 'fluffy yellow chicks']]],
+  20: ['a muddy farmyard on a hot sunny day', [['pig', 'a pink pig'], ['duck', 'a white duck with an orange beak'], ['Kim', 'Kim, a girl with a ponytail holding a green garden hose']]],
+  21: ['a bright elementary school', [[NAR, 'a 7-year-old boy with short black hair and a green school bag'], ['teacher|\\bshe\\b', 'a nice teacher with long brown hair'], ['Jisu', 'Jisu, a girl with a short bob who loves drawing']]],
+  22: ['a green farm with a red barn', [[NAR, 'a 6-year-old girl with pigtails in blue overalls'], ['farmer|tractor', 'a friendly farmer with a straw hat']]],
+  23: ['a clean doctor\'s office', [['*', 'a 7-year-old boy with short black hair in striped pajamas'], ['*', 'a kind doctor with glasses and a white coat']]],
+  24: ['a home birthday party with balloons', [['*', 'an 8-year-old girl with a black ponytail wearing a party hat'], ['friends|\\bwho\\b', 'her friends, a boy and a girl'], ['robot', 'a toy robot'], ['cake|candles|wish', 'a pink and white birthday cake with candles']]],
+  25: ['a sunny windowsill at home', [[NAR, 'a 6-year-old girl with a short black bob in a green shirt'], ['pot|seed|sprout|flower|bud|leaves', 'a small terracotta flower pot'], ['bee', 'a fuzzy bee']]],
+  26: ['a snowy yard on a winter morning', [[NAR, 'a 7-year-old girl with black hair in a warm coat, a red hat and blue gloves'], [`brother|${WE}`, 'her younger brother in a green coat and a striped scarf'], ['Mom', 'their mom'], ['snowman|\\b(he|his)\\b', 'a big snowman with a long orange carrot nose and black stone eyes']]],
+  27: ['a home with a garden', [[NAR, 'a 7-year-old girl with black pigtails'], ['Dad', 'her dad with glasses'], ['Mom', 'her mom with a bun'], ['sister|\\bshe\\b', 'her older sister with long hair'], ['Coco|dog', 'Coco, a small brown dog']]],
+  28: ['a sunny sandy beach by the blue sea', [[NAR, 'a 7-year-old girl with a black bob in a sun hat'], [`brother|${WE}`, 'her little brother in striped swim shorts'], [`Dad|${WE}|\\bhe\\b`, 'her dad with a beard'], [`Mom|${WE}|\\bshe\\b`, 'her mom with sunglasses'], ['crab|\\bit\\b', 'a little red crab']]],
+  29: ['a campsite by a lake in the mountains', [[NAR, 'an 8-year-old boy with short black hair in a red jacket'], [`Dad|${WE}`, 'his dad with a beard'], [`Mom|${WE}`, 'his mom with a ponytail']]],
+  30: ['a country house with a big colorful garden', [[NAR, 'an 8-year-old girl with long black hair in a yellow dress'], [`Grandma|\\b(she|her)\\b|${WE}`, 'her gentle grandma with gray hair and glasses']]],
+  31: ['Jeju Island in Korea with the sea, orange trees and mountains', [[NAR, 'an 8-year-old boy with short black hair and a backpack'], [`dad|${WE}`, 'his dad'], [WE, 'his mom'], ['sister', 'his older sister with a ponytail']]],
+  32: ['a cozy future home', [[NAR, 'an 8-year-old boy with short black hair in an orange hoodie'], [`Bolt|robot|\\b(he|his)\\b|${WE}`, 'Bolt, a friendly round white and blue robot with big round eyes'], ['dog', 'a small dog']]],
 };
 
 const ctx = {}; vm.createContext(ctx);
@@ -82,19 +85,25 @@ if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
   const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
   jobs.push({ kind: 'w', key: e, label, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
 }
-const refs = {};
+const refs = {}; // 인물 기준 그림: 파일 경로 → 그림 설명
 if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
   if (book && s.id !== book) continue;
-  const [cast, place] = BOOKS[s.id] || ['friendly characters', 'a bright place'];
-  refs[s.id] = { prompt: `${STYLE}. Character reference sheet: ${cast}. Everyone standing side by side, full body, facing forward, plain white background.`, file: path.join(refDir, `${s.id}-${hash(cast).slice(0, 8)}.png`) };
+  const [place, cast] = BOOKS[s.id] || ['a bright place', []];
+  let last = [];
   s.pages.forEach(([text], i) => {
     const letter = isLetterLine(text);
     const thing = letter && text.replace(/^[A-Z] is for | ends with [A-Z]\.?$/g, '').replace(/\.$/, '');
-    const prev = i && !isLetterLine(s.pages[i - 1][0]) ? ` The story so far: "${s.pages[i - 1][0]}"` : '';
+    let who = letter ? [] : cast.filter(([k]) => k === '*' || new RegExp(k, 'i').test(text));
+    if (!letter && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text)) who = last;
+    last = who; who = who.slice(0, 4); // 기준 그림은 4장까지
+    const prev = i && !isLetterLine(s.pages[i - 1][0]) ? ` (Just before: "${s.pages[i - 1][0]}")` : '';
     const prompt = letter
       ? `${STYLE}. A page from the alphabet picture book "${s.title}": a big cute ${thing}, in ${place}.`
-      : `${STYLE}. A page from the picture book "${s.title}". Characters: ${cast}. Setting: ${place}.${prev} Illustrate this moment: "${text}" Keep every character looking exactly like the reference image.`;
-    jobs.push({ kind: 's', key: `${s.id}-${i}`, book: s.id, useRef: !letter, label: text, prompt, file: `s/${s.id}-${i}.jpg` });
+      : `${STYLE}. Picture book "${s.title}". Illustrate exactly this moment, showing the action clearly: "${text}"${prev}. `
+        + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. Do not add other people or animals. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
+        + ` Background: ${place}, hand-drawn in the same soft watercolor and colored pencil style as the characters, everything illustrated, not a photo, not realistic.`;
+    const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(d).slice(0, 12)}.png`); refs[f] = d; return f; });
+    jobs.push({ kind: 's', key: `${s.id}-${i}`, refFiles, label: text, prompt, file: `s/${s.id}-${i}.jpg` });
   });
 }
 
@@ -103,7 +112,7 @@ const manPath = path.join(outDir, 'manifest.json');
 let man = { w: {}, s: {}, h: {}, n: {} };
 try { man = { ...man, ...JSON.parse(fs.readFileSync(manPath, 'utf8')) }; } catch (e) { /* 처음 */ }
 const todo = jobs.filter(j => redo.has(j.key) || !man[j.kind][j.key] || man.h[j.kind + j.key] !== hash(j.prompt).slice(0, 10) || !fs.existsSync(path.join(outDir, man[j.kind][j.key])));
-const needRefs = new Set(todo.filter(j => j.useRef && !fs.existsSync(refs[j.book].file)).map(j => j.book));
+const needRefs = new Set(todo.flatMap(j => j.refFiles || []).filter(f => !fs.existsSync(f)));
 const neurons = todo.reduce((n, j) => n + COST[j.kind], 0) + needRefs.size * COST.ref;
 console.log(`단어 그림 ${jobs.filter(j => j.kind === 'w').length}개 · 스토리 ${jobs.filter(j => j.kind === 's').length}쪽 중 그릴 것 ${todo.length}개`);
 console.log(`예상 사용량 약 ${neurons.toLocaleString()} 뉴런 → 하루 무료 10,000 뉴런으로 약 ${Math.max(1, Math.ceil(neurons / 9500))}일`);
@@ -112,10 +121,10 @@ const { CF_ACCOUNT_ID: account, CF_AI_TOKEN: token } = process.env;
 if (!account || !token) { console.error('server/.env 에 CF_ACCOUNT_ID 와 CF_AI_TOKEN 을 넣어 주세요. (deploy/DEPLOY.md 4-4-2 참고)'); process.exit(1); }
 
 class Quota extends Error {}
-async function draw(prompt, [width, height], seed, ref) {
+async function draw(prompt, [width, height], seed, refFiles = []) {
   const fd = new FormData();
   fd.append('prompt', prompt); fd.append('width', String(width)); fd.append('height', String(height)); fd.append('seed', String(seed));
-  if (ref) fd.append('input_image_0', new Blob([fs.readFileSync(ref)], { type: 'image/png' }), 'ref.png');
+  refFiles.forEach((f, k) => fd.append(`input_image_${k}`, new Blob([fs.readFileSync(f)], { type: 'image/png' }), `ref${k}.png`));
   const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${MODEL}`, {
     method: 'POST', signal: AbortSignal.timeout(120000), headers: { Authorization: `Bearer ${token}` }, body: fd,
   });
@@ -129,10 +138,9 @@ async function draw(prompt, [width, height], seed, ref) {
 // macOS면 sips로 가벼운 JPEG로 바꾼다 (없으면 받은 그대로)
 function save(buf, file, jpeg = true) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  const isJpeg = buf[0] === 0xff && buf[1] === 0xd8;
-  if (!jpeg || isJpeg) return fs.writeFileSync(file, buf);
+  if (!jpeg) return fs.writeFileSync(file, buf);
   const tmp = file + '.src'; fs.writeFileSync(tmp, buf);
-  try { execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '78', tmp, '--out', file], { stdio: 'ignore' }); fs.unlinkSync(tmp); }
+  try { execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '62', tmp, '--out', file], { stdio: 'ignore' }); fs.unlinkSync(tmp); }
   catch (e) { fs.renameSync(tmp, file); }
 }
 const seedOf = j => parseInt(hash(j.key).slice(0, 7), 16) + (man.n[j.kind + j.key] || 0) * 7919;
@@ -141,16 +149,16 @@ const writeMan = () => fs.writeFileSync(manPath, JSON.stringify(man));
 let done = 0, fail = 0, stopped = null;
 for (const j of todo) if (redo.has(j.key)) man.n[j.kind + j.key] = (man.n[j.kind + j.key] || 0) + 1; // 다시 그릴 때는 다른 모습으로
 const queue = [...todo];
+// 인물 기준 그림은 한 번만 그린다 (두 작업이 동시에 같은 인물을 그리지 않게)
+const refJobs = {};
+const refMade = f => fs.existsSync(f) ? null : (refJobs[f] ||= draw(`${STYLE}. Character reference: ${refs[f]}, alone, full body, standing, facing forward, plain white background.`, SIZE.ref, parseInt(hash(f).slice(0, 7), 16), [])
+  .then(buf => { save(buf, f, false); console.log(`  인물 기준 그림: ${refs[f]}`); }));
 async function worker() {
   while (queue.length && !stopped) {
     const j = queue.shift();
     try {
-      let ref = null;
-      if (j.useRef) {
-        ref = refs[j.book].file;
-        if (!fs.existsSync(ref)) { save(await draw(refs[j.book].prompt, SIZE.ref, j.book * 101, null), ref, false); console.log(`  주인공 기준 그림: ${j.book}권`); }
-      }
-      save(await draw(j.prompt, SIZE[j.kind], seedOf(j), ref), path.join(outDir, j.file));
+      for (const f of j.refFiles || []) await refMade(f);
+      save(await draw(j.prompt, SIZE[j.kind], seedOf(j), j.refFiles), path.join(outDir, j.file));
       man[j.kind][j.key] = j.file; man.h[j.kind + j.key] = hash(j.prompt).slice(0, 10);
       if (++done % 10 === 0) { writeMan(); console.log(`  ${done} / ${todo.length}`); }
     } catch (err) {

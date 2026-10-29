@@ -206,8 +206,8 @@ const App = (() => {
       try { const r = await fetch('audio/manifest.json'); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
     }
     Speech.configure({ server: API.on && !!API.cfg.tts, manifest, stt: API.on && !!API.cfg.stt });
-    // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만, 기다리지 않고 받는다)
-    fetch('img/manifest.json').then(r => (r.ok ? r.json() : null)).then(m => m && setPics(m)).catch(() => { /* 없음 */ });
+    // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만). 첫 화면이 이모지로 그려지지 않게 받고 나서 시작한다
+    try { const r = await fetch('img/manifest.json'); if (r.ok) setPics(await r.json()); } catch (e) { /* 없음 */ }
     if (Speech.env.inApp || Speech.env.iosNotSafari) inAppBanner();
     // 서버 없이(예: GitHub Pages) 열렸을 때는 데모라는 걸 알려준다
     const banner = document.getElementById('demoBanner');
