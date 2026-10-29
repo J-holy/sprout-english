@@ -284,7 +284,9 @@ const Challenge = (() => {
         const opts = shuffle([ans, ...letterOthers(ans, 3)]);
         const colors = ['#ff7aa8', '#ffd23f', '#5cc8ff', '#7ed957'];
         stage.innerHTML = `<div class="sky ch-sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k]};--d:${k * 0.2}s;--x:${k * 25 + 2}%" data-v="${o}"><span class="ch-letter">${k % 2 ? o.toLowerCase() : o}</span></button>`).join('')}</div>`;
+        stage.insertAdjacentHTML('beforeend', '<button class="btn btn-ghost sm ch-again" data-again>🔊 다시</button>');
         Speech.speak(ans);
+        stage.querySelector('[data-again]').onclick = () => Speech.speak(ans);
         stage.querySelectorAll('.balloon').forEach(b => b.onclick = () => {
           const ok = b.dataset.v === ans; b.classList.add(ok ? 'pop' : 'nope');
           stage.querySelectorAll('.balloon').forEach(x => x.disabled = true); hit(ok);

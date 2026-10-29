@@ -203,7 +203,8 @@ const App = (() => {
     // AI 음성: 서버에 TTS 키가 있으면 /api/tts, 없으면 미리 만든 audio/manifest.json (있을 때만)
     let manifest = null;
     if (!(API.on && API.cfg.tts)) {
-      try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); // 음성을 새로 올린 뒤 옛 목록으로 없는 파일을 찾지 않게 if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
+      // 늘 새로 확인한다: 음성을 새로 올린 뒤 브라우저에 남은 옛 목록으로 없는 파일을 찾지 않게
+      try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
     }
     Speech.configure({ server: API.on && !!API.cfg.tts, manifest, stt: API.on && !!API.cfg.stt });
     // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만). 첫 화면이 이모지로 그려지지 않게 받고 나서 시작한다

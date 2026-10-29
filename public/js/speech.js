@@ -70,7 +70,7 @@ const Speech = (() => {
     let acc = 0;
     return weight.map(x => { const at = lead + acc / total * span; acc += x; return at; });
   }
-  function playNeural(text, { onWord, onEnd, slow }) {
+  function playNeural(text, { onWord, onEnd, slow, deviceText }) {
     const url = audioUrl(text, slow);
     if (!url) return false;
     const id = ++playId, a = player || new Audio();
@@ -83,7 +83,7 @@ const Speech = (() => {
     const alive = () => id === playId && !ended;
     const stopHere = () => { ended = true; clearTimeout(tickTimer); clearTimeout(guard); if (audio === a) audio = null; };
     const finish = () => { if (!alive()) return; stopHere(); onEnd && onEnd(); };
-    const fallback = () => { if (!alive()) return; stopHere(); a.pause(); speakBrowser(text, { onWord, onEnd, slow }); };
+    const fallback = () => { if (!alive()) return; stopHere(); a.pause(); speakBrowser(deviceText || text, { onWord, onEnd, slow }); };
     // 지킴이: 4초 안에 소리가 시작되지 않으면 기기 목소리로 읽고, 시작했는데 끝 알림이 안 오면 길이만큼 지나서 끝낸다
     // (아이패드에서 소리가 막히거나 알림이 빠지면 자동 넘김이 그 자리에서 멈췄다)
     guard = setTimeout(fallback, 4000);
@@ -144,6 +144,8 @@ const Speech = (() => {
   let gen = 0, later = [];
   // 알파벳을 이름으로 읽게 바꾸는 speechText()는 content.js에 있어요 (AI 음성 미리 만들기와 같이 쓰려고)
   function speak(text, opts = {}) {
+    // 기기 목소리는 글자 하나('A')를 글자 이름으로 잘 읽지만 'ay' 같은 이름 철자는 '아이'로 읽기도 해서, 그때는 글자를 그대로 준다
+    const raw = String(text).trim(), deviceText = /^[A-Z]$/.test(raw) ? raw : null;
     text = speechText(text);
     stop();
     const my = gen;
@@ -153,8 +155,8 @@ const Speech = (() => {
     const userWord = opts.onWord;
     const onWord = userWord && only(k => { if (k !== lastWord) { lastWord = k; userWord(k); } });
     opts = { ...opts, onEnd: only(opts.onEnd), onWord };
-    if (useNeural() && playNeural(text, opts)) return;
-    speakBrowser(text, opts);
+    if (useNeural() && playNeural(text, { ...opts, deviceText })) return;
+    speakBrowser(deviceText || text, opts);
   }
   // 잠시 뒤에 말하기 — 그 사이 멈추거나 다른 소리가 나면 취소된다
   function speakLater(text, ms, opts) { later.push(setTimeout(() => speak(text, opts), ms)); }

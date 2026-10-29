@@ -83,7 +83,8 @@ await Promise.all([worker(), worker(), worker()]);
 if (staticDir) {
   fs.writeFileSync(path.join(staticDir, 'manifest.json'), JSON.stringify({ provider: ttsProvider(), created: new Date().toISOString(), files: manifest }));
   // 이제 쓰지 않는 옛 음성 파일 정리
-  const used = new Set(Object.values(manifest)); let removed = 0;
+  // 바로 앞 목록의 파일은 남겨 둔다: 브라우저에 남은 옛 목록(최대 10분 캐시)이 지운 파일을 찾아 소리가 안 나는 일이 없게
+  const used = new Set([...Object.values(manifest), ...Object.values(old)]); let removed = 0;
   for (const f of fs.readdirSync(staticDir)) if (/\.(mp3|wav)$/.test(f) && !used.has(f)) { fs.unlinkSync(path.join(staticDir, f)); removed++; }
   console.log(`정적 파일 ${Object.keys(manifest).length}개와 manifest.json 을 ${staticDir} 에 만들었어요.${removed ? ` (안 쓰는 옛 파일 ${removed}개 정리)` : ''}`);
 }
