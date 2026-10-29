@@ -287,7 +287,18 @@ label.check { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .profile-pick:hover { transform: translateY(-5px) rotate(-2deg); }
 .profile-pick b { font-family: var(--title); font-weight: 400; font-size: 1.2rem; } .profile-pick small { color: var(--muted); }
 .avatar { font-size: 3rem; line-height: 1; position: relative; display: inline-block; }
-.avatar .acc { position: absolute; top: -.45em; right: -.3em; font-size: .55em; font-style: normal; transform: rotate(12deg); }
+.avatar .acc { position: absolute; font-style: normal; line-height: 1; pointer-events: none; }
+/* 부위마다 자리: 머리 위 · 눈 · 목 · 오른손 · 왼쪽 친구 · 둘레 효과 */
+.avatar .acc-head { top: -.42em; left: 50%; transform: translateX(-50%); font-size: .55em; }
+.avatar .acc-face { top: 50%; left: 50%; transform: translate(-50%, -62%); font-size: .5em; }
+.avatar .acc-neck { bottom: -.12em; left: 50%; transform: translateX(-50%); font-size: .38em; }
+.avatar .acc-hand { bottom: -.05em; right: -.42em; font-size: .45em; transform: rotate(10deg); }
+.avatar .acc-pet { bottom: -.12em; left: -.45em; font-size: .4em; }
+.avatar .acc-fx { top: -.2em; left: -.3em; font-size: .38em; animation: acc-twinkle 2.4s ease-in-out infinite; }
+@keyframes acc-twinkle { 50% { transform: scale(1.18) rotate(-8deg); } }
+@media (prefers-reduced-motion: reduce) { .avatar .acc-fx { animation: none; } }
+.acc-slot-title { font-size: 1rem; margin: 14px 0 6px; color: var(--muted); }
+.shop-item.worn { outline: 3px solid var(--grape); outline-offset: -3px; }
 .avatar.big { font-size: 3.2rem; background: var(--sky2); border: var(--bw) solid var(--line); border-radius: 50%; width: 80px; height: 80px; display: grid; place-items: center; flex: none; }
 .avatar.huge { font-size: 5rem; }
 .profile-pick.add .avatar { color: var(--muted); }

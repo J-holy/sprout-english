@@ -14,7 +14,7 @@ const voiceOptions = () => [
 ].join('');
 const dayLabel = d => `Day ${d + 1}${Gen.isReviewDay(d) ? ' · 복습' : ''}`;
 const scoreClass = s => s >= 80 ? 'good' : s >= 60 ? 'mid' : 'low';
-const avatarHtml = (p, cls = '') => `<span class="avatar ${cls}">${p.avatar}${Store.accEmoji(p) ? `<i class="acc">${Store.accEmoji(p)}</i>` : ''}</span>`;
+const avatarHtml = (p, cls = '') => `<span class="avatar ${cls}">${p.avatar}${Store.worn(p).map(w => `<i class="acc acc-${w.slot}" aria-hidden="true">${w.emoji}</i>`).join('')}</span>`;
 // 놀이터·카드에 쓸 그림 단어 (알파벳 단어 + 파닉스 단어)
 const PICTURE_WORDS = [...LETTERS.flatMap(l => l.words.map(([en, emoji]) => ({ en, emoji }))), ...Object.values(PHONICS).flat().map(([en, emoji]) => ({ en, emoji }))]
   .filter((w, i, a) => a.findIndex(x => x.en === w.en) === i);
@@ -1314,8 +1314,8 @@ Views.shop = el => {
         <div class="card star-bank"><div class="avatar-show">${avatarHtml(p, 'huge')}</div><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p></div>
         <div class="card"><h3>별은 이렇게 모아요</h3>${UI.starsInfo()}</div>
       </div>
-      <h2 class="sec-sub">아바타 꾸미기</h2>
-      <div class="shop-grid">${SHOP.filter(i => i.kind === 'acc').map(item).join('')}</div>
+      <h2 class="sec-sub">아바타 꾸미기 <small>부위마다 하나씩, 여러 개를 함께 입을 수 있어요</small></h2>
+      ${ACC_SLOTS.map(([slot, label]) => `<h3 class="acc-slot-title">${label}</h3><div class="shop-grid">${SHOP.filter(i => i.kind === 'acc' && i.slot === slot).map(item).join('')}</div>`).join('')}
       <h2 class="sec-sub">스티커</h2>
       <div class="shop-grid">${SHOP.filter(i => i.kind === 'sticker').map(item).join('')}</div>
       <h2 class="sec-sub">🏅 레벨 배지 <small>${Object.keys(p.badges || {}).length}/${ALL_LEVELS.length} · 레벨 마지막 날(복습)을 70% 이상으로 통과하면 받아요</small></h2>
@@ -1327,12 +1327,12 @@ Views.shop = el => {
       try { if (Store.buy(b.dataset.buy)) { Speech.sfx.cheer(); Lesson.confetti(); App.toast('새 아이템을 얻었어요! 🎉'); draw(); App.refreshHeader(); } }
       catch (x) { Speech.sfx.wrong(); App.toast(x.message); }
     });
-    $$('[data-equip]', el).forEach(b => b.onclick = () => { Store.equip(b.dataset.equip); draw(); });
+    $$('[data-equip]', el).forEach(b => b.onclick = () => { Store.equip(b.dataset.equip); Speech.sfx.tap(); draw(); App.refreshHeader(); });
   };
   const item = i => {
-    const own = p.owned.includes(i.id), on = p.acc === i.id;
-    return `<div class="shop-item ${own ? 'own' : ''}"><span class="si-emoji">${i.emoji}</span><b>${i.name}</b>
-      ${own ? (i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>`}</div>`;
+    const own = p.owned.includes(i.id), on = Store.isWorn(i.id, p);
+    return `<div class="shop-item ${own ? 'own' : ''} ${on ? 'worn' : ''}"><span class="si-emoji">${i.emoji}</span><b>${i.name}</b>
+      ${own ? (i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}" aria-pressed="${on}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>`}</div>`;
   };
   draw();
 };

@@ -62,8 +62,10 @@ const Store = (() => {
     for (const lv of Object.values(p.progress || {})) (lv.lessons || []).forEach(r => { if (r && r.score > 100) r.score = 100; });
     if (p.recentScores) p.recentScores = p.recentScores.map(x => Math.min(100, x));
     if (p.stats && p.stats.correct > p.stats.answered) p.stats.correct = p.stats.answered;
+    // 예전에는 꾸미기를 하나만(acc) 입었다 → 부위마다 하나씩(wear)
+    if (!p.wear) { p.wear = {}; const old = p.acc && SHOP.find(x => x.id === p.acc); if (old) p.wear[old.slot] = old.id; }
     return Object.assign({ progress: {}, stamps: {}, minutes: {}, stats: { answered: 0, correct: 0 }, wrong: [], speaking: [], stories: {}, dailyGoal: 2,
-      stars: 0, owned: [], acc: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {}, recent: [] }, p);
+      stars: 0, owned: [], acc: null, wear: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {}, recent: [] }, p);
   }
   async function loadMe() {
     try {
@@ -386,11 +388,19 @@ const Store = (() => {
     if (!it || p.owned.includes(itemId)) return false;
     if (p.stars < it.cost) throw new Error(`별이 ${it.cost - p.stars}개 더 필요해요.`);
     p.stars -= it.cost; p.owned.push(itemId);
-    if (it.kind === 'acc' && !p.acc) p.acc = itemId;
+    if (it.kind === 'acc' && !p.wear[it.slot]) p.wear[it.slot] = itemId; // 그 부위가 비어 있으면 바로 입기
     save(); return true;
   }
-  function equip(itemId) { const p = profile(); p.acc = p.acc === itemId ? null : itemId; save(); }
-  const accEmoji = (p = profile()) => { const it = p && p.acc && SHOP.find(x => x.id === p.acc); return it ? it.emoji : ''; };
+  // 같은 부위의 다른 아이템은 벗고 이것을 입는다. 이미 입고 있으면 벗는다
+  function equip(itemId) {
+    const p = profile(), it = SHOP.find(x => x.id === itemId); if (!it || !p.owned.includes(itemId)) return;
+    p.wear = p.wear || {};
+    if (p.wear[it.slot] === itemId) delete p.wear[it.slot]; else p.wear[it.slot] = itemId;
+    save();
+  }
+  const isWorn = (itemId, p = profile()) => !!(p && p.wear && Object.values(p.wear).includes(itemId));
+  // 입고 있는 꾸미기 [{slot, emoji}]
+  const worn = (p = profile()) => (p && p.wear ? ACC_SLOTS.map(([slot]) => SHOP.find(x => x.id === p.wear[slot])).filter(Boolean).map(it => ({ slot: it.slot, emoji: it.emoji })) : []);
   function gameResult(game, score) {
     const p = profile(); p.games = p.games || {};
     const best = p.games[game] || 0; p.games[game] = Math.max(best, score);
@@ -593,7 +603,7 @@ const Store = (() => {
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
-    addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, accEmoji, gameResult, markWorksheet,
+    addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
     notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, setTheme, exportData, importData, persist, hash,

@@ -42,11 +42,30 @@ const SHOP = [
   { id: 'st-icecream', kind: 'sticker', emoji: '🍦', name: '아이스크림', cost: 4 },
   { id: 'st-trophy', kind: 'sticker', emoji: '🏆', name: '트로피', cost: 10 },
   { id: 'st-planet', kind: 'sticker', emoji: '🪐', name: '토성', cost: 8 },
-  { id: 'acc-crown', kind: 'acc', emoji: '👑', name: '왕관', cost: 12 },
-  { id: 'acc-hat', kind: 'acc', emoji: '🎩', name: '마술 모자', cost: 8 },
-  { id: 'acc-glasses', kind: 'acc', emoji: '🕶️', name: '선글라스', cost: 8 },
-  { id: 'acc-bow', kind: 'acc', emoji: '🎀', name: '리본', cost: 6 },
+  // 아바타 꾸미기: 부위(slot)마다 하나씩, 여러 부위를 함께 입을 수 있어요
+  { id: 'acc-bow', kind: 'acc', slot: 'head', emoji: '🎀', name: '리본', cost: 6 },
+  { id: 'acc-cap', kind: 'acc', slot: 'head', emoji: '🧢', name: '야구 모자', cost: 6 },
+  { id: 'acc-flower', kind: 'acc', slot: 'head', emoji: '🌼', name: '꽃 핀', cost: 5 },
+  { id: 'acc-sunhat', kind: 'acc', slot: 'head', emoji: '👒', name: '밀짚모자', cost: 8 },
+  { id: 'acc-hat', kind: 'acc', slot: 'head', emoji: '🎩', name: '마술 모자', cost: 8 },
+  { id: 'acc-grad', kind: 'acc', slot: 'head', emoji: '🎓', name: '졸업 모자', cost: 10 },
+  { id: 'acc-crown', kind: 'acc', slot: 'head', emoji: '👑', name: '왕관', cost: 12 },
+  { id: 'acc-glasses', kind: 'acc', slot: 'face', emoji: '🕶️', name: '선글라스', cost: 8 },
+  { id: 'acc-specs', kind: 'acc', slot: 'face', emoji: '👓', name: '동그란 안경', cost: 6 },
+  { id: 'acc-scarf', kind: 'acc', slot: 'neck', emoji: '🧣', name: '목도리', cost: 6 },
+  { id: 'acc-medal', kind: 'acc', slot: 'neck', emoji: '🏅', name: '금메달', cost: 10 },
+  { id: 'acc-balloon', kind: 'acc', slot: 'hand', emoji: '🎈', name: '풍선', cost: 5 },
+  { id: 'acc-lollipop', kind: 'acc', slot: 'hand', emoji: '🍭', name: '막대사탕', cost: 5 },
+  { id: 'acc-wand', kind: 'acc', slot: 'hand', emoji: '🪄', name: '요술봉', cost: 9 },
+  { id: 'acc-teddy', kind: 'acc', slot: 'hand', emoji: '🧸', name: '곰 인형', cost: 8 },
+  { id: 'acc-chick', kind: 'acc', slot: 'pet', emoji: '🐥', name: '병아리 친구', cost: 10 },
+  { id: 'acc-butterfly', kind: 'acc', slot: 'pet', emoji: '🦋', name: '나비 친구', cost: 10 },
+  { id: 'acc-turtle', kind: 'acc', slot: 'pet', emoji: '🐢', name: '거북이 친구', cost: 12 },
+  { id: 'acc-sparkle', kind: 'acc', slot: 'fx', emoji: '✨', name: '반짝반짝', cost: 7 },
+  { id: 'acc-hearts', kind: 'acc', slot: 'fx', emoji: '💖', name: '하트', cost: 7 },
+  { id: 'acc-music', kind: 'acc', slot: 'fx', emoji: '🎵', name: '음표', cost: 7 },
 ];
+const ACC_SLOTS = [['head', '머리'], ['face', '얼굴'], ['neck', '목'], ['hand', '손'], ['pet', '친구'], ['fx', '효과']];
 
 
 const FAQ = [
