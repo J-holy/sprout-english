@@ -917,3 +917,9 @@ body.in-lesson .demo-banner { display: none; }
 .free-card span { font-size: 2.4rem; } .free-card b { font-family: var(--title); font-weight: 400; font-size: 1.15rem; } .free-card small { font-size: .82rem; }
 @media (max-width: 900px) { .free-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 600px) { .free-grid { grid-template-columns: repeat(2, 1fr); } .word-row { grid-template-columns: 44px 1fr 30px; } .wr-meta { grid-column: 2 / 4; justify-items: start; } }
+
+/* 미리 그린 그림: 이모지 자리에 같은 크기로 들어간다 */
+img.pic { height: 1.25em; width: auto; vertical-align: middle; border-radius: .22em; }
+.q-show.huge img.pic, .mole-pic img.pic, .mq-opt img.pic, .mcard img.pic, .balloon img.pic { height: 1.6em; border-radius: .3em; }
+.story-art.story-photo { background: #fffaf0; }
+.story-art.story-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }

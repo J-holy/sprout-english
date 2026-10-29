@@ -202,6 +202,28 @@ sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts'    
 - 로그인한 사용자만, 시간당 400번까지 쓸 수 있어요.
 - 서버가 없는 GitHub Pages 데모에서는 채점 대신 **녹음해서 내 목소리와 원어민 소리를 비교해 듣기**로 바뀌어요.
 
+### 4-4-2. 문제 그림·스토리북 삽화 — 같은 그림체로 (선택, 무료)
+
+문제의 이모지와 스토리북 장면을 같은 그림체의 그림으로 바꿔요. Cloudflare Workers AI의 **하루 무료 사용량**(10,000 뉴런) 안에서 그려서, 무료 요금제 계정이면 요금이 나가지 않아요. 전체(단어 그림 약 250개 + 스토리북 659쪽)를 그리는 데 하루 한 번씩 **약 5일** 걸려요. 그림이 없는 문제·쪽은 지금처럼 이모지·장면으로 보여요.
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com)에 가입해요 (무료 요금제, 결제 수단 등록 필요 없음).
+2. **계정 ID**: 대시보드 첫 화면 오른쪽(또는 Workers & Pages 화면)의 *Account ID*를 복사해요.
+3. **토큰**: 오른쪽 위 프로필 › *My Profile* › *API Tokens* › *Create Token* › **Workers AI** 템플릿 › *Continue to summary* › *Create Token*.
+4. `server/.env`에 넣어요 (채팅·메신저에 붙여 넣지 마세요):
+   ```
+   CF_ACCOUNT_ID=복사한_계정_ID
+   CF_AI_TOKEN=만든_토큰
+   ```
+5. Mac의 프로젝트 폴더에서 실행해요:
+   ```bash
+   cd server
+   npm run pregen-img -- --book 2     # 시범: 스토리북 1권(16쪽)만
+   npm run pregen-img                 # 전체: 무료 사용량을 다 쓰면 멈춰요
+   ```
+   다음 날 **오전 9시(한국 시간) 이후** 같은 명령을 다시 실행하면 이어서 그려요. 그린 그림은 `public/img`에 쌓여요.
+6. 마음에 안 드는 그림은 `npm run pregen-img -- --redo 2-5,🍎`처럼 골라서 다시 그려요 (스토리는 `책번호-쪽번호`(0부터), 단어는 이모지).
+7. 다 그리면 커밋해서 올리면 사이트에 반영돼요.
+
 ### 4-5. 약관·개인정보 처리방침
 
 - `public/terms.html`, `public/privacy.html` 의 `[ ]` 부분을 실제 사업자 정보로 바꿔요.

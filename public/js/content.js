@@ -366,3 +366,14 @@ function speechText(t) {
           .replace(/ ends with ([A-Z])\.?$/, (m, l) => ` ends with ${nameOf(l)}.`)          // "box ends with X"
           .replace(/^([A-Z]), ([A-Z])$/, (m, a, b) => `${nameOf(a)}, ${nameOf(b)}`);
 }
+
+// 같은 그림체로 미리 그린 그림 (img/manifest.json, server/scripts/pregen-img.js 로 만든다).
+// 그림이 있는 이모지는 그림으로 바꿔 보여주고, 없으면 이모지를 그대로 둔다. 글자(이미 esc 한 html)에만 쓴다.
+const PICS = { w: {}, s: {}, re: null };
+function setPics(m) {
+  PICS.w = (m && m.w) || {}; PICS.s = (m && m.s) || {};
+  const keys = Object.keys(PICS.w).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  PICS.re = keys.length ? new RegExp(keys.join('|'), 'gu') : null;
+}
+const pic = html => (PICS.re ? String(html).replace(PICS.re, e => `<img class="pic" src="img/${PICS.w[e]}" alt="" draggable="false">`) : html);
+const storyPic = (id, i) => PICS.s[`${id}-${i}`] ? `img/${PICS.s[`${id}-${i}`]}` : null;

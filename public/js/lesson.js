@@ -262,7 +262,7 @@ const Challenge = (() => {
       } else if (spec.kind === 'mole') {
         const ans = pickOne(spec.pool);
         const opts = shuffle([ans, ...pictureOthers(spec.pool, 3, ans)]);
-        stage.innerHTML = `<div class="moles">${opts.map((o, k) => `<button class="mole" style="--d:${k * 0.08}s" data-v="${esc(o.en)}"><span class="mole-pic">${o.emoji}</span><small>${esc(o.en)}</small></button>`).join('')}</div>
+        stage.innerHTML = `<div class="moles">${opts.map((o, k) => `<button class="mole" style="--d:${k * 0.08}s" data-v="${esc(o.en)}"><span class="mole-pic">${pic(o.emoji)}</span><small>${esc(o.en)}</small></button>`).join('')}</div>
           <button class="btn btn-ghost sm ch-again" data-again>🔊 다시</button>`;
         Speech.speak(ans.en);
         stage.querySelector('[data-again]').onclick = () => Speech.speak(ans.en);
@@ -418,7 +418,7 @@ const Lesson = (() => {
     return `<div class="q-title">${esc(q.title || '')}</div>
       ${q.prompt ? `<div class="q-prompt"><button class="sound-btn" data-say="${esc(q.prompt)}">🔊</button> ${esc(q.prompt)}</div>` : ''}
       ${q.big ? `<button class="q-big sound-btn" data-say="${esc(q.say)}" aria-label="다시 듣기">${q.big}</button>` : ''}
-      ${q.show ? `<div class="q-show ${q.show.length <= 3 ? 'huge' : ''}">${esc(q.show).replace(/\n/g, '<br>')}${q.say && !q.big ? ` <button class="sound-btn small" data-say="${esc(q.say)}" aria-label="듣기">🔊</button>` : ''}</div>` : ''}
+      ${q.show ? `<div class="q-show ${q.show.length <= 3 ? 'huge' : ''}">${pic(esc(q.show)).replace(/\n/g, '<br>')}${q.say && !q.big ? ` <button class="sound-btn small" data-say="${esc(q.say)}" aria-label="듣기">🔊</button>` : ''}</div>` : ''}
       ${q.sub ? `<div class="q-sub">${esc(q.sub)}</div>` : ''}`;
   }
   function wireSay(el, q) {
@@ -428,7 +428,7 @@ const Lesson = (() => {
 
   const R = {
     choice(el, q, done) {
-      el.innerHTML = head(q) + `<div class="options ${q.options.some(o => o.length > 18) ? 'stack' : ''}">${q.options.map(o => `<button class="option" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+      el.innerHTML = head(q) + `<div class="options ${q.options.some(o => o.length > 18) ? 'stack' : ''}">${q.options.map(o => `<button class="option" data-v="${esc(o)}">${pic(esc(o))}</button>`).join('')}</div>`;
       wireSay(el, q);
       el.querySelectorAll('.option').forEach(b => b.onclick = () => {
         const ok = b.dataset.v === q.answer;

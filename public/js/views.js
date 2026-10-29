@@ -142,7 +142,7 @@ Views.words = el => {
   const draw = () => {
     const shown = rows.filter(r => (filter === 'all' || r.m.k === filter) && (!q || (r.en + ' ' + r.ko).toLowerCase().includes(q.toLowerCase())));
     list.innerHTML = shown.length ? shown.map(r => `<button class="word-row" data-say="${esc(r.say)}">
-      <span class="wr-pic">${r.emoji}</span><span class="wr-text"><b>${esc(r.en)}</b><small>${esc(r.ko)}</small></span>
+      <span class="wr-pic">${pic(r.emoji)}</span><span class="wr-text"><b>${esc(r.en)}</b><small>${esc(r.ko)}</small></span>
       <span class="wr-meta"><span class="wr-m ${r.m.k}">${r.m.icon} ${r.m.label}</span><small>Level ${r.level} · 다음 복습 ${r.due.slice(5).replace('-', '/')}</small></span><span class="wr-play">🔊</span></button>`).join('')
       : UI.empty('📒', rows.length ? '찾는 단어가 없어요.' : '아직 단어장이 비어 있어요. 레슨을 하면 배운 단어가 모여요!', rows.length ? '' : '<a class="btn btn-primary" href="#/study">레슨 하러 가기</a>');
     $$('[data-say]', list).forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
@@ -444,7 +444,7 @@ UI.miniQuiz = box => {
     box.innerHTML = `<span class="sticker-label">바로 해보기 ${n + 1}/3</span>
       <p class="mq-q">소리를 듣고 그림을 골라요</p>
       <button class="mq-play" aria-label="다시 듣기">🔊</button>
-      <div class="mq-opts">${opts.map(o => `<button class="mq-opt" data-en="${esc(o.en)}" aria-label="${esc(o.en)}">${o.emoji}</button>`).join('')}</div>
+      <div class="mq-opts">${opts.map(o => `<button class="mq-opt" data-en="${esc(o.en)}" aria-label="${esc(o.en)}">${pic(o.emoji)}</button>`).join('')}</div>
       <p class="mq-fb" aria-live="polite">눌러서 들어보세요 👆</p>`;
     const play = () => Speech.speak(ans.en);
     $('.mq-play', box).onclick = play;
@@ -1112,8 +1112,8 @@ Views.story = (el, id) => {
       $('.reader-page-no', el).textContent = '';
       Speech.sfx.cheer(); if (first) Lesson.confetti(); App.refreshHeader(); return;
     }
-    const [text, pic] = s.pages[pg];
-    page.innerHTML = `<div class="anim-in">${sceneHtml(pic, placeOf(s, text))}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(storyWord(text, w))}">${esc(w)}</span>`).join(' ')}</p></div>`;
+    const [text, art] = s.pages[pg];
+    page.innerHTML = `<div class="anim-in">${storyPic(s.id, pg) ? `<div class="story-art story-photo"><img src="${storyPic(s.id, pg)}" alt=""></div>` : sceneHtml(art, placeOf(s, text))}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(storyWord(text, w))}">${esc(w)}</span>`).join(' ')}</p></div>`;
     // 단어를 누르면 그 단어만 천천히 읽고, 자동 넘김은 멈춘다
     spans().forEach(sp => sp.onclick = () => {
       stopAuto(); cancelTurn(); clearHl();
@@ -1372,7 +1372,7 @@ Views.play = (el, game) => {
       const answer = pool[Math.floor(Math.random() * pool.length)];
       const opts = shuffle([answer, ...pictureOthers(pool, 3, answer)]);
       area.innerHTML = `<div class="game-head"><span>🎈 ${round + 1}/${ROUNDS}</span><span>⭐ ${score}</span><button class="btn btn-ghost sm" data-say>🔊 다시 듣기</button></div>
-        <div class="sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k % 5]};--d:${k * 0.25}s;--x:${k * 25 + 4}%" data-en="${esc(o.en)}"><span>${o.emoji}</span><small>${esc(o.en)}</small></button>`).join('')}</div>`;
+        <div class="sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k % 5]};--d:${k * 0.25}s;--x:${k * 25 + 4}%" data-en="${esc(o.en)}"><span>${pic(o.emoji)}</span><small>${esc(o.en)}</small></button>`).join('')}</div>`;
       Speech.speak(answer.en);
       $('[data-say]', area).onclick = () => Speech.speak(answer.en);
       let tried = false;
@@ -1392,7 +1392,7 @@ Views.play = (el, game) => {
     const cards = shuffle(picks.flatMap(w => [{ id: w.en, face: w.emoji, kind: 'pic' }, { id: w.en, face: w.en, kind: 'word' }]));
     let open = [], found = 0, moves = 0, lock = false;
     area.innerHTML = `<div class="game-head"><span>🃏 짝꿍 카드</span><span class="moves">시도 0</span></div>
-      <div class="memory">${cards.map((c, k) => `<button class="mcard ${c.kind}" data-k="${k}" aria-label="카드 ${k + 1}"><span class="back">🌱</span><span class="front">${esc(c.face)}</span></button>`).join('')}</div>`;
+      <div class="memory">${cards.map((c, k) => `<button class="mcard ${c.kind}" data-k="${k}" aria-label="카드 ${k + 1}"><span class="back">🌱</span><span class="front">${c.kind === 'pic' ? pic(esc(c.face)) : esc(c.face)}</span></button>`).join('')}</div>`;
     $$('.mcard', area).forEach(b => b.onclick = () => {
       const k = +b.dataset.k;
       if (lock || b.classList.contains('flip')) return;
