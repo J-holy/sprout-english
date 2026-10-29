@@ -52,6 +52,16 @@ const Gen = (() => {
     const v = W.en[i];
     return [() => choice(`ph-vowel-${W.en}`, '빠진 모음을 골라요', v, pickOthers('aeiou'.split(''), 2, v), { show: `${W.emoji} ${W.en.slice(0, i)}_${W.en.slice(i + 1)}`, say: W.en })];
   }
+  // 모음 짝 고르기: tr__ (ee · ea · ai · oa)
+  const TEAMS = ['ee', 'ea', 'ai', 'oa'];
+  const teamOf = w => TEAMS.find(t => w.includes(t));
+  function teamQ(W) {
+    const t = teamOf(W.en); if (!t) return [];
+    const i = W.en.indexOf(t);
+    // ee와 ea는 소리가 같아서 서로 오답 보기로 쓰지 않는다
+    const others = TEAMS.filter(x => x !== t && !(/^e[ea]$/.test(x) && /^e[ea]$/.test(t)));
+    return [() => choice(`ph-team-${W.en}`, '빠진 모음 짝을 골라요', t, pickOthers(others, 2), { show: `${W.emoji} ${W.en.slice(0, i)}__${W.en.slice(i + 2)}`, say: W.en })];
+  }
   // 끝소리가 같은 단어 (cat — hat)
   function rhymeQ(W, all) {
     const end = W.en.slice(-2), same = all.filter(x => x[0] !== W.en && x[0].slice(-2) === end);
@@ -106,9 +116,9 @@ const Gen = (() => {
         ...(level === 'E' ? [() => ({ type: 'type', key: `ph-type-${W.en}`, title: '듣고 단어를 써 봐요 ⌨️', show: W.emoji, say: W.en, answer: W.en })] : []),
         // 소리 없이 읽고 그림 고르기
         () => choice(`ph-read-${W.en}`, '단어를 읽고 알맞은 그림을 골라요', W.emoji, pictureOthers(pics, 2, W).map(x => x.emoji), { show: W.en, sayAfter: W.en }),
-        // 끝소리
-        () => choice(`ph-last-${W.en}`, '끝소리는 무엇일까요?', W.en.slice(-1), pickOthers('bdgklmnprstx'.split(''), 2, W.en.slice(-1)), { show: `${W.emoji} ${W.en.slice(0, -1)}_`, say: W.en }),
-        ...vowelQ(W), ...rhymeQ(W, all),
+        // 끝소리 (cake처럼 끝 글자 e가 소리 나지 않는 단어는 빼요)
+        ...(/[bcdfghjklmnpqrstvxz]$/.test(W.en) ? [() => choice(`ph-last-${W.en}`, '끝소리는 무엇일까요?', W.en.slice(-1), pickOthers('bdgklmnprstx'.split(''), 2, W.en.slice(-1)), { show: `${W.emoji} ${W.en.slice(0, -1)}_`, say: W.en })] : []),
+        ...(teamOf(W.en) ? teamQ(W) : vowelQ(W)), ...rhymeQ(W, all),
       ];
     },
     sentence: (S, t, st) => {

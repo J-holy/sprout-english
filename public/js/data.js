@@ -2,7 +2,7 @@
 
 const STAGES = [
   { id: 1, levels: ['A', 'B'], title: '알파벳', desc: '즐겁고 재미나게 알파벳 대소문자를 마스터해요.', skills: ['알파벳 소리', '대소문자 짝짓기', '따라 쓰기'], color: '#ff8a65' },
-  { id: 2, levels: ['C', 'D', 'E'], title: '파닉스 시작', desc: '파닉스 시작! 단어를 읽고 의미를 알아가요.', skills: ['단모음', '첫소리', '단어 철자'], color: '#ffb74d' },
+  { id: 2, levels: ['C', 'D', 'E'], title: '파닉스 시작', desc: '파닉스 시작! 단어를 읽고 의미를 알아가요.', skills: ['단모음', '장모음·매직 e', '단어 철자'], color: '#ffb74d' },
   { id: 3, levels: ['F', 'G', 'H'], title: '첫 문장', desc: '영어 문장은 이렇구나! 기초 문법을 배우기 시작해요.', skills: ['be동사', '문장 순서', '뜻 이해'], color: '#ffd54f' },
   { id: 4, levels: ['I', 'J', 'K', 'L'], title: '일상 대화', desc: '파닉스 마스터! 질문하고 대답하며 일상 속 대화를 배워요.', skills: ['질문과 대답', '인사', '자기소개'], color: '#aed581' },
   { id: 5, levels: ['M', 'N', 'O', 'P'], title: '묘사하기', desc: '더 설명할래요! 다양하고 심화된 표현으로 상황을 묘사해요.', skills: ['형용사', '색깔·크기', '감정'], color: '#4db6ac' },
