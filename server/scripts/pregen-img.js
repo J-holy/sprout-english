@@ -378,7 +378,7 @@ const SCENES = {
   '6-14': ['boy|sister', 'the boy and his sister turn their heads, hands cupped to their ears, listening'],
   '6-15': ['boy|sister', 'the boy and his sister listen carefully, eyes wide, hands cupped to their ears'],
   '6-16': ['boy|sister', 'the boy and his sister tiptoe into the living room toward a big sofa'],
-  '6-17': ['boy|sister|Max', 'the dog is hiding behind the sofa, only its fluffy brown tail and floppy ears peek out from behind the side of the sofa, the boy and his sister point at it in surprise'],
+  '6-17': ['boy|sister', 'the boy and his sister stand in front of a big sofa and point at it in surprise, a fluffy brown dog tail sticks out from behind the back of the sofa, only the tail is visible'],
   '6-18': ['boy|sister|Max', 'the small fluffy brown dog lies curled up asleep on the floor behind the sofa, the boy and his sister peek at it with curious faces'],
   '6-21': ['boy|sister|Max', 'the boy and his sister hug the happy dog, the red ball next to them'],
   '7-0': ['8-year-old', 'the girl stands happily at the zoo entrance gate, giraffes and zebras behind her'],
