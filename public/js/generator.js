@@ -147,7 +147,7 @@ const GEN = (() => {
     H: [
       () => { const v = pick(VPS); return sent(`I can ${v.base}.`, `나는 ${v.ko.can}.`, v.emoji); },
       () => { const x = pick(ANIMALS), a = ABIL[pick(x.can)]; return sent(`${cap(art(x.en))} can ${a[0]}.`, `${eun(x.ko)} ${a[1]}.`, x.emoji); },
-      () => { const x = pick(ANIMALS.filter(a => !a.can.includes('fly'))); return sent(`${cap(art(x.en))} can not fly.`, `${eun(x.ko)} 날 수 없어요.`, x.emoji); },
+      () => { const x = pick(ANIMALS.filter(a => !a.can.includes('fly'))); return sent(`${cap(art(x.en))} cannot fly.`, `${eun(x.ko)} 날 수 없어요.`, x.emoji); },
       () => { const x = pick(SMALL), [p, pk] = pick(PLACES); if (p.includes(x.en)) return null; return sent(`The ${x.en} is ${p}.`, `${iga(x.ko)} ${pk} 있어요.`, x.emoji); },
     ],
     // 4단계 질문과 대답
@@ -164,8 +164,8 @@ const GEN = (() => {
       () => { const x = pick([...ANIMALS.filter(a => a.pl !== a.en), ...THINGS]), [n, nk] = pick(NUMS); return qa(`How many ${x.pl} are there?`, `There are ${n} ${x.pl}.`, `${x.ko} 몇 ${x.counter} 있어? — ${nk} ${x.counter} 있어.`); },
     ],
     K: [
-      () => { const x = pick(FOODS); return R() < .6 ? qa(`Do you like ${x.pl}?`, 'Yes, I do.', `${eul(x.ko)} 좋아해? — 응, 좋아해.`) : qa(`Do you like ${x.pl}?`, 'No, I do not.', `${eul(x.ko)} 좋아해? — 아니, 안 좋아해.`); },
-      () => { const v = pick(VPS); return R() < .6 ? qa(`Can you ${v.base}?`, 'Yes, I can.', `${banmal(v.ko.can)}? — 응, 할 수 있어.`) : qa(`Can you ${v.base}?`, 'No, I can not.', `${banmal(v.ko.can)}? — 아니, 못 해.`); },
+      () => { const x = pick(FOODS); return R() < .6 ? qa(`Do you like ${x.pl}?`, 'Yes, I do.', `${eul(x.ko)} 좋아해? — 응, 좋아해.`) : qa(`Do you like ${x.pl}?`, "No, I don't.", `${eul(x.ko)} 좋아해? — 아니, 안 좋아해.`); },
+      () => { const v = pick(VPS); return R() < .6 ? qa(`Can you ${v.base}?`, 'Yes, I can.', `${banmal(v.ko.can)}? — 응, 할 수 있어.`) : qa(`Can you ${v.base}?`, "No, I can't.", `${banmal(v.ko.can)}? — 아니, 못 해.`); },
       () => { const x = pick(FOODS); return R() < .6 ? qa(`Do you want ${art(x.en)}?`, 'Yes, please.', `${x.ko} 줄까? — 응, 줘.`) : qa(`Do you want ${art(x.en)}?`, 'No, thank you.', `${x.ko} 줄까? — 아니, 괜찮아.`); },
       () => { const x = pick(FOODS); return qa('What do you want?', `I want ${art(x.en)}.`, `뭘 원해? — ${eul(x.ko)} 원해.`); },
     ],

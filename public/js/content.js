@@ -18,7 +18,7 @@ const LETTER_WORDS = {
   S: [['sun', '☀️'], ['snake', '🐍'], ['star', '⭐']], T: [['tiger', '🐯'], ['tomato', '🍅'], ['train', '🚆']],
   U: [['umbrella', '☂️'], ['up', '⬆️'], ['unicorn', '🦄']], V: [['van', '🚐'], ['violin', '🎻'], ['volcano', '🌋']],
   W: [['whale', '🐳'], ['watch', '⌚'], ['worm', '🪱']], X: [['box', '📦'], ['fox', '🦊'], ['six', '6️⃣']],
-  Y: [['yo-yo', '🪀'], ['yarn', '🧶'], ['yak', '🐃']], Z: [['zebra', '🦓'], ['zero', '0️⃣']],
+  Y: [['yo-yo', '🪀'], ['yarn', '🧶'], ['yellow', '💛']], Z: [['zebra', '🦓'], ['zero', '0️⃣']],
 };
 const LETTERS = Object.entries(LETTER_WORDS).map(([letter, ws]) => ({ letter, word: ws[0][0], emoji: ws[0][1], words: ws, ending: letter === 'X' }));
 
@@ -66,7 +66,7 @@ const SENTENCES = {
     ['The cat is on the bed.', '고양이가 침대 위에 있어요.', '🛏️'], ['The ball is in the box.', '공이 상자 안에 있어요.', '📦'], ['The dog is under the table.', '개가 탁자 밑에 있어요.', '🐕'],
     ['I see three ducks.', '나는 오리 세 마리를 봐요.', '🦆'], ['There are two cats.', '고양이가 두 마리 있어요.', '🐱'], ['The apples are red.', '사과들이 빨개요.', '🍎'],
     ['My shoes are new.', '내 신발은 새것이에요.', '👟'], ['Look at the frog.', '개구리를 봐요.', '🐸'], ['Open the door.', '문을 열어요.', '🚪'],
-    ['Sit down, please.', '앉아 주세요.', '🪑'], ['Let us play together.', '같이 놀자.', '🤸'], ['It is time to sleep.', '잘 시간이에요.', '😴'],
+    ['Sit down, please.', '앉아 주세요.', '🪑'], ["Let's play together.", '같이 놀자.', '🤸'], ['It is time to sleep.', '잘 시간이에요.', '😴'],
     ['I can ride a bike.', '나는 자전거를 탈 수 있어요.', '🚲'], ['Wash your hands.', '손을 씻어요.', '🧼'],
   ],
   5: [
@@ -104,7 +104,7 @@ const SENTENCES = {
     ['I played soccer yesterday.', '나는 어제 축구를 했어요.', '⚽'], ['They watched a movie.', '그들은 영화를 봤어요.', '🎬'], ['I helped my mom.', '나는 엄마를 도왔어요.', '🤲'],
     ['The dog jumped high.', '개가 높이 뛰었어요.', '🐕'], ['She cleaned her room.', '그녀는 방을 청소했어요.', '🧹'], ['We walked to the park.', '우리는 공원까지 걸어갔어요.', '🚶'],
     ['I washed my hands.', '나는 손을 씻었어요.', '🧼'], ['He opened the window.', '그는 창문을 열었어요.', '🪟'], ['We visited Grandma.', '우리는 할머니 댁을 방문했어요.', '👵'],
-    ['I painted a picture.', '나는 그림을 칠했어요.', '🎨'], ['She danced at the party.', '그녀는 파티에서 춤을 췄어요.', '💃'], ['The baby cried at night.', '아기가 밤에 울었어요.', '👶'],
+    ['I painted a picture.', '나는 물감으로 그림을 그렸어요.', '🎨'], ['She danced at the party.', '그녀는 파티에서 춤을 췄어요.', '💃'], ['The baby cried at night.', '아기가 밤에 울었어요.', '👶'],
     ['We cooked pancakes.', '우리는 팬케이크를 만들었어요.', '🥞'], ['I climbed a tree.', '나는 나무에 올랐어요.', '🌳'], ['He brushed his teeth.', '그는 이를 닦았어요.', '🪥'],
     ['The bus stopped here.', '버스가 여기에 섰어요.', '🚌'],
     // V: 불규칙 과거형 1
@@ -158,23 +158,23 @@ const QA = {
     ['Where are you from?', 'I am from Korea.', '어디에서 왔니? — 한국에서 왔어.'], ['Who is he?', 'He is my brother.', '그는 누구니? — 우리 형이야.'],
     ['Who is she?', 'She is my teacher.', '그녀는 누구야? — 우리 선생님이야.'], ['Is this your bag?', 'Yes, it is.', '이거 네 가방이니? — 응, 맞아.'],
     ['Are you a student?', 'Yes, I am.', '너는 학생이니? — 응, 맞아.'], ['Good morning!', 'Good morning, Mom!', '좋은 아침! — 좋은 아침이에요, 엄마!'],
-    ['How is the weather?', 'It is sunny.', '날씨가 어때? — 화창해.'], ['Do you have a brother?', 'No, I do not.', '형제가 있니? — 아니, 없어.'],
+    ['How is the weather?', 'It is sunny.', '날씨가 어때? — 화창해.'], ['Do you have a brother?', "No, I don't.", '형제가 있니? — 아니, 없어.'],
     ['What is your favorite color?', 'My favorite color is blue.', '제일 좋아하는 색은? — 파란색이야.'], ['Can you help me?', 'Sure, I can.', '도와줄 수 있어? — 물론이지.'],
     ['Are you hungry?', 'Yes, I am.', '배고프니? — 응, 배고파.'], ['Thank you!', 'You are welcome.', '고마워! — 천만에.'],
     // J: 물건 · 색 · 수
     ['What is this?', 'It is a pencil.', '이건 뭐야? — 연필이야.'], ['What color is it?', 'It is green.', '무슨 색이야? — 초록색이야.'],
-    ['Is it a cat?', 'No, it is a dog.', '고양이야? — 아니, 개야.'], ['How many apples?', 'There are three apples.', '사과가 몇 개야? — 사과가 세 개 있어.'],
+    ['Is it a cat?', 'No, it is a dog.', '고양이야? — 아니, 개야.'], ['How many apples are there?', 'There are three apples.', '사과가 몇 개 있어? — 사과가 세 개 있어.'],
     ['What is that?', 'It is a kite.', '저건 뭐야? — 연이야.'], ['What color is the sky?', 'The sky is blue.', '하늘은 무슨 색이야? — 하늘은 파래.'],
     ['How many legs does a dog have?', 'A dog has four legs.', '개는 다리가 몇 개야? — 개는 다리가 네 개야.'], ['Is it big?', 'No, it is small.', '그거 커? — 아니, 작아.'],
     ['What shape is it?', 'It is a circle.', '무슨 모양이야? — 동그라미야.'], ['How many pencils do you have?', 'I have five pencils.', '연필 몇 자루 있어? — 다섯 자루 있어.'],
     ['Whose book is this?', 'It is my book.', '이건 누구 책이야? — 내 책이야.'], ['Is the water cold?', 'Yes, it is very cold.', '물이 차가워? — 응, 아주 차가워.'],
-    ['What is in the box?', 'A teddy bear is in the box.', '상자 안에 뭐가 있어? — 곰 인형이 있어.'], ['What color are bananas?', 'Bananas are yellow.', '바나나는 무슨 색이야? — 바나나는 노란색이야.'],
+    ['What is in the box?', 'There is a teddy bear in it.', '상자 안에 뭐가 있어? — 곰 인형이 있어.'], ['What color are bananas?', 'Bananas are yellow.', '바나나는 무슨 색이야? — 바나나는 노란색이야.'],
     ['Is this an egg?', 'Yes, it is an egg.', '이거 달걀이야? — 응, 달걀이야.'], ['What do you see?', 'I see a rainbow.', '뭐가 보여? — 무지개가 보여.'],
     // K: 좋아하는 것 · 할 수 있는 것 · 원하는 것
-    ['Do you like pizza?', 'Yes, I do.', '피자 좋아해? — 응, 좋아해.'], ['Can you swim?', 'No, I can not.', '수영할 수 있어? — 아니, 못 해.'],
-    ['What do you want?', 'I want some juice.', '뭘 원해? — 주스를 원해.'], ['What is your favorite food?', 'I like noodles.', '제일 좋아하는 음식은? — 국수를 좋아해.'],
+    ['Do you like pizza?', 'Yes, I do.', '피자 좋아해? — 응, 좋아해.'], ['Can you swim?', "No, I can't.", '수영할 수 있어? — 아니, 못 해.'],
+    ['What do you want?', 'I want some juice.', '뭘 원해? — 주스를 원해.'], ['What is your favorite food?', 'My favorite food is noodles.', '제일 좋아하는 음식은? — 국수야.'],
     ['Do you have a pet?', 'Yes, I have a hamster.', '애완동물 있어? — 응, 햄스터가 있어.'], ['Can you play soccer?', 'Yes, I can.', '축구할 수 있어? — 응, 할 수 있어.'],
-    ['What do you like to do?', 'I like to draw.', '뭐 하는 걸 좋아해? — 그림 그리는 걸 좋아해.'], ['Do you like carrots?', 'No, I do not.', '당근 좋아해? — 아니, 안 좋아해.'],
+    ['What do you like to do?', 'I like to draw.', '뭐 하는 걸 좋아해? — 그림 그리는 걸 좋아해.'], ['Do you like carrots?', "No, I don't.", '당근 좋아해? — 아니, 안 좋아해.'],
     ['What animal do you like?', 'I like pandas.', '어떤 동물을 좋아해? — 판다를 좋아해.'], ['Can I help you?', 'Yes, please.', '도와줄까? — 응, 부탁해.'],
     ['Do you want some milk?', 'No, thank you.', '우유 좀 줄까? — 아니, 괜찮아.'], ['Can you count to ten?', 'Yes, I can.', '열까지 셀 수 있어? — 응, 할 수 있어.'],
     ['What sport do you like?', 'I like basketball.', '어떤 운동을 좋아해? — 농구를 좋아해.'], ['Do you like music?', 'Yes, I love music.', '음악 좋아해? — 응, 정말 좋아해.'],
@@ -187,7 +187,7 @@ const QA = {
     ['Why are you happy?', 'Because it is my birthday.', '왜 기뻐? — 내 생일이거든.'], ['What season do you like?', 'I like summer.', '어떤 계절을 좋아해? — 여름을 좋아해.'],
     ['Is it cold outside?', 'Yes, wear your coat.', '밖이 추워? — 응, 코트 입어.'], ['What time is lunch?', 'Lunch is at twelve.', '점심은 몇 시야? — 열두 시야.'],
     ['How do you go home?', 'I walk home.', '집에 어떻게 가? — 걸어서 가.'], ['Do you brush your teeth?', 'Yes, every day.', '이 닦니? — 응, 매일.'],
-    ['Are you ready?', 'Yes, let us go.', '준비됐어? — 응, 가자.'], ['Good night!', 'Good night, Dad!', '잘 자! — 안녕히 주무세요, 아빠!'],
+    ['Are you ready?', "Yes, let's go.", '준비됐어? — 응, 가자.'], ['Good night!', 'Good night, Dad!', '잘 자! — 안녕히 주무세요, 아빠!'],
   ],
   6: [
     // Q: Where · 전치사
@@ -222,7 +222,7 @@ const QA = {
     ['Why are you late?', 'Because I missed the bus.', '왜 늦었어? — 버스를 놓쳤거든.'], ['How do you make a sandwich?', 'I put cheese on bread.', '샌드위치는 어떻게 만들어? — 빵에 치즈를 올려.'],
     ['Why do you like dogs?', 'Because they are cute.', '왜 개를 좋아해? — 귀엽거든.'], ['How is your mom?', 'She is fine.', '어머니는 잘 계셔? — 잘 계셔.'],
     ['How much is this?', 'It is two dollars.', '이거 얼마예요? — 2달러예요.'], ['Why is he crying?', 'Because he fell down.', '그는 왜 울어? — 넘어졌거든.'],
-    ['How do you say this in English?', 'It is a watermelon.', '이걸 영어로 뭐라고 해? — 수박이야.'], ['Why do we need water?', 'Because we need to drink.', '왜 물이 필요해? — 마셔야 하니까.'],
+    ['How do you say this in English?', 'It is a watermelon.', '이걸 영어로 뭐라고 해? — 수박이야.'], ['Why do we need water?', 'Because we need it to live.', '왜 물이 필요해? — 살려면 물이 있어야 하니까.'],
     ['How tall are you?', 'I am one meter tall.', '키가 얼마야? — 1미터야.'], ['How many friends came?', 'Five friends came.', '친구가 몇 명 왔어? — 다섯 명 왔어.'],
     ['Why is the sky dark?', 'Because it is night.', '하늘이 왜 어두워? — 밤이니까.'], ['How do you feel today?', 'I feel great.', '오늘 기분 어때? — 아주 좋아.'],
     ['How do birds fly?', 'They flap their wings.', '새는 어떻게 날아? — 날개를 퍼덕여.'], ['Why are you smiling?', 'Because I am happy.', '왜 웃고 있어? — 행복하니까.'],
@@ -269,15 +269,15 @@ const STORIES = [
   { id: 11, stage: 3, title: 'My Toy Box', cover: '🧸', pages: [
     ['This is my toy box.', '📦 🧸'], ['It is big and blue.', '🟦 📦'], ['I open the box.', '🧒 📦 ✨'], ['I have a red car.', '🚗'], ['It can go fast.', '🚗 💨'], ['I have a little bear.', '🧸'], ['It is soft and brown.', '🧸 💗'], ['I have a ball.', '🧒 🔵'], ['I like my blue ball.', '🧒 💙 🔵'], ['I have a robot.', '🤖'], ['It can walk.', '🤖 👣'], ['It can talk, too.', '🤖 💬'], ['I have a drum.', '🥁'], ['It is very loud!', '🥁 🔊 🙉'], ['I see a puzzle.', '🧩'], ['It has ten pieces.', '🧩 🔟'], ['My friend comes to play.', '👧 👋 🧒'], ['We share my toys.', '🧒 🧸 👧 🚗'], ['I can play all day!', '🧒 🧸 🚗 🤖'], ['Now I put my toys away.', '🧸 🚗 ➡️ 📦']] },
   { id: 21, stage: 3, title: 'My School', cover: '🏫', pages: [
-    ['This is my school.', '🏫'], ['It is big and new.', '🏫 ✨'], ['This is my classroom.', '🏫 🪑'], ['It has many desks.', '🪑 🪑 🪑'], ['This is my teacher.', '👩‍🏫'], ['She is nice.', '👩‍🏫 😊'], ['She has long hair.', '👩‍🏫 💇‍♀️'], ['This is my friend, Jisu.', '👧 Jisu'], ['She can draw well.', '👧 🎨'], ['This is my bag.', '🎒'], ['It is green.', '🎒 💚'], ['I have a pencil case.', '✏️ 👝'], ['I have three pencils.', '✏️ ✏️ ✏️'], ['I like music class.', '🎵 🎹'], ['I can play the drum.', '🧒 🥁'], ['I like lunch time, too.', '🍱 😋'], ['This is the playground.', '🛝'], ['We can run and jump.', '🏃 🤸'], ['My school is fun.', '🏫 😄'], ['I like my school!', '🧒 💛 🏫']] },
+    ['This is my school.', '🏫'], ['It is big and new.', '🏫 ✨'], ['This is my classroom.', '🏫 🪑'], ['It has many desks.', '🪑 🪑 🪑'], ['This is my teacher.', '👩‍🏫'], ['She is nice.', '👩‍🏫 😊'], ['She has long hair.', '👩‍🏫 💇‍♀️'], ['This is my friend, Jisu.', '👧 Jisu'], ['She can draw well.', '👧 🎨'], ['This is my bag.', '🎒'], ['It is green.', '🎒 💚'], ['I have a pencil case.', '✏️ 👝'], ['I have three pencils.', '✏️ ✏️ ✏️'], ['I like music class.', '🎵 🎹'], ['I can play the drum.', '🧒 🥁'], ['I like lunchtime, too.', '🍱 😋'], ['This is the playground.', '🛝'], ['We can run and jump.', '🏃 🤸'], ['My school is fun.', '🏫 😄'], ['I like my school!', '🧒 💛 🏫']] },
   { id: 22, stage: 3, title: 'On the Farm', cover: '🐄', pages: [
-    ['This is a farm.', '🏡 🌾'], ['It is big and green.', '🌾 💚'], ['I can see a red barn.', '🛖 ❤️'], ['This is a cow.', '🐄'], ['It is black and white.', '🐄 🖤 🤍'], ['It has milk.', '🐄 🥛'], ['This is a pig.', '🐷'], ['It is pink and fat.', '🐷 💗'], ['This is a sheep.', '🐑'], ['It is soft and white.', '🐑 ☁️'], ['This is a horse.', '🐴'], ['It can run fast.', '🐴 💨'], ['I see a little chick.', '🐥'], ['It is yellow.', '🐥 💛'], ['The farmer has a tractor.', '👨‍🌾 🚜'], ['It is red and big.', '🚜 ❤️'], ['I can feed the goats.', '🧒 🐐 🥕'], ['I like the farm animals.', '🧒 💛 🐄'], ['The sun is going down.', '🌅'], ['Bye, farm!', '👋 🌾']] },
+    ['This is a farm.', '🏡 🌾'], ['It is big and green.', '🌾 💚'], ['I can see a red barn.', '🛖 ❤️'], ['This is a cow.', '🐄'], ['It is black and white.', '🐄 🖤 🤍'], ['It gives us milk.', '🐄 🥛'], ['This is a pig.', '🐷'], ['It is pink and fat.', '🐷 💗'], ['This is a sheep.', '🐑'], ['It is soft and white.', '🐑 ☁️'], ['This is a horse.', '🐴'], ['It can run fast.', '🐴 💨'], ['I see a little chick.', '🐥'], ['It is yellow.', '🐥 💛'], ['The farmer has a tractor.', '👨‍🌾 🚜'], ['It is red and big.', '🚜 ❤️'], ['I can feed the goats.', '🧒 🐐 🥕'], ['I like the farm animals.', '🧒 💛 🐄'], ['The sun is going down.', '🌅'], ['Bye, farm!', '👋 🌾']] },
   { id: 4, stage: 4, title: 'New Friend', cover: '🤝', pages: [
-    ['Hi! What is your name?', '👦 👋 ❓'], ['My name is Lily.', '👧 💬 Lily'], ['What is your name?', '👧 ❓'], ['My name is Sam.', '👦 💬 Sam'], ['How old are you?', '👦 🎂 ❓'], ['I am seven years old.', '👧 7️⃣'], ['Me too!', '👦 7️⃣ 😄'], ['Where do you live?', '👦 🏠 ❓'], ['I live near the park.', '👧 🏠 🌳'], ['Do you like soccer?', '👦 ⚽ ❓'], ['Yes, I do!', '👧 👍 ⚽'], ['What is your favorite color?', '👦 🎨 ❓'], ['It is purple. What about you?', '👧 💜 ❓'], ['I like green.', '👦 💚'], ['Can you play with me?', '👦 🙋 ⚽'], ['Sure, let us play!', '👧 ⚽ 👦'], ['Lily kicks the ball.', '👧 🦵 ⚽'], ['Sam catches it. Good job!', '👦 🙌 ⚽'], ['See you tomorrow!', '👧 👋 👦'], ['We are good friends now.', '👧 🤝 👦 💛']] },
+    ['Hi! What is your name?', '👦 👋 ❓'], ['My name is Lily.', '👧 💬 Lily'], ['What is your name?', '👧 ❓'], ['My name is Sam.', '👦 💬 Sam'], ['How old are you?', '👦 🎂 ❓'], ['I am seven years old.', '👧 7️⃣'], ['Me too!', '👦 7️⃣ 😄'], ['Where do you live?', '👦 🏠 ❓'], ['I live near the park.', '👧 🏠 🌳'], ['Do you like soccer?', '👦 ⚽ ❓'], ['Yes, I do!', '👧 👍 ⚽'], ['What is your favorite color?', '👦 🎨 ❓'], ['It is purple. What about you?', '👧 💜 ❓'], ['I like green.', '👦 💚'], ['Can you play with me?', '👦 🙋 ⚽'], ["Sure, let's play!", '👧 ⚽ 👦'], ['Lily kicks the ball.', '👧 🦵 ⚽'], ['Sam catches it. Good job!', '👦 🙌 ⚽'], ['See you tomorrow!', '👧 👋 👦'], ['We are good friends now.', '👧 🤝 👦 💛']] },
   { id: 12, stage: 4, title: 'At the Shop', cover: '🏪', pages: [
     ['Can I help you?', '🧑‍💼 🏪'], ['Yes, I want some apples.', '👧 🍎'], ['How many apples?', '🧑‍💼 🍎 ❓'], ['Three apples, please.', '🍎 🍎 🍎'], ['Do you want bananas, too?', '🧑‍💼 🍌 ❓'], ['No, thank you.', '👧 🙅‍♀️ 🍌'], ['Do you have milk?', '👧 🥛 ❓'], ['Yes, it is over there.', '🧑‍💼 👉 🥛'], ['Is it cold?', '👧 🧊 ❓'], ['Yes, it is very cold.', '🥛 🧊'], ['What is this?', '👧 🧁 ❓'], ['It is a muffin.', '🧁'], ['Can I have one?', '👧 🧁 🙏'], ['Of course!', '🧑‍💼 😊 🧁'], ['How much is it?', '👧 💰 ❓'], ['It is two dollars.', '💵 💵'], ['Here you are.', '👧 🤲 💵'], ['Here is your bag.', '🧑‍💼 🛍️'], ['Thank you! Have a nice day!', '🧑‍💼 😊 🛍️'], ['You too! Bye!', '👧 👋']] },
   { id: 23, stage: 4, title: 'At the Doctor', cover: '🩺', pages: [
-    ['Hello. How are you?', '👩‍⚕️ 👋'], ['I am not good.', '🧒 🤒'], ['What is wrong?', '👩‍⚕️ ❓'], ['I have a cold.', '🧒 🤧'], ['Do you have a fever?', '👩‍⚕️ 🌡️ ❓'], ['Yes, I do.', '🧒 🌡️'], ['Open your mouth, please.', '👩‍⚕️ 👄'], ['Say ah.', '🧒 😮'], ['Does it hurt?', '👩‍⚕️ ❓'], ['Yes, a little.', '🧒 😣'], ['Do you eat well?', '👩‍⚕️ 🍚 ❓'], ['No, I do not.', '🧒 🙅'], ['Take this medicine.', '👩‍⚕️ 💊'], ['Drink a lot of water.', '💧 💧'], ['Can I play soccer?', '🧒 ⚽ ❓'], ['Not today. Rest at home.', '👩‍⚕️ 🏠 🛌'], ['Okay. Thank you.', '🧒 🙏'], ['Feel better soon!', '👩‍⚕️ 💗'], ['Now I am fine!', '🧒 😄 ✨'], ['Let us play soccer!', '🧒 ⚽']] },
+    ['Hello. How are you?', '👩‍⚕️ 👋'], ["I don't feel well.", '🧒 🤒'], ['What is wrong?', '👩‍⚕️ ❓'], ['I have a cold.', '🧒 🤧'], ['Do you have a fever?', '👩‍⚕️ 🌡️ ❓'], ['Yes, I do.', '🧒 🌡️'], ['Open your mouth, please.', '👩‍⚕️ 👄'], ['Say ah.', '🧒 😮'], ['Does it hurt?', '👩‍⚕️ ❓'], ['Yes, a little.', '🧒 😣'], ['Do you eat well?', '👩‍⚕️ 🍚 ❓'], ["No, I don't.", '🧒 🙅'], ['Take this medicine.', '👩‍⚕️ 💊'], ['Drink a lot of water.', '💧 💧'], ['Can I play soccer?', '🧒 ⚽ ❓'], ['Not today. Rest at home.', '👩‍⚕️ 🏠 🛌'], ['Okay. Thank you.', '🧒 🙏'], ['Feel better soon!', '👩‍⚕️ 💗'], ['Now I am fine!', '🧒 😄 ✨'], ["Let's play soccer!", '🧒 ⚽']] },
   { id: 24, stage: 4, title: 'Birthday Party', cover: '🎂', pages: [
     ['Today is my birthday!', '🎂 🎉'], ['How old are you?', '👧 ❓'], ['I am eight!', '🧒 8️⃣'], ['Happy birthday!', '👫 🎉'], ['Who is coming?', '❓ 👫'], ['My friends are coming.', '👫 👫'], ['What is in the box?', '🎁 ❓'], ['It is a present for you.', '🎁 👦'], ['Can I open it?', '🧒 🎁 ❓'], ['Yes, you can.', '👧 👍'], ['Wow, it is a robot!', '🤖 😲'], ['Do you like it?', '👧 ❓'], ['Yes, I love it!', '🧒 😍 🤖'], ['Thank you so much!', '🧒 🙏'], ['Where is the cake?', '🎂 ❓'], ['It is on the table.', '🎂 🍽️'], ['What color is it?', '🎂 🎨 ❓'], ['It is pink and white.', '🎂 💗 🤍'], ['Make a wish!', '🕯️ ✨'], ['Blow out the candles!', '🧒 💨 🕯️']] },
   { id: 5, stage: 5, title: 'The Rainy Day', cover: '🌧️', pages: [
@@ -303,7 +303,7 @@ const STORIES = [
   { id: 29, stage: 7, title: 'The Camping Trip', cover: '🏕️', pages: [
     ['Last summer, we went camping.', '🏕️'], ['We drove to the mountains.', '🚗 ⛰️'], ['The trip took three hours.', '🚗 🕒'], ['We found a nice spot by a lake.', '🏞️'], ['Dad and I set up the tent.', '👨 🧒 ⛺'], ['It was hard work.', '💪 😓'], ['Mom made a fire.', '👩 🔥'], ['We cooked hot dogs for dinner.', '🌭 🔥'], ['They tasted great!', '🌭 😋'], ['Then we toasted marshmallows.', '🍡 🔥'], ['It got dark.', '🌙'], ['We looked up at the sky.', '👀 🌌'], ['We saw so many stars!', '✨ ⭐ 🌟'], ['Dad told a funny story.', '👨 🗣️ 😂'], ['I heard an owl.', '🦉 👂'], ['Hoo, hoo!', '🦉 🌙'], ['I was a little scared.', '🧒 😨'], ['Mom held my hand.', '👩 🤝 🧒'], ['We slept in the tent.', '⛺ 😴'], ['In the morning, we swam in the lake.', '🏊 🏞️'], ['The water was very cold!', '💧 🥶'], ['We caught a fish.', '🎣 🐟'], ['We let it go.', '🐟 👋 🌊'], ['I want to go camping again!', '🧒 ⛺ 💛']] },
   { id: 30, stage: 7, title: 'A Visit to Grandma', cover: '👵', pages: [
-    ['Last Sunday, I visited my grandma.', '👵 🏡'], ['She lives in the country.', '🏡 🌾'], ['We took a train there.', '🚆'], ['I looked out the window.', '🧒 🪟 🌄'], ['I saw cows and horses.', '🐄 🐴'], ['Grandma hugged me at the door.', '👵 🤗 🧒'], ['Her house smelled like bread.', '🏡 🍞'], ['She baked it that morning.', '👵 🍞 🔥'], ['We ate it with jam.', '🍞 🍓'], ['Then we went to her garden.', '👵 🧒 🌻'], ['It was big and full of colors.', '🌷 🌻 🌹'], ['Grandma grew tomatoes and carrots.', '🍅 🥕'], ['I picked some red tomatoes.', '🧒 🍅'], ['I watered the flowers.', '🧒 💧 🌷'], ['A butterfly landed on my hand.', '🦋 ✋'], ['I did not move.', '🧒 🤫'], ['It flew away after a minute.', '🦋 💨'], ['In the afternoon, Grandma read me a story.', '👵 📖 🧒'], ['I fell asleep on her sofa.', '🧒 😴 🛋️'], ['When I woke up, it was dinner time.', '🍲 🕕'], ['We ate soup with the vegetables.', '🍲 🥕'], ['At night, we took the train home.', '🚆 🌙'], ['I missed Grandma already.', '🧒 💭 👵'], ['I love my grandma so much.', '🧒 ❤️ 👵']] },
+    ['Last Sunday, I visited my grandma.', '👵 🏡'], ['She lives in the country.', '🏡 🌾'], ['We took a train there.', '🚆'], ['I looked out the window.', '🧒 🪟 🌄'], ['I saw cows and horses.', '🐄 🐴'], ['Grandma hugged me at the door.', '👵 🤗 🧒'], ['Her house smelled like bread.', '🏡 🍞'], ['She baked it that morning.', '👵 🍞 🔥'], ['We ate it with jam.', '🍞 🍓'], ['Then we went to her garden.', '👵 🧒 🌻'], ['It was big and full of colors.', '🌷 🌻 🌹'], ['Grandma grew tomatoes and carrots.', '🍅 🥕'], ['I picked some red tomatoes.', '🧒 🍅'], ['I watered the flowers.', '🧒 💧 🌷'], ['A butterfly landed on my hand.', '🦋 ✋'], ['I did not move.', '🧒 🤫'], ['It flew away after a minute.', '🦋 💨'], ['In the afternoon, Grandma read me a story.', '👵 📖 🧒'], ['I fell asleep on her sofa.', '🧒 😴 🛋️'], ['When I woke up, it was dinner time.', '🍲 🕕'], ['We ate soup with the vegetables.', '🍲 🥕'], ['At night, we took the train home.', '🚆 🌙'], ['I already missed Grandma.', '🧒 💭 👵'], ['I love my grandma so much.', '🧒 ❤️ 👵']] },
   { id: 8, stage: 8, title: 'When I Grow Up', cover: '🚀', pages: [
     ['What will you be?', '🧒 🤔 ✨'], ['I will be a pilot.', '🧑‍✈️'], ['I am going to fly a big plane.', '🧑‍✈️ ✈️'], ['I am going to fly around the world.', '✈️ 🌍'], ['I will visit many countries.', '🗼 🗽 🏯'], ['I will send you a postcard.', '💌 📮'], ['My sister will be a doctor.', '👩‍⚕️'], ['She is going to help sick people.', '👩‍⚕️ 🤒 🏥'], ['She will make them feel better.', '👩‍⚕️ 😊'], ['My friend will be a chef.', '👨‍🍳'], ['He is going to cook tasty food.', '👨‍🍳 🍝'], ['He will open a pizza shop.', '🍕 🏪'], ['My brother will be a firefighter.', '👨‍🚒'], ['He is going to keep people safe.', '👨‍🚒 🚒'], ['My cousin will be an artist.', '👩‍🎨'], ['She is going to paint big pictures.', '👩‍🎨 🖼️'], ['My teacher says we can dream big.', '👩‍🏫 ✨'], ['What about you?', '👉 🧒 ❓'], ['Will you be a singer?', '🎤 ❓'], ['Will you be a scientist?', '🧑‍🔬 ❓'], ['You can be anything!', '🧑‍🚀 👩‍🎨 👨‍🚒'], ['We will study hard.', '📚 ✏️'], ['We will never give up.', '💪 😊'], ['Our dreams will come true!', '✨ 🌈']] },
   { id: 16, stage: 8, title: 'Our Space Trip', cover: '🚀', pages: [
