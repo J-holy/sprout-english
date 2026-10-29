@@ -37,13 +37,18 @@ for (const s of STORIES) for (const [t] of s.pages) { add(t); storyChunks(t).for
 ['Hello!', 'Hello! Can you hear me?', 'Hello! A is for apple. I like to read books with you.', 'Listen!', 'Play!', 'Speak!', 'Read!'].forEach(add);
 
 const list = [...texts];
+if (args.includes('--print')) { console.log(list.join('\n')); process.exit(0); }
 const chars = list.reduce((n, t) => n + t.length, 0);
 console.log(`문장 ${list.length}개 · ${chars.toLocaleString()}자 (천천히 버전 포함 서버 캐시는 약 2배)`);
 console.log('예상 비용: OpenAI는 1달러 안팎 (요금제에 따라 다름) · Google Neural2는 월 100만 자 무료 범위 안');
 if (dry && staticDir) {
   // 정적 파일에 아직 없는 문장 (내용을 고친 뒤 음성을 다시 만들어야 하는지 보기)
-  let have = {}; try { have = JSON.parse(fs.readFileSync(path.join(staticDir, 'manifest.json'), 'utf8')).files || {}; } catch (e) { /* 없음 */ }
-  const missing = list.filter(t => !have[t]);
+  let man = {}; try { man = JSON.parse(fs.readFileSync(path.join(staticDir, 'manifest.json'), 'utf8')); } catch (e) { /* 없음 */ }
+  const have = man.files || {};
+  // 발음 고침(audioTag)이 바뀐 문장도 다시 만들어야 한다. 키 없이 확인할 때는 지난번 공급자로 가정한다
+  if (!ttsProvider() && man.provider === 'google') process.env.GOOGLE_TTS_API_KEY = 'dry-check';
+  const nameFor = t => crypto.createHash('sha1').update(t + audioTag(t)).digest('hex').slice(0, 16);
+  const missing = list.filter(t => !have[t] || !have[t].startsWith(nameFor(t)));
   console.log(`정적 음성이 없는 문장 ${missing.length}개${missing.length ? ': ' + missing.slice(0, 15).map(t => `"${t}"`).join(', ') + (missing.length > 15 ? ' …' : '') : ''}`);
 }
 if (dry) process.exit(0);

@@ -323,6 +323,10 @@ const durationText = weeks => weeks >= 52 ? `약 ${Math.round(weeks / 52 * 10) /
 const LETTER_NAMES = { A: 'ay', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'eff', G: 'jee', H: 'aitch', I: 'eye', J: 'jay', K: 'kay', L: 'el', M: 'em',
   N: 'en', O: 'oh', P: 'pee', Q: 'cue', R: 'ar', S: 'ess', T: 'tee', U: 'you', V: 'vee', W: 'double you', X: 'ex', Y: 'why', Z: 'zee' };
 const nameOf = l => LETTER_NAMES[l.toUpperCase()] || l;
+// 이름 소리가 비슷한 글자 (B·D·P처럼 '-이'로 끝나는 글자 등) — 듣고 고르는 문제에서 같은 묶음끼리는 보기로 함께 내지 않는다
+const LETTER_RHYME = ['BCDEGPTVZ', 'AHJK', 'IY', 'MN', 'FLSX', 'QUW'];
+const soundAlike = (a, b) => LETTER_RHYME.some(g => g.includes(a.toUpperCase()) && g.includes(b.toUpperCase()));
+const letterOthers = (ans, n) => shuffle(LETTERS.map(l => l.letter).filter(l => l !== ans && !soundAlike(l, ans))).slice(0, n);
 // 스토리북 '천천히' 읽기의 마디: 쉼표·마침표에서, 아니면 3단어마다 끊는다 (마지막에 한 단어만 남지 않게).
 // 화면과 AI 음성 미리 만들기가 같은 마디를 쓴다. 단어 번호 묶음을 돌려준다.
 function storyChunks(text) {
@@ -362,7 +366,7 @@ function speechText(t) {
     return x.slice(0, cut).split(', ').map(nameOf).join(', ') + x.slice(cut);
   }
   if (/^[A-Za-z], /.test(x)) return x.split(', ').map(w => /^[A-Za-z]$/.test(w) ? nameOf(w) : w).join(', '); // "A, a, apple" 
-  return x.replace(/^([A-Z]) is for /, (m, l) => `${nameOf(l)}, is for `)                 // "A is for apple."
+  return x.replace(/(^|[.!?] )([A-Z]) is for /, (m, p, l) => `${p}${nameOf(l)}, is for `)  // "A is for apple." (문장 가운데도: "Hello! A is for apple.")
           .replace(/ ends with ([A-Z])\.?$/, (m, l) => ` ends with ${nameOf(l)}.`)          // "box ends with X"
           .replace(/^([A-Z]), ([A-Z])$/, (m, a, b) => `${nameOf(a)}, ${nameOf(b)}`);
 }

@@ -81,7 +81,7 @@ const Gen = (() => {
       // X는 x로 시작하는 쉬운 단어가 없어서 끝소리로 배운다 (box, fox, six)
       const sound = L.ending ? `${word} ends with ${L.letter}` : `${L.letter} is for ${word}`;
       return [
-        () => choice(`ltr-listen-${L.letter}`, '소리를 듣고 알파벳을 골라요', L.letter, pickOthers(pool, 2, L.letter), { say: L.letter, big: '🔊' }),
+        () => choice(`ltr-listen-${L.letter}`, '소리를 듣고 알파벳을 골라요', L.letter, letterOthers(L.letter, 2), { say: L.letter, big: '🔊' }),
         () => choice(`ltr-case-${L.letter}`, '대문자와 짝인 소문자를 골라요', L.letter.toLowerCase(), pickOthers(pool, 2, L.letter).map(x => x.toLowerCase()), { show: L.letter, say: L.letter }),
         () => choice(`ltr-start-${L.letter}-${word}`, L.ending ? '어떤 글자로 끝날까요?' : '어떤 글자로 시작할까요?', L.letter, pickOthers(pool, 2, L.letter), { show: emoji, sub: word, say: word }),
         () => ({ type: 'trace', key: `ltr-trace-${L.letter}-${t % 2}`, title: '글자를 따라 써요', letter: t % 2 ? L.letter.toLowerCase() : L.letter, say: L.letter }),
@@ -281,7 +281,7 @@ const Challenge = (() => {
     const next = () => {
       if (spec.kind === 'balloon') {
         const ans = pickOne(spec.pool);
-        const opts = shuffle([ans, ...pickOthers(LETTERS.map(l => l.letter), 3, ans)]);
+        const opts = shuffle([ans, ...letterOthers(ans, 3)]);
         const colors = ['#ff7aa8', '#ffd23f', '#5cc8ff', '#7ed957'];
         stage.innerHTML = `<div class="sky ch-sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k]};--d:${k * 0.2}s;--x:${k * 25 + 2}%" data-v="${o}"><span class="ch-letter">${k % 2 ? o.toLowerCase() : o}</span></button>`).join('')}</div>`;
         Speech.speak(ans);

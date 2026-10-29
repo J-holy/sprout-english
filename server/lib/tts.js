@@ -38,9 +38,33 @@ export function articleSsml(text) {
     return `<phoneme alphabet="ipa" ph="${ph}">${m[1]}</phoneme>${xml(m[2])}`;
   }).join(' ') + '</speak>';
 }
-const fixed = text => ttsProvider() === 'google' && hasArticle(text);
+// 알파벳 이름 발음 바로잡기: 화면의 speechText()가 글자를 'ay', 'ee' 같은 이름으로 바꿔 보내는데,
+// AI 음성은 'ay'를 '아이'(aye)로 읽어 I(eye)와 똑같이 들린다. 단어가 아닌 글자 이름은 IPA로 소리를 못 박는다.
+// (bee·see·eye·oh·you·why는 실제 단어와 소리가 같아서 그대로 둔다)
+const LETTER_IPA = { ay: 'eɪ', ee: 'iː', jee: 'dʒiː', aitch: 'eɪtʃ', el: 'ɛl', em: 'ɛm', en: 'ɛn', ess: 'ɛs', eff: 'ɛf', ar: 'ɑɹ', ex: 'ɛks',
+  cue: 'kjuː', dee: 'diː', pee: 'piː', tee: 'tiː', vee: 'viː', zee: 'ziː', kay: 'keɪ', jay: 'dʒeɪ' };
+const hasLetterName = t => t.split(' ').some(w => LETTER_IPA[w.replace(/[.,!?]+$/, '').toLowerCase()]);
+// 과거형 read는 '레드'로: 'I read a book last night.', 'Grandma read me a story.', 'read, read'(원형, 과거형)의 두 번째
+const PAST_READ_WHO = /\b(he|she|it|Grandma|Grandpa|Mina|Tom|Dad|Mom|friend|Amy|Ben|Jisu|Minho|Lily|Sam) read\b/;
+const PAST_MARK = /\b(last|yesterday|ago|this morning)\b|^(At night|In the afternoon), I read|Then, I read|^I read books/;
+const isPastRead = t => /\bread\b/i.test(t) && !/\b(to|will|we|you|does|did) read\b|^read$|^Read!/i.test(t) && (PAST_READ_WHO.test(t) || PAST_MARK.test(t));
+const LETTER_FIX = 'ssml3';
+export function speechSsml(text) {
+  const ws = text.split(' '), pastRead = isPastRead(text), pair = /^read, read$/.test(text);
+  return '<speak>' + ws.map((w, i) => {
+    const m = w.match(/^([A-Za-z]+)([.,!?]*)$/); if (!m) return xml(w);
+    const low = m[1].toLowerCase();
+    let ph = null;
+    if (low === 'a' || low === 'the') ph = low === 'a' ? 'ə' : vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə';
+    else if (LETTER_IPA[low]) ph = LETTER_IPA[low];
+    else if (low === 'read' && (pastRead || (pair && i === 1))) ph = 'ɹɛd';
+    return ph ? `<phoneme alphabet="ipa" ph="${ph}">${m[1]}</phoneme>${xml(m[2])}` : xml(w);
+  }).join(' ') + '</speak>';
+}
+const needsLetterFix = t => hasLetterName(t) || isPastRead(t) || /^read, read$/.test(t);
+const fixed = text => ttsProvider() === 'google' && (hasArticle(text) || needsLetterFix(text));
 // 미리 만든 정적 파일 이름에도 쓴다 (발음을 고친 파일은 이름이 바뀌어 브라우저에 남은 옛 소리를 쓰지 않게)
-export const audioTag = text => (fixed(text) ? '|' + ARTICLE_FIX : '');
+export const audioTag = text => (!fixed(text) ? '' : needsLetterFix(text) ? '|' + LETTER_FIX : '|' + ARTICLE_FIX);
 export const cacheFile = (text, slow) => {
   const h = crypto.createHash('sha256').update(`${ttsProvider()}|${voiceId()}|${slow ? 'slow' : 'normal'}|${text}${audioTag(text)}`).digest('hex').slice(0, 32);
   return path.join(DIR, `${h}.${ext()}`);
@@ -62,7 +86,7 @@ async function synthOpenAI(text, slow) {
 async function synthGoogle(text, slow) {
   const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(e.GOOGLE_TTS_API_KEY)}`, {
     method: 'POST', signal: AbortSignal.timeout(30000), headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input: hasArticle(text) ? { ssml: articleSsml(text) } : { text }, voice: { languageCode: voiceId().slice(0, 5), name: voiceId() }, audioConfig: { audioEncoding: 'MP3', speakingRate: slow ? 0.7 : 0.92 } }),
+    body: JSON.stringify({ input: fixed(text) ? { ssml: speechSsml(text) } : { text }, voice: { languageCode: voiceId().slice(0, 5), name: voiceId() }, audioConfig: { audioEncoding: 'MP3', speakingRate: slow ? 0.7 : 0.92 } }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`Google TTS ${r.status}: ${j.error?.message || ''}`.slice(0, 200));
