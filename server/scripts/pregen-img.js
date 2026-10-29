@@ -89,6 +89,7 @@ const BOOKS = {
 const SCENES = {
   '2-5': ['cat|rat', 'the fat orange cat stares longingly at the red knit beanie on the rat\'s head and reaches one paw toward it'],
   '9-0': ['', 'a cute baby elephant proudly lifting its long nose high in the air'],
+  '9-11': ['', 'a small red toy yo-yo bouncing at the end of its long string, held by a child\'s hand that comes in from the top of the picture'],
   '2-14': ['cat|rat', 'in front, the small gray rat with gray fur smiles proudly and holds its red knit beanie on its head with both paws; far behind it, the cat sleeps curled up on the mat'],
 };
 
