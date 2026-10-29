@@ -224,6 +224,15 @@ sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts'    
 6. 마음에 안 드는 그림은 `npm run pregen-img -- --redo 2-5,🍎`처럼 골라서 다시 그려요 (스토리는 `책번호-쪽번호`(0부터), 단어는 이모지).
 7. 다 그리면 커밋해서 올리면 사이트에 반영돼요.
 
+**Mac에서 직접 그리기 (무료, 사용량 제한 없음)** — 같은 모델(FLUX.2 klein 4B, Apache 2.0)을 Apple Silicon Mac에서 돌려요. 그림체가 같아서 Cloudflare 그림과 섞여도 괜찮아요. M1 8GB에서 한 장에 약 1~1.5분, 메모리 약 4GB를 써요.
+```bash
+python3 -m pip install --user uv
+cd server && mkdir -p data/mflux && cd data/mflux
+~/Library/Python/3.9/bin/uv venv --python 3.12 .venv
+~/Library/Python/3.9/bin/uv pip install --python .venv/bin/python mflux
+cd ../.. && npm run pregen-img -- --local     # 처음 한 번 모델(약 4GB)을 받아요
+```
+
 ### 4-5. 약관·개인정보 처리방침
 
 - `public/terms.html`, `public/privacy.html` 의 `[ ]` 부분을 실제 사업자 정보로 바꿔요.

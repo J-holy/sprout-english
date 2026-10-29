@@ -5,13 +5,15 @@
 //   npm run pregen-img                     남은 그림 그리기 (스토리북 먼저, 다음 단어 그림)
 //   npm run pregen-img -- --only w|s       단어 그림(w)이나 스토리북(s)만
 //   npm run pregen-img -- --book 2         스토리북 한 권만 (시범용)
+//   npm run pregen-img -- --local          Cloudflare 대신 이 Mac에서 그리기 (무료, 제한 없음, 한 장 1~2분)
 //   npm run pregen-img -- --redo 2-5,🍎    마음에 안 드는 그림만 다시 (스토리 '책-쪽', 단어는 이모지)
 // .env 에 CF_ACCOUNT_ID 와 CF_AI_TOKEN(Workers AI 권한 토큰)이 있어야 해요.
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { config } from '../lib/env.js';
 
 const args = process.argv.slice(2);
@@ -22,6 +24,10 @@ const outDir = arg('--out') ? path.resolve(arg('--out')) : path.join(config.publ
 const keys = arg('--keys') && new Set(arg('--keys').split(',')); // 이 그림들만 (그림체 비교용)
 const refDir = path.join(config.dataDir || path.resolve('data'), 'img-ref');
 const MODEL = '@cf/black-forest-labs/flux-2-klein-4b';
+// --local: Cloudflare 대신 이 Mac에서 그린다 (data/mflux 에 mflux와 모델 설치)
+const local = args.includes('--local') || process.env.IMG_ENGINE === 'local';
+const MFLUX = path.join(config.dataDir, 'mflux'), LOCAL_MODEL = 'Runpod/FLUX.2-klein-4B-mflux-4bit';
+const execFileP = promisify(execFile);
 // 가로·세로 512px 칸 단위로 뉴런이 든다: 단어 384×384 = 1칸, 스토리 768×480 = 2칸, 주인공 기준 그림 448×448 = 1칸
 const SIZE = { w: [384, 384], s: [768, 480], ref: [448, 448] };
 const COST = { w: 55, s: 110, ref: 55 }; // 실제로 써 보니 그림 한 장에 약 100 뉴런 (요금표 계산의 약 2배)
@@ -41,12 +47,12 @@ const STYLE = `Children's picture book illustration, ${STYLES[styleName]}, round
 
 // 책마다 장소와 등장인물을 정해 둔다. 인물마다 [문장에서 찾을 말(정규식), 모습]이고, 인물별 기준 그림을 먼저 그려
 // 그 쪽 문장에 나오는 인물만 기준 그림과 함께 그린다 (모든 쪽에 같은 모습으로, 안 나오는 인물은 빼고).
-// '*'는 모든 쪽에 나오는 인물(대화 책). 찾는 말이 없고 he/she/it 같은 대명사만 있으면 앞 쪽 인물을 이어 쓴다.
+// '*'는 모든 쪽에 나오는 인물(대화 책). 세 번째 값 [인물 모습에서 찾을 말, 메모]는 그 인물이 나오는 쪽에만 붙인다. 찾는 말이 없고 he/she/it 같은 대명사만 있으면 앞 쪽 인물을 이어 쓴다.
 const NAR = '\\b(I|me|my|we|us|our)\\b', WE = '\\b(we|us|our)\\b';
 const BOOKS = {
   1: ['a sunny city park with green grass and big trees', [[NAR, 'a cheerful 5-year-old girl with black pigtails in a red dress'], [`mom|${WE}`, 'her mom with a brown ponytail and a green blouse'], [WE, 'her dad with glasses and a blue sweater']]],
   2: ['a cozy living room with a round woven mat and a cardboard box', [['cat', 'a big round fat orange tabby cat'], ['rat|hat', 'a small gray rat wearing a small red knit beanie hat with a white pom-pom']],
-    'The cat has bare fur on its head. The rat\'s small red knit beanie with a white pom-pom is the only hat in the picture.'],
+    ['rat', 'The cat has bare fur on its head. The rat\'s small red knit beanie with a white pom-pom is the only hat in the picture.']],
   3: ['a warm family home with a garden', [[NAR, 'a 7-year-old boy with short black hair in a yellow T-shirt'], ['mom|family', 'his kind mom with a bun and a white apron'], ['dad|family', 'his tall dad with a short beard'], ['sister|family', 'his 6-year-old sister in a pink dress'], ['baby', 'a chubby baby brother in a blue onesie'], ['grandma', 'a grandma with gray curly hair and a flower cardigan'], ['grandpa', 'a grandpa with a white mustache and a big straw hat'], ['dog|Coco', 'Coco, a small brown dog with floppy ears']]],
   4: ['a sunny neighborhood park', [['*', 'Lily, a 7-year-old girl with long brown hair in a purple shirt'], ['*', 'Sam, a 7-year-old boy with curly black hair in a green shirt']]],
   5: ['a small house and a street on a rainy day', [[NAR, 'a 6-year-old girl with a short black bob in a green raincoat and yellow rain boots, carrying a red umbrella'], ['dog', 'her small white puppy'], ['frog', 'a little shiny green frog'], ['mom', 'her mom with a brown ponytail and a cozy sweater']]],
@@ -98,6 +104,8 @@ if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
   const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
   jobs.push({ kind: 'w', key: e, label, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
 }
+// 문장을 따옴표·느낌표 없는 장면 설명으로 (따옴표 안 문장은 그림 속 글자로 그려지기 쉽다)
+const plain = t => t.replace(/["“”!?]/g, '').replace(/\.$/, '').replace(/^./, c => c.toLowerCase());
 const refs = {}; // 인물 기준 그림: 파일 경로 → 그림 설명
 if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
   if (book && s.id !== book) continue;
@@ -107,14 +115,16 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
     const letter = isLetterLine(text);
     const thing = letter && text.replace(/^[A-Z] is for | ends with [A-Z]\.?$/g, '').replace(/\.$/, '');
     let who = letter ? [] : cast.filter(([k]) => k === '*' || new RegExp(k, 'i').test(text));
-    if (!letter && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text)) who = last;
+    // 대명사만 있으면 앞 쪽 인물을 이어 쓰고, 그때만 앞 문장을 함께 준다 (다른 인물이 덤으로 그려지지 않게)
+    const carried = !letter && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text);
+    if (carried) who = last;
     last = who; who = who.slice(0, 4); // 기준 그림은 4장까지
-    const prev = i && !isLetterLine(s.pages[i - 1][0]) ? ` (Just before: "${s.pages[i - 1][0]}")` : '';
+    const prev = carried && i && !isLetterLine(s.pages[i - 1][0]) ? ` Just before this, ${plain(s.pages[i - 1][0])}.` : '';
     const prompt = letter
-      ? `${STYLE}. A page from the alphabet picture book "${s.title}": a big cute ${thing}, in ${place}.`
-      : `${STYLE}. Picture book "${s.title}". Illustrate exactly this moment, showing the action clearly: "${text}"${prev}. `
-        + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. Do not add other people or animals. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
-        + ` Background: ${place}, drawn in the same style as the characters, everything illustrated, not a photo, not realistic.${note ? ` ${note}` : ''}`;
+      ? `${STYLE}. One single full-page illustration: a big cute ${thing}, in ${place}.`
+      : `${STYLE}. One single full-page illustration of this moment, with the action shown clearly: ${plain(text)}.${prev} `
+        + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. ${['', 'Only one character', 'Only two characters', 'Only three characters', 'Only four characters'][who.length]} in the whole picture, each appearing once. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
+        + ` Background: ${place}, drawn in the same style as the characters, everything illustrated, not a photo, not realistic.${note && who.some(c => new RegExp(note[0]).test(c[1])) ? ` ${note[1]}` : ''}`;
     const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(styleName + d).slice(0, 12)}.png`); refs[f] = d; return f; });
     jobs.push({ kind: 's', key: `${s.id}-${i}`, refFiles, label: text, prompt, file: `s/${s.id}-${i}.jpg` });
   });
@@ -128,13 +138,16 @@ const todo = jobs.filter(j => !keys || keys.has(j.key)).filter(j => redo.has(j.k
 const needRefs = new Set(todo.flatMap(j => j.refFiles || []).filter(f => !fs.existsSync(f)));
 const neurons = todo.reduce((n, j) => n + COST[j.kind], 0) + needRefs.size * COST.ref;
 console.log(`단어 그림 ${jobs.filter(j => j.kind === 'w').length}개 · 스토리 ${jobs.filter(j => j.kind === 's').length}쪽 중 그릴 것 ${todo.length}개`);
-console.log(`예상 사용량 약 ${neurons.toLocaleString()} 뉴런 → 하루 무료 10,000 뉴런으로 약 ${Math.max(1, Math.ceil(neurons / 9500))}일`);
+if (local) console.log(`이 Mac에서 그려요: 한 장에 1~2분, 모두 약 ${Math.ceil((todo.length + needRefs.size) * 1.5 / 60)}시간`);
+else console.log(`예상 사용량 약 ${neurons.toLocaleString()} 뉴런 → 하루 무료 10,000 뉴런으로 약 ${Math.max(1, Math.ceil(neurons / 9500))}일`);
 if (dry || !todo.length) process.exit(0);
 const { CF_ACCOUNT_ID: account, CF_AI_TOKEN: token } = process.env;
-if (!account || !token) { console.error('server/.env 에 CF_ACCOUNT_ID 와 CF_AI_TOKEN 을 넣어 주세요. (deploy/DEPLOY.md 4-4-2 참고)'); process.exit(1); }
+if (local && !fs.existsSync(path.join(MFLUX, '.venv/bin/mflux-generate-flux2'))) { console.error(`${MFLUX} 에 mflux가 없어요. (deploy/DEPLOY.md 4-4-2 참고)`); process.exit(1); }
+if (!local && (!account || !token)) { console.error('server/.env 에 CF_ACCOUNT_ID 와 CF_AI_TOKEN 을 넣어 주세요. (deploy/DEPLOY.md 4-4-2 참고)'); process.exit(1); }
 
 class Quota extends Error {}
 async function draw(prompt, [width, height], seed, refFiles = []) {
+  if (local) return drawLocal(prompt, [width, height], seed, refFiles);
   const fd = new FormData();
   fd.append('prompt', prompt); fd.append('width', String(width)); fd.append('height', String(height)); fd.append('seed', String(seed));
   refFiles.forEach((f, k) => fd.append(`input_image_${k}`, new Blob([fs.readFileSync(f)], { type: 'image/png' }), `ref${k}.png`));
@@ -147,6 +160,16 @@ async function draw(prompt, [width, height], seed, refFiles = []) {
   if (r.status === 429 || /neuron|allocation|quota|4006/i.test(msg)) throw new Quota(msg);
   if (!r.ok || !j.result?.image) throw new Error(msg.slice(0, 200));
   return Buffer.from(j.result.image, 'base64');
+}
+// 이 Mac에서 같은 모델(FLUX.2 klein 4B, 4비트, Apache 2.0)을 mflux로 돌린다. 사용량 제한 없이 무료
+async function drawLocal(prompt, [width, height], seed, refFiles) {
+  const out = path.join(MFLUX, `out-${process.pid}.png`), pf = out + '.txt';
+  fs.writeFileSync(pf, prompt);
+  const bin = path.join(MFLUX, '.venv/bin', refFiles.length ? 'mflux-generate-flux2-edit' : 'mflux-generate-flux2');
+  const a = ['--model', LOCAL_MODEL, '--base-model', 'flux2-klein-4b', '--low-ram', '--steps', '4', '--width', width, '--height', height, '--seed', seed, '--prompt-file', pf, '--output', out, ...(refFiles.length ? ['--image-paths', ...refFiles] : [])];
+  try { await execFileP(bin, a.map(String), { env: { ...process.env, HF_HOME: path.join(MFLUX, 'hf'), ...(fs.existsSync(path.join(MFLUX, 'hf', 'hub')) ? { HF_HUB_OFFLINE: '1' } : {}) }, maxBuffer: 1e7, timeout: 15 * 60000 }); }
+  catch (e) { throw new Error(String(e.stderr || e.message).trim().split('\n').pop().slice(0, 200)); }
+  const buf = fs.readFileSync(out); fs.unlinkSync(out); fs.unlinkSync(pf); return buf;
 }
 // macOS면 sips로 가벼운 JPEG로 바꾼다 (없으면 받은 그대로)
 function save(buf, file, jpeg = true) {
@@ -181,7 +204,7 @@ async function worker() {
     }
   }
 }
-await Promise.all([worker(), worker()]);
+await Promise.all(local ? [worker()] : [worker(), worker()]); // 이 Mac에서는 한 장씩
 writeMan();
 console.log(`이번에 그린 그림 ${done}개 · 실패 ${fail}개 · 남은 그림 ${todo.length - done}개`);
 if (stopped) console.log(/neuron|allocation|quota|4006|429/i.test(stopped) ? '오늘 무료 사용량을 다 썼어요. 내일 오전 9시(한국 시간) 이후에 같은 명령을 실행하면 이어서 그려요.' : `멈춤: ${stopped}`);
