@@ -1350,6 +1350,10 @@ Views.play = (el, game) => {
       <div class="game-grid">
         <a class="game-card" href="#/play/balloon" style="--c:#ff7aa8"><span>${ico('🎈')}</span><b>풍선 팡팡</b><small>소리를 듣고 맞는 풍선을 터뜨려요</small><em>최고 ${(p.games || {}).balloon || 0}점</em></a>
         <a class="game-card" href="#/play/match" style="--c:#7c5cff"><span>${ico('🃏')}</span><b>짝꿍 카드</b><small>그림과 단어 짝을 찾아요</small><em>최고 ${(p.games || {}).match || 0}점</em></a>
+        <a class="game-card" href="#/play/frog" style="--c:#3fae6a"><span>${ico('🐸')}</span><b>개구리 징검다리</b><small>글자 연잎을 순서대로 밟아 단어를 만들어요</small><em>최고 ${(p.games || {}).frog || 0}점</em></a>
+        <a class="game-card" href="#/play/fish" style="--c:#2f9fd8"><span>${ico('🐟')}</span><b>빈칸 낚시</b><small>빠진 글자를 가진 물고기를 낚아요</small><em>최고 ${(p.games || {}).fish || 0}점</em></a>
+        <a class="game-card" href="#/play/ox" style="--c:#ff9f43"><span>${ico('⏱️')}</span><b>OX 스피드</b><small>30초 동안 그림과 단어가 맞는지 골라요</small><em>최고 ${(p.games || {}).ox || 0}점</em></a>
+        <a class="game-card" href="#/play/basket" style="--c:#c06ad8"><span>${ico('🧺')}</span><b>첫소리 바구니</b><small>첫소리를 듣고 맞는 바구니에 담아요</small><em>최고 ${(p.games || {}).basket || 0}점</em></a>
       </div></div>`;
     return;
   }
@@ -1410,6 +1414,108 @@ Views.play = (el, game) => {
         setTimeout(() => { $$(`.mcard[data-k="${a}"], .mcard[data-k="${c}"]`, area).forEach(x => x.classList.remove('flip')); lock = false; }, 900);
       }
     });
+  }
+
+  const alive = () => document.body.contains(area);
+  const ABC = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  // 철자 게임용: 짧고 글자만 있는 단어 (겹치지 않게 n개)
+  const spellPool = (min, max) => pool.filter(w => new RegExp(`^[a-z]{${min},${max}}$`).test(w.en));
+  const pickN = (list, n) => shuffle(list).filter((w, k, a) => a.findIndex(x => x.en === w.en) === k).slice(0, n);
+
+  // 🐸 개구리 징검다리: 글자 연잎을 순서대로 밟아 단어 만들기 (5단어, 실수 없이 2점·실수 있으면 1점)
+  if (game === 'frog') {
+    const words = pickN(spellPool(3, 6), 5); let round = 0, score = 0;
+    const next = () => {
+      if (round >= words.length) return finish('frog', score, words.length * 2);
+      const w = words[round], letters = w.en.split(''); let at = 0, miss = false;
+      const pads = shuffle(letters.map((l, k) => ({ l, k })).concat(pickOthers(ABC.filter(x => !letters.includes(x)), 2).map(l => ({ l, k: -1 }))));
+      area.innerHTML = `<div class="game-head"><span>🐸 ${round + 1}/${words.length}</span><span>⭐ ${score}</span><button class="btn btn-ghost sm" data-say>🔊 다시 듣기</button></div>
+        <div class="pond frog-pond"><div class="frog-target"><span class="ft-pic">${pic(w.emoji)}</span><b class="ft-word">${letters.map(() => '<i>_</i>').join('')}</b></div>
+          <div class="pads">${pads.map((p, k) => `<button class="pad" data-l="${p.l}" style="--d:${k * .15}s">${p.l}</button>`).join('')}</div><span class="frog" aria-hidden="true">🐸</span></div>`;
+      Speech.speak(w.en); $('[data-say]', area).onclick = () => Speech.speak(w.en);
+      $$('.pad', area).forEach(b => b.onclick = () => {
+        if (b.classList.contains('used')) return;
+        if (b.dataset.l === letters[at]) {
+          b.classList.add('used'); Speech.sfx.tap();
+          const r = b.getBoundingClientRect(), box = $('.frog-pond', area).getBoundingClientRect(), fr = $('.frog', area);
+          fr.style.left = `${r.left - box.left + r.width / 2}px`; fr.style.top = `${r.top - box.top - 10}px`; fr.classList.remove('hop'); void fr.offsetWidth; fr.classList.add('hop');
+          $$('.ft-word i', area)[at].textContent = letters[at]; at++;
+          if (at === letters.length) { score += miss ? 1 : 2; round++; Speech.sfx.correct(); Speech.speak(w.en); $('.ft-word', area).classList.add('done'); setTimeout(() => alive() && next(), 1100); }
+        } else { miss = true; b.classList.add('nope'); Speech.sfx.wrong(); setTimeout(() => b.classList.remove('nope'), 400); }
+      });
+    };
+    next();
+  }
+
+  // 🐟 빈칸 낚시: 빠진 글자를 가진 물고기 잡기 (10문제, 한 번에 맞히면 1점)
+  if (game === 'fish') {
+    const words = pickN(spellPool(3, 7), 10); let round = 0, score = 0;
+    const next = () => {
+      if (round >= words.length) return finish('fish', score, words.length);
+      const w = words[round], i = Math.floor(Math.random() * w.en.length), ans = w.en[i];
+      const opts = shuffle([ans, ...pickOthers(ABC.filter(x => x !== ans), 2)]); let tried = false;
+      area.innerHTML = `<div class="game-head"><span>🐟 ${round + 1}/${words.length}</span><span>⭐ ${score}</span><button class="btn btn-ghost sm" data-say>🔊 다시 듣기</button></div>
+        <div class="pond"><div class="fish-q"><span class="ft-pic">${pic(w.emoji)}</span><b class="ft-word">${w.en.slice(0, i)}<u>_</u>${w.en.slice(i + 1)}</b></div>
+          ${opts.map((l, k) => `<button class="fish" data-l="${l}" style="--y:${42 + k * 18}%;--d:${k * -1.3}s;--s:${5 + k}s"><span class="fish-body">🐟</span><b>${l}</b></button>`).join('')}</div>`;
+      Speech.speak(w.en); $('[data-say]', area).onclick = () => Speech.speak(w.en);
+      $$('.fish', area).forEach(b => b.onclick = () => {
+        if (b.dataset.l === ans) {
+          if (!tried) score++; round++;
+          b.classList.add('caught'); $('.ft-word u', area).textContent = ans; Speech.sfx.correct(); Speech.speak(w.en);
+          setTimeout(() => alive() && next(), 900);
+        } else { tried = true; b.classList.add('nope'); Speech.sfx.wrong(); setTimeout(() => b.classList.remove('nope'), 400); }
+      });
+    };
+    next();
+  }
+
+  // ⏱️ OX 스피드: 30초 동안 그림과 단어가 맞으면 O, 틀리면 X (맞힌 수가 점수)
+  if (game === 'ox') {
+    let score = 0, answered = 0, left = 30, cur = null, timer = null;
+    area.innerHTML = `<div class="game-head"><span class="ox-time">⏱️ 30</span><span class="ox-score">⭐ 0</span></div>
+      <div class="ox-card card"><span class="ft-pic"></span><b class="ox-word"></b></div>
+      <div class="ox-btns"><button class="ox-btn o" data-a="1" aria-label="맞아요">O</button><button class="ox-btn x" data-a="0" aria-label="아니에요">X</button></div>`;
+    const deal = () => {
+      const w = pool[Math.floor(Math.random() * pool.length)], same = Math.random() < .5;
+      const shown = same ? w : pictureOthers(pool, 1, w)[0] || w;
+      cur = { ok: shown.en === w.en, en: shown.en };
+      $('.ox-card .ft-pic', area).innerHTML = pic(w.emoji); $('.ox-word', area).textContent = shown.en;
+    };
+    $$('.ox-btn', area).forEach(b => b.onclick = () => {
+      if (!cur || left <= 0) return;
+      answered++;
+      if ((b.dataset.a === '1') === cur.ok) { score++; Speech.sfx.correct(); } else { Speech.sfx.wrong(); $('.ox-card', area).classList.add('nope'); setTimeout(() => $('.ox-card', area)?.classList.remove('nope'), 300); }
+      $('.ox-score', area).textContent = `⭐ ${score}`; deal();
+    });
+    deal();
+    timer = setInterval(() => {
+      if (!alive()) return clearInterval(timer);
+      left--; $('.ox-time', area).textContent = `⏱️ ${left}`;
+      if (left <= 0) { clearInterval(timer); finish('ox', score, Math.max(10, answered), `· ${answered}문제 중`); }
+    }, 1000);
+  }
+
+  // 🧺 첫소리 바구니: 그림 단어를 듣고 첫소리 바구니에 담기 (10개, 한 번에 맞히면 1점)
+  if (game === 'basket') {
+    const byFirst = {}; pool.filter(w => /^[a-z]/.test(w.en)).forEach(w => (byFirst[w.en[0]] = byFirst[w.en[0]] || []).push(w));
+    const letters = shuffle(Object.keys(byFirst).filter(l => byFirst[l].length >= 3 && !'aeiou'.includes(l))).slice(0, 2);
+    const items = shuffle(letters.flatMap(l => pickN(byFirst[l], 5))).slice(0, 10); let round = 0, score = 0;
+    const next = () => {
+      if (round >= items.length) return finish('basket', score, items.length);
+      const w = items[round]; let tried = false;
+      area.innerHTML = `<div class="game-head"><span>🧺 ${round + 1}/${items.length}</span><span>⭐ ${score}</span><button class="btn btn-ghost sm" data-say>🔊 다시 듣기</button></div>
+        <div class="bk-item card anim-in"><span class="ft-pic">${pic(w.emoji)}</span><small>첫소리는 무엇일까요?</small></div>
+        <div class="baskets">${letters.map(l => `<button class="basket" data-l="${l}"><b>${l}</b><span>🧺</span></button>`).join('')}</div>`;
+      Speech.speak(w.en); $('[data-say]', area).onclick = () => Speech.speak(w.en);
+      $$('.basket', area).forEach(b => b.onclick = () => {
+        if (b.dataset.l === w.en[0]) {
+          if (!tried) score++; round++;
+          b.classList.add('got'); $('.bk-item small', area).textContent = w.en; Speech.sfx.correct(); Speech.speak(w.en);
+          setTimeout(() => alive() && next(), 900);
+        } else { tried = true; b.classList.add('nope'); Speech.sfx.wrong(); setTimeout(() => b.classList.remove('nope'), 400); }
+      });
+    };
+    next();
   }
 };
 

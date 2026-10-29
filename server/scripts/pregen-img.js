@@ -500,6 +500,7 @@ const ICONS = {
   '🔁': 'two green circular arrows around a gold star', '📖': 'an open picture book with a rainbow coming out', '🎤': 'a shiny microphone with music notes',
   '🎈': 'three colorful balloons', '🃏': 'two matching picture cards with an apple', '✏️': 'a yellow pencil and a notebook with a check mark',
   '🛍️': 'a shopping bag full of stars', '🖨️': 'a printed worksheet with crayons', '🔑': 'a golden key', '🔔': 'a little golden bell', '🛠️': 'a wrench and a hammer',
+  '🐸': 'a happy green frog on a lily pad', '🐟': 'a little blue fish next to a fishing hook', '⏱️': 'a red stopwatch', '🧺': 'a woven basket full of fruit',
 };
 if (only !== 's' && !book) for (const [e, label] of Object.entries(ICONS)) {
   const prompt = `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;

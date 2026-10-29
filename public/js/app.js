@@ -42,7 +42,7 @@ const App = (() => {
     [/^\/free$/, learner(el => Views.free(el))],
     [/^\/certificate\/(\d)$/, learner((el, m) => Views.certificate(el, +m[1]))],
     [/^\/shop$/, learner(el => Views.shop(el))],
-    [/^\/play(?:\/(balloon|match))?$/, learner((el, m) => Views.play(el, m[1]))],
+    [/^\/play(?:\/(balloon|match|frog|fish|ox|basket))?$/, learner((el, m) => Views.play(el, m[1]))],
     [/^\/worksheet\/([A-Z])$/, authed((el, m) => Views.worksheet(el, m[1]))],
     [/^\/parent(?:\/(\w+))?$/, authed((el, m) => Views.parent(el, m[1]))],
     [/^\/admin(?:\/(\w+))?$/, adminOnly((el, m) => Views.admin(el, m[1]))],

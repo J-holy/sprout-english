@@ -938,3 +938,37 @@ img.pic { height: 1.25em; width: auto; vertical-align: middle; border-radius: .2
 /* 메뉴·버튼 아이콘 그림: 이모지 자리에 둥근 배지로 */
 img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; vertical-align: -.28em; display: inline-block; }
 .quick-card span img.ico, .free-card span img.ico, .game-card span img.ico, .start-card span img.ico { width: 1.6em; height: 1.6em; vertical-align: middle; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+
+/* ---------- 놀이터 새 게임 ---------- */
+.pond { position: relative; min-height: 400px; background: linear-gradient(#bde9ff, #7cc8ee); border: var(--bw) solid var(--line); border-radius: 26px; overflow: hidden; box-shadow: var(--shadow); padding: 18px; }
+:root[data-theme="dark"] .pond { background: linear-gradient(#1f3a63, #10203d); }
+.ft-pic { font-size: 3.2rem; line-height: 1; display: block; } .ft-pic img.pic { width: 96px; height: 96px; }
+.ft-word { font-family: var(--en); font-size: 2rem; letter-spacing: .18em; color: #24305e; display: block; }
+:root[data-theme="dark"] .ft-word { color: #fff; }
+.ft-word u { text-decoration: none; color: #e8455a; } .ft-word.done { color: #2e9d55; }
+.frog-target, .fish-q { text-align: center; background: rgba(255, 255, 255, .7); border-radius: 20px; padding: 10px; width: max-content; margin: 0 auto; }
+:root[data-theme="dark"] .frog-target, :root[data-theme="dark"] .fish-q { background: rgba(0, 0, 0, .3); }
+.pads { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 34px; }
+.pad { width: 74px; height: 62px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8be08f, #3fae6a); border: var(--bw) solid var(--line); font-family: var(--en); font-weight: 700; font-size: 1.7rem; color: #fff; text-shadow: 1px 1px 0 rgba(0, 0, 0, .3); cursor: pointer; animation: padbob 2.2s ease-in-out var(--d) infinite alternate; }
+@keyframes padbob { to { transform: translateY(-6px); } }
+.pad.used { opacity: .45; } .pad.nope { animation: shake .4s; }
+.frog { position: absolute; left: 50%; top: 82%; font-size: 2.6rem; transform: translate(-50%, -50%); transition: left .35s, top .35s; pointer-events: none; }
+.frog.hop { animation: hop .35s ease-out; }
+@keyframes hop { 50% { transform: translate(-50%, -90%) scale(1.15); } }
+.fish { position: absolute; top: var(--y); left: -20%; display: grid; place-items: center; background: none; border: 0; cursor: pointer; animation: swim var(--s) linear var(--d) infinite; }
+.fish-body { font-size: 3.4rem; display: block; transform: scaleX(-1); }
+.fish b { position: absolute; font-family: var(--en); font-size: 1.5rem; color: #fff; background: #24305e; border-radius: 50%; width: 1.6em; height: 1.6em; display: grid; place-items: center; }
+.fish.caught { animation: caught .8s forwards; } .fish.nope b { background: #e8455a; }
+@keyframes swim { from { left: -20%; } to { left: 105%; } }
+@keyframes caught { to { top: -30%; opacity: 0; } }
+.ox-card { text-align: center; padding: 26px; margin: 10px auto; max-width: 360px; } .ox-card.nope { animation: shake .3s; }
+.ox-word { font-family: var(--en); font-size: 2.4rem; display: block; margin-top: 10px; }
+.ox-btns { display: flex; gap: 20px; justify-content: center; margin-top: 18px; }
+.ox-btn { width: 120px; height: 120px; border-radius: 50%; border: var(--bw) solid var(--line); font-family: var(--title); font-size: 3.6rem; color: #fff; cursor: pointer; box-shadow: var(--shadow); }
+.ox-btn.o { background: #3fae6a; } .ox-btn.x { background: #e8455a; } .ox-btn:active { transform: scale(.94); }
+.bk-item { text-align: center; padding: 22px; max-width: 280px; margin: 10px auto; } .bk-item small { display: block; margin-top: 8px; font-family: var(--en); font-size: 1.3rem; }
+.baskets { display: flex; gap: 24px; justify-content: center; margin-top: 20px; }
+.basket { display: grid; place-items: center; width: 140px; padding: 14px; border-radius: 26px; border: var(--bw) solid var(--line); background: var(--paper); cursor: pointer; box-shadow: var(--shadow); }
+.basket b { font-family: var(--en); font-size: 2.8rem; } .basket span { font-size: 3rem; }
+.basket.got { background: #c9f2d3; } .basket.nope { animation: shake .4s; }
+@media (prefers-reduced-motion: reduce) { .pad, .fish { animation-duration: 0s; } .fish { animation: none; left: 35%; } }
