@@ -972,3 +972,22 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .basket b { font-family: var(--en); font-size: 2.8rem; } .basket span { font-size: 3rem; }
 .basket.got { background: #c9f2d3; } .basket.nope { animation: shake .4s; }
 @media (prefers-reduced-motion: reduce) { .pad, .fish { animation-duration: 0s; } .fish { animation: none; left: 35%; } }
+
+/* 🌱 보충 연습 · 다시 해 보기 */
+.result.boost h2 { margin: 0; }
+.boost-sprout { font-size: 3.4rem; line-height: 1; animation: stampIn .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+.boost-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 6px 0 8px; }
+.boost-card { display: grid; justify-items: center; gap: 2px; min-width: 120px; max-width: 220px; padding: 10px 14px; border: var(--bw) solid var(--line); border-radius: 18px; background: var(--soft); color: var(--ink); box-shadow: var(--shadow-sm); cursor: pointer; font: inherit; }
+.boost-card b { font-family: var(--en); font-weight: 500; font-size: 1.15rem; }
+.boost-card small { color: var(--muted); }
+.boost-card .bc-pic { font-size: 2.2rem; line-height: 1.1; }
+.boost-card .bc-pic .pic { width: 56px; height: 56px; }
+.boost-card .bc-play { font-size: .9rem; }
+.boost-card.on { background: var(--grass-soft); }
+.boost-line { margin: 0; color: var(--grass); font-weight: 700; }
+.retry-tip { display: grid; gap: 2px; background: var(--grape-soft); border: 2px dashed var(--grape); border-radius: 16px; padding: 10px 16px; max-width: 420px; }
+.retry-tip small { color: var(--muted); }
+.day-btn.retry { background: var(--grape-soft); }
+.boost-report h4 { margin: 12px 0 0; font-size: 1rem; }
+.boost-report h4 small, .boost-report .muted { color: var(--muted); font-family: var(--font); font-size: .82rem; }
+.boost-report .wrong-list { margin-top: 6px; }

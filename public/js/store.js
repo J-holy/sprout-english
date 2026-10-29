@@ -65,7 +65,7 @@ const Store = (() => {
     // 예전에는 꾸미기를 하나만(acc) 입었다 → 부위마다 하나씩(wear)
     if (!p.wear) { p.wear = {}; const old = p.acc && SHOP.find(x => x.id === p.acc); if (old) p.wear[old.slot] = old.id; }
     return Object.assign({ progress: {}, stamps: {}, minutes: {}, stats: { answered: 0, correct: 0 }, wrong: [], speaking: [], stories: {}, dailyGoal: 2,
-      stars: 0, owned: [], acc: null, wear: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {}, recent: [] }, p);
+      stars: 0, owned: [], acc: null, wear: null, difficulty: 'auto', recentScores: [], games: {}, starLog: {}, startLevel: 'A', placed: false, xp: 0, watered: null, badges: {}, skills: {}, skillDays: {}, srs: {}, daily: null, certs: {}, recent: [], weak: {}, levelLow: {} }, p);
   }
   async function loadMe() {
     try {
@@ -286,9 +286,14 @@ const Store = (() => {
     // 레벨 진단으로 정한 출발 레벨부터 찾는다 (앞쪽 레벨은 건너뛴 것으로 본다)
     return ALL_LEVELS.slice(ALL_LEVELS.indexOf(p.startLevel)).find(lv => unlocked(lv) && lessonsDone(lv, p) < LESSONS_PER_LEVEL) || 'Z';
   }
-  function difficulty(p = profile()) {
+  // 보충 학습 기준: 이 정답률보다 낮으면 레슨 끝에 틀린 것만 다시 풀고, 다시 해 보기를 권한다
+  const BOOST_BELOW = 60;
+  // level을 주면 그 레벨에서 연달아 낮았는지도 본다 (60% 미만이 두 번 쌓이면 80% 이상 받을 때까지 쉬움)
+  const levelEased = (p, level) => !!level && ((p.levelLow || {})[level] || 0) >= 2;
+  function difficulty(p = profile(), level = null) {
     if (!p) return 'normal';
     if (p.difficulty && p.difficulty !== 'auto') return p.difficulty;
+    if (levelEased(p, level)) return 'easy';
     const r = (p.recentScores || []).slice(0, 3); if (r.length < 2) return 'normal';
     const avg = r.reduce((a, b) => a + b, 0) / r.length;
     return avg < 55 ? 'easy' : avg >= 90 ? 'hard' : 'normal';
@@ -305,6 +310,11 @@ const Store = (() => {
     p.recentScores = [score, ...(p.recentScores || [])].slice(0, 5);
     const stars = score >= 90 ? 3 : score >= 70 ? 2 : 1;
     addStars(stars, 'lesson');
+    // 같은 레벨에서 계속 낮으면 난이도를 낮춘다 (자동 난이도일 때만)
+    p.levelLow = p.levelLow || {};
+    const wasEased = levelEased(p, level);
+    if (score < BOOST_BELOW) p.levelLow[level] = (p.levelLow[level] || 0) + 1; else if (score >= 80) delete p.levelLow[level];
+    const eased = !wasEased && levelEased(p, level) && (p.difficulty || 'auto') === 'auto';
     addWrong(wrongItems);
     // 레벨 마지막 날(복습)을 70% 이상으로 통과하면 레벨 배지
     let badge = false;
@@ -335,8 +345,9 @@ const Store = (() => {
       }
       save();
     }
+    if (eased) notify(`🐣 ${p.name}(이)가 Level ${level}에서 정답률이 두 번 연달아 ${BOOST_BELOW}% 아래였어요. 이 레벨은 80% 넘게 맞힐 때까지 쉬움(보기 2개·힌트)으로 해요.`, 'info', true);
     if (p.stamps[d] === p.dailyGoal) notify(`🏅 ${p.name}(이)가 오늘의 목표(${p.dailyGoal}개 레슨)를 달성했어요!`, 'goal', true);
-    return { score, stars, badge, grow, cert, placeDown };
+    return { score, stars, badge, grow, cert, placeDown, eased, boost: score < BOOST_BELOW };
   }
   // 레벨 테스트 결과로 출발 레벨 정하기 (A가 아니면 처음 두 레슨으로 한 번 더 확인)
   function placeAt(level) {
@@ -427,11 +438,29 @@ const Store = (() => {
       c.box = ok ? Math.min(INTERVALS.length - 1, c.box + 1) : 0;
       c.due = addDays(ok ? INTERVALS[c.box] : 1);
       c.last = d; p.srs[id] = c;
+      // 자주 틀리는 항목: 틀리면 쌓이고, 다른 날 두 번 연달아 맞히면 빠진다 (부모 리포트·복습 순서용)
+      const w = p.weak[id];
+      if (!ok) p.weak[id] = { miss: (w ? w.miss : 0) + 1, last: d, streak: 0, boost: null };
+      else if (w && w.last !== d && ++w.streak >= 2) delete p.weak[id];
     }
+    const weak = Object.entries(p.weak).sort((a, b) => a[1].last < b[1].last ? 1 : -1);
+    if (weak.length > 60) weak.slice(60).forEach(([id]) => delete p.weak[id]);
     // 오래된 하루 기록은 정리 (최근 60일만)
     const keys = Object.keys(p.skillDays).sort(); keys.slice(0, Math.max(0, keys.length - 60)).forEach(k => delete p.skillDays[k]);
   }
-  const dueItems = (p = profile()) => !p ? [] : Object.entries(p.srs).filter(([, c]) => c.due <= today()).sort((a, b) => a[1].due < b[1].due ? -1 : 1).map(([id]) => id);
+  // 자주 틀리는 항목을 먼저, 그다음 오래 기다린 순서
+  const dueItems = (p = profile()) => !p ? [] : Object.entries(p.srs).filter(([, c]) => c.due <= today())
+    .sort((a, b) => (!!p.weak[b[0]] - !!p.weak[a[0]]) || (a[1].due < b[1].due ? -1 : 1)).map(([id]) => id);
+  const weakIds = (p = profile()) => Object.keys((p && p.weak) || {});
+  // 🌱 보충 연습: 점수·복습 일정은 바꾸지 않고(본 레슨 기록 그대로), 맞힌 항목만 표시. 끝까지 하면 별 1개 (하루 3개까지)
+  function finishBooster({ solved = [], seconds = 0, finished = true }) {
+    const p = profile(); if (!p) return 0;
+    const d = today(); solved.forEach(id => { if (p.weak[id]) p.weak[id].boost = d; });
+    addMinutes(seconds);
+    if (!finished) { save(); return 0; }
+    addXp(3);
+    const got = addStars(1, 'booster', 3); save(); return got;
+  }
   function finishReview({ results, seconds, correct, total }) {
     const p = profile(); applyResults(results);
     p.stats.answered += total; p.stats.correct += correct;
@@ -605,7 +634,7 @@ const Store = (() => {
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
-    dueItems, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
+    dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
     notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, setTheme, exportData, importData, persist, hash,
   };
 })();

@@ -199,6 +199,21 @@ UI.skillReport = p => {
   </div>`;
 };
 
+// 🌱 보충이 필요한 내용 (부모 리포트): 다시 해 볼 레슨 · 자주 틀리는 단어·문장 · 쉬움으로 낮춘 레벨
+UI.boostReport = p => {
+  const lows = ALL_LEVELS.flatMap(lv => ((p.progress[lv] || {}).lessons || []).map((r, d) => r && r.score < Store.BOOST_BELOW ? { lv, d, score: r.score } : null).filter(Boolean));
+  const weak = Object.entries(p.weak || {}).sort((a, b) => b[1].miss - a[1].miss || (a[1].last < b[1].last ? 1 : -1)).slice(0, 8);
+  const eased = Object.entries(p.levelLow || {}).filter(([, n]) => n >= 2).map(([lv]) => lv);
+  const none = !lows.length && !weak.length && !eased.length;
+  return `<div class="card boost-report"><h3>🌱 보충이 필요한 내용</h3>
+    ${none ? (p.wrong.length ? `<ul class="wrong-list small">${p.wrong.slice(0, 8).map(w => `<li>${esc(w.q.show || (w.q.say ? '🔊 ' + w.q.say : w.q.title))} → <b>${esc(w.q.type === 'tiles' ? w.q.answer.join(w.q.joiner) : w.q.answer)}</b></li>`).join('')}</ul>` : '<p>지금은 보충할 내용이 없어요 👏</p>') : ''}
+    ${lows.length ? `<h4>🔁 다시 해 보면 좋은 레슨 <small>정답률 ${Store.BOOST_BELOW}% 미만</small></h4><ul class="wrong-list small">${lows.slice(-6).reverse().map(x => `<li>Level ${x.lv} · ${dayLabel(x.d)} <b>${x.score}%</b></li>`).join('')}</ul>` : ''}
+    ${weak.length ? `<h4>✏️ 자주 틀리는 단어·문장 <small>다른 날 두 번 맞히면 빠져요</small></h4><ul class="wrong-list small">${weak.map(([id, w]) => `<li>${esc(Gen.itemLabel(id))} <small class="muted">· ${w.miss}번 틀림${w.boost ? ' · 🌱 보충 연습에서 맞힘' : ''}</small></li>`).join('')}</ul>
+      <p class="fine">이 단어들은 '오늘의 복습'과 다음 레슨에 먼저 나와요.</p>` : ''}
+    ${eased.length ? `<p class="tip">🐣 Level ${eased.join(', ')}은(는) 정답률이 연달아 낮아 쉬움(보기 2개·힌트)으로 하고 있어요. 80% 넘게 맞히면 보통으로 돌아가요.</p>` : ''}
+  </div>`;
+};
+
 // 🎯 오늘 카드: 미션 3개와 망각 곡선 복습
 UI.todayCard = () => {
   const m = Store.missions(), w = Store.wordStats();
@@ -220,7 +235,9 @@ UI.todayCard = () => {
 Views.review = el => {
   const due = Store.dueItems();
   if (!due.length) { el.innerHTML = `<div class="wrap sec narrow">${UI.empty('✅', '오늘 복습할 게 없어요. 레슨을 하면 복습할 단어가 생겨요!', '<a class="btn btn-primary" href="#/study">모험 지도</a>')}</div>`; return; }
-  const qs = Gen.reviewQuestions(shuffle(due.slice(0, 20)), 8);
+  // 자주 틀린 항목(dueItems가 앞에 둔다)을 먼저 넣고, 나머지는 섞어서 채운다
+  const weak = new Set(Store.weakIds()), top = due.slice(0, 20);
+  const qs = shuffle(Gen.reviewQuestions([...shuffle(top.filter(id => weak.has(id))), ...shuffle(top.filter(id => !weak.has(id)))], 8));
   el.innerHTML = '<div class="wrap lesson-wrap"></div>';
   const root = $('.lesson-wrap', el);
   Lesson.run(root, qs, {
@@ -916,7 +933,7 @@ Views.learn = el => {
   const course = (ALL_LEVELS.length - startI) * LESSONS_PER_LEVEL;
   const doneAll = ALL_LEVELS.slice(startI).reduce((n, lv) => n + Store.lessonsDone(lv), 0);
   const left = Math.max(0, course - doneAll);
-  const diff = Store.difficulty();
+  const diff = Store.difficulty(p, cur);
   const greet = todayN >= p.dailyGoal ? `오늘 목표 달성! 놀이터에서 놀아도 좋아 🎈` : todayN ? `잘하고 있어! 레슨 ${p.dailyGoal - todayN}개만 더 하면 목표 달성!` : `안녕 ${esc(p.name)}! 오늘도 같이 모험하자!`;
   el.innerHTML = `<div class="wrap sec">
     <div class="learner-bar card">
@@ -975,8 +992,8 @@ Views.learn = el => {
     const m = App.modal(`<h2><span class="level-box" style="--c:${s.color}">${lv}</span> Level ${lv}</h2><p>${s.desc}</p>
       <div class="course-prog"><div class="rb-bar"><i style="width:${doneN / LESSONS_PER_LEVEL * 100}%"></i></div><small>레벨 진도 <b>${doneN}/${LESSONS_PER_LEVEL}일</b> (${Math.round(doneN / LESSONS_PER_LEVEL * 100)}%) · 아래 %는 각 Day의 최고 정답률이에요</small></div>
       <div class="day-list">${Array.from({ length: LESSONS_PER_LEVEL }, (_, d) => {
-        const r = lp.lessons[d]; const st = r ? (r.score >= 90 ? 3 : r.score >= 70 ? 2 : 1) : 0;
-        return `<a class="day-btn ${r ? 'done' : ''} ${Gen.isReviewDay(d) ? 'review' : ''}" href="#/lesson/${lv}/${d}" data-close><b>${dayLabel(d)}</b><span>${r ? '⭐'.repeat(st) + '☆'.repeat(3 - st) + ` ${r.score}%` : '—'}</span></a>`;
+        const r = lp.lessons[d]; const st = r ? (r.score >= 90 ? 3 : r.score >= 70 ? 2 : 1) : 0, low = r && r.score < Store.BOOST_BELOW;
+        return `<a class="day-btn ${r ? 'done' : ''} ${low ? 'retry' : ''} ${Gen.isReviewDay(d) ? 'review' : ''}" href="#/lesson/${lv}/${d}" data-close ${low ? 'title="한 번 더 해 보면 좋아요"' : ''}><b>${dayLabel(d)}${low ? ' 🔁' : ''}</b><span>${r ? '⭐'.repeat(st) + '☆'.repeat(3 - st) + ` ${r.score}%` : '—'}</span></a>`;
       }).join('')}</div>
       <div class="row-center"><a class="btn btn-ghost" href="#/worksheet/${lv}" data-close>🖨️ 워크시트</a><button class="btn btn-ghost" data-close>닫기</button></div>`);
   });
@@ -989,24 +1006,96 @@ Views.lesson = (el, lv, idx) => {
   if (!ALL_LEVELS.includes(lv) || !(idx >= 0 && idx < LESSONS_PER_LEVEL)) return (location.hash = '#/study');
   if (Store.needsPlus(lv)) { location.hash = '#/study'; return App.upsell(); }
   if (!Store.isUnlocked(lv)) { App.toast('이전 레벨을 먼저 마쳐야 열려요 🔒'); return (location.hash = '#/study'); }
-  const qs = Gen.lesson(lv, idx, 8, Store.recentKeys());
+  const qs = Gen.lesson(lv, idx, 8, Store.recentKeys(), new Set(Store.weakIds()));
   el.innerHTML = '<div class="wrap lesson-wrap"></div>';
   const root = $('.lesson-wrap', el);
   Lesson.run(root, qs, {
-    title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(), challenge: Gen.challenge(lv),
+    title: `Level ${lv} · ${dayLabel(idx)}`, difficulty: Store.difficulty(Store.profile(), lv), challenge: Gen.challenge(lv),
     onExit: () => (location.hash = '#/study'),
     onDone: r => {
       Store.rememberKeys(qs.map(q => q.key));
-      const { score, stars, badge, grow, cert, placeDown } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong, bonus: r.bonus, results: r.results });
+      // 점수·별·진도는 여기서 한 번만 기록한다 (보충 연습은 점수를 바꾸지 않는다)
+      const { score, stars, badge, grow, cert, placeDown, eased, boost } = Store.finishLesson({ level: lv, index: idx, correct: r.correct, total: r.total, seconds: r.seconds, wrongItems: r.wrong, bonus: r.bonus, results: r.results });
       const nl = ALL_LEVELS[ALL_LEVELS.indexOf(lv) + 1];
       const next = idx + 1 < LESSONS_PER_LEVEL ? [lv, idx + 1] : nl ? [nl, 0] : null;
-      Views.result(root, { score, stars, badge: badge && lv, grow, cert, ...r, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
-      App.refreshHeader();
-      if (placeDown) App.toast(`조금 어려웠나 봐요. Level ${placeDown}부터 차근차근 다시 시작해요 🌱`);
+      const show = booster => {
+        Views.result(root, { score, stars, badge: badge && lv, grow, cert, ...r, booster, eased, low: boost, again: `#/lesson/${lv}/${idx}`, next: next && Store.isUnlocked(next[0]) ? `#/lesson/${next[0]}/${next[1]}` : null, nextLabel: next ? `Level ${next[0]} ${dayLabel(next[1])}` : '' });
+        App.refreshHeader();
+        if (placeDown) App.toast(`조금 어려웠나 봐요. Level ${placeDown}부터 차근차근 다시 시작해요 🌱`);
+      };
+      // 틀린 항목마다 어떤 종류 문제를 틀렸는지 모은다 (보충 연습은 다른 종류로 낸다)
+      const misses = [];
+      for (const w of r.wrong) {
+        if (!w.q.item) continue;
+        const m = misses.find(x => x.item === w.q.item) || (misses.push({ item: w.q.item, kinds: new Set() }), misses[misses.length - 1]);
+        m.kinds.add(Gen.kindOf(w.key));
+      }
+      if (boost && misses.length) Views.booster(root, misses.slice(0, 5), show); else show(null);
     },
   });
 };
-Views.result = (root, { score, correct, total, again, next, nextLabel, sample, stars: earned, badge, grow, cert }) => {
+// 🌱 보충 연습: 정답률이 낮은 레슨 끝에 헷갈린 항목만 다시 보고(카드) → 다른 종류·쉬운 보기로 풀기.
+// 다 맞힐 때까지 최대 3번 짧게 돌고, 끝나면 done({ solved, total, got, stopped })
+const BOOST_ROUNDS = 3;
+Views.booster = (root, misses, done) => {
+  const t0 = Date.now(), solved = new Set(), total = misses.length;
+  const card = id => {
+    const h = Gen.itemInfo(id); if (!h) return '';
+    const it = h.it, say = it.letter ? letterLine(it) : it.q ? `${it.q} ${it.a}` : it.en;
+    const en = it.letter ? `${it.letter} ${it.letter.toLowerCase()}` : it.q ? `${it.q} — ${it.a}` : it.en;
+    const emoji = it.emoji || (it.q ? '💬' : '');
+    return `<button class="boost-card" data-say="${esc(say)}"><span class="bc-pic">${pic(emoji)}</span><b>${esc(en)}</b>${it.ko ? `<small>${esc(it.ko)}</small>` : ''}<span class="bc-play">🔊</span></button>`;
+  };
+  const finish = stopped => {
+    const got = Store.finishBooster({ solved: [...solved], seconds: (Date.now() - t0) / 1000, finished: !stopped });
+    if (stopped) return done({ solved: solved.size, total, got, stopped });
+    const left = misses.filter(m => !solved.has(m.item));
+    root.innerHTML = `<div class="result card boost anim-in"><div class="boost-sprout">🌱</div>
+      <h2>${left.length ? '끝까지 해냈어요! 👏' : '헷갈린 것을 모두 맞혔어요! 🌟'}</h2>
+      <p>${total}개 중 <b>${solved.size}개</b>를 다시 익혔어요.${got ? ` ⭐ +${got}` : ''}</p>
+      ${left.length ? `<p class="fine">아직 헷갈리는 ${left.length}개는 내일 '오늘의 복습'에 먼저 나와요.</p>` : ''}
+      <button class="btn btn-primary lg" data-ok>결과 보기 ▶</button></div>`;
+    Speech.sfx.cheer(); if (!left.length) Lesson.confetti();
+    $('[data-ok]', root).onclick = () => done({ solved: solved.size, total, got });
+  };
+  const round = n => {
+    const left = misses.filter(m => !solved.has(m.item));
+    const qs = Gen.boosterQuestions(left);
+    if (!qs.length) return finish(false);
+    Lesson.run(root, qs, {
+      title: `🌱 보충 연습${n > 1 ? ` ${n}번째` : ''}`, difficulty: 'easy', recordSpeech: false,
+      exitMsg: '보충 연습을 그만할까요? 레슨 점수는 이미 저장됐어요.',
+      onExit: () => finish(true),
+      onDone: r => {
+        r.results.forEach((x, k) => {
+          if (x.ok) solved.add(x.item);
+          else { const m = misses.find(y => y.item === x.item); if (m) m.kinds.add(Gen.kindOf(qs[k].key)); }
+        });
+        const rest = misses.filter(m => !solved.has(m.item)).length;
+        if (!rest || n >= BOOST_ROUNDS) return finish(false);
+        root.innerHTML = `<div class="result card boost anim-in"><div class="boost-sprout">${r.correct ? '👏' : '💪'}</div>
+          <h2>${r.correct ? `${r.correct}개 맞혔어요!` : '괜찮아요, 거의 다 왔어요!'}</h2><p>이제 <b>${rest}개</b>만 한 번 더 해 봐요.</p>
+          <div class="boost-cards">${misses.filter(m => !solved.has(m.item)).map(m => card(m.item)).join('')}</div>
+          <button class="btn btn-primary lg" data-go>한 번 더 ▶</button></div>`;
+        Speech.sfx.correct();
+        $$('[data-say]', root).forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
+        $('[data-go]', root).onclick = () => { Speech.stop(); round(n + 1); };
+      },
+    });
+  };
+  // 시작: 헷갈린 항목을 카드로 다시 보고 들은 다음 연습한다
+  root.innerHTML = `<div class="result card boost anim-in"><div class="boost-sprout">🌱</div>
+    <h2>잘했어요! 조금만 더 연습해요</h2>
+    <p>헷갈린 <b>${total}개</b>를 다시 만나 봐요. 눌러서 듣고, 짧게 풀어 봐요!</p>
+    <div class="boost-cards">${misses.map(m => card(m.item)).join('')}</div>
+    <button class="btn btn-primary lg" data-go>▶ 보충 연습 시작 (${total}문제)</button></div>`;
+  const cards = $$('[data-say]', root);
+  cards.forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
+  // 카드를 차례로 한 번씩 읽어 준다
+  cards.forEach((b, k) => setTimeout(() => { if (document.body.contains(b) && !b.closest('.lesson')) { b.classList.add('on'); Speech.speak(b.dataset.say); } }, 600 + k * 2200));
+  $('[data-go]', root).onclick = () => { Speech.stop(); round(1); };
+};
+Views.result = (root, { score, correct, total, again, next, nextLabel, sample, stars: earned, badge, grow, cert, booster, eased, low }) => {
   const stars = score >= 90 ? 3 : score >= 70 ? 2 : 1;
   root.innerHTML = `<div class="result card anim-in">
     <div class="stamp">${score >= 70 ? '참<br>잘했어요' : '노력<br>했어요'}</div>
@@ -1017,9 +1106,11 @@ Views.result = (root, { score, correct, total, again, next, nextLabel, sample, s
     ${grow ? `<div class="badge-get grow anim-in"><span>${grow.emoji}</span><b>새싹 나무가 '${grow.name}'(으)로 자랐어요!</b></div>` : ''}
     ${!sample && Store.profile() ? `<p class="fine">🌱 새싹 나무 ${Store.tree().emoji} ${Store.tree().name}${Store.tree().next ? ` · 다음 단계까지 ${Store.tree().toNext}점` : ''}</p>` : ''}
     <p>${sample ? '샘플 레슨은 기록되지 않아요. 시작하면 진도와 별이 저장돼요!' : `⭐ 별 ${earned || 0}개를 받았어요! ${score >= 90 ? '완벽해요 🌟' : '틀린 문제는 오답노트에 저장했어요.'}`}</p>
+    ${booster && !booster.stopped ? `<p class="boost-line">🌱 보충 연습 ${booster.total}개 중 ${booster.solved}개 다시 익힘${booster.got ? ` · ⭐ +${booster.got}` : ''}</p>` : ''}
+    ${low ? `<div class="retry-tip"><b>💪 한 번 더 하면 별을 더 받을 수 있어요!</b><small>헷갈린 것은 내일 '오늘의 복습'에 먼저 나와요.${eased ? '<br>🐣 이 레벨은 당분간 쉬움(보기 2개·힌트)으로 해요.' : ''}</small></div>` : ''}
     <div class="row-center">
-      <a class="btn btn-ghost" href="${again}" data-again>다시 하기</a>
-      ${sample ? '<a class="btn btn-primary" href="#/signup">무료로 가입하고 계속하기</a>' : `<a class="btn btn-ghost" href="#/study">모험 지도</a>${next ? `<a class="btn btn-primary" href="${next}">다음: ${nextLabel} ▶</a>` : ''}`}
+      <a class="btn ${low && !sample ? 'btn-primary' : 'btn-ghost'}" href="${again}" data-again>${low && !sample ? '🔁 다시 해 보기' : '다시 하기'}</a>
+      ${sample ? '<a class="btn btn-primary" href="#/signup">무료로 가입하고 계속하기</a>' : `<a class="btn btn-ghost" href="#/study">모험 지도</a>${next ? `<a class="btn ${low ? 'btn-ghost' : 'btn-primary'}" href="${next}">다음: ${nextLabel} ▶</a>` : ''}`}
     </div></div>`;
   const a = $('[data-again]', root);
   if (location.hash === again) a.onclick = e => { e.preventDefault(); App.route(); };
@@ -1586,7 +1677,7 @@ const ParentTabs = {
         </div>
         <div class="card"><h3>섬별 진도 <small>(출발 레벨 ${p.startLevel} · 난이도 ${{ auto: '자동', easy: '쉬움', normal: '보통', hard: '도전' }[p.difficulty || 'auto']})</small></h3>${STAGES.map(s => { const done = s.levels.reduce((a, lv) => a + Store.lessonsDone(lv, p), 0), tot = s.levels.length * LESSONS_PER_LEVEL; return `<div class="prog-row"><span>섬${s.id} ${s.title}</span><div class="rb-bar"><i style="width:${done / tot * 100}%;background:${s.color}"></i></div><small>${done}/${tot}</small></div>`; }).join('')}</div>
         <div class="two-col top">
-          <div class="card"><h3>보충이 필요한 내용</h3>${p.wrong.length ? `<ul class="wrong-list small">${p.wrong.slice(0, 8).map(w => `<li>${esc(w.q.show || (w.q.say ? '🔊 ' + w.q.say : w.q.title))} → <b>${esc(w.q.type === 'tiles' ? w.q.answer.join(w.q.joiner) : w.q.answer)}</b></li>`).join('')}</ul>` : '<p>틀린 문제가 없어요 👏</p>'}</div>
+          ${UI.boostReport(p)}
           <div class="card"><h3>최근 말하기</h3>${sp.length ? `<ul class="hist">${sp.slice(0, 6).map(r => `<li><span>${esc(r.text)}</span><b class="score-pill small ${scoreClass(r.score)}">${r.score}</b></li>`).join('')}</ul>` : '<p>아직 기록이 없어요.</p>'}</div>
         </div>`;
       $$('[data-pid]', el).forEach(b => b.onclick = () => { p = u.profiles.find(x => x.id === b.dataset.pid); draw(); });

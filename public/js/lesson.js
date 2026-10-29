@@ -33,12 +33,14 @@ const Gen = (() => {
   const wrongQuestions = (Q, pool) => pool.filter(x => qKind(x.q) !== qKind(Q.q)).map(x => x.q);
   // 레벨마다 1~9일째: 새 항목 + 앞에서 배운 항목 복습, 10일째: 레벨 전체 복습
   const isReviewDay = idx => idx >= LESSONS_PER_LEVEL - 1;
-  function lessonItems(level, idx) {
+  // weak: 자주 틀린 항목 id — 복습 몫에서 먼저 고른다
+  const weakFirst = (list, weak) => { const s = shuffle(list); return s.filter(x => weak.has(itemId(x))).concat(s.filter(x => !weak.has(itemId(x)))); };
+  function lessonItems(level, idx, weak = new Set()) {
     const items = levelItems(level), newDays = LESSONS_PER_LEVEL - 1;
-    if (isReviewDay(idx)) return shuffle(items).slice(0, 6);
+    if (isReviewDay(idx)) return weakFirst(items, weak).slice(0, 6);
     const per = Math.ceil(items.length / newDays);
     const fresh = items.slice(idx * per, idx * per + per);
-    const review = shuffle(items.slice(0, idx * per)).slice(0, Math.max(2, 5 - fresh.length));
+    const review = weakFirst(items.slice(0, idx * per), weak).slice(0, Math.max(2, 5 - fresh.length));
     let chunk = fresh.concat(review);
     if (chunk.length < 4) chunk = chunk.concat(shuffle(items.filter(x => !chunk.includes(x))).slice(0, 4 - chunk.length));
     return chunk;
@@ -161,9 +163,9 @@ const Gen = (() => {
 
   // 항목을 돌아가며 문항을 고른다. 최근에 푼 문항(avoid)과 바로 앞과 같은 종류(ltr-listen, s-fill…)는 피하고,
   // 말하기·따라 쓰기는 한 레슨에 두 번까지만.
-  function lesson(level, idx, n = 8, avoid = new Set()) {
+  function lesson(level, idx, n = 8, avoid = new Set(), weak = new Set()) {
     const st = stageOf(level).id;
-    const items = shuffle(lessonItems(level, idx));
+    const items = shuffle(lessonItems(level, idx, weak));
     const cands = items.map((it, t) => shuffle(tag(it, level, buildersFor(it, t + idx, st, level)).map(b => b())));
     const out = [], seen = new Set(), count = {};
     const kind = q => q.key.split('-').slice(0, 2).join('-');
@@ -200,6 +202,24 @@ const Gen = (() => {
     }
     return out;
   }
+  // 🌱 보충 연습 문항: 틀린 항목마다 방금과 다른 종류로 하나씩. 소리·그림이 있는 고르기 문제를 먼저 쓴다
+  // misses: [{ item, kinds: Set('ltr-listen', …) }]
+  const kindOf = key => key.split('-').slice(0, 2).join('-');
+  function boosterQuestions(misses) {
+    const out = [];
+    for (const { item, kinds } of misses) {
+      const hit = itemIndex()[item]; if (!hit) continue;
+      const st = stageOf(hit.level).id;
+      const all = tag(hit.it, hit.level, buildersFor(hit.it, Math.floor(Math.random() * 3), st, hit.level)).map(b => b()).filter(q => !['trace', 'speak', 'type'].includes(q.type));
+      const fresh = all.filter(q => !kinds.has(kindOf(q.key)));
+      const pool = fresh.length ? fresh : all;
+      const helpful = pool.filter(q => q.type === 'choice' && (q.say || q.sayAfter) && (q.big || /\p{Extended_Pictographic}/u.test(q.show || '')));
+      const choices = pool.filter(q => q.type === 'choice');
+      const from = helpful.length ? helpful : choices.length ? choices : pool;
+      if (from.length) out.push({ ...from[Math.floor(Math.random() * from.length)], boost: true });
+    }
+    return out;
+  }
   const itemLabel = id => { const h = itemIndex()[id]; if (!h) return id.slice(2); const it = h.it; return it.letter ? `${it.letter} (${it.word})` : it.q ? it.a : it.en; };
 
   // 레슨 중간 ⚡챌린지: 1단계 알파벳 풍선, 2단계 단어 두더지, 3단계부터 문장 O/X
@@ -221,7 +241,7 @@ const Gen = (() => {
       }) };
   }
   const itemInfo = id => itemIndex()[id] || null;
-  return { lesson, levelItems, isReviewDay, challenge, reviewQuestions, itemLabel, itemId, itemInfo };
+  return { lesson, levelItems, isReviewDay, challenge, reviewQuestions, boosterQuestions, kindOf, itemLabel, itemId, itemInfo };
 })();
 
 /* ---------------- ⚡ 미니 챌린지 (20초 게임) ---------------- */
@@ -338,7 +358,7 @@ const Lesson = (() => {
 
   // test: 레벨 테스트용 — 정답을 알려주지 않고(다음 문제에서 힌트가 되지 않게), 콤보·별 없이 바로 다음 문제로 넘어간다.
   // 문제마다 푸는 데 걸린 시간(ms)을 결과에 담아, 너무 빨리 찍은 정답을 가려낼 수 있게 한다.
-  function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null, test = false } = {}) {
+  function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null, test = false, exitMsg = '레슨을 그만할까요? 진행 내용은 저장되지 않아요.' } = {}) {
     questions = adjust(questions, difficulty);
     let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0, shownAt = 0; const wrong = [], results = []; const t0 = Date.now();
     const challengeAt = Math.min(3, questions.length - 2); // 4번째 문제 다음에 ⚡챌린지
@@ -357,7 +377,7 @@ const Lesson = (() => {
       </div>`;
     const body = root.querySelector('.lesson-body'), fb = root.querySelector('.lesson-feedback');
     wireVolume(root);
-    root.querySelector('[data-exit]').onclick = () => { Speech.stop(); if (confirm('레슨을 그만할까요? 진행 내용은 저장되지 않아요.')) onExit && onExit(); };
+    root.querySelector('[data-exit]').onclick = () => { Speech.stop(); if (confirm(exitMsg)) onExit && onExit(); };
 
     function show() {
       const q = questions[i];
