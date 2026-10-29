@@ -2,7 +2,7 @@
 // Cloudflare Workers AI 무료 사용량(하루 10,000 뉴런, 한국 시간 오전 9시 초기화) 안에서 그리고,
 // 사용량을 다 쓰면 멈췄다가 다음 날 다시 실행하면 이어서 그린다. 무료 요금제 계정은 요금이 나가지 않는다.
 //   npm run pregen-img -- --dry            그릴 그림 수와 예상 날짜만 보기
-//   npm run pregen-img                     남은 그림 그리기 (단어 그림 먼저, 다음 스토리북)
+//   npm run pregen-img                     남은 그림 그리기 (스토리북 먼저, 다음 단어 그림)
 //   npm run pregen-img -- --only w|s       단어 그림(w)이나 스토리북(s)만
 //   npm run pregen-img -- --book 2         스토리북 한 권만 (시범용)
 //   npm run pregen-img -- --redo 2-5,🍎    마음에 안 드는 그림만 다시 (스토리 '책-쪽', 단어는 이모지)
@@ -161,7 +161,7 @@ const writeMan = () => fs.writeFileSync(manPath, JSON.stringify(man));
 
 let done = 0, fail = 0, stopped = null;
 for (const j of todo) if (redo.has(j.key)) man.n[j.kind + j.key] = (man.n[j.kind + j.key] || 0) + 1; // 다시 그릴 때는 다른 모습으로
-const queue = [...todo];
+const queue = [...todo].sort((a, b) => (a.kind === 's' ? 0 : 1) - (b.kind === 's' ? 0 : 1)); // 스토리북 먼저
 // 인물 기준 그림은 한 번만 그린다 (두 작업이 동시에 같은 인물을 그리지 않게)
 const refJobs = {};
 const refMade = f => fs.existsSync(f) ? null : (refJobs[f] ||= draw(`${STYLE}. Character reference: ${refs[f]}, alone, full body, standing, facing forward, plain white background.`, SIZE.ref, parseInt(hash(f).slice(0, 7), 16), [])
