@@ -369,11 +369,13 @@ function speechText(t) {
 
 // 같은 그림체로 미리 그린 그림 (img/manifest.json, server/scripts/pregen-img.js 로 만든다).
 // 그림이 있는 이모지는 그림으로 바꿔 보여주고, 없으면 이모지를 그대로 둔다. 글자(이미 esc 한 html)에만 쓴다.
-const PICS = { w: {}, s: {}, re: null };
+const PICS = { w: {}, s: {}, i: {}, re: null };
 function setPics(m) {
-  PICS.w = (m && m.w) || {}; PICS.s = (m && m.s) || {};
+  PICS.w = (m && m.w) || {}; PICS.s = (m && m.s) || {}; PICS.i = (m && m.i) || {};
   const keys = Object.keys(PICS.w).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   PICS.re = keys.length ? new RegExp(keys.join('|'), 'gu') : null;
 }
 const pic = html => (PICS.re ? String(html).replace(PICS.re, e => `<img class="pic" src="img/${PICS.w[e]}" alt="" draggable="false">`) : html);
+// 메뉴·버튼 아이콘: 그린 그림이 있으면 그림, 없으면 이모지
+const ico = e => PICS.i[e] ? `<img class="ico" src="img/${PICS.i[e]}" alt="" draggable="false">` : e;
 const storyPic = (id, i) => PICS.s[`${id}-${i}`] ? `img/${PICS.s[`${id}-${i}`]}` : null;

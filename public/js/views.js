@@ -170,7 +170,7 @@ Views.free = el => {
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">🧭 자유 학습</h1>
     ${UI.mascot('오늘은 뭐 하고 놀까? 하고 싶은 걸 골라 봐!')}
-    <div class="free-grid">${cards.map(([h, e, t, d, c]) => `<a class="free-card" href="${h}" style="--c:${c}"><span>${e}</span><b>${t}</b><small>${esc(d)}</small></a>`).join('')}</div>
+    <div class="free-grid">${cards.map(([h, e, t, d, c]) => `<a class="free-card" href="${h}" style="--c:${c}"><span>${ico(e)}</span><b>${t}</b><small>${esc(d)}</small></a>`).join('')}</div>
   </div>`;
 };
 
@@ -535,8 +535,8 @@ Views.study = (el, params) => {
     ${u && p && a.ok ? `<div class="card status-card">📍 ${esc(p.name)}의 학습은 <a href="#/study">모험 지도</a>에서 이어갈 수 있어요.</div>` : ''}
     <div class="start-3">
       <a class="start-card" href="#/sample/A" style="--c:#ffd23f"><span>▶</span><b>3분 체험 레슨</b><small>가입 없이 알파벳 레슨 5문제</small></a>
-      <a class="start-card" href="#/leveltest" style="--c:#7fd3ff"><span>🧪</span><b>무료 레벨 진단</b><small>12문제로 시작 레벨 찾기</small></a>
-      <a class="start-card" href="${u ? (p ? '#/study' : '#/profiles') : '#/signup'}" style="--c:#7ed957"><span>🌱</span><b>${u ? '내 학습 시작' : '무료로 시작'}</b><small>${u ? '진도·별·리포트가 저장돼요' : '알파벳·파닉스 평생 무료'}</small></a>
+      <a class="start-card" href="#/leveltest" style="--c:#7fd3ff"><span>${ico('🧪')}</span><b>무료 레벨 진단</b><small>12문제로 시작 레벨 찾기</small></a>
+      <a class="start-card" href="${u ? (p ? '#/study' : '#/profiles') : '#/signup'}" style="--c:#7ed957"><span>${ico('🌱')}</span><b>${u ? '내 학습 시작' : '무료로 시작'}</b><small>${u ? '진도·별·리포트가 저장돼요' : '알파벳·파닉스 평생 무료'}</small></a>
     </div>
 
     <h2 class="sec-sub">하루 학습은 이렇게 해요</h2>
@@ -939,12 +939,12 @@ Views.learn = el => {
       ${Store.needsPlus(cur) ? `<a class="btn btn-primary lg" href="#/pricing">💎 플러스로 이어가기</a>` : `<a class="btn btn-primary lg" href="#/lesson/${cur}/${curIdx}">▶ 출발!</a>`}
     </div>
     <div class="quick">
-      <a class="quick-card" href="#/free" style="--r:-2deg"><span>🧭</span><b>자유 학습</b><small>하고 싶은 것 고르기</small></a>
-      <a class="quick-card" href="#/words" style="--r:1.5deg"><span>📒</span><b>내 단어장</b><small>${Store.wordStats().learned}개 모음</small></a>
-      <a class="quick-card" href="#/review" style="--r:-1deg"><span>🔁</span><b>오늘의 복습</b><small>${Store.wordStats().due}개</small></a>
-      <a class="quick-card" href="#/stories" style="--r:2deg"><span>📖</span><b>스토리북</b><small>${Object.keys(p.stories).length}/${STORIES.length}권 읽음</small></a>
-      <a class="quick-card" href="#/speak" style="--r:-1.5deg"><span>🎤</span><b>AI 말하기</b><small>발음 점수 받기</small></a>
-      <a class="quick-card" href="#/play" style="--r:1deg"><span>🎈</span><b>놀이터</b><small>풍선·카드 게임</small></a>
+      <a class="quick-card" href="#/free" style="--r:-2deg"><span>${ico('🧭')}</span><b>자유 학습</b><small>하고 싶은 것 고르기</small></a>
+      <a class="quick-card" href="#/words" style="--r:1.5deg"><span>${ico('📒')}</span><b>내 단어장</b><small>${Store.wordStats().learned}개 모음</small></a>
+      <a class="quick-card" href="#/review" style="--r:-1deg"><span>${ico('🔁')}</span><b>오늘의 복습</b><small>${Store.wordStats().due}개</small></a>
+      <a class="quick-card" href="#/stories" style="--r:2deg"><span>${ico('📖')}</span><b>스토리북</b><small>${Object.keys(p.stories).length}/${STORIES.length}권 읽음</small></a>
+      <a class="quick-card" href="#/speak" style="--r:-1.5deg"><span>${ico('🎤')}</span><b>AI 말하기</b><small>발음 점수 받기</small></a>
+      <a class="quick-card" href="#/play" style="--r:1deg"><span>${ico('🎈')}</span><b>놀이터</b><small>풍선·카드 게임</small></a>
     </div>
     <div class="sw-head"><h2 class="sec-sub">🗺️ 모험 지도</h2><a class="link-btn" href="#/study?view=all">📚 전체 학습 내용 보기 →</a></div>
     <div class="path">${STAGES.map(s => `
@@ -1348,8 +1348,8 @@ Views.play = (el, game) => {
       <h1 class="page-title">🎈 놀이터</h1>
       ${UI.mascot('레슨이 지루할 땐 게임으로 단어를 익혀요! 게임마다 별을 줄게 (하루 6개까지)')}
       <div class="game-grid">
-        <a class="game-card" href="#/play/balloon" style="--c:#ff7aa8"><span>🎈</span><b>풍선 팡팡</b><small>소리를 듣고 맞는 풍선을 터뜨려요</small><em>최고 ${(p.games || {}).balloon || 0}점</em></a>
-        <a class="game-card" href="#/play/match" style="--c:#7c5cff"><span>🃏</span><b>짝꿍 카드</b><small>그림과 단어 짝을 찾아요</small><em>최고 ${(p.games || {}).match || 0}점</em></a>
+        <a class="game-card" href="#/play/balloon" style="--c:#ff7aa8"><span>${ico('🎈')}</span><b>풍선 팡팡</b><small>소리를 듣고 맞는 풍선을 터뜨려요</small><em>최고 ${(p.games || {}).balloon || 0}점</em></a>
+        <a class="game-card" href="#/play/match" style="--c:#7c5cff"><span>${ico('🃏')}</span><b>짝꿍 카드</b><small>그림과 단어 짝을 찾아요</small><em>최고 ${(p.games || {}).match || 0}점</em></a>
       </div></div>`;
     return;
   }

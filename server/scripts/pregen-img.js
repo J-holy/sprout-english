@@ -29,8 +29,8 @@ const local = args.includes('--local') || process.env.IMG_ENGINE === 'local';
 const MFLUX = path.join(config.dataDir, 'mflux'), LOCAL_MODEL = 'Runpod/FLUX.2-klein-4B-mflux-4bit';
 const execFileP = promisify(execFile);
 // 가로·세로 512px 칸 단위로 뉴런이 든다: 단어 384×384 = 1칸, 스토리 768×480 = 2칸, 주인공 기준 그림 448×448 = 1칸
-const SIZE = { w: [384, 384], s: [768, 480], ref: [448, 448] };
-const COST = { w: 55, s: 110, ref: 55 }; // 실제로 써 보니 그림 한 장에 약 100 뉴런 (요금표 계산의 약 2배)
+const SIZE = { w: [384, 384], s: [768, 480], ref: [448, 448], i: [320, 320] };
+const COST = { w: 55, s: 110, ref: 55, i: 45 }; // 실제로 써 보니 그림 한 장에 약 100 뉴런 (요금표 계산의 약 2배)
 
 // 그림체: --style 이름 (기본 watercolor). 그림체를 바꾸면 그림 설명이 달라져 모든 그림을 새로 그린다
 const STYLES = {
@@ -329,6 +329,7 @@ const SCENES = {
   '32-22': ['Bolt', "Bolt shows many helpful tool arms"],
   '32-23': ['8-year-old|Bolt', "the boy and Bolt look at a shining future city"],
   '1-2': ['', 'a big round chocolate chip cookie'],
+  '1-16': ['girl|mom|dad', 'the girl, her mom and her dad happily eat sandwiches together on a picnic blanket, the big basket beside them'],
   '1-5': ['', 'a picnic basket full of fruit: strawberries, oranges and pears'],
   '1-7': ['', 'a glass jar of golden honey with a wooden honey dipper, honey dripping'],
   '1-10': ['', 'a fresh green kiwi fruit cut in half next to a whole brown kiwi fruit'],
@@ -337,8 +338,8 @@ const SCENES = {
   '3-7': ['sister', 'his sister smiles next to a birthday cake with six candles'],
   '3-8': ['sister', 'his sister sits on the grass and gently pets a small gray kitten on her lap'],
   '3-11': ['baby', 'the baby brother sits on a rug and happily holds a yellow rubber toy duck'],
-  '3-18': ['boy|mom|dad|sister|baby|grandma|grandpa|Coco', 'the whole family stands together smiling in the garden: grandpa, grandma, dad, mom, the boy, his sister, the baby brother sitting in front, and the dog Coco'],
-  '3-19': ['boy|mom|dad|sister|baby|grandma|grandpa|Coco', 'the whole family in one big warm group hug in the garden: grandpa, grandma, dad, mom holding the baby brother, the boy, his sister, and the dog Coco jumping up, hearts floating above'],
+  '3-18': ['boy|mom|dad|sister|baby|grandma|grandpa|Coco', 'a family portrait in the garden with exactly seven people and one dog. Back row: grandpa in his straw hat, grandma, dad with his short beard, mom in her apron. Front row: the boy, his sister, the baby brother sitting on the grass, and the dog. Only one grandpa and only one grandma'],
+  '3-19': ['boy|mom|dad', 'the boy hugs his mom and dad tightly in one warm hug, all three smiling, hearts floating above'],
   '4-2': ['Lily|Sam', 'Lily smiles and asks Sam a question, one hand raised in a friendly wave'],
   '4-4': ['Lily|Sam', 'Sam asks Lily a question with a curious smile, tilting his head'],
   '4-7': ['Lily|Sam', 'Sam asks Lily a question while they walk together on the park path'],
@@ -491,6 +492,19 @@ for (const L of LETTERS) for (const [w, e] of L.words) addWord(e, w, true);
 for (const [w, e] of Object.values(PHONICS).flat()) addWord(e, w, true);
 for (const [en, , e] of Object.values(SENTENCES).flat()) addWord(e, en, false);
 for (const it of ALL_LEVELS.flatMap(l => Gen.levelItems(l)).filter(x => x.gen)) addWord(it.emoji, it.en || it.q, false);
+// 메뉴·버튼 아이콘: 이모지 → 그릴 것. 둥근 배지로 잘라 보여 준다 (style.css .ico)
+const ICONS = {
+  '🏠': 'a cozy little house with a red roof', '📚': 'a stack of colorful picture books', '💰': 'a small coin purse with gold coins',
+  '💬': 'two round speech bubbles with hearts', '🙋': 'a smiling child raising one hand', '🧪': 'a clipboard with a check list and a pencil',
+  '🌱': 'a little green sprout growing from soil', '🧭': 'a treasure map with a compass', '📒': 'a yellow notebook full of word cards',
+  '🔁': 'two green circular arrows around a gold star', '📖': 'an open picture book with a rainbow coming out', '🎤': 'a shiny microphone with music notes',
+  '🎈': 'three colorful balloons', '🃏': 'two matching picture cards with an apple', '✏️': 'a yellow pencil and a notebook with a check mark',
+  '🛍️': 'a shopping bag full of stars', '🖨️': 'a printed worksheet with crayons', '🔑': 'a golden key', '🔔': 'a little golden bell', '🛠️': 'a wrench and a hammer',
+};
+if (only !== 's' && !book) for (const [e, label] of Object.entries(ICONS)) {
+  const prompt = `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;
+  jobs.push({ kind: 'i', key: e, label, prompt, file: `i/${hash('icon' + e).slice(0, 12)}.jpg` });
+}
 if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
   const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
   jobs.push({ kind: 'w', key: e, label, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
@@ -529,7 +543,7 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
 
 // 이미 그린 그림은 건너뛴다 (그림 설명이 바뀌었거나 --redo 로 고른 것만 다시)
 const manPath = path.join(outDir, 'manifest.json');
-let man = { w: {}, s: {}, h: {}, n: {} };
+let man = { w: {}, s: {}, i: {}, h: {}, n: {} };
 try { man = { ...man, ...JSON.parse(fs.readFileSync(manPath, 'utf8')) }; } catch (e) { /* 처음 */ }
 const todo = jobs.filter(j => !keys || keys.has(j.key)).filter(j => redo.has(j.key) || !man[j.kind][j.key] || man.h[j.kind + j.key] !== hash(j.prompt).slice(0, 10) || !fs.existsSync(path.join(outDir, man[j.kind][j.key])));
 const needRefs = new Set(todo.flatMap(j => j.refFiles || []).filter(f => !fs.existsSync(f)));
@@ -581,7 +595,8 @@ const writeMan = () => fs.writeFileSync(manPath, JSON.stringify(man));
 
 let done = 0, fail = 0, stopped = null;
 for (const j of todo) if (redo.has(j.key)) man.n[j.kind + j.key] = (man.n[j.kind + j.key] || 0) + 1; // 다시 그릴 때는 다른 모습으로
-const queue = [...todo].sort((a, b) => (a.kind === 's' ? 0 : 1) - (b.kind === 's' ? 0 : 1)); // 스토리북 먼저
+const ORDER = { i: 0, s: 1, w: 2 };
+const queue = [...todo].sort((a, b) => ORDER[a.kind] - ORDER[b.kind]); // 메뉴 아이콘(몇 장 안 됨) → 스토리북 → 단어
 // 인물 기준 그림은 한 번만 그린다 (두 작업이 동시에 같은 인물을 그리지 않게)
 const refJobs = {};
 const refMade = f => fs.existsSync(f) ? null : (refJobs[f] ||= draw(`${STYLE}. Character reference: ${refs[f]}, alone, full body, standing, facing forward, plain white background.`, SIZE.ref, parseInt(hash(f).slice(0, 7), 16), [])
