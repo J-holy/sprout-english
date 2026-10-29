@@ -55,17 +55,17 @@ const BOOKS = {
     ['rat', 'The cat has bare fur on its head. The rat\'s small red knit beanie with a white pom-pom is the only hat in the picture.']],
   3: ['a warm family home with a garden', [[NAR, 'a 7-year-old boy with short black hair in a yellow T-shirt'], ['mom|family', 'his kind mom with a bun and a white apron'], ['dad|family', 'his tall dad with a short beard'], ['sister|family', 'his 6-year-old sister in a pink dress'], ['baby', 'a chubby baby brother in a blue onesie'], ['grandma', 'a grandma with gray curly hair and a flower cardigan'], ['grandpa', 'a grandpa with a white mustache and a big straw hat'], ['dog|Coco', 'Coco, a small brown dog with floppy ears']]],
   4: ['a sunny neighborhood park', [['*', 'Lily, a 7-year-old girl with long brown hair in a purple shirt'], ['*', 'Sam, a 7-year-old boy with curly black hair in a green shirt']]],
-  5: ['a small house and a street on a rainy day', [[NAR, 'a 6-year-old girl with a short black bob in a green raincoat and yellow rain boots, carrying a red umbrella'], ['dog', 'her small white puppy'], ['frog', 'a little shiny green frog'], ['mom', 'her mom with a brown ponytail and a cozy sweater']]],
-  6: ['inside a cozy house', [[NAR, 'a 7-year-old boy with short black hair in a red and white striped shirt'], [`sister|${WE}`, 'his older sister with a long black ponytail in a yellow hoodie'], ['Max|dog|\\b(he|his)\\b', 'Max, a fluffy small brown dog'], ['ball', 'a red ball']]],
-  7: ['a zoo, a cozy home kitchen, or a park, whichever fits this moment', [[NAR, 'an 8-year-old girl with a black ponytail in a blue T-shirt'], ['mom', 'her mom with short brown hair'], ['dad', 'her dad with glasses and a gray jacket'], ['friends', 'two friends, a boy and a girl']]],
+  5: [[[0, 'a small house and a street on a rainy day'], [2, 'inside a cozy house on a rainy day, rain on the windows'], [4, 'a small house and a street on a rainy day'], [5, 'inside a cozy house on a rainy day, rain on the windows'], [7, 'a small house and a street on a rainy day'], [16, 'a cozy home kitchen'], [18, 'a small house and a street on a rainy day']], [[NAR, 'a 6-year-old girl with a short black bob in a green raincoat and yellow rain boots, carrying a red umbrella'], ['dog', 'her small white puppy'], ['frog', 'a little shiny green frog'], ['mom', 'her mom with a brown ponytail and a cozy sweater']]],
+  6: [[[0, 'inside a cozy house'], [5, 'a small garden behind a house'], [6, 'inside a cozy house'], [13, 'a home garage'], [14, 'inside a cozy house']], [[NAR, 'a 7-year-old boy with short black hair in a red and white striped shirt'], [`sister|${WE}`, 'his older sister with a long black ponytail in a yellow hoodie'], ['Max|dog|\\b(he|his)\\b', 'Max, a fluffy small brown dog'], ['ball', 'a red ball']]],
+  7: [[[0, 'a sunny zoo'], [2, 'inside a city bus'], [3, 'a sunny zoo'], [12, 'the front of a cozy house in the evening'], [13, 'a cozy living room'], [16, 'a cozy home kitchen'], [18, 'a cozy living room'], [19, 'a sunny park with green grass'], [22, 'a cozy kid bedroom at night']], [[NAR, 'an 8-year-old girl with a black ponytail in a blue T-shirt'], ['mom', 'her mom with short brown hair'], ['dad', 'her dad with glasses and a gray jacket'], ['friends', 'two friends, a boy and a girl']]],
   8: ['a bright dreamy scene showing that job', [['\\bI\\b|pilot', 'a boy with short black hair dressed as a pilot'], ['sister|doctor', 'a girl with a black ponytail dressed as a doctor'], ['friend|chef', 'a boy with curly hair dressed as a chef'], ['brother|firefighter', 'a boy dressed as a firefighter'], ['cousin|artist', 'a girl with braids dressed as an artist'], ['teacher', 'a smiling teacher with glasses']]],
   9: ['a festive parade road with colorful flags', []],
-  10: ['a big red bus and a sunny zoo', [['Ben|they', 'Ben, a 6-year-old boy wearing a red cap'], ['Tom|they', 'Tom, a 6-year-old boy with curly hair in a blue shirt']]],
+  10: [[[0, 'a big red bus and a sunny zoo'], [4, 'inside a big red bus with rows of seats and windows'], [11, 'a bus stop in front of a sunny zoo'], [13, 'a sunny zoo']], [['Ben|they', 'Ben, a 6-year-old boy wearing a red cap'], ['Tom|they', 'Tom, a 6-year-old boy with curly hair in a blue shirt']]],
   11: ['a bright kid bedroom', [[NAR, 'a 6-year-old boy with short black hair in an orange shirt'], [`friend|${WE}`, 'his friend, a girl with two braids'], ['toy box|\\bbox\\b', 'a big blue toy box']]],
   12: ['a small neighborhood grocery store with fruit shelves', [['*', 'a 7-year-old girl with two hair buns in a yellow jacket'], ['*', 'a friendly shopkeeper with a mustache and a green apron']]],
   13: ['a high green hill on a windy day', [[NAR, 'a 7-year-old boy with short black hair in a blue hoodie'], ['dad|\\bhe\\b', 'his very tall dad with a beard'], ['kite|tail|string|\\bit\\b', 'a big red diamond-shaped kite with a long yellow and green tail'], ['bird', 'a little brown bird']]],
-  14: ['home, or a park with big trees, whichever fits this moment', [[WE, 'a 7-year-old girl with a black bob in a pink shirt'], ['dad', 'her dad in a blue apron'], ['dog', 'a happy small white dog'], ['Mina|friends', 'Mina, a girl with pigtails in a green dress']]],
-  15: ['a park with benches, or a cozy home, whichever fits this moment', [[NAR, 'a 7-year-old girl with long black hair in a pink jacket'], ['puppy|\\b(it|its)\\b', 'a small fluffy cream puppy with a blue collar'], [`mom|${WE}`, 'her mom with short brown hair'], ['girl|\\b(she|her)\\b', 'another girl with red braids, the puppy\'s owner']]],
+  14: [[[0, 'a cozy kid bedroom in the morning'], [2, 'a cozy home kitchen'], [5, 'a sunny park with big trees'], [18, 'a cozy family home in the evening']], [[WE, 'a 7-year-old girl with a black bob in a pink shirt'], ['dad', 'her dad in a blue apron'], ['dog', 'a happy small white dog'], ['Mina|friends', 'Mina, a girl with pigtails in a green dress']]],
+  15: [[[0, 'a park with benches on a gray day'], [8, 'a cozy home'], [16, 'a neighborhood street with trees'], [18, 'a cozy home'], [19, 'a neighborhood street with trees'], [20, 'the front door of a cozy home']], [[NAR, 'a 7-year-old girl with long black hair in a pink jacket'], ['puppy|\\b(it|its)\\b', 'a small fluffy cream puppy with a blue collar'], [`mom|${WE}`, 'her mom with short brown hair'], ['girl|\\b(she|her)\\b', 'another girl with red braids, the puppy\'s owner']]],
   16: ['outer space with stars and the moon', [['*', 'a girl with black hair in a white space suit and a round helmet'], ['*', 'a boy with brown hair in a white space suit and a round helmet'], ['rocket', 'a red and white rocket']]],
   17: ['a colorful toy shop', [[NAR, 'a 5-year-old boy with short black hair in a green shirt'], ['Dad|\\bwe\\b', 'his dad with glasses']]],
   18: ['a forest trail with flowers and a pond', [[NAR, 'a 5-year-old girl with a black bob in a yellow raincoat'], ['Grandpa', 'her grandpa with white hair and a walking stick']]],
@@ -87,6 +87,148 @@ const BOOKS = {
 
 // 문장만으로는 장면이 애매한 쪽: '책-쪽' → [나올 인물(모습에서 찾을 말), 그릴 장면]
 const SCENES = {
+  '1-2': ['', 'a big round chocolate chip cookie'],
+  '1-5': ['', 'a picnic basket full of fruit: strawberries, oranges and pears'],
+  '1-7': ['', 'a glass jar of golden honey with a wooden honey dipper, honey dripping'],
+  '1-10': ['', 'a fresh green kiwi fruit cut in half next to a whole brown kiwi fruit'],
+  '3-2': ['mom', 'his mom stirs a pot of soup on the stove in the kitchen'],
+  '3-5': ['dad', 'his tall dad sings happily with his mouth open, little music notes floating around'],
+  '3-8': ['sister', 'his sister hugs a fluffy orange cat and smiles'],
+  '3-11': ['baby', 'the baby brother sits on a rug and happily holds a yellow rubber toy duck'],
+  '3-18': ['boy|mom|dad|sister|baby|Coco', 'the whole family stands together smiling in the garden: the boy, his mom, his dad, his sister holding the baby, and the dog'],
+  '3-19': ['boy|mom|dad|sister', 'the boy hugs his mom, dad and sister in a big family hug, hearts floating above'],
+  '4-2': ['Lily|Sam', 'Lily smiles and asks Sam a question, one hand raised in a friendly wave'],
+  '4-4': ['Lily|Sam', 'Sam asks Lily a question with a curious smile, tilting his head'],
+  '4-7': ['Lily|Sam', 'Sam asks Lily a question while they walk together on the park path'],
+  '4-8': ['Lily|Sam', 'Lily points to a small house next to the park, Sam looks'],
+  '4-9': ['Lily|Sam', 'Sam holds a black and white soccer ball and shows it to Lily'],
+  '4-11': ['Lily|Sam', 'Sam holds out a box of colorful crayons to Lily'],
+  '4-12': ['Lily|Sam', 'Lily proudly points at her purple shirt, Sam listens'],
+  '4-13': ['Lily|Sam', 'Sam points at his green shirt and grins'],
+  '4-14': ['Lily|Sam', 'Sam holds a soccer ball under his arm and invites Lily to play'],
+  '4-17': ['Lily|Sam', 'Sam catches the black and white soccer ball with both hands, Lily claps for him'],
+  '4-18': ['Lily|Sam', 'Lily and Sam wave goodbye to each other at the park gate in the warm evening light'],
+  '4-19': ['Lily|Sam', 'Lily and Sam walk side by side holding hands, smiling'],
+  '5-2': ['girl', 'the girl covers her ears by the window as lightning flashes in the dark sky outside'],
+  '5-3': ['girl|puppy', 'the small white puppy hides under a blanket, shaking, and the girl gently pets it'],
+  '5-5': ['girl', 'raindrops run down the glass of a big window, the girl looks out from inside'],
+  '5-6': ['girl', 'the girl presses her face to the window and looks out at the rain, wanting to go out'],
+  '5-14': ['girl', 'the girl sits on the front step and pulls off a wet sock, her yellow boots beside her'],
+  '5-16': ['girl|mom', 'her mom hands the girl, wrapped in a towel, a warm mug of milk in the kitchen'],
+  '5-17': ['girl', 'the girl sips warm milk from a mug with both hands, steam rising, smiling'],
+  '5-19': ['', 'a bright clear blue sky over the wet street, puddles shining in the sun, no rain'],
+  '5-21': ['girl|puppy|frog', 'the girl in her raincoat jumps happily in a puddle with her puppy, a green frog hops nearby'],
+  '6-0': ['boy', 'the boy looks around the living room calling for his dog, an empty dog bed on the floor, no dog anywhere'],
+  '6-1': ['boy', 'the boy holds a dog food bowl in the kitchen and looks around for his dog, no dog anywhere'],
+  '6-2': ['boy', 'the boy kneels and looks under the bed, there is nothing under the bed, no dog'],
+  '6-3': ['boy', 'the boy peeks into an empty kitchen, no dog anywhere'],
+  '6-4': ['boy', 'the boy peeks into the bathroom, the bathtub is empty, no dog anywhere'],
+  '6-5': ['boy', 'the boy looks behind flower bushes in the garden, no dog anywhere'],
+  '6-6': ['boy', 'the boy stands in the living room scratching his head, puzzled and worried'],
+  '6-8': ['boy|sister', 'his sister thinks with a finger on her chin, the boy waits'],
+  '6-9': ['sister', 'his sister smiles, a dreamy thought bubble above her head shows a small fluffy brown dog playing with a red ball'],
+  '6-10': ['boy|sister', 'the boy and his sister look around the floor for a red ball, no dog anywhere'],
+  '6-11': ['boy|sister', 'the boy and his sister look into an empty dog bed, there is no ball and no dog in it'],
+  '6-12': ['boy|sister', 'the boy opens a door and looks behind it, his sister watches, nothing is there'],
+  '6-13': ['boy|sister', 'the boy and his sister look inside the empty family car in the garage'],
+  '6-14': ['boy|sister', 'the boy and his sister turn their heads, hands cupped to their ears, listening'],
+  '6-15': ['boy|sister', 'the boy and his sister listen carefully, eyes wide, hands cupped to their ears'],
+  '6-16': ['boy|sister', 'the boy and his sister tiptoe into the living room toward a big sofa'],
+  '6-17': ['boy|sister|Max', 'the boy and his sister peek over the back of the sofa and find the dog lying on the floor behind it'],
+  '6-18': ['boy|Max', 'the dog lies curled up on the floor behind the sofa with its eyes closed, the boy peeks over the sofa'],
+  '6-21': ['boy|sister|Max', 'the boy and his sister hug the happy dog, the red ball next to them'],
+  '7-0': ['8-year-old', 'the girl stands happily at the zoo entrance gate, giraffes and zebras behind her'],
+  '7-1': ['8-year-old|mom|dad', 'the girl walks into the zoo holding hands with her mom and dad'],
+  '7-2': ['8-year-old|mom|dad', 'the girl, her mom and her dad sit in seats on a city bus, the girl looks out the window'],
+  '7-3': ['8-year-old', 'the girl looks up at a very tall giraffe behind the zoo fence'],
+  '7-4': ['', 'a tall giraffe eats green leaves from a tree in the zoo'],
+  '7-5': ['8-year-old', 'the girl looks at a big gray elephant behind the zoo fence'],
+  '7-6': ['', 'a big gray elephant drinks water from a pond with its trunk in the zoo'],
+  '7-7': ['', 'playful monkeys jump and swing on ropes and branches in the zoo'],
+  '7-8': ['8-year-old', 'a monkey on a branch waves its hand at the girl, she waves back'],
+  '7-9': ['8-year-old|dad', 'the girl and her dad eat ice cream cones together on a bench at the zoo'],
+  '7-10': ['8-year-old', 'the girl licks a cold pink ice cream cone, smiling'],
+  '7-11': ['8-year-old', 'the girl holds a small soft plush toy lion at the zoo gift shop'],
+  '7-12': ['8-year-old|mom|dad', 'the girl, her mom and her dad walk in the front door of their house in the evening'],
+  '7-13': ['8-year-old', 'the girl lies tired on the sofa, yawning'],
+  '7-14': ['8-year-old', 'the girl looks out the window at the rain on a gray morning'],
+  '7-15': ['8-year-old|mom', 'the girl and her mom read picture books together on the sofa'],
+  '7-16': ['8-year-old|mom', 'the girl and her mom put cookies on a baking tray in the kitchen'],
+  '7-17': ['8-year-old|mom', 'the girl and her mom smell a tray of fresh warm cookies, steam rising'],
+  '7-18': ['8-year-old', 'the girl looks out the window, the rain has stopped and the sun comes out'],
+  '7-19': ['8-year-old|friends', 'the girl runs to meet her two friends in the park'],
+  '7-20': ['8-year-old|friends', 'the girl kicks a soccer ball, her two friends run after it in the park'],
+  '7-21': ['8-year-old|friends', 'the girl and her two friends laugh together on the grass'],
+  '7-22': ['8-year-old', 'the girl writes in her diary at her desk at night, a small lamp on'],
+  '7-23': ['8-year-old', 'the girl smiles in bed hugging her diary'],
+  '8-0': ['teacher', 'the smiling teacher asks a group of children what they want to be, the children think'],
+  '8-3': ['pilot', 'the boy pilot flies a small plane around a big globe'],
+  '8-4': ['pilot', 'the boy pilot waves in front of the Eiffel Tower, the Statue of Liberty and an Asian pagoda'],
+  '8-5': ['pilot', 'the boy pilot holds up a postcard with a stamp'],
+  '8-11': ['chef', 'the chef boy stands proudly in front of his own small pizza shop'],
+  '8-16': ['teacher', 'the teacher spreads her arms wide and smiles, children around her look up at shining stars'],
+  '8-17': ['pilot', 'the boy pilot smiles and points at the reader'],
+  '8-18': ['', 'a child holds a microphone and sings on a small stage with lights'],
+  '8-19': ['', 'a child in a white lab coat looks into a microscope'],
+  '8-20': ['pilot|doctor|firefighter|artist', 'the pilot, the doctor, the firefighter and the artist children stand together and cheer'],
+  '8-21': ['pilot|doctor', 'two children study with books and pencils at a desk'],
+  '8-22': ['firefighter|artist', 'two children climb up a small hill with big smiles, helping each other'],
+  '8-23': ['pilot|doctor|chef|artist', 'children look up at a rainbow and shining stars, smiling with joy'],
+  '9-13': ['', 'a panda, a tiger, a zebra and an owl march happily in a line down the parade road'],
+  '10-5': ['Ben|Tom', 'Ben and Tom sit in their bus seats sweating, the hot sun shining through the window'],
+  '10-10': ['Ben|Tom', 'Ben and Tom sleep leaning on each other in their bus seats'],
+  '10-11': ['', 'the big red bus stops at a bus stop in front of the zoo gate'],
+  '10-13': ['Ben|Tom', 'Ben and Tom cheer at the zoo entrance, zebras, a lion and an elephant behind'],
+  '10-14': ['Ben', 'Ben watches a little lion cub lying in the sun behind the zoo fence'],
+  '10-15': ['Tom', 'Tom laughs at a hippo rolling in the mud behind the zoo fence'],
+  '10-16': ['Ben|Tom', 'Ben and Tom wave happily at the zoo, animals behind them'],
+  '11-0': ['6-year-old|toy box', 'the boy proudly shows his big blue toy box in his bedroom'],
+  '11-1': ['6-year-old|toy box', 'the boy stands next to his big blue toy box, it is almost as tall as him'],
+  '11-2': ['6-year-old|toy box', 'the boy lifts the lid of the big blue toy box, toys peeking out'],
+  '11-3': ['6-year-old', 'the boy holds a small red toy car in his hand'],
+  '11-4': ['6-year-old', 'a small red toy car zooms fast across the bedroom floor, the boy cheers'],
+  '11-6': ['6-year-old', 'the boy hugs a small soft brown teddy bear'],
+  '11-7': ['6-year-old', 'the boy holds a blue ball'],
+  '11-10': ['6-year-old', 'a small white toy robot walks across the floor, the boy watches amazed'],
+  '11-11': ['6-year-old', 'a small white toy robot talks with a blank speech bubble, the boy laughs'],
+  '11-13': ['6-year-old', 'the boy bangs a toy drum and covers one ear, loud sound lines around the drum'],
+  '11-14': ['6-year-old', 'the boy looks at a jigsaw puzzle box on the floor'],
+  '11-15': ['6-year-old', 'the boy puts together ten jigsaw puzzle pieces on the floor'],
+  '11-18': ['6-year-old', 'the boy plays happily surrounded by his toy car, teddy bear, robot and drum'],
+  '11-19': ['6-year-old|toy box', 'the boy puts his toys back into the big blue toy box'],
+  '12-0': ['girl|shopkeeper', 'the shopkeeper smiles and greets the girl as she walks into the store'],
+  '12-1': ['girl|shopkeeper', 'the girl points at a pile of red apples, the shopkeeper nods'],
+  '12-2': ['girl|shopkeeper', 'the shopkeeper holds up a red apple and asks with a curious face'],
+  '12-3': ['girl|shopkeeper', 'the girl holds up three fingers, three red apples on the counter'],
+  '12-4': ['girl|shopkeeper', 'the shopkeeper holds up a bunch of yellow bananas toward the girl'],
+  '12-5': ['girl|shopkeeper', 'the girl politely shakes her head and waves her hand at the bananas'],
+  '12-6': ['girl|shopkeeper', 'the girl asks the shopkeeper a question, looking around the shelves'],
+  '12-7': ['girl|shopkeeper', 'the shopkeeper points to a fridge full of milk bottles'],
+  '12-8': ['girl', 'the girl touches a milk bottle in the open fridge'],
+  '12-9': ['girl', 'the girl holds a frosty cold milk bottle and shivers a little, smiling'],
+  '12-10': ['girl|shopkeeper', 'the girl points at a chocolate muffin on the counter'],
+  '12-11': ['girl|shopkeeper', 'the shopkeeper holds up a chocolate muffin'],
+  '12-12': ['girl|shopkeeper', 'the girl puts her hands together and asks politely, looking at the muffin'],
+  '12-13': ['girl|shopkeeper', 'the shopkeeper smiles and hands the muffin to the girl'],
+  '12-14': ['girl|shopkeeper', 'the girl opens her small coin purse at the counter'],
+  '12-15': ['girl|shopkeeper', 'the shopkeeper holds up two green dollar bills'],
+  '12-16': ['girl|shopkeeper', 'the girl hands two dollar bills to the shopkeeper over the counter'],
+  '12-17': ['girl|shopkeeper', 'the shopkeeper hands a paper shopping bag with apples, milk and a muffin to the girl'],
+  '12-18': ['girl|shopkeeper', 'the girl smiles and waves, holding her shopping bag'],
+  '12-19': ['girl|shopkeeper', 'the shopkeeper waves goodbye as the girl leaves through the shop door'],
+  '13-2': ['kite', 'the long yellow and green ribbon tail of the red kite flutters in the sky'],
+  '13-3': ['7-year-old', 'the boy stands on the hill holding his red kite, his hair blowing in a strong wind, trees bending'],
+  '13-6': ['7-year-old|kite', 'the boy holds the long kite string with both hands, the red kite above'],
+  '13-8': ['7-year-old|kite', 'the red kite rises high into the sky, the boy looks up and cheers'],
+  '13-11': ['kite|bird', 'a little brown bird flies in the sky right next to the red kite'],
+  '13-13': ['7-year-old|kite', 'the boy pulls hard on the string as a strong wind tugs the red kite'],
+  '13-16': ['dad|kite', 'the tall dad reaches up and pulls the red kite out of the tree branches'],
+  '13-21': ['7-year-old|dad|kite', 'the boy and his dad sit on the hill smiling, the red kite flying above them'],
+  '14-0': ['7-year-old', 'the girl wakes up and stretches in bed, an alarm clock ringing'],
+  '14-1': ['7-year-old|white dog', "the small white dog licks the sleeping girl's face to wake her up"],
+  '14-9': ['7-year-old|Mina', 'Mina runs to tag the girl in a game of tag, the girl laughs and runs'],
+  '14-12': ['', 'an open lunch box with rice and eggs on a picnic blanket'],
+  '14-21': ['7-year-old|dad|white dog', 'the girl, her dad and the dog cuddle together on the sofa, smiling'],
   '2-5': ['cat|rat', 'the fat orange cat stares longingly at the red knit beanie on the rat\'s head and reaches one paw toward it'],
   '9-0': ['', 'a cute baby elephant proudly lifting its long nose high in the air'],
   '9-11': ['', 'a small red toy yo-yo bouncing at the end of its long string, held by a child\'s hand that comes in from the top of the picture'],
@@ -112,18 +254,23 @@ if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
   const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
   jobs.push({ kind: 'w', key: e, label, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
 }
+// 그림 속에 글자가 그려지지 않게. 이미 그린 그림을 다시 그리지 않도록 그림 설명 비교(hash)에는 넣지 않는다
+const NOTEXT = ' No words, letters or writing anywhere in the picture.';
 // 문장을 따옴표·느낌표 없는 장면 설명으로 (따옴표 안 문장은 그림 속 글자로 그려지기 쉽다)
 const plain = t => t.replace(/["“”!?]/g, '').replace(/\.$/, '').replace(/^./, c => c.toLowerCase());
 const refs = {}; // 인물 기준 그림: 파일 경로 → 그림 설명
 if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
   if (book && s.id !== book) continue;
-  const [place, cast, note] = BOOKS[s.id] || ['a bright place', []];
+  const [places, cast, note] = BOOKS[s.id] || ['a bright place', []];
   let last = [];
   s.pages.forEach(([text], i) => {
     const letter = isLetterLine(text);
     const thing = letter && text.replace(/^[A-Z] is for | ends with [A-Z]\.?$/g, '').replace(/\.$/, '');
     const scene = SCENES[`${s.id}-${i}`];
-    let who = letter ? [] : scene ? cast.filter(c => new RegExp(scene[0]).test(c[1])) : cast.filter(([k]) => k === '*' || new RegExp(k, 'i').test(text));
+    // 배경: 쪽마다 다른 책은 [[시작 쪽, 배경], …]
+    const place = Array.isArray(places) ? places.filter(([from]) => from <= i).pop()[1] : places;
+    let who = letter ? [] : scene ? (scene[0] ? cast.filter(c => new RegExp(scene[0]).test(c[1])) : []) : cast.filter(([k]) => k === '*' || new RegExp(k, 'i').test(text));
+    if (scene && scene[0] && !who.length) console.warn(`장면 ${s.id}-${i}: '${scene[0]}'에 맞는 인물이 없어요`);
     // 대명사만 있으면 앞 쪽 인물을 이어 쓰고, 그때만 앞 문장을 함께 준다 (다른 인물이 덤으로 그려지지 않게)
     const carried = !letter && !scene && !who.length && /\b(he|she|it|they|his|her|its|them|him)\b/i.test(text);
     if (carried) who = last;
@@ -135,7 +282,7 @@ if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
         + (who.length ? `Characters in this picture: ${who.map(c => c[1]).join('; ')}. ${['', 'Only one character', 'Only two characters', 'Only three characters', 'Only four characters'][who.length]} in the whole picture, each appearing once. Use the reference images only for each character's look and colors; draw new poses, expressions and positions that act out the sentence.` : 'Only show what the sentence mentions.')
         + ` Background: ${place}, drawn in the same style as the characters, everything illustrated, not a photo, not realistic.${note && who.some(c => new RegExp(note[0]).test(c[1])) ? ` ${note[1]}` : ''}`;
     const refFiles = who.map(([, d]) => { const f = path.join(refDir, `${hash(styleName + d).slice(0, 12)}.png`); refs[f] = d; return f; });
-    jobs.push({ kind: 's', key: `${s.id}-${i}`, refFiles, label: text, prompt, file: `s/${s.id}-${i}.jpg` });
+    jobs.push({ kind: 's', key: `${s.id}-${i}`, refFiles, label: text, prompt, draw: prompt + NOTEXT, file: `s/${s.id}-${i}.jpg` });
   });
 }
 
@@ -203,7 +350,7 @@ async function worker() {
     const j = queue.shift();
     try {
       for (const f of j.refFiles || []) await refMade(f);
-      save(await draw(j.prompt, SIZE[j.kind], seedOf(j), j.refFiles), path.join(outDir, j.file));
+      save(await draw(j.draw || j.prompt, SIZE[j.kind], seedOf(j), j.refFiles), path.join(outDir, j.file));
       man[j.kind][j.key] = j.file; man.h[j.kind + j.key] = hash(j.prompt).slice(0, 10);
       writeMan(); // 한 장마다 저장: 중간에 Mac을 꺼도 그린 그림은 남는다
       if (++done % 10 === 0) console.log(`  ${done} / ${todo.length}`);
