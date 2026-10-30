@@ -129,7 +129,7 @@ const Gen = (() => {
       const [bw, bi] = blankable[t % blankable.length] || [ws[0], 0];
       const distract = pickOthers(bank.flatMap(words).filter(w => w.length > 2 && w.toLowerCase() !== bw.toLowerCase()), 2);
       const list = [
-        () => ({ type: 'tiles', key: `s-order-${S.en}`, title: '단어를 순서대로 놓아 문장을 만들어요', sub: S.ko, say: S.en, show: S.emoji, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
+        () => ({ type: 'tiles', key: `s-order-${S.en}`, title: '단어를 순서대로 놓아 문장을 만들어요', sub: S.ko, say: S.en, done: S.en, show: S.emoji, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
         () => choice(`s-fill-${S.en}-${bi}`, '빈칸에 알맞은 단어를 골라요', bw, distract, { show: ws.map((w, i) => i === bi ? '____' : w).join(' '), sub: S.ko, sayAfter: S.en }),
         () => choice(`s-mean-${S.en}`, '문장의 뜻을 골라요', S.ko, pickOthers(pool.map(x => x.ko), 2, S.ko), { show: S.en, say: S.en }),
         () => choice(`s-hear-${S.en}`, '듣고 뜻을 골라요', S.ko, pickOthers(pool.map(x => x.ko), 2, S.ko), { say: S.en, big: '🔊', show: S.emoji }),
@@ -150,13 +150,13 @@ const Gen = (() => {
       const ws = words(Q.a), qws = words(Q.q);
       return [
         () => choice(`qa-pick-${k}`, '질문에 알맞은 대답을 골라요', Q.a, pickOthers(wrongAnswers(Q, pool), 2, Q.a), { show: Q.q, say: Q.q, sayAfter: Q.a }),
-        () => ({ type: 'tiles', key: `qa-order-${k}`, title: '대답을 순서대로 만들어요', show: Q.q, say: Q.q, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
+        () => ({ type: 'tiles', key: `qa-order-${k}`, title: '대답을 순서대로 만들어요', show: Q.q, say: Q.q, done: Q.a, answer: ws, tiles: shuffle(ws), joiner: ' ' }),
         () => choice(`qa-mean-${k}`, '대화의 뜻을 골라요', Q.ko, pickOthers(pool.map(x => x.ko), 2, Q.ko), { show: `${Q.q}\n${Q.a}`, say: `${Q.q} ${Q.a}` }),
         () => ({ type: 'speak', key: `qa-speak-${k}`, title: '질문을 듣고 대답해요', target: Q.a, prompt: Q.q, sub: Q.ko.split(' — ')[1] }),
         // 대답을 보고 알맞은 질문 고르기
         () => choice(`qa-ask-${k}`, '이 대답에 어울리는 질문을 골라요', Q.q, pickOthers(wrongQuestions(Q, pool), 2, Q.q), { show: Q.a, sub: Q.ko.split(' — ')[1], sayAfter: `${Q.q} ${Q.a}` }),
         // 질문 단어 순서 맞추기
-        ...(qws.length >= 4 ? [() => ({ type: 'tiles', key: `qa-qorder-${k}`, title: '질문을 순서대로 만들어요', sub: Q.ko.split(' — ')[0], say: Q.q, answer: qws, tiles: shuffle(qws), joiner: ' ' })] : []),
+        ...(qws.length >= 4 ? [() => ({ type: 'tiles', key: `qa-qorder-${k}`, title: '질문을 순서대로 만들어요', sub: Q.ko.split(' — ')[0], say: Q.q, done: Q.q, answer: qws, tiles: shuffle(qws), joiner: ' ' })] : []),
       ];
     },
   };
@@ -485,7 +485,7 @@ const Lesson = (() => {
         const ok = input.value.trim().toLowerCase() === q.answer.toLowerCase();
         input.disabled = true; el.querySelectorAll('button').forEach(b => b.disabled = true);
         el.querySelector('.type-slots').classList.add(ok ? 'right' : 'wrong');
-        if (ok) Speech.speak(q.answer);
+        if (ok && !q.sayAfter) Speech.speak(q.answer); // 빈칸 단어는 곧 문장 전체(sayAfter)를 읽으니 따로 읽지 않는다
         done(ok, q);
       };
     },
@@ -516,7 +516,8 @@ const Lesson = (() => {
         const ok = got.join('|').toLowerCase() === q.answer.join('|').toLowerCase();
         el.querySelectorAll('button').forEach(b => b.disabled = true);
         line.classList.add(ok ? 'right' : 'wrong');
-        if (ok) Speech.speak(q.answer.join(' '));
+        // 다 맞추면 문장부호까지 있는 원래 문장(done)을 읽는다: 미리 만든 AI 음성으로 읽히고, 철자 타일은 단어 하나로 읽는다
+        if (ok) Speech.speak(q.done || q.answer.join(q.joiner));
         done(ok, q);
       };
       draw();

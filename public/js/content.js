@@ -336,12 +336,50 @@ function storyChunks(text) {
     const left = ws.length - k - 1;
     if (/[,.!?]$/.test(w) || (cur.length >= 3 && left !== 1) || left === 0) { groups.push(cur); cur = []; }
   });
+  // 마디가 관사로 끝나면('I heard a') AI 음성이 a를 '에이'로 강하게 읽어서, 관사는 다음 마디 앞으로 옮긴다 ('I heard' / 'a big dog')
+  for (let i = 0; i < groups.length - 1; i++) {
+    const g = groups[i], last = g[g.length - 1];
+    if (g.length > 1 && /^(a|an|the)$/i.test(ws[last])) groups[i + 1].unshift(g.pop());
+  }
   return groups;
 }
 // 스토리북에서 단어 하나를 읽을 소리: 'A cat sat'의 A는 관사라서 'a'(어)로, 'A is for apple'의 A만 글자 이름(에이)으로
 const isLetterLine = text => /^[A-Z] is for |ends with [A-Z]\.?$/.test(text);
-const storyWord = (text, w) => { const x = w.replace(/[.,!?]/g, ''); return x === 'A' && !isLetterLine(text) ? 'a' : x; };
-const chunkSay = (text, g) => g.map(k => storyWord(text, text.split(' ')[k])).join(' ');
+// 과거형 read는 문장 전체를 보고 가린다 (아래 pastRead) — 마디·단어만 따로 들어도 '레드'로 읽게 철자 red로 보낸다
+const storyWord = (text, w, k = text.split(' ').indexOf(w)) => {
+  const x = w.replace(/[.,!?]/g, '');
+  if (x === 'A' && !isLetterLine(text)) return 'a';
+  return /^read$/i.test(x) && pastRead(text, k) ? x.replace(/ea/, 'e') : x;
+};
+const chunkSay = (text, g) => g.map(k => storyWord(text, text.split(' ')[k], k)).join(' ');
+// read(리드)와 과거형 read(레드)는 철자가 같아서 AI 음성도 기기 목소리도 자주 틀린다.
+// 과거로 읽을 자리면 소리가 같은 철자 red로 바꿔 보낸다 (화면 글자와 채점 문장은 그대로).
+//  - 같은 마디에 to·will·can·do 같은 말이 있으면 현재 (I like to read. / Where do we read?)
+//  - he·she·Mina·Grandma처럼 한 사람 뒤의 read는 과거 (현재라면 reads라고 쓰니까)
+//  - I·we·you·they 뒤에서는 문장에 yesterday·last·ago나 다른 과거형(drank·went…)이 있거나,
+//    한국어 뜻이 '읽었어요'이거나, 지난 일을 이야기하는 동화의 한 쪽이면 과거
+const PAST_FORMS = new Set(VERBS.map(v => v[1]).filter(p => !/^(read|put|cut|hit|let|set)$/.test(p)).concat(['was', 'were', 'went']));
+const plainWords = t => t.toLowerCase().split(' ').map(w => w.replace(/[^a-z']/g, ''));
+let pastLines = null;
+function pastContext() {
+  if (pastLines) return pastLines;
+  pastLines = new Set();
+  for (const [en, ko] of Object.values(SENTENCES).flat()) if (/읽었/.test(ko)) pastLines.add(en);
+  for (const [q, a, ko] of Object.values(QA).flat()) if (/읽었/.test(ko)) { pastLines.add(a); pastLines.add(`${q} ${a}`); }
+  // 과거형 동사가 세 쪽 넘게 나오는 동화는 지난 일을 이야기하는 책
+  for (const s of STORIES) if (s.pages.filter(([t]) => plainWords(t).some(w => PAST_FORMS.has(w))).length >= 3) s.pages.forEach(([t]) => pastLines.add(t));
+  return pastLines;
+}
+function pastRead(text, k) {
+  const ws = text.split(' '), low = plainWords(text);
+  if (!/^read$/.test(low[k] || '') || k === 0) return false;
+  if (/^read, read$/i.test(text.trim())) return k === 1; // 동사 원형, 과거형 짝
+  let from = k; while (from > 0 && !/[,.!?]$/.test(ws[from - 1])) from--;
+  if (low.slice(from, k).some(w => /^(to|will|can|could|should|must|would|do|does|did|don't|didn't|let's|cannot|can't|won't|i'll|we'll|you'll)$/.test(w))) return false;
+  if (!/^(i|you|we|they)$/.test(low[k - 1])) return true;
+  return low.some(w => /^(yesterday|last|ago)$/.test(w) || PAST_FORMS.has(w)) || pastContext().has(text.trim());
+}
+const pastReadText = t => { const ws = String(t).split(' '); return ws.map((w, k) => (/^read[.,!?]*$/i.test(w) && pastRead(t, k) ? w.replace(/ea/, 'e') : w)).join(' '); };
 // 그림이 비슷해서 헷갈리는 단어 묶음 — 같은 문제의 보기로 함께 나오지 않게 한다
 const LOOKALIKE = [['insect', 'bug'], ['hat', 'cap'], ['jet', 'airplane'], ['van', 'bus', 'car', 'cab', 'truck'], ['mom', 'dad', 'kid'],
   ['pot', 'pan', 'cup', 'can', 'dish'], ['rock', 'log'], ['bear', 'panda'], ['duck', 'chick', 'hen'], ['rat', 'mouse'], ['orange', 'lemon'],
@@ -359,7 +397,7 @@ function pictureOthers(pool, n, ans) {
   return out;
 }
 function speechText(t) {
-  const x = String(t).trim();
+  const x = pastReadText(String(t).trim());
   if (/^[A-Z]$/.test(x)) return nameOf(x);                                                 // "A" (소문자 a 한 글자는 관사일 수 있어 그대로)
   if (/^([A-Za-z], )+[A-Za-z]\.\s/.test(x)) {                                              // "c, a, t. cat"
     const cut = x.indexOf('. ');

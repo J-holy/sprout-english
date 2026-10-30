@@ -16,55 +16,54 @@ export const ttsProvider = () => {
   if ((p === 'google' || !p) && e.GOOGLE_TTS_API_KEY) return 'google';
   return null;
 };
-const voiceId = () => ({ openai: e.OPENAI_TTS_VOICE || 'nova', google: e.GOOGLE_TTS_VOICE || 'en-US-Neural2-F', test: 'beep' }[ttsProvider()]);
+// Google 기본 목소리는 Studio-O: Neural2-F는 Z를 'C', V를 'P'처럼 읽어서 알파벳 학습에 맞지 않았다 (2026-10 26글자 비교)
+export const voiceId = () => ({ openai: e.OPENAI_TTS_VOICE || 'nova', google: e.GOOGLE_TTS_VOICE || 'en-US-Studio-O', test: 'beep' }[ttsProvider()]);
 const ext = () => (ttsProvider() === 'test' ? 'wav' : 'mp3');
 
 // 영어 학습 문장만 받는다 (요금 남용 방지)
 export const cleanText = t => String(t || '').replace(/\s+/g, ' ').trim();
 export const validText = t => t.length > 0 && t.length <= 300 && /^[A-Za-z0-9 .,!?'’\-:;"]+$/.test(t);
-// 관사 발음 바로잡기: AI 음성은 짧은 마디나 단어 하나만 읽을 때 the를 '디', a를 '에이'로 강하게 읽는다.
-// 알파벳 이름은 화면의 speechText()가 이미 'ay' 등으로 바꿔 두므로, 여기까지 남은 a/the는 모두 관사다.
-// Google 음성에 SSML 발음 기호로 the는 '더'(모음 소리 앞은 '디'), a는 '어'로 읽게 한다.
-const ARTICLE_FIX = 'art2'; // 바꾸면 해당 문장 음성을 다시 만든다
-export const hasArticle = t => /(^|\s)(a|the)([.,!?]*)(\s|$)/i.test(t);
-const vowelSound = w => /^(hour|honest)/i.test(w) || /^(a|e|i|o|u(?!ni|se|su|ro|ke|fo))/i.test(w);
+// 발음 바로잡기 (Google 음성에 SSML 발음 기호로 보낸다).
+// 화면의 speechText()가 먼저 바꿔 보내는 것: 알파벳 → 이름 철자(ay, bee…), 과거형 read → red, 동화 단어 A(관사) → a.
+// 여기서는 AI 음성이 문맥만으로는 틀리게 읽는 것을 IPA로 못 박는다.
+//  - 관사: 짧은 마디나 단어 하나만 읽으면 a를 '에이', the를 '디'로 강하게 읽는다 → a는 '어', the는 '더'(모음 소리 앞은 '디')
+//  - 글자 이름: 'ay'는 '아이'(aye), 'dee'는 IPA로 못 박아도 '티'처럼 들려서, 글자 읽기(say-as characters)로 보낸다
+//    (bee·see·eye·oh·you·why는 실제 단어와 소리가 같아서 그대로)
+//  - 한 단어만 읽을 때 뜻을 몰라 틀리는 단어: live를 '라이브'로 (동화에서 단어를 눌러 들을 때)
+const vowelSound = w => /^(hour|honest)/i.test(w) || (/^[aeiou]/i.test(w) && !/^(one|once|uni|use|usu|eu|u[bcdfgklmnpstvz][aeiou])/i.test(w));
 const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-export function articleSsml(text) {
+const LETTER_OF = { ay: 'A', ee: 'E', jee: 'G', aitch: 'H', el: 'L', em: 'M', en: 'N', ess: 'S', eff: 'F', ar: 'R', ex: 'X',
+  cue: 'Q', dee: 'D', pee: 'P', tee: 'T', vee: 'V', zee: 'Z', kay: 'K', jay: 'J' };
+const SINGLE_IPA = { live: 'lɪv', lives: 'lɪvz', wind: 'wɪnd', minute: 'ˈmɪnɪt', present: 'ˈpɹɛzənt' };
+const phoneme = (w, ph) => `<phoneme alphabet="ipa" ph="${ph}">${xml(w)}</phoneme>`;
+// 단어 하나를 고쳐 읽을 SSML (고칠 필요가 없으면 null)
+function fixWord(ws, i) {
+  const [, word, punct] = ws[i].match(/^([A-Za-z]+)([.,!?]*)$/) || [];
+  if (!word) return null;
+  const low = word.toLowerCase();
+  if (LETTER_OF[low]) return `<say-as interpret-as="characters">${LETTER_OF[low]}</say-as>${xml(punct)}`;
+  const ph = low === 'a' ? 'ə' : low === 'the' ? (vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə') : ws.length === 1 && SINGLE_IPA[low];
+  return ph ? phoneme(word, ph) + xml(punct) : null;
+}
+const fixed = text => ttsProvider() === 'google' && speechSsml(text) !== `<speak>${xml(text)}</speak>`;
+// 철자 줄('bee, ay, en, ay, en, ay. banana')은 글자마다 조금 쉬고, 마지막 글자 뒤에는 더 쉰다.
+// 쉬지 않으면 끝 글자 A를 다음 단어의 관사로 읽고('a banana'), 'dee, is for'를 'D's for'로 붙여 읽었다.
+// 끝 단어는 마침표로 맺는다 (마침표가 없으면 cake를 'take', worm을 'wern'처럼 읽었다)
+const NAME_OF = { ...LETTER_OF, bee: 'B', see: 'C', eye: 'I', oh: 'O', you: 'U', why: 'Y', 'double you': 'W' };
+const pause = ms => `<break time="${ms}ms"/>`;
+const spelledSsml = names => names.map(n => `<say-as interpret-as="characters">${NAME_OF[n]}</say-as>`).join(',' + pause(150) + ' ') + '.' + pause(500);
+export function speechSsml(text) {
+  const spell = text.match(/^((?:[a-z ]+, )+[a-z ]+)\. (.+)$/);
+  if (spell && spell[1].split(', ').every(n => NAME_OF[n])) return '<speak>' + spelledSsml(spell[1].split(', ')) + ' ' + xml(spell[2].replace(/[.!?]*$/, '.')) + '</speak>';
   const ws = text.split(' ');
   return '<speak>' + ws.map((w, i) => {
-    const m = w.match(/^(a|the)([.,!?]*)$/i);
-    if (!m) return xml(w);
-    const ph = m[1].toLowerCase() === 'a' ? 'ə' : vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə';
-    return `<phoneme alphabet="ipa" ph="${ph}">${m[1]}</phoneme>${xml(m[2])}`;
+    const f = fixWord(ws, i) || xml(w);
+    return /^[a-z]+,$/.test(w) && NAME_OF[w.slice(0, -1)] && ws[i + 1] === 'is' ? f + pause(150) : f; // 'dee, is for dog'
   }).join(' ') + '</speak>';
 }
-// 알파벳 이름 발음 바로잡기: 화면의 speechText()가 글자를 'ay', 'ee' 같은 이름으로 바꿔 보내는데,
-// AI 음성은 'ay'를 '아이'(aye)로 읽어 I(eye)와 똑같이 들린다. 단어가 아닌 글자 이름은 IPA로 소리를 못 박는다.
-// (bee·see·eye·oh·you·why는 실제 단어와 소리가 같아서 그대로 둔다)
-const LETTER_IPA = { ay: 'eɪ', ee: 'iː', jee: 'dʒiː', aitch: 'eɪtʃ', el: 'ɛl', em: 'ɛm', en: 'ɛn', ess: 'ɛs', eff: 'ɛf', ar: 'ɑɹ', ex: 'ɛks',
-  cue: 'kjuː', dee: 'diː', pee: 'piː', tee: 'tiː', vee: 'viː', zee: 'ziː', kay: 'keɪ', jay: 'dʒeɪ' };
-const hasLetterName = t => t.split(' ').some(w => LETTER_IPA[w.replace(/[.,!?]+$/, '').toLowerCase()]);
-// 과거형 read는 '레드'로: 'I read a book last night.', 'Grandma read me a story.', 'read, read'(원형, 과거형)의 두 번째
-const PAST_READ_WHO = /\b(he|she|it|Grandma|Grandpa|Mina|Tom|Dad|Mom|friend|Amy|Ben|Jisu|Minho|Lily|Sam) read\b/;
-const PAST_MARK = /\b(last|yesterday|ago|this morning)\b|^(At night|In the afternoon), I read|Then, I read|^I read books/;
-const isPastRead = t => /\bread\b/i.test(t) && !/\b(to|will|we|you|does|did) read\b|^read$|^Read!/i.test(t) && (PAST_READ_WHO.test(t) || PAST_MARK.test(t));
-const LETTER_FIX = 'ssml3';
-export function speechSsml(text) {
-  const ws = text.split(' '), pastRead = isPastRead(text), pair = /^read, read$/.test(text);
-  return '<speak>' + ws.map((w, i) => {
-    const m = w.match(/^([A-Za-z]+)([.,!?]*)$/); if (!m) return xml(w);
-    const low = m[1].toLowerCase();
-    let ph = null;
-    if (low === 'a' || low === 'the') ph = low === 'a' ? 'ə' : vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə';
-    else if (LETTER_IPA[low]) ph = LETTER_IPA[low];
-    else if (low === 'read' && (pastRead || (pair && i === 1))) ph = 'ɹɛd';
-    return ph ? `<phoneme alphabet="ipa" ph="${ph}">${m[1]}</phoneme>${xml(m[2])}` : xml(w);
-  }).join(' ') + '</speak>';
-}
-const needsLetterFix = t => hasLetterName(t) || isPastRead(t) || /^read, read$/.test(t);
-const fixed = text => ttsProvider() === 'google' && (hasArticle(text) || needsLetterFix(text));
-// 미리 만든 정적 파일 이름에도 쓴다 (발음을 고친 파일은 이름이 바뀌어 브라우저에 남은 옛 소리를 쓰지 않게)
-export const audioTag = text => (!fixed(text) ? '' : needsLetterFix(text) ? '|' + LETTER_FIX : '|' + ARTICLE_FIX);
+// 미리 만든 정적 파일 이름에도 쓴다 (발음을 고친 파일은 이름이 바뀌어 브라우저에 남은 옛 소리를 쓰지 않게).
+// 보내는 SSML 자체로 만들어서, 고치는 규칙이 바뀌면 그 규칙에 걸리는 문장만 다시 만든다
+export const audioTag = text => (fixed(text) ? '|' + crypto.createHash('sha1').update(speechSsml(text)).digest('hex').slice(0, 8) : '');
 export const cacheFile = (text, slow) => {
   const h = crypto.createHash('sha256').update(`${ttsProvider()}|${voiceId()}|${slow ? 'slow' : 'normal'}|${text}${audioTag(text)}`).digest('hex').slice(0, 32);
   return path.join(DIR, `${h}.${ext()}`);

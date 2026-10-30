@@ -1204,7 +1204,7 @@ Views.story = (el, id) => {
       Speech.sfx.cheer(); if (first) Lesson.confetti(); App.refreshHeader(); return;
     }
     const [text, art] = s.pages[pg];
-    page.innerHTML = `<div class="anim-in">${storyPic(s.id, pg) ? `<div class="story-art story-photo"><img src="${storyPic(s.id, pg)}" alt=""></div>` : sceneHtml(art, placeOf(s, text))}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(storyWord(text, w))}">${esc(w)}</span>`).join(' ')}</p></div>`;
+    page.innerHTML = `<div class="anim-in">${storyPic(s.id, pg) ? `<div class="story-art story-photo"><img src="${storyPic(s.id, pg)}" alt=""></div>` : sceneHtml(art, placeOf(s, text))}<p class="reader-text">${text.split(' ').map((w, k) => `<span data-k="${k}" data-say="${esc(storyWord(text, w, k))}">${esc(w)}</span>`).join(' ')}</p></div>`;
     // 단어를 누르면 그 단어만 천천히 읽고, 자동 넘김은 멈춘다
     spans().forEach(sp => sp.onclick = () => {
       stopAuto(); cancelTurn(); clearHl();
