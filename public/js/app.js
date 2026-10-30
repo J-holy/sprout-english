@@ -69,18 +69,22 @@ const App = (() => {
   function refreshHeader(path = (location.hash.slice(1) || '/').split('?')[0]) {
     const u = Store.user(), p = Store.profile();
     const unread = u ? u.notifications.filter(n => !n.read).length : 0;
-    document.getElementById('nav').innerHTML = NAV.map(([h, t]) => `<a href="#${h}" class="${navOf(path) === h ? 'on' : ''}">${t.replace(/^(\S+) /, (m, e) => ico(e) + ' ')}</a>`).join('');
+    // 휴대폰에서는 부모페이지·로그아웃을 메뉴 줄 끝으로 옮긴다 (윗줄이 넘치지 않게)
+    document.getElementById('nav').innerHTML = NAV.map(([h, t]) => `<a href="#${h}" class="${navOf(path) === h ? 'on' : ''}">${t.replace(/^(\S+) /, (m, e) => ico(e) + ' ')}</a>`).join('')
+      + (u ? `<a href="#/parent" class="sm-only ${path.startsWith('/parent') ? 'on' : ''}">부모페이지</a><button class="sm-only js-logout">로그아웃</button>` : '');
+    // 지금 메뉴가 옆으로 밀려 안 보이면 보이게
+    const nav = document.getElementById('nav'), on = nav.querySelector('.on');
+    if (on && on.offsetWidth) nav.scrollLeft = Math.max(0, on.offsetLeft - nav.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2);
     document.getElementById('userbar').innerHTML = `
       <button class="icon-btn" id="themeBtn" aria-label="낮/밤 모드 전환" title="낮/밤 모드">${document.documentElement.dataset.theme === 'dark' ? '🌞' : '🌙'}</button>
       ${u ? `${Store.isAdmin() ? `<a class="hb-link admin-link ${path.startsWith('/admin') ? 'on' : ''}" href="#/admin">${ico('🛠️')} 관리자</a>` : ''}
         <div class="bell-wrap"><button class="icon-btn" id="bell" aria-label="알림 ${unread}개">${ico('🔔')}${unread ? `<i class="badge">${unread > 9 ? '9+' : unread}</i>` : ''}</button><div class="bell-pop" hidden></div></div>
-        <a class="hb-link" href="#/parent">부모페이지</a>
-        ${p ? `<a class="btn btn-primary sm" href="#/study">${p.avatar} 학습하기 <span class="star-pill">⭐${p.stars || 0}</span></a>` : `<a class="btn btn-primary sm" href="#/profiles">프로필 만들기</a>`}
-        <button class="hb-link" id="logout">로그아웃</button>`
+        <a class="hb-link lg-only" href="#/parent">부모페이지</a>
+        ${p ? `<a class="btn btn-primary sm" href="#/study" aria-label="학습하기">${p.avatar} <span class="lg-only">학습하기</span> <span class="star-pill">⭐${p.stars || 0}</span></a>` : `<a class="btn btn-primary sm" href="#/profiles">프로필 만들기</a>`}
+        <button class="hb-link lg-only js-logout">로그아웃</button>`
       : `<a class="hb-link login-link" href="#/login">${ico('🔑')} 로그인</a><a class="btn btn-primary sm" href="#/signup">${ico('🌱')} 무료 체험</a>`}`;
     document.getElementById('themeBtn').onclick = toggleTheme;
-    const lo = document.getElementById('logout');
-    if (lo) lo.onclick = async () => { await Store.logout(); App.pinOk = false; document.getElementById('mailbox').hidden = true; refreshHeader(); go('/'); };
+    document.querySelectorAll('.js-logout').forEach(lo => lo.onclick = async () => { await Store.logout(); App.pinOk = false; document.getElementById('mailbox').hidden = true; refreshHeader(); go('/'); });
     const bell = document.getElementById('bell');
     if (bell) bell.onclick = e => {
       e.stopPropagation();
