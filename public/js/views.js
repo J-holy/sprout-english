@@ -413,7 +413,7 @@ Views.home = el => {
   <section class="band"><div class="wrap sec two-col">
     <div class="card speak-demo" id="speakDemo"></div>
     <div>${UI.mascot('마이크 버튼을 누르고 따라 말해봐! 단어마다 초록·노랑·빨강으로 알려줄게.', '🌱')}
-      <h3 class="sec-sub">우리 아이 발음 점수, 지금 확인해 보세요</h3>
+      <h3 class="sec-sub">AI 발음 코치, 지금 해보세요</h3>
       <p class="sec-desc left">아이 목소리에 맞춰 너그럽게 채점해서 자신감부터 키워요.</p></div>
   </div></section>
 
@@ -484,7 +484,7 @@ Views.speakWidget = (box, sentences, record = true) => {
   let k = 0;
   const draw = () => {
     const s = sentences[k];
-    box.innerHTML = `<div class="sw-head"><span class="chip">🎤 따라 말하고 점수 받기</span><button class="link-btn" data-next>다른 문장 ↻</button></div>
+    box.innerHTML = `<div class="sw-head"><span class="chip">🎤 AI 발음 코치</span><button class="link-btn" data-next>다른 문장 ↻</button></div>
       <div class="speak-target big">${words(s).map(w => `<span>${esc(w)}</span>`).join(' ')}</div>
       <div class="speak-result" aria-live="polite"></div>
       <div class="row-center"><button class="btn btn-ghost" data-listen>🔊 듣기</button><button class="btn btn-ghost" data-slow>🐢 천천히</button>
@@ -661,7 +661,7 @@ Views.pricing = (el, params) => {
       ['📚', '1년 커리큘럼', `8단계 26레벨 ${TOTAL_LESSONS}레슨 · 미국 킨더~초2 수준`],
       ['🔁', '망각 곡선 복습', '배운 단어·문장을 1·3·7·14·30일에 다시 꺼내 오래 기억'],
       ['📊', '영역별 분석 리포트', '듣기·읽기·말하기·쓰기 정답률, 주간 변화, 맞춤 추천'],
-      ['🎤', '발음 점수 확인', '단어마다 초록·노랑·빨강으로 발음 피드백'],
+      ['🎤', 'AI 발음 코치', '단어마다 초록·노랑·빨강으로 발음 피드백'],
       ['📖', '스토리북 32권', '천천히·한 단어씩 읽어주기, 노래방식 따라 읽기, 순서 맞추기'],
       ['🎮', '게임으로 학습', '⚡ 레슨 중 챌린지, 🔥 콤보, 🏅 배지 26개, 🌱 새싹 나무'],
       ['🎯', '매일 미션', '레슨·복습·말하기 미션과 보상 상자로 매일 습관'],
@@ -684,7 +684,7 @@ Views.pricing = (el, params) => {
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
       <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '8권', '32권 전체'],
-        ['발음 점수 확인 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
