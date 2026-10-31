@@ -317,13 +317,13 @@ const sceneHtml = (pic, place = 'park') => {
 // 🧩 이야기 순서 맞추기: 연속된 4쪽을 섞어 놓고 차례대로 고르기
 function storyOrder(box, s) {
   const start = Math.floor(Math.random() * (s.pages.length - 3));
-  const pages = s.pages.slice(start, start + 4).map((pg, k) => ({ k, text: pg[0], pic: pg[1] }));
+  const pages = s.pages.slice(start, start + 4).map((pg, k) => ({ k, text: pg[0], pic: pg[1], img: storyPic(s.id, start + k) }));
   const cards = shuffle(pages);
   let picked = [];
   const draw = () => {
     box.innerHTML = `<div class="order-game anim-in"><h3>🧩 일어난 순서대로 눌러요</h3>
       <div class="order-line">${pages.map((_, k) => `<span class="order-slot">${picked[k] !== undefined ? `${k + 1}. ${pages[picked[k]].pic.split(' ')[0]}` : k + 1}</span>`).join('')}</div>
-      <div class="order-cards">${cards.map(c => `<button class="order-card" data-k="${c.k}" ${picked.includes(c.k) ? 'disabled' : ''}><span>${c.pic}</span>${esc(c.text)}</button>`).join('')}</div>
+      <div class="order-cards">${cards.map(c => `<button class="order-card" data-k="${c.k}" ${picked.includes(c.k) ? 'disabled' : ''}><span>${c.img ? `<img class="order-pic" src="${c.img}" alt="" draggable="false">` : c.pic}</span>${esc(c.text)}</button>`).join('')}</div>
       <div class="row-center"><button class="btn btn-ghost sm" data-reset>처음부터</button></div></div>`;
     box.querySelectorAll('.order-card').forEach(b => b.onclick = () => { Speech.speak(pages[+b.dataset.k].text); picked.push(+b.dataset.k); picked.length === pages.length ? check() : draw(); });
     box.querySelector('[data-reset]').onclick = () => { picked = []; draw(); };
@@ -1547,7 +1547,7 @@ Views.play = (el, game) => {
       const opts = shuffle([ans, ...pickOthers(ABC.filter(x => x !== ans), 2)]); let tried = false;
       area.innerHTML = `<div class="game-head"><span>🐟 ${round + 1}/${words.length}</span><span>⭐ ${score}</span><button class="btn btn-ghost sm" data-say>🔊 다시 듣기</button></div>
         <div class="pond"><div class="fish-q"><span class="ft-pic">${pic(w.emoji)}</span><b class="ft-word">${w.en.slice(0, i)}<u>_</u>${w.en.slice(i + 1)}</b></div>
-          ${opts.map((l, k) => `<button class="fish" data-l="${l}" style="--y:${42 + k * 18}%;--d:${k * -1.3}s;--s:${5 + k}s"><span class="fish-body">🐟</span><b>${l}</b></button>`).join('')}</div>`;
+          ${opts.map((l, k) => `<button class="fish" data-l="${l}" style="--y:${52 + k * 15}%;--d:${k * -1.3}s;--s:${5 + k}s"><span class="fish-body">🐟</span><b>${l}</b></button>`).join('')}</div>`;
       Speech.speak(w.en); $('[data-say]', area).onclick = () => Speech.speak(w.en);
       $$('.fish', area).forEach(b => b.onclick = () => {
         if (b.dataset.l === ans) {

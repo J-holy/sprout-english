@@ -858,7 +858,7 @@ body.in-lesson .demo-banner { display: none; }
 .order-card span { font-size: 2.2rem; }
 .order-card:disabled { opacity: .3; }
 .order-answer { text-align: left; font-family: var(--en); }
-@media (max-width: 600px) { .badge-book { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; } .bslot.got { font-size: 1.2rem; } .order-cards { grid-template-columns: 1fr; } .ox { width: 90px; height: 90px; } .ch-sky { height: 280px; } }
+@media (max-width: 600px) { .badge-book { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; } .bslot.got { font-size: 1.2rem; } .ox { width: 90px; height: 90px; } .ch-sky { height: 280px; } }
 /* 챌린지 풍선은 위로 날아가지 않고 제자리에서 둥실둥실 (글자가 잘리지 않게) */
 .ch-sky .balloon { bottom: 70px; width: 21%; animation: floaty 1.8s ease-in-out var(--d) infinite alternate; }
 .ch-sky .balloon.pop { animation: popb .5s forwards; }
@@ -944,7 +944,36 @@ body.in-lesson .demo-banner { display: none; }
 
 /* 미리 그린 그림: 이모지 자리에 같은 크기로 들어간다 */
 img.pic { height: 1.25em; width: auto; vertical-align: middle; border-radius: .22em; }
-.q-show.huge img.pic, .mole-pic img.pic, .mq-opt img.pic, .mcard img.pic, .balloon img.pic { height: 1.6em; border-radius: .3em; }
+/* 퀴즈·게임의 그림은 글자 크기와 상관없이 눈에 잘 보이는 크기로 (화면 폭에 맞춰 커지고 줄어든다) */
+.q-show img.pic { width: clamp(100px, 27vw, 160px); height: auto; margin: 0 4px 4px; border-radius: 18px; }
+.q-show.huge img.pic { width: clamp(150px, 42vw, 220px); }
+.option img.pic { display: block; width: clamp(96px, 27vw, 150px); height: auto; margin: 0 auto 6px; border-radius: 16px; }
+.option img.pic:only-child { margin-bottom: 0; }
+.options.stack .option img.pic { display: inline-block; width: 64px; margin: 0 8px 0 0; }
+.emo { display: block; font-size: clamp(3.6rem, 16vw, 5.4rem); line-height: 1.15; }
+.q-show.huge .emo { font-size: inherit; }
+.balloon > span:not(.ch-letter) { font-size: clamp(3rem, 10vw, 4.4rem); }
+.mole-pic { font-size: clamp(3.2rem, 12vw, 4.6rem); }
+.fb-answer img.pic { height: 56px; border-radius: 10px; }
+.mq-opt { padding: 6px; }
+.mq-opt img.pic { width: 100%; height: auto; border-radius: 14px; }
+.mcard img.pic { width: 90%; height: auto; border-radius: 12px; }
+.balloon > span:has(img.pic) { justify-self: stretch; line-height: 1; }
+.balloon img.pic { width: 74%; height: auto; border-radius: 50%; }
+.moles { max-width: 500px; }
+.mole { aspect-ratio: 1.05; }
+.mole-pic { width: clamp(96px, 28vw, 150px); height: auto; aspect-ratio: 1; border-radius: 22px; overflow: hidden; }
+.mole-pic img.pic { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+.order-card img.order-pic { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; border-radius: 12px; }
+/* 휴대폰의 풍선 게임: 네 개를 한 줄에 놓으면 그림이 작아서 두 줄로 크게 */
+@media (max-width: 720px) {
+  .sky:not(.ch-sky) { height: 470px; }
+  .sky:not(.ch-sky) .balloon { width: 44%; left: 3%; bottom: auto; top: 22px; animation: floaty 2.4s ease-in-out var(--d) infinite alternate; }
+  .sky:not(.ch-sky) .balloon:nth-child(even) { left: 53%; }
+  .sky:not(.ch-sky) .balloon:nth-child(n+3) { top: 262px; }
+  .sky:not(.ch-sky) .balloon.pop { animation: popb .5s forwards; }
+  .sky:not(.ch-sky) .balloon.nope { animation: shake .4s; }
+}
 .story-art.story-photo { background: #fffaf0; }
 .story-art.story-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -955,7 +984,9 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 /* ---------- 놀이터 새 게임 ---------- */
 .pond { position: relative; min-height: 400px; background: linear-gradient(#bde9ff, #7cc8ee); border: var(--bw) solid var(--line); border-radius: 26px; overflow: hidden; box-shadow: var(--shadow); padding: 18px; }
 :root[data-theme="dark"] .pond { background: linear-gradient(#1f3a63, #10203d); }
-.ft-pic { font-size: 3.2rem; line-height: 1; display: block; } .ft-pic img.pic { width: 96px; height: 96px; }
+.ft-pic { font-size: 3.2rem; line-height: 1; display: block; } .ft-pic img.pic { width: clamp(136px, 38vw, 180px); height: auto; border-radius: 18px; }
+.pond:not(.frog-pond) { min-height: 540px; }
+.frog-pond { padding-bottom: 84px; }
 .ft-word { font-family: var(--en); font-size: 2rem; letter-spacing: .18em; color: #3f2d46; display: block; }
 :root[data-theme="dark"] .ft-word { color: #fff; }
 .ft-word u { text-decoration: none; color: #e8455a; } .ft-word.done { color: #2e9d55; }
@@ -965,7 +996,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .pad { width: 74px; height: 62px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8be08f, #3fae6a); border: var(--bw) solid var(--line); font-family: var(--en); font-weight: 700; font-size: 1.7rem; color: #fff; text-shadow: 1px 1px 0 rgba(0, 0, 0, .3); cursor: pointer; animation: padbob 2.2s ease-in-out var(--d) infinite alternate; }
 @keyframes padbob { to { transform: translateY(-6px); } }
 .pad.used { opacity: .45; } .pad.nope { animation: shake .4s; }
-.frog { position: absolute; left: 50%; top: 82%; font-size: 2.6rem; transform: translate(-50%, -50%); transition: left .35s, top .35s; pointer-events: none; }
+.frog { position: absolute; left: 50%; top: calc(100% - 42px); font-size: 2.6rem; transform: translate(-50%, -50%); transition: left .35s, top .35s; pointer-events: none; }
 .frog.hop { animation: hop .35s ease-out; }
 @keyframes hop { 50% { transform: translate(-50%, -90%) scale(1.15); } }
 .fish { position: absolute; top: var(--y); left: -20%; display: grid; place-items: center; background: none; border: 0; cursor: pointer; animation: swim var(--s) linear var(--d) infinite; }
@@ -994,7 +1025,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .boost-card b { font-family: var(--en); font-weight: 500; font-size: 1.15rem; }
 .boost-card small { color: var(--muted); }
 .boost-card .bc-pic { font-size: 2.2rem; line-height: 1.1; }
-.boost-card .bc-pic .pic { width: 56px; height: 56px; }
+.boost-card .bc-pic .pic { width: 84px; height: 84px; border-radius: 14px; }
 .boost-card .bc-play { font-size: .9rem; }
 .boost-card.on { background: var(--grass-soft); }
 .boost-line { margin: 0; color: var(--grass); font-weight: 700; }

@@ -414,7 +414,7 @@ const Lesson = (() => {
       if (combo === 5 && !comboStar && recordSpeech && Store.profile()) { comboStar = true; if (Store.addStars(1, 'combo', 3)) comboHtml += ' <span class="combo-pill star">⭐ 콤보 보너스!</span>'; }
       fb.innerHTML = `
         <div class="fb-msg">${comboHtml}${ok ? pick(['참 잘했어요! 🎉', '정답이에요! ⭐', '멋져요! 👏', '최고예요! 🌟']) : '아쉬워요! 다시 확인해봐요 💪'}
-          ${!ok && correctText ? `<div class="fb-answer">정답: <b>${esc(correctText)}</b></div>` : ''}${detail}</div>
+          ${!ok && correctText ? `<div class="fb-answer">정답: <b>${pic(esc(correctText))}</b></div>` : ''}${detail}</div>
         <button class="btn btn-primary" data-next>${i + 1 < questions.length ? '계속하기' : '결과 보기'}</button>`;
       fb.className = 'lesson-feedback ' + (ok ? 'ok' : 'bad'); fb.hidden = false;
       const next = fb.querySelector('[data-next]'); next.focus();
@@ -445,12 +445,14 @@ const Lesson = (() => {
     show();
   }
   const pick = a => a[Math.floor(Math.random() * a.length)];
+  // 그림: 미리 그린 그림으로 바꾸고, 그림이 없는 이모지(숫자·❓ 등)도 그림과 비슷한 크기로 보이게 맨 앞 이모지를 감싼다
+  const qPic = t => pic(esc(t)).replace(/^(\p{Extended_Pictographic}\S*|\d\uFE0F?\u20E3)/u, '<span class="emo">$1</span>');
 
   function head(q) {
     return `<div class="q-title">${esc(q.title || '')}</div>
       ${q.prompt ? `<div class="q-prompt"><button class="sound-btn" data-say="${esc(q.prompt)}">🔊</button> ${esc(q.prompt)}</div>` : ''}
       ${q.big ? `<button class="q-big sound-btn" data-say="${esc(q.say)}" aria-label="다시 듣기">${q.big}</button>` : ''}
-      ${q.show ? `<div class="q-show ${q.show.length <= 3 ? 'huge' : ''}">${pic(esc(q.show)).replace(/\n/g, '<br>')}${q.say && !q.big ? ` <button class="sound-btn small" data-say="${esc(q.say)}" aria-label="듣기">🔊</button>` : ''}</div>` : ''}
+      ${q.show ? `<div class="q-show ${q.show.length <= 3 ? 'huge' : ''}">${qPic(q.show).replace(/\n/g, '<br>')}${q.say && !q.big ? ` <button class="sound-btn small" data-say="${esc(q.say)}" aria-label="듣기">🔊</button>` : ''}</div>` : ''}
       ${q.sub ? `<div class="q-sub">${esc(q.sub)}</div>` : ''}`;
   }
   function wireSay(el, q) {
@@ -460,7 +462,7 @@ const Lesson = (() => {
 
   const R = {
     choice(el, q, done) {
-      el.innerHTML = head(q) + `<div class="options ${q.options.some(o => o.length > 18) ? 'stack' : ''}">${q.options.map(o => `<button class="option" data-v="${esc(o)}">${pic(esc(o))}</button>`).join('')}</div>`;
+      el.innerHTML = head(q) + `<div class="options ${q.options.some(o => o.length > 18) ? 'stack' : ''}">${q.options.map(o => `<button class="option" data-v="${esc(o)}">${qPic(o)}</button>`).join('')}</div>`;
       wireSay(el, q);
       el.querySelectorAll('.option').forEach(b => b.onclick = () => {
         const ok = b.dataset.v === q.answer;
