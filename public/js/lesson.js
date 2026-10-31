@@ -447,12 +447,14 @@ const Lesson = (() => {
   const pick = a => a[Math.floor(Math.random() * a.length)];
   // 그림: 미리 그린 그림으로 바꾸고, 그림이 없는 이모지(숫자·❓ 등)도 그림과 비슷한 크기로 보이게 맨 앞 이모지를 감싼다
   const qPic = t => pic(esc(t)).replace(/^(\p{Extended_Pictographic}\S*|\d\uFE0F?\u20E3)/u, '<span class="emo">$1</span>');
+  // 글자 없이 그림 하나만 보여 줄 때는 크게 (색 그림은 이모지 + 색 동그라미라 글자 수로는 알 수 없다)
+  const onePic = t => t.length <= 3 || (!/[A-Za-z가-힣]/.test(t) && (pic(esc(t)).match(/<img/g) || []).length === 1);
 
   function head(q) {
     return `<div class="q-title">${esc(q.title || '')}</div>
       ${q.prompt ? `<div class="q-prompt"><button class="sound-btn" data-say="${esc(q.prompt)}">🔊</button> ${esc(q.prompt)}</div>` : ''}
       ${q.big ? `<button class="q-big sound-btn" data-say="${esc(q.say)}" aria-label="다시 듣기">${q.big}</button>` : ''}
-      ${q.show ? `<div class="q-show ${q.show.length <= 3 ? 'huge' : ''}">${qPic(q.show).replace(/\n/g, '<br>')}${q.say && !q.big ? ` <button class="sound-btn small" data-say="${esc(q.say)}" aria-label="듣기">🔊</button>` : ''}</div>` : ''}
+      ${q.show ? `<div class="q-show ${onePic(q.show) ? 'huge' : ''}">${qPic(q.show).replace(/\n/g, '<br>')}${q.say && !q.big ? ` <button class="sound-btn small" data-say="${esc(q.say)}" aria-label="듣기">🔊</button>` : ''}</div>` : ''}
       ${q.sub ? `<div class="q-sub">${esc(q.sub)}</div>` : ''}`;
   }
   function wireSay(el, q) {

@@ -60,13 +60,13 @@ const GEN = (() => {
     ['They', '그들은', 'are', false], ['Tom', '톰은', 'is', true, 'He'], ['Mina', '미나는', 'is', true, 'She'], ['Mom', '엄마는', 'is', true, 'She'],
     ['Dad', '아빠는', 'is', true, 'He'], ['My friend', '내 친구는', 'is', true, 'She']].map(([en, ko, be, third, pron]) => ({ en, ko, be, third, pron: pron || en }));
   const NAMES = SUBJ.filter(s => s.pron !== s.en);
-  const mid = s => s.en.startsWith('My ') ? 'my' + s.en.slice(2) : s.en; // 문장 가운데에서는 소문자
+  const mid = s => s.en.startsWith('My ') ? 'your' + s.en.slice(2) : s.en; // 묻는 문장에서는 상대의 친구 ("What is your friend doing?")
   const KIDS = [['Tom', '톰'], ['Mina', '미나'], ['Amy', '에이미'], ['Ben', '벤'], ['Jisu', '지수'], ['Minho', '민호'], ['Lily', '릴리'], ['Sam', '샘']];
   // 탁자 위·상자 안에 둘 수 있는 작은 것들
   const SMALL = ['cat', 'dog', 'rabbit', 'mouse', 'ball', 'book', 'pen', 'hat', 'cup', 'pencil', 'bag', 'robot', 'balloon', 'apple'].map(w => [...ANIMALS, ...THINGS].find(x => x.en === w));
   // 시간과 어울리는지: 밖에서 하는 놀이는 밤에 안 하고, 점심은 점심때만 먹는다
   const OUT = /soccer|park|kite|sandcastle|climb|plant|ride/;
-  const fits = (v, t) => !(OUT.test(v.base) && /night/.test(t)) && !(/lunch/.test(v.base) && /night|morning|after school|every day|weekend|tomorrow|Sunday|Saturday|seven|eight|nine|four|five|six/.test(t));
+  const fits = (v, t) => !(OUT.test(v.base) && /night/.test(t)) && !(/lunch/.test(v.base) && /night|morning|after school|after work|every day|weekend|tomorrow|Sunday|Saturday|seven|eight|nine|four|five|six/.test(t));
   // 동사구: [원형, 3인칭, 과거, -ing, 그림, 현재, 과거, 미래, 진행, 가능, 과거형 종류]
   const VPS = [
     ['play soccer', 'plays soccer', 'played soccer', 'playing soccer', '⚽', '축구를 해요', '축구를 했어요', '축구를 할 거예요', '축구를 하고 있어요', '축구를 할 수 있어요', 'reg'],
@@ -99,12 +99,12 @@ const GEN = (() => {
   // 동물의 능력: [영어, 할 수 있어요, 할 수 없어요]
   const ABIL = { run: ['run', '달릴 수 있어요'], jump: ['jump', '뛸 수 있어요'], swim: ['swim', '헤엄칠 수 있어요'], fly: ['fly', '날 수 있어요'], climb: ['climb trees', '나무를 탈 수 있어요'], sing: ['sing', '노래할 수 있어요'] };
   const FEEL = [['happy', '행복해요', '행복했어요', '😊'], ['sad', '슬퍼요', '슬펐어요', '😢'], ['sleepy', '졸려요', '졸렸어요', '😴'], ['hungry', '배고파요', '배고팠어요', '😋'],
-    ['excited', '신나요', '신났어요', '🤩'], ['tired', '피곤해요', '피곤했어요', '😪'], ['scared', '무서워요', '무서웠어요', '😨'], ['thirsty', '목말라요', '목말랐어요', '🥤']];
+    ['excited', '신나요', '신났어요', '🤩'], ['tired', '피곤해요', '피곤했어요', '😪'], ['scared', '무서워요', '무서웠어요', '😨'], ['thirsty', '목말라요', '목말랐어요', '🫗']];
   const WEATHER = [['sunny', '화창해요', '☀️'], ['rainy', '비가 와요', '🌧️'], ['windy', '바람이 불어요', '🌬️'], ['snowy', '눈이 와요', '❄️'], ['cloudy', '흐려요', '☁️'], ['hot', '더워요', '🥵'], ['cold', '추워요', '🥶']];
   const SENSE = [['The ice cream is cold.', '아이스크림은 차가워요.', '🍦'], ['The candy is sweet.', '사탕은 달아요.', '🍬'], ['The honey is sweet.', '꿀은 달아요.', '🍯'],
     ['The snow is white and cold.', '눈은 하얗고 차가워요.', '❄️'], ['The fire is very hot.', '불은 아주 뜨거워요.', '🔥'], ['The bunny is soft.', '토끼는 부드러워요.', '🐰'],
-    ['The blanket is warm.', '담요는 따뜻해요.', '🛏️'], ['The drum is loud.', '북 소리가 커요.', '🥁'], ['The baby is quiet.', '아기는 조용해요.', '👶'],
-    ['The stone is hard.', '돌은 단단해요.', '🪨'], ['The cotton is soft.', '솜은 부드러워요.', '☁️'], ['The pizza smells good.', '피자 냄새가 좋아요.', '🍕']];
+    ['The blanket is warm.', '담요는 따뜻해요.', '🛏️🧣'], ['The drum is loud.', '북 소리가 커요.', '🥁'], ['The baby is quiet.', '아기는 조용해요.', '👶'],
+    ['The stone is hard.', '돌은 단단해요.', '🪨'], ['The cotton is soft.', '솜은 부드러워요.', '🤍'], ['The pizza smells good.', '피자 냄새가 좋아요.', '🍕']];
   const T_PRES = [['at seven', '일곱 시에'], ['after school', '방과 후에'], ['in the morning', '아침에'], ['on Saturday', '토요일에'], ['on Sunday', '일요일에'], ['every day', '매일']];
   const T_PAST = [['yesterday', '어제'], ['last Sunday', '지난 일요일에'], ['this morning', '오늘 아침에'], ['last night', '어젯밤에'], ['after school', '방과 후에']];
   const T_FUT = [['tomorrow', '내일'], ['this weekend', '이번 주말에'], ['next Sunday', '다음 일요일에'], ['after school', '방과 후에']];
@@ -123,6 +123,16 @@ const GEN = (() => {
   const sent = (en, ko, emoji) => ({ en, ko, emoji });
   const qa = (q, a, ko) => ({ q, a, ko });
   const subj = () => pick(SUBJ);
+  // 색·수가 있는 문장은 그림도 그 색·수로 (색 그림 열쇠 = 이모지 + 색 동그라미, 수는 그림을 수만큼 띄어 나열)
+  const DOT = { red: '🔴', blue: '🔵', yellow: '🟡', green: '🟢', pink: '🩷', black: '⚫', white: '⚪', brown: '🟤', orange: '🟠', gray: '🩶' };
+  const tinted = (x, c) => x.emoji + DOT[c.en];
+  const COUNT = { two: 2, three: 3, four: 4, five: 5, six: 6 };
+  // "너는 ... 했어요"는 어색해서, 상대에게 말하는 문장은 반말로
+  const tone = (s, ko) => s.en === 'You' ? banmal(ko) : ko;
+  // "그녀는 무서워요"는 그녀가 무섭다는 뜻이 되어서, 나·너·우리가 아니면 "무서워해요"로
+  const mood = (s, ko) => tone(s, ['I', 'You', 'We'].includes(s.en) ? ko : ko.replace('무서워요', '무서워해요').replace('무서웠어요', '무서워했어요'));
+  // 엄마·아빠에게 방과 후는 어색해서 퇴근 후로
+  const workTime = (s, [t, tk]) => ['Mom', 'Dad'].includes(s.en) && t === 'after school' ? ['after work', '퇴근 후에'] : [t, tk];
   const verb = s => s.third ? 'is' : s.be;
 
   // ---------- 레벨별 문법 틀 ----------
@@ -131,17 +141,17 @@ const GEN = (() => {
     F: [
       () => { const x = pick([...THINGS, ...ANIMALS]); return sent(`This is ${art(x.en)}.`, `이것은 ${ieyo(x.ko)}.`, x.emoji); },
       () => { const x = pick([...THINGS, ...ANIMALS]); return sent(`That is ${art(x.en)}.`, `저것은 ${ieyo(x.ko)}.`, x.emoji); },
-      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)]; return sent(`It is ${art(c.en)} ${x.en}.`, `그것은 ${c.adj} ${ieyo(x.ko)}.`, x.emoji); },
-      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)]; return sent(`The ${x.en} is ${c.en}.`, `${eun(x.ko)} ${ieyo(c.noun)}.`, x.emoji); },
-      () => { const x = pick(ANIMALS), c = COLORS[pick(x.colors)]; return sent(`The ${x.en} is ${c.en}.`, `${eun(x.ko)} ${ieyo(c.noun)}.`, x.emoji); },
+      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)]; return sent(`It is ${art(c.en)} ${x.en}.`, `그것은 ${c.adj} ${ieyo(x.ko)}.`, tinted(x, c)); },
+      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)]; return sent(`The ${x.en} is ${c.en}.`, `${eun(x.ko)} ${ieyo(c.noun)}.`, tinted(x, c)); },
+      () => { const x = pick(ANIMALS), c = COLORS[pick(x.colors)]; return sent(`The ${x.en} is ${c.en}.`, `${eun(x.ko)} ${ieyo(c.noun)}.`, tinted(x, c)); },
     ],
     // 3단계: have · like · see · 수
     G: [
       () => { const x = pick(THINGS); return sent(`I have ${art(x.en)}.`, `나는 ${iga(x.ko)} 있어요.`, x.emoji); },
-      () => { const s = pick(SUBJ.filter(s => s.third)), x = pick(THINGS), c = COLORS[pick(x.colors)]; return sent(`${s.en} has ${art(c.en)} ${x.en}.`, `${s.ko} ${c.adj} ${iga(x.ko)} 있어요.`, x.emoji); },
+      () => { const s = pick(SUBJ.filter(s => s.third)), x = pick(THINGS), c = COLORS[pick(x.colors)]; return sent(`${s.en} has ${art(c.en)} ${x.en}.`, `${s.ko} ${c.adj} ${iga(x.ko)} 있어요.`, tinted(x, c)); },
       () => { const x = pick([...FOODS, ...ANIMALS.filter(a => a.pl !== a.en)]); return sent(`I like ${x.pl}.`, `나는 ${eul(x.ko)} 좋아해요.`, x.emoji); },
       () => { const x = pick(ANIMALS); return sent(`I see ${art(x.en)}.`, `나는 ${eul(x.ko)} 봐요.`, x.emoji); },
-      () => { const x = pick([...ANIMALS, ...THINGS]), [n, nk] = pick(NUMS); return sent(`We see ${n} ${x.pl}.`, `우리는 ${x.ko} ${nk} ${eul(x.counter)} 봐요.`, x.emoji); },
+      () => { const x = pick([...ANIMALS, ...THINGS]), [n, nk] = pick(NUMS); return sent(`We see ${n} ${x.pl}.`, `우리는 ${x.ko} ${nk} ${eul(x.counter)} 봐요.`, Array(COUNT[n]).fill(x.emoji).join(' ')); },
     ],
     // 3단계: can · 위치
     H: [
@@ -152,7 +162,7 @@ const GEN = (() => {
     ],
     // 4단계 질문과 대답
     I: [
-      () => { const x = pick(THINGS); return R() < .5 ? qa(`Is this your ${x.en}?`, 'Yes, it is.', `이거 네 ${iya(x.ko)}? — 응, 맞아.`) : qa(`Is this your ${x.en}?`, 'No, it is not.', `이거 네 ${iya(x.ko)}? — 아니, 아니야.`); },
+      () => { const x = pick(THINGS); return R() < .5 ? qa(`Is this your ${x.en}?`, 'Yes, it is.', `이거 네 ${iya(x.ko)}? — 응, 맞아.`) : qa(`Is this your ${x.en}?`, 'No, it is not.', `이거 네 ${iya(x.ko)}? — 아니, 내 것이 아니야.`); },
       () => { const [en, ko, pr] = pick(FAMILY); return qa(`Who is ${pr === 'He' ? 'he' : 'she'}?`, `${pr} is ${en}.`, `${pr === 'He' ? '그는' : '그녀는'} 누구야? — ${iya(ko)}.`); },
       () => { const [n, nk] = pick(KIDS); return qa('What is your name?', `My name is ${n}.`, `이름이 뭐니? — 내 이름은 ${iya(nk)}.`); },
       () => { const [h, hk] = pick(HOURS.slice(0, 5)); const age = { seven: '일곱', eight: '여덟', nine: '아홉', four: '네', five: '다섯' }[h]; return qa('How old are you?', `I am ${h} years old.`, `몇 살이니? — 나는 ${age} 살이야.`); },
@@ -178,14 +188,14 @@ const GEN = (() => {
     ],
     // 5단계 묘사
     M: [
-      () => { const x = pick(ANIMALS), c = COLORS[pick(x.colors)], [s, sk] = pick([['big', '큰'], ['little', '작은']]); return sent(`The ${s} ${x.en} is ${c.en}.`, `${sk} ${eun(x.ko)} ${ieyo(c.noun)}.`, x.emoji); },
-      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)], [s, sk] = pick([['big', '큰'], ['small', '작은']]); return sent(`I have a ${s} ${c.en} ${x.en}.`, `나는 ${sk} ${c.adj} ${iga(x.ko)} 있어요.`, x.emoji); },
-      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)], s = pick(SUBJ.filter(s => s.third)); return sent(`${s.en} wants ${art(c.en)} ${x.en}.`, `${s.ko} ${c.adj} ${eul(x.ko)} 갖고 싶어 해요.`, x.emoji); },
+      () => { const x = pick(ANIMALS), c = COLORS[pick(x.colors)], [s, sk] = pick([['big', '큰'], ['little', '작은']]); return sent(`The ${s} ${x.en} is ${c.en}.`, `${sk} ${eun(x.ko)} ${ieyo(c.noun)}.`, tinted(x, c)); },
+      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)], [s, sk] = pick([['big', '큰'], ['small', '작은']]); return sent(`I have a ${s} ${c.en} ${x.en}.`, `나는 ${sk} ${c.adj} ${iga(x.ko)} 있어요.`, tinted(x, c)); },
+      () => { const x = pick(THINGS), c = COLORS[pick(x.colors)], s = pick(SUBJ.filter(s => s.third)); return sent(`${s.en} wants ${art(c.en)} ${x.en}.`, `${s.ko} ${c.adj} ${eul(x.ko)} 갖고 싶어 해요.`, tinted(x, c)); },
     ],
     N: [
-      () => { const s = subj(), [f, fk, , e] = pick(FEEL); return sent(`${s.en} ${s.be} ${f}.`, `${s.ko} ${fk}.`, e); },
-      () => { const s = subj(), [f, fk, , e] = pick(FEEL); return sent(`${s.en} ${s.third ? 'feels' : 'feel'} ${f} today.`, `${s.ko} 오늘 ${fk}.`, e); },
-      () => { const [en, ko, pr] = pick(FAMILY); const [a, ak, e] = pick([['kind', '친절해요', '💗'], ['funny', '재미있어요', '😄'], ['smart', '똑똑해요', '🧠'], ['tall', '키가 커요', '📏'], ['busy', '바빠요', '⏰']]); return sent(`${cap(en)} is very ${a}.`, `${eun(ko)} 아주 ${ak}.`, e); },
+      () => { const s = subj(), [f, fk, , e] = pick(FEEL); return sent(`${s.en} ${s.be} ${f}.`, `${s.ko} ${mood(s, fk)}.`, e); },
+      () => { const s = subj(), [f, fk, , e] = pick(FEEL); return sent(`${s.en} ${s.third ? 'feels' : 'feel'} ${f} today.`, `${s.ko} 오늘 ${mood(s, fk)}.`, e); },
+      () => { const [en, ko, pr] = pick(FAMILY); const [a, ak, e] = pick([['kind', '친절해요', '💗'], ['funny', '재미있어요', '😄'], ['smart', '똑똑해요', '🧠'], ['tall', '키가 커요', '📏'], ['busy', '바빠요', '📋']]); return sent(`${cap(en)} is very ${a}.`, `${eun(ko)} 아주 ${ak}.`, e); },
     ],
     O: [
       () => { const [w, wk, e] = pick(WEATHER); return sent(`It is ${w} today.`, `오늘은 ${wk}.`, e); },
@@ -204,14 +214,14 @@ const GEN = (() => {
       () => { const x = pick(SMALL.filter(x => x.pl !== 'mice')), [p, pk] = pick(PLACES); if (p.includes(x.en)) return null; return qa(`Where are the ${x.pl}?`, `They are ${p}.`, `${eun(x.ko)} 어디 있어? — ${pk} 있어.`); },
     ],
     R: [
-      () => { const n = pick(NAMES), v = pick(VPS); return qa(`What is ${mid(n)} doing?`, `${n.pron} is ${v.ing}.`, `${eun(n.ko.slice(0, -1))} 뭐 하고 있어? — ${banmal(v.ko.ing)}.`); },
+      () => { const n = pick(NAMES), v = pick(VPS); return qa(`What is ${mid(n)} doing?`, `${n.pron} is ${v.ing}.`, `${eun(n.ko.slice(0, -1).replace('내 ', '네 '))} 뭐 하고 있어? — ${banmal(v.ko.ing)}.`); },
       () => { const n = pick(NAMES), v = pick(VPS); return qa(`Who is ${v.ing}?`, `${n.en} is ${v.ing}.`, `누가 ${banmal(v.ko.ing)}? — ${iga(n.ko.slice(0, -1))} ${banmal(v.ko.ing)}.`); },
       () => { const v = pick(VPS); return qa('What are you doing?', `I am ${v.ing}.`, `뭐 하고 있어? — ${banmal(v.ko.ing)}.`); },
     ],
     S: [
       () => { const v = pick(VPS), [t, tk] = pick(T_PRES); if (!fits(v, t)) return null; return qa(`When do you ${v.base}?`, `I ${v.base} ${t}.`, `언제 ${banmal(v.ko.pres)}? — ${tk} ${banmal(v.ko.pres)}.`); },
       () => { const v = pick(VPS), [h, hk] = pick(HOURS); if (!fits(v, h)) return null; return qa(`What time do you ${v.base}?`, `I ${v.base} at ${h}.`, `몇 시에 ${banmal(v.ko.pres)}? — ${hk} 시에 ${banmal(v.ko.pres)}.`); },
-      () => { const n = pick(NAMES), v = pick(VPS), [d, dk] = pick(DAYS); return qa(`When does ${mid(n)} ${v.base}?`, `${n.pron} ${v.s} on ${d}.`, `${eun(n.ko.slice(0, -1))} 언제 ${banmal(v.ko.pres)}? — ${dk}에 ${banmal(v.ko.pres)}.`); },
+      () => { const n = pick(NAMES), v = pick(VPS), [d, dk] = pick(DAYS); return qa(`When does ${mid(n)} ${v.base}?`, `${n.pron} ${v.s} on ${d}.`, `${eun(n.ko.slice(0, -1).replace('내 ', '네 '))} 언제 ${banmal(v.ko.pres)}? — ${dk}에 ${banmal(v.ko.pres)}.`); },
     ],
     T: [
       () => { const x = pick(THINGS), [n, nk] = pick(NUMS); return qa(`How many ${x.pl} do you have?`, `I have ${n} ${x.pl}.`, `${x.ko} 몇 ${x.counter} 있어? — ${nk} ${x.counter} 있어.`); },
@@ -221,18 +231,18 @@ const GEN = (() => {
     // 7단계 과거
     U: [() => past('reg')], V: [() => past('irr1')], W: [() => past('irr2')],
     X: [
-      () => { const s = subj(), [f, , fp, e] = pick(FEEL), [t, tk] = pick(T_PAST.slice(0, 4)); return sent(`${s.en} ${s.third || s.en === 'I' ? 'was' : 'were'} ${f} ${t}.`, `${s.ko} ${tk} ${fp}.`, e); },
+      () => { const s = subj(), [f, , fp, e] = pick(FEEL), [t, tk] = pick(T_PAST.slice(0, 4)); return sent(`${s.en} ${s.third || s.en === 'I' ? 'was' : 'were'} ${f} ${t}.`, `${s.ko} ${tk} ${mood(s, fp)}.`, e); },
       () => { const [a, b] = [pick(VPS), pick(VPS)]; if (a === b) return null; return sent(`First, I ${a.past}. Then, I ${b.past}.`, `먼저 ${a.ko.past}. 그다음에 ${b.ko.past}.`, a.emoji); },
       () => { const [w, wk] = pick(WEATHER.slice(0, 5)), wp = { sunny: '화창했어요', rainy: '비가 왔어요', windy: '바람이 불었어요', snowy: '눈이 왔어요', cloudy: '흐렸어요' }[w], [t, tk] = pick(T_PAST.slice(0, 2)); return sent(`It was ${w} ${t}.`, `${tk} ${wp}.`, WEATHER.find(x => x[0] === w)[2]); },
     ],
     // 8단계 미래
-    Y: [() => { const s = subj(), v = pick(VPS), [t, tk] = pick(T_FUT); if (!fits(v, t)) return null; return sent(`${s.en} will ${v.base} ${t}.`, `${s.ko} ${tk} ${v.ko.fut}.`, v.emoji); }],
-    Z: [() => { const s = subj(), v = pick(VPS), [t, tk] = pick(T_FUT); if (!fits(v, t)) return null; return sent(`${s.en} ${s.third ? 'is' : s.be} going to ${v.base} ${t}.`, `${s.ko} ${tk} ${v.ko.fut}.`, v.emoji); }],
+    Y: [() => { const s = subj(), v = pick(VPS), [t, tk] = workTime(s, pick(T_FUT)); if (!fits(v, t)) return null; return sent(`${s.en} will ${v.base} ${t}.`, `${s.ko} ${tk} ${tone(s, v.ko.fut)}.`, v.emoji); }],
+    Z: [() => { const s = subj(), v = pick(VPS), [t, tk] = workTime(s, pick(T_FUT)); if (!fits(v, t)) return null; return sent(`${s.en} ${s.third ? 'is' : s.be} going to ${v.base} ${t}.`, `${s.ko} ${tk} ${tone(s, v.ko.fut)}.`, v.emoji); }],
   };
   function past(kind) {
-    const s = subj(), v = pick(VPS.filter(x => x.kind === kind)), [t, tk] = pick(T_PAST);
+    const s = subj(), v = pick(VPS.filter(x => x.kind === kind)), [t, tk] = workTime(s, pick(T_PAST));
     if (!fits(v, t)) return null;
-    return sent(`${s.en} ${v.past} ${t}.`, `${s.ko} ${tk} ${v.ko.past}.`, v.emoji);
+    return sent(`${s.en} ${v.past} ${t}.`, `${s.ko} ${tk} ${tone(s, v.ko.past)}.`, v.emoji);
   }
 
   // 레벨마다 겹치지 않게 count개를 만든다 (같은 레벨은 언제나 같은 결과)

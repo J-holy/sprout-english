@@ -470,7 +470,7 @@ const SCENES = {
   '7-8': ['8-year-old', 'a monkey on a branch waves its hand at the girl, she waves back'],
   '7-9': ['8-year-old|dad', 'the girl and her dad eat ice cream cones together on a bench at the zoo'],
   '7-10': ['8-year-old', 'the girl licks a cold pink ice cream cone, smiling'],
-  '7-11': ['8-year-old', 'the girl hugs a small plush toy lion with a fluffy yellow mane at the zoo gift shop'],
+  '7-11': ['8-year-old', 'the girl holds up a small plush toy lion with a fluffy yellow mane, in front of shelves of stuffed animals'],
   '7-12': ['8-year-old|mom|dad', 'the girl, her mom and her dad walk in the front door of their house in the evening'],
   '7-13': ['8-year-old', 'the girl lies tired on the sofa, yawning'],
   '7-14': ['8-year-old', 'the girl looks out the window at the rain on a gray morning'],
@@ -594,14 +594,64 @@ if (only !== 's' && !book) for (const [e, [n, color]] of Object.entries(NUMBERS)
   const prompt = `Children's picture book illustration, ${STYLES[styleName]}, rounded friendly shapes, cute and kind. A flash card picture: the big chubby rounded number ${n}, painted in soft ${color} watercolor with gentle darker edges, exactly the digits "${n}" and nothing else, standing large in the center and filling most of the picture, plain soft cream background, no face, no other digits, no letters, no objects.`;
   jobs.push({ kind: 'w', key: e, label: n, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
 }
-if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
-  const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
-  jobs.push({ kind: 'w', key: e, label, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
-}
 // 그림 속에 글자가 그려지지 않게. 이미 그린 그림을 다시 그리지 않도록 그림 설명 비교(hash)에는 넣지 않는다
 const NOTEXT = ' No words, letters or writing anywhere in the picture.';
 // 문장을 따옴표·느낌표 없는 장면 설명으로 (따옴표 안 문장은 그림 속 글자로 그려지기 쉽다)
 const plain = t => t.replace(/["“”!?]/g, '').replace(/\.$/, '').replace(/^./, c => c.toLowerCase());
+// 그림 하나를 여러 문장이 함께 쓸 때는 특정 인물을 그리지 않고 그 뜻만 그린다 (할머니 그림이 "삼촌은 똑똑해요"에 나오지 않게)
+const WORD_SCENES = {
+  '🎤': 'a smiling girl holding a microphone in her hand and singing with her mouth wide open, music notes around her', '📖': 'an open picture book', '🏊': 'a happy child swimming in a blue swimming pool, splashing, wearing goggles, arms stretched forward',
+  '🎨': 'a paint palette, a brush and a colorful painting', '🥪': 'a sandwich on a plate', '🧹': 'a broom and a dustpan',
+  '🏞️': 'a green park with trees and a path, no people', '🏖️': 'a sunny beach with white sand and blue water, no people', '🌱': 'a small green sapling growing from soil',
+  '🎹': 'a small piano', '🍽️': 'a child standing at a kitchen sink washing a plate with a sponge and soap bubbles', '📺': 'a television set', '🪢': 'a happy child skipping over a jump rope, the rope swinging over the head', '💃': 'a happy girl dancing on tiptoe and twirling in a swirling pink dress, with music notes around her',
+  '😨': 'a round yellow face looking scared', '🤩': 'a round yellow face with sparkling star eyes, excited',
+  '🥤': 'a blue cup with a straw', '💪': 'a strong flexed arm',
+  '🔴': 'a shiny red rubber ball with one white star on it', '🌸': 'a bunch of pink flowers', '👟': 'a pair of new white sneakers', '🪑': 'a child sitting down on a wooden chair', '🏃': 'a child running fast', '🦘': 'a happy child jumping high in the air',
+  '⚾': 'a baseball in a leather glove', '🏰': 'a sandcastle on the beach', '🍪': 'a plate of cookies', '🎒': 'a school backpack', '🐕': 'a big friendly dog', '🏫': 'a school building',
+  '👵': 'a kind smiling grandmother', '📚': 'a stack of books', '⛄': 'a round white snowman', '🧸': 'a teddy bear', '🏕️': 'a tent next to a campfire',
+  '🐦': 'a small bird', '🐹': 'a cute pet hamster', '🐈': 'a cute cat', '🍞': 'a loaf of bread',
+  // 뜻이 바로 보이도록 상황으로 그리는 것 (날씨·감정·성격·활동)
+  '🥵': 'a child in summer clothes sweating under a blazing hot sun, wiping the forehead, with shimmering heat waves', '🥶': 'a child in a winter coat and scarf shivering in the cold with snow falling',
+  '🌬️': 'strong wind bending a tree sideways, with leaves and a hat flying through the air and swirling wind lines', '❄️': 'white snow falling over a small house and pine trees', '☁️': 'a sky full of big gray clouds covering the sun',
+  '😢': 'a round yellow face crying big tears', '😊': 'a round yellow face with a big happy smile', '😴': 'a round yellow face sleeping peacefully on a pillow, wearing a nightcap', '😪': 'a round yellow face with droopy half-closed eyes, yawning, very tired',
+  '😋': 'a hungry child with mouth open and drooling, staring at a big delicious hamburger on the table', '🫗': 'a round yellow face with a dry tongue out, looking thirstily at a glass of cold water', '🫣': 'a shy blushing child half hidden behind a door, peeking out with one eye',
+  '🧠': 'a round yellow face wearing round glasses and a graduation cap, with a glowing light bulb above it', '💗': 'a kind smiling grown-up gently helping a small child who fell down, with a small pink heart above them', '📏': 'a very tall cartoon person standing next to a tall ruler that reaches the top of their head',
+  '📋': 'a round yellow face with sweat drops, surrounded by a clock, papers and a phone, very busy', '😄': 'a funny grown-up man making a silly face with his tongue out, wearing a fake mustache, making two children laugh', '⏰': 'a child waking up and stretching in bed, a ringing alarm clock beside the bed and the sunrise at the window',
+  '🌟': 'a happy child cheering with arms up under a bright sun and golden sparkles', '🏅': 'a grown-up proudly patting a happy child who is wearing a gold medal', '😬': 'a nervous child biting their lip at a school desk, holding a pencil over a blank paper',
+  '🤲': 'a child helping a grown-up carry a box together', '🤝': 'two smiling children shaking hands', '🎬': 'children sitting in a movie theater watching a bright screen, seen from behind, with popcorn', '🎭': 'actors in costumes performing on a theater stage with red curtains',
+  '🎉': 'a birthday party with balloons, confetti and a cake', '🥳': 'children having a great time at a party, laughing and dancing', '🐾': 'a child gently putting a bandage on a puppy paw', '🚀': 'a small rocket flying upward toward a big yellow crescent moon in a dark blue starry sky',
+  '📞': 'a child talking happily on a telephone', '🏆': 'a team of children cheering and lifting a golden trophy', '🤒': 'a sick child in bed with a thermometer in the mouth and a cold towel on the forehead', '📝': 'a child doing homework at a desk with a pencil and a blank notebook',
+  '🥎': 'a child throwing a ball far through the air', '😂': 'two friends laughing together', '👋': 'a child waving goodbye to an old grandfather', '🥣': 'a breakfast table with fried eggs, toast and a glass of milk', '🎶': 'musicians playing violins on a concert stage in front of an audience',
+  '🫧': 'a child washing hands with soap and bubbles at a sink', '🛌': 'a big plump fluffy white pillow with a light blue striped pillowcase, sitting on a bed', '🚪🛏️': 'a tidy clean child bedroom, everything neatly in its place, no people', '🛏️🧣': 'a child wrapped snugly in a big soft blue blanket, looking warm and cozy', '🤍': 'a soft white ball of fluffy cotton on a cotton plant branch',
+  '🏃🏅': 'a tall grown-up sports coach in a tracksuit with a whistle around the neck, running fast on a running track', '🐄': 'a farm with a barn, a cow, a pig and chickens', '🪟': 'a boy opening a window with both hands', '🌍': 'a globe of the Earth with a small airplane circling it', '🔬': 'a child scientist in a white lab coat looking into a microscope',
+  '🤸': 'children playing together in a playground', '🛝': 'a child playing on a slide in a playground', '📷': 'a child taking a picture with a camera',
+  // 눈으로 검토해서 뜻이 드러나지 않거나 틀리게 그려졌던 그림
+  '⚽': 'a black and white soccer ball', '🎂': 'a birthday cake with candles', '🤴': 'a friendly king wearing a golden crown and a red robe', '🥜': 'a pile of peanuts in their shells',
+  '📦': 'a plain closed cardboard box', '🪀': 'a round colorful yo-yo toy made of two discs joined at the middle, its string looped on a child\'s finger', '🪱': 'a long pink earthworm on soil', '🦵': "a child's bare leg from the knee down to the foot",
+  '✈️': 'a white airplane with wings flying in the blue sky', '⛵': 'a small sailboat on the water', '🧒': 'two happy children, a boy and a girl, standing together', '📕': 'one closed red book',
+  '👨': 'a smiling adult father with a short beard, holding the hand of his small child', '🍟': 'a pile of potato chips', '🌊': 'the deep blue ocean with big waves', '🌌': 'a child looking up at a very dark night sky full of tiny stars, the dark sky filling the whole picture', '🤡': 'a funny clown with curly rainbow hair, a red nose, big shoes and baggy polka dot clothes, juggling balls, full body',
+  '🐔': 'one hen with one head, standing',
+  '🪑🌳': 'a wooden park bench', '🚰': 'a small cozy kitchen with a stove and a table, no people', '🌿': 'short green grass', '🪆': 'a cute doll', '💰': 'a piggy bank with gold coins',
+  // 다시 그린 그림을 눈으로 보고 뜻이 모호해서 상황으로 바꾼 것
+  '👩': 'a smiling adult mother with long hair hugging her small child', '🤫': 'a child holding one finger to the lips, saying shh and keeping quiet', '🧑‍✈️': 'a smiling grown-up pilot in a navy uniform and captain hat standing in front of an airplane',
+  '💧': 'a boy drinking water from a glass', '🚶': 'two children walking hand in hand along a path toward a green park, large in the frame', '🍯': 'a jar of golden honey with a wooden honey dipper and honey dripping',
+  '🍳': 'a black frying pan with a long handle', '🥅': 'a butterfly net, a white mesh bag on a round hoop with a long wooden handle', '💛': 'a big splash of bright yellow paint and a yellow crayon',
+  '⌚': 'a wrist watch with a round face, two clock hands and a brown leather strap', '🧑‍🏫': 'a smiling grown-up teacher with glasses standing in a classroom and pointing at a blank green chalkboard',
+  '🪥': 'a child brushing teeth with a blue toothbrush with white bristles, white toothpaste foam around the mouth',
+  '⚽🔴': 'a shiny red rubber ball with one white star on it', '⚽🟢': 'a green rubber play ball with a white stripe around the middle', '🐴⚪': 'one white horse seen from the side, with one head and one tail, standing',
+};
+// 색이 있는 문장의 그림: 이모지 + 색 동그라미
+const TINTS = { '🔴': 'red', '🔵': 'blue', '🟡': 'yellow', '🟢': 'green', '🩷': 'pink', '⚫': 'black', '⚪': 'white', '🟤': 'brown', '🟠': 'orange', '🩶': 'gray' };
+const NOUNS = { '📕': 'book', '🌸': 'flower', '🎈': 'balloon', '🪑': 'chair', '🎒': 'school backpack', '✏️': 'pencil', '🐦': 'bird', '🐢': 'turtle', '🐭': 'mouse', '🦒': 'giraffe', '🖊️': 'pen' };
+const tintOf = e => { const m = Object.keys(TINTS).find(d => e.endsWith(d) && e.length > d.length); if (!m) return null; const b = e.slice(0, -m.length); return `${TINTS[m]} ${NOUNS[b] || words.get(b)?.label}`; };
+if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
+  const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
+  // 단어·문장을 그대로 넣으면 그림 속에 글자로 그려져서, 실제로 그릴 때는 장면 설명만 넘긴다
+  const tint = tintOf(e);
+  const what = WORD_SCENES[e] || (tint ? `one ${tint}, the whole ${tint.split(' ').slice(1).join(' ')} clearly ${tint.split(' ')[0]}` : isWord ? `one ${label}` : `this scene: ${plain(label)}`);
+  const draw = `${STYLE}. A wordless illustration of ${what}. One clear subject in the center, plain soft cream background. No caption, no title, no speech bubble.${NOTEXT}`;
+  jobs.push({ kind: 'w', key: e, label, prompt, draw, file: `w/${hash(e).slice(0, 12)}.jpg` });
+}
 const refs = {}; // 인물 기준 그림: 파일 경로 → 그림 설명
 if (only !== 'w') for (const s of [...STORIES].sort((a, b) => a.id - b.id)) {
   if (book && s.id !== book) continue;
