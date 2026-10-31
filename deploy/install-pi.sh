@@ -4,22 +4,24 @@
 # 사용법 (라즈베리파이에서, 프로젝트 폴더 안에서):
 #   sudo ./deploy/install-pi.sh --domain example.com --admin me@example.com
 #   sudo ./deploy/install-pi.sh --domain example.com --admin me@example.com --tunnel   # 공유기 포트포워딩 없이 Cloudflare Tunnel 사용
+#   --no-firewall: 방화벽(ufw)을 켜지 않아요. 다른 서비스가 돌고 있거나 원격으로만 접속하는 기기에서 써요.
 #
 # 하는 일: Node.js 24 설치 → /opt/sprout-english 에 복사 → 패키지 설치 → .env 생성 → systemd 서비스 등록
 #          → (기본) Caddy로 HTTPS 자동 설정 + 방화벽 / (--tunnel) cloudflared 설치 → 매일 DB 백업 예약
 set -euo pipefail
 
-DOMAIN=""; ADMIN=""; TUNNEL=0
+DOMAIN=""; ADMIN=""; TUNNEL=0; FIREWALL=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --domain) DOMAIN="$2"; shift 2 ;;
     --admin) ADMIN="$2"; shift 2 ;;
     --tunnel) TUNNEL=1; shift ;;
+    --no-firewall) FIREWALL=0; shift ;;
     *) echo "알 수 없는 옵션: $1"; exit 1 ;;
   esac
 done
 [[ $EUID -eq 0 ]] || { echo "sudo로 실행해 주세요: sudo $0 $*"; exit 1; }
-[[ -n "$DOMAIN" && -n "$ADMIN" ]] || { echo "사용법: sudo $0 --domain example.com --admin me@example.com [--tunnel]"; exit 1; }
+[[ -n "$DOMAIN" && -n "$ADMIN" ]] || { echo "사용법: sudo $0 --domain example.com --admin me@example.com [--tunnel] [--no-firewall]"; exit 1; }
 DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%/}"
 
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
@@ -28,7 +30,8 @@ say() { printf '\n\033[1;32m▶ %s\033[0m\n' "$*"; }
 
 say "1/8 시스템 패키지 설치"
 apt-get update -y
-apt-get install -y curl ca-certificates gnupg rsync sqlite3 ufw debian-keyring debian-archive-keyring apt-transport-https
+apt-get install -y curl ca-certificates gnupg rsync sqlite3 debian-keyring debian-archive-keyring apt-transport-https
+[[ $FIREWALL -eq 0 ]] || apt-get install -y ufw
 
 say "2/8 Node.js 24 LTS 설치"
 if ! command -v node >/dev/null || [[ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]]; then
@@ -82,9 +85,11 @@ if [[ $TUNNEL -eq 0 ]]; then
   sed "s/example\.com/$DOMAIN/g" "$APP/deploy/Caddyfile" > /etc/caddy/Caddyfile
   caddy validate --config /etc/caddy/Caddyfile
   systemctl enable caddy && systemctl reload caddy || systemctl restart caddy
-  say "방화벽: SSH(22), HTTP(80), HTTPS(443)만 열기"
-  ufw allow 22/tcp; ufw allow 80/tcp; ufw allow 443/tcp
-  ufw --force enable
+  if [[ $FIREWALL -eq 1 ]]; then
+    say "방화벽: SSH(22), HTTP(80), HTTPS(443)만 열기"
+    ufw allow 22/tcp; ufw allow 80/tcp; ufw allow 443/tcp
+    ufw --force enable
+  fi
 else
   say "7/8 Cloudflare Tunnel(cloudflared) 설치"
   if ! command -v cloudflared >/dev/null; then
@@ -93,7 +98,7 @@ else
     echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' > /etc/apt/sources.list.d/cloudflared.list
     apt-get update -y && apt-get install -y cloudflared
   fi
-  ufw allow 22/tcp; ufw --force enable
+  if [[ $FIREWALL -eq 1 ]]; then ufw allow 22/tcp; ufw --force enable; fi
   echo "cloudflared를 설치했어요. deploy/DEPLOY.md의 'B. Cloudflare Tunnel' 단계로 터널을 연결해 주세요."
 fi
 

@@ -106,6 +106,8 @@ rsync -av --exclude node_modules --exclude 'server/data' sprout-english/ 사용�
    ```
 5. Cloudflare 대시보드에서 **SSL/TLS → Full**, **Always Use HTTPS → On** 으로 설정해요.
 
+> 다른 서비스가 돌고 있거나 Tailscale 같은 원격 접속으로만 관리하는 기기에서는 설치 명령에 `--no-firewall`을 붙이세요. 방화벽을 켜면 기존 서비스나 원격 접속이 끊길 수 있어요.
+
 ---
 
 ## 4. 설정 파일(`.env`) 채우기
