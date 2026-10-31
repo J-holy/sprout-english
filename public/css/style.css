@@ -64,7 +64,8 @@ main { min-height: 70vh; outline: none; }
 .site-header { position: sticky; top: 0; z-index: 20; background: var(--paper); border-bottom: var(--bw) solid var(--line); }
 .head-inner { display: flex; align-items: center; gap: 14px; min-height: 66px; flex-wrap: wrap; }
 .logo { font-family: var(--title); font-size: 1.6rem; color: var(--ink); text-decoration: none; display: flex; gap: 4px; align-items: center; font-weight: 400; }
-.logo-sprout { display: inline-block; animation: sway 3s ease-in-out infinite; transform-origin: bottom center; }
+.logo-inline { height: 1.4em; width: auto; vertical-align: -.35em; }
+.logo-sprout { display: inline-block; width: 1.45em; height: 1.45em; animation: sway 3s ease-in-out infinite; transform-origin: bottom center; }
 @keyframes sway { 50% { transform: rotate(-10deg); } }
 .nav { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; padding: 4px; }
 .nav a, .nav button { flex: none; display: inline-flex; align-items: center; gap: 5px; background: none; font-size: 1rem; cursor: pointer; padding: 6px 12px; border-radius: 14px; text-decoration: none; color: var(--ink); font-family: var(--title); font-weight: 400; white-space: nowrap; border: 2px solid transparent; }
@@ -964,6 +965,7 @@ img.pic { height: 1.25em; width: auto; vertical-align: middle; border-radius: .2
 .mole { aspect-ratio: 1.05; }
 .mole-pic { width: clamp(96px, 28vw, 150px); height: auto; aspect-ratio: 1; border-radius: 22px; overflow: hidden; }
 .mole-pic img.pic { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+.order-slot img.order-thumb { height: 34px; width: auto; border-radius: 6px; vertical-align: middle; }
 .order-card img.order-pic { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; border-radius: 12px; }
 /* 휴대폰의 풍선 게임: 네 개를 한 줄에 놓으면 그림이 작아서 두 줄로 크게 */
 @media (max-width: 720px) {

@@ -263,7 +263,7 @@ Views.certificate = (el, stageId) => {
   el.innerHTML = `<div class="wrap sec narrow">
     <div class="no-print row"><a class="link-btn" href="#/parent/report">← 부모페이지</a><button class="btn btn-primary" data-print>🖨️ 인쇄 / PDF 저장</button></div>
     <article class="certificate">
-      <div class="cert-top">🌱 새싹영어</div>
+      <div class="cert-top"><img class="logo-inline" src="img/logo.svg" alt=""> 새싹영어</div>
       <h1>수 료 증</h1>
       <p class="cert-name">${esc(p.name)}</p>
       <p class="cert-body">위 어린이는 새싹영어 <b>${st.id}단계 「${esc(st.title)}」</b>의 레벨 ${st.levels.join('·')} 과정<br>${st.levels.length * LESSONS_PER_LEVEL}레슨을 모두 훌륭하게 마쳤기에 이 증서를 드립니다.</p>
@@ -322,7 +322,7 @@ function storyOrder(box, s) {
   let picked = [];
   const draw = () => {
     box.innerHTML = `<div class="order-game anim-in"><h3>🧩 일어난 순서대로 눌러요</h3>
-      <div class="order-line">${pages.map((_, k) => `<span class="order-slot">${picked[k] !== undefined ? `${k + 1}. ${pages[picked[k]].pic.split(' ')[0]}` : k + 1}</span>`).join('')}</div>
+      <div class="order-line">${pages.map((_, k) => `<span class="order-slot">${picked[k] !== undefined ? (pages[picked[k]].img ? `${k + 1} <img class="order-thumb" src="${pages[picked[k]].img}" alt="">` : `${k + 1}. ${pages[picked[k]].pic.split(' ')[0]}`) : k + 1}</span>`).join('')}</div>
       <div class="order-cards">${cards.map(c => `<button class="order-card" data-k="${c.k}" ${picked.includes(c.k) ? 'disabled' : ''}><span>${c.img ? `<img class="order-pic" src="${c.img}" alt="" draggable="false">` : c.pic}</span>${esc(c.text)}</button>`).join('')}</div>
       <div class="row-center"><button class="btn btn-ghost sm" data-reset>처음부터</button></div></div>`;
     box.querySelectorAll('.order-card').forEach(b => b.onclick = () => { Speech.speak(pages[+b.dataset.k].text); picked.push(+b.dataset.k); picked.length === pages.length ? check() : draw(); });
@@ -1620,7 +1620,7 @@ Views.worksheet = (el, lv) => {
   el.innerHTML = `<div class="wrap sec narrow worksheet-wrap">
     <div class="no-print row"><a class="link-btn" href="#/study">← 모험 지도</a><button class="btn btn-primary" data-print>🖨️ 인쇄 / PDF 저장</button></div>
     <article class="worksheet">
-      <header><b>🌱 새싹영어 워크시트</b><span>Level ${lv} · ${s.title}섬</span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
+      <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹영어 워크시트</b><span>Level ${lv} · ${s.title}섬</span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
       <h3>1. 따라 써 보세요</h3>
       ${trace.map(t => `<div class="ws-trace"><span class="dotted">${esc(t)}</span><span class="line"></span></div>`).join('')}
       ${pics.length >= 3 ? `<h3>2. 그림과 단어를 선으로 이어요</h3><div class="ws-match"><div>${pics.map(it => `<span>${it.emoji} ●</span>`).join('')}</div><div>${shuffle(pics).map(it => `<span>● ${esc(it.word || it.en)}</span>`).join('')}</div></div>` : ''}

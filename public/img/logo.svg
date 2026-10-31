@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><title>새싹영어</title>
+  <!-- 새싹이 돋아난 영어 글자 A: 사이트의 스티커 그림처럼 굵은 테두리 -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 28 L17.5 56 M32 28 L46.5 56 M23 45.5 H41" stroke="#3f2d46" stroke-width="13"/>
+    <path d="M32 28 L17.5 56 M32 28 L46.5 56 M23 45.5 H41" stroke="#ffd23f" stroke-width="8"/>
+    <path d="M32 29 V15" stroke="#3f2d46" stroke-width="7"/>
+    <path d="M32 29 V15" stroke="#58c472" stroke-width="3"/>
+  </g>
+  <path d="M32 17 C27 5 15 3 6 7 C8 18 21 24 32 17 Z" fill="#8be36b" stroke="#3f2d46" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M32 17 C37 6 49 4 58 8 C56 19 43 24 32 17 Z" fill="#58c472" stroke="#3f2d46" stroke-width="2.8" stroke-linejoin="round"/>
+</svg>
