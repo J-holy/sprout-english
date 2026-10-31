@@ -11,7 +11,7 @@ echo "▶ 파일 복사"
 rsync -a --delete --exclude node_modules --exclude 'server/data' --exclude 'server/.env' --exclude 'server/secrets' --exclude '.git' "$SRC"/ "$APP"/
 echo "▶ 패키지 설치"
 cd "$APP/server" && npm ci --omit=dev --no-audit --no-fund
-chown -R sprout:sprout "$APP/server/data"
+chown -R sprout:sprout "$APP/server/data"; chmod 700 "$APP/server/data"
 install -m 644 "$APP/deploy/sprout-english.service" /etc/systemd/system/sprout-english.service
 systemctl daemon-reload && systemctl restart sprout-english
 sleep 2 && curl -fsS http://127.0.0.1:8080/api/health && echo " ← 업데이트 완료"

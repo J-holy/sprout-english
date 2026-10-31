@@ -64,7 +64,7 @@ else
   echo "기존 .env를 그대로 둬요."
 fi
 chown -R sprout:sprout "$APP/server/data" "$APP/server/secrets" "$APP/server/.env"
-chmod 600 "$APP/server/.env"; chmod 700 "$APP/server/secrets"
+chmod 600 "$APP/server/.env"; chmod 700 "$APP/server/secrets" "$APP/server/data"
 
 say "6/8 systemd 서비스 등록"
 install -m 644 "$APP/deploy/sprout-english.service" /etc/systemd/system/sprout-english.service
