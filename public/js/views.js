@@ -361,7 +361,7 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 가입 없이 3분 체험</a>
           <a class="btn btn-ghost lg" href="#/leveltest">🧪 무료 레벨 진단</a>
         </div>
-        <ul class="trust"><li>✅ 알파벳·파닉스 평생 무료</li><li>✅ 7일 전체 체험</li><li>✅ 말하면 바로 AI 발음 점수</li><li>✅ 스토리북 ${STORIES.length}권 · 원어민 AI 음성</li></ul>
+        <ul class="trust"><li>✅ 알파벳·파닉스는 평생 무료</li><li>✅ 7일 동안 모든 단계 무료 체험</li><li>✅ 말하면 바로 발음 점수 확인</li><li>✅ 스토리북 ${STORIES.length}권을 또박또박 읽어줘요</li></ul>
       </div>
       <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div>
     </div>
@@ -372,7 +372,7 @@ Views.home = el => {
     <div class="worry-grid">
       ${[['😩', '영어만 하자고 하면 도망가요', '🎈', '게임·스티커·별 모으기로 아이가 먼저 하자고 해요'],
          ['🤷', '집에서 뭘 어떻게 가르쳐야 할지 모르겠어요', '🗺️', '레벨 진단 후 매일 할 레슨이 정해져요. 버튼 하나만 누르면 돼요'],
-         ['🗣️', '읽기는 해도 입 밖으로 말을 못 해요', '🎤', 'AI가 단어마다 발음을 짚어주고 칭찬해줘요'],
+         ['🗣️', '읽기는 해도 입 밖으로 말을 못 해요', '🎤', '말하면 단어마다 발음을 짚어주고 칭찬해줘요'],
          ['⏰', '바빠서 옆에서 봐줄 시간이 없어요', '📊', '아이 혼자 끝까지 하고, 결과는 부모님 리포트로 받아요']]
         .map(([a, q, b, ans]) => `<div class="worry card"><p class="w-q"><span>${a}</span>${q}</p><p class="w-a"><span>${b}</span>${ans}</p></div>`).join('')}
     </div>
@@ -413,7 +413,7 @@ Views.home = el => {
   <section class="band"><div class="wrap sec two-col">
     <div class="card speak-demo" id="speakDemo"></div>
     <div>${UI.mascot('마이크 버튼을 누르고 따라 말해봐! 단어마다 초록·노랑·빨강으로 알려줄게.', '🌱')}
-      <h3 class="sec-sub">AI 발음 코치, 지금 해보세요</h3>
+      <h3 class="sec-sub">우리 아이 발음 점수, 지금 확인해 보세요</h3>
       <p class="sec-desc left">아이 목소리에 맞춰 너그럽게 채점해서 자신감부터 키워요.</p></div>
   </div></section>
 
@@ -484,7 +484,7 @@ Views.speakWidget = (box, sentences, record = true) => {
   let k = 0;
   const draw = () => {
     const s = sentences[k];
-    box.innerHTML = `<div class="sw-head"><span class="chip">🎤 AI 발음 코치</span><button class="link-btn" data-next>다른 문장 ↻</button></div>
+    box.innerHTML = `<div class="sw-head"><span class="chip">🎤 따라 말하고 점수 받기</span><button class="link-btn" data-next>다른 문장 ↻</button></div>
       <div class="speak-target big">${words(s).map(w => `<span>${esc(w)}</span>`).join(' ')}</div>
       <div class="speak-result" aria-live="polite"></div>
       <div class="row-center"><button class="btn btn-ghost" data-listen>🔊 듣기</button><button class="btn btn-ghost" data-slow>🐢 천천히</button>
