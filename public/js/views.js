@@ -9,7 +9,7 @@ const letterLine = (it, w = it.word) => it.ending ? `${w} ends with ${it.letter}
 // 설정의 목소리 목록: 자동 / AI 음성 / 이 기기 목소리(자연스러운 순)
 const voiceOptions = () => [
   `<option value="">자동 (가장 자연스러운 목소리)</option>`,
-  Speech.neuralAvailable ? `<option value="neural">🌟 AI 자연 음성</option>` : '',
+  Speech.neuralAvailable ? `<option value="neural">🌟 또렷한 학습 목소리</option>` : '',
   ...Speech.voices().slice(0, 20).map(v => `<option value="${esc(v.uri)}">${v.natural ? '★ ' : ''}${esc(v.name)} (${esc(v.lang)})</option>`),
 ].join('');
 const dayLabel = d => `Day ${d + 1}${Gen.isReviewDay(d) ? ' · 복습' : ''}`;
@@ -159,7 +159,7 @@ Views.free = el => {
     ['#/review', '🔁', '오늘의 복습', w.due ? `${w.due}개 기다려요` : '오늘은 끝!', '#4fc3f7'],
     ['#/words', '📒', '내 단어장', `${w.learned}개 모았어요`, '#ffd23f'],
     ['#/stories', '📖', '스토리북', `${Object.keys(p.stories).length}/${STORIES.length}권 읽음`, '#7ed957'],
-    ['#/speak', '🎤', 'AI 말하기', '발음 점수 받기', '#b388ff'],
+    ['#/speak', '🎤', '말하기 연습', '발음 점수 받기', '#b388ff'],
     ['#/play/balloon', '🎈', '풍선 팡팡', `최고 ${(p.games || {}).balloon || 0}점`, '#ff8a65'],
     ['#/play/match', '🃏', '짝꿍 카드', `최고 ${(p.games || {}).match || 0}점`, '#4db6ac'],
     ['#/wrong', '✏️', '오답노트', `${p.wrong.length}문제`, '#f06292'],
@@ -651,7 +651,7 @@ Views.pricing = (el, params) => {
 
     <div class="free-plan card">
       <div><span class="chip">무료</span><h2>알파벳·파닉스는 평생 무료</h2>
-        <p>1~2단계(Level A~E, <b>50레슨</b>)와 스토리북 8권, 놀이터·AI 말하기·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
+        <p>1~2단계(Level A~E, <b>50레슨</b>)와 스토리북 8권, 놀이터·말하기 연습·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
         가입하면 <b>7일 동안은 전체 단계를</b> 모두 써볼 수 있어요. 카드 등록도 자동결제도 없어요.</p></div>
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
@@ -661,7 +661,7 @@ Views.pricing = (el, params) => {
       ['📚', '1년 커리큘럼', `8단계 26레벨 ${TOTAL_LESSONS}레슨 · 미국 킨더~초2 수준`],
       ['🔁', '망각 곡선 복습', '배운 단어·문장을 1·3·7·14·30일에 다시 꺼내 오래 기억'],
       ['📊', '영역별 분석 리포트', '듣기·읽기·말하기·쓰기 정답률, 주간 변화, 맞춤 추천'],
-      ['🎤', 'AI 발음 코치', '단어마다 초록·노랑·빨강으로 발음 피드백'],
+      ['🎤', '발음 점수 확인', '단어마다 초록·노랑·빨강으로 발음 피드백'],
       ['📖', '스토리북 32권', '천천히·한 단어씩 읽어주기, 노래방식 따라 읽기, 순서 맞추기'],
       ['🎮', '게임으로 학습', '⚡ 레슨 중 챌린지, 🔥 콤보, 🏅 배지 26개, 🌱 새싹 나무'],
       ['🎯', '매일 미션', '레슨·복습·말하기 미션과 보상 상자로 매일 습관'],
@@ -684,7 +684,7 @@ Views.pricing = (el, params) => {
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
       <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '8권', '32권 전체'],
-        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
+        ['발음 점수 확인 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
@@ -960,7 +960,7 @@ Views.learn = el => {
       <a class="quick-card" href="#/words" style="--r:1.5deg"><span>${ico('📒')}</span><b>내 단어장</b><small>${Store.wordStats().learned}개 모음</small></a>
       <a class="quick-card" href="#/review" style="--r:-1deg"><span>${ico('🔁')}</span><b>오늘의 복습</b><small>${Store.wordStats().due}개</small></a>
       <a class="quick-card" href="#/stories" style="--r:2deg"><span>${ico('📖')}</span><b>스토리북</b><small>${Object.keys(p.stories).length}/${STORIES.length}권 읽음</small></a>
-      <a class="quick-card" href="#/speak" style="--r:-1.5deg"><span>${ico('🎤')}</span><b>AI 말하기</b><small>발음 점수 받기</small></a>
+      <a class="quick-card" href="#/speak" style="--r:-1.5deg"><span>${ico('🎤')}</span><b>말하기 연습</b><small>발음 점수 받기</small></a>
       <a class="quick-card" href="#/play" style="--r:1deg"><span>${ico('🎈')}</span><b>놀이터</b><small>풍선·카드 게임</small></a>
     </div>
     <div class="sw-head"><h2 class="sec-sub">🗺️ 모험 지도</h2><a class="link-btn" href="#/study?view=all">📚 전체 학습 내용 보기 →</a></div>
@@ -1124,7 +1124,7 @@ Views.speak = el => {
   const recent = p.speaking.slice(0, 8);
   const avg = recent.length ? Math.round(recent.reduce((s, x) => s + x.score, 0) / recent.length) : null;
   el.innerHTML = `<div class="wrap sec narrow">
-    <h1 class="page-title">🎤 AI 말하기</h1>
+    <h1 class="page-title">🎤 말하기 연습</h1>
     ${UI.mascot('배운 문장 중에서 골랐어! 초록=정확, 노랑=비슷, 빨강=다시 들어보기야. 80점 넘으면 별을 줄게 ⭐')}
     <div class="card speak-demo" id="sw"></div>
     <h2 class="sec-sub">최근 기록 ${avg !== null ? `<small>평균 ${avg}점</small>` : ''}</h2>
@@ -1729,7 +1729,7 @@ const ParentTabs = {
       <label>효과음 볼륨 <input type="range" name="sfx" min="0" max="1" step="0.1" value="${v.sfx}"></label>
       <label>읽어주는 목소리 <small class="fine">(이 기기에 저장돼요)</small>
         <div class="row voice-row"><select name="voice">${voiceOptions()}</select><button type="button" class="btn btn-ghost sm" data-preview>▶ 들어보기</button></div></label>
-      <p class="fine voice-help">${Speech.neuralAvailable ? '🌟 AI 자연 음성을 쓸 수 있어요. 가장 사람 같은 목소리예요.' : '★ 표시가 이 기기에서 가장 자연스러운 목소리예요. Edge 브라우저의 "Natural" 목소리나, iPhone·Mac의 설정 › 손쉬운 사용 › 읽기 및 말하기에서 받은 "고품질" 목소리가 가장 좋아요.'}</p>
+      <p class="fine voice-help">${Speech.neuralAvailable ? '🌟 또렷한 학습 목소리를 쓸 수 있어요. 가장 자연스러운 목소리예요.' : '★ 표시가 이 기기에서 가장 자연스러운 목소리예요. Edge 브라우저의 "Natural" 목소리나, iPhone·Mac의 설정 › 손쉬운 사용 › 읽기 및 말하기에서 받은 "고품질" 목소리가 가장 좋아요.'}</p>
       <label>읽어주기 속도<select name="rate"><option value="0.7">천천히</option><option value="0.85">보통</option><option value="1">빠르게</option></select></label>
       <h3>📚 학습</h3>
       ${p ? `<label>${esc(p.name)}의 하루 목표 레슨 수<select name="goal">${[1, 2, 3, 4, 5].map(n => `<option ${n === p.dailyGoal ? 'selected' : ''}>${n}</option>`).join('')}</select></label>

@@ -364,7 +364,7 @@ const Speech = (() => {
     record, stopRecording, get canRecord() { return canRecord(); }, get usesServerStt() { return !webSpeechOk() && sttOn && canRecord(); },
     get neuralAvailable() { return !!(neural.server || neural.manifest); },
     get voiceChoice() { return chosen; },
-    get voiceName() { return useNeural() ? 'AI 자연 음성' : voice ? voice.name : '기본 목소리'; },
+    get voiceName() { return useNeural() ? '또렷한 학습 목소리' : voice ? voice.name : '기본 목소리'; },
     voices: () => englishVoices().map(v => ({ uri: v.voiceURI, name: v.name, lang: v.lang, natural: NATURAL.test(v.name) })),
     // '' = 자동, 'neural' = AI 음성, 'browser' = 기기 목소리 자동, 그 외 = 특정 기기 목소리
     setVoice(c) { chosen = c; try { localStorage.setItem('sprout-voice', c); } catch (e) { /* ignore */ } pickVoice(); },
