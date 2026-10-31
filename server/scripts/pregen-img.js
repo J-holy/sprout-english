@@ -565,7 +565,7 @@ const { LETTERS, PHONICS, SENTENCES, STORIES, ALL_LEVELS, Gen, isLetterLine } = 
 // 할 일 목록 만들기
 const jobs = [];
 const hash = s => crypto.createHash('sha1').update(s).digest('hex');
-// 숫자·기호처럼 그림보다 이모지가 나은 것은 그대로 둔다
+// 기호처럼 그림보다 이모지가 나은 것은 그대로 둔다 (숫자는 아래 NUMBERS로 따로 그린다)
 const keepEmoji = e => /⃣|[❓⬆\u{1F7E5}\u{1F51F}\u{1F50A}]/u.test(e);
 const words = new Map();
 const addWord = (e, label, isWord) => { if (!e || keepEmoji(e) || e.includes(' ')) return; const w = words.get(e); if (!w || (isWord && !w.isWord)) words.set(e, { label, isWord }); };
@@ -586,6 +586,13 @@ const ICONS = {
 if (only !== 's' && !book) for (const [e, label] of Object.entries(ICONS)) {
   const prompt = `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;
   jobs.push({ kind: 'i', key: e, label, prompt, file: `i/${hash('icon' + e).slice(0, 12)}.jpg` });
+}
+// 숫자 0~10: 이모지 대신 수채화로 그린 커다란 숫자. STYLE의 'no numbers'를 빼고 숫자 하나만 그리게 한다
+const NUMBERS = { '0️⃣': ['0', 'blue'], '1️⃣': ['1', 'red'], '2️⃣': ['2', 'orange'], '3️⃣': ['3', 'green'], '4️⃣': ['4', 'purple'], '5️⃣': ['5', 'pink'],
+  '6️⃣': ['6', 'teal'], '7️⃣': ['7', 'yellow'], '8️⃣': ['8', 'coral red'], '9️⃣': ['9', 'violet'], '🔟': ['10', 'sky blue'] };
+if (only !== 's' && !book) for (const [e, [n, color]] of Object.entries(NUMBERS)) {
+  const prompt = `Children's picture book illustration, ${STYLES[styleName]}, rounded friendly shapes, cute and kind. A flash card picture: the big chubby rounded number ${n}, painted in soft ${color} watercolor with gentle darker edges, exactly the digits "${n}" and nothing else, standing large in the center and filling most of the picture, plain soft cream background, no face, no other digits, no letters, no objects.`;
+  jobs.push({ kind: 'w', key: e, label: n, prompt, file: `w/${hash(e).slice(0, 12)}.jpg` });
 }
 if (only !== 's' && !book) for (const [e, { label, isWord }] of words) {
   const prompt = `${STYLE}. A flash card picture: ${isWord ? `one ${label}, clearly showing the meaning of the English word "${label}"` : `a simple picture of: ${label}`}. One clear subject in the center, plain soft cream background.`;
