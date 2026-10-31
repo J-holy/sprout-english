@@ -16,7 +16,7 @@ const GEN = (() => {
   // 동물: [영어, 우리말, 그림, 복수, 크기 순위, 빠르기 순위, 할 수 있는 것, 어울리는 색]
   const ANIMALS = [
     ['cat', '고양이', '🐱', 'cats', 3, 4, ['run', 'jump', 'climb'], ['black', 'white', 'orange']],
-    ['dog', '개', '🐶', 'dogs', 4, 6, ['run', 'swim', 'jump'], ['brown', 'black', 'white']],
+    ['dog', '강아지', '🐶', 'dogs', 4, 6, ['run', 'swim', 'jump'], ['brown', 'black', 'white']],
     ['bird', '새', '🐦', 'birds', 1, 7, ['fly', 'sing'], ['blue', 'red', 'yellow']],
     ['fish', '물고기', '🐟', 'fish', 1, 3, ['swim'], ['orange', 'blue', 'yellow']],
     ['rabbit', '토끼', '🐰', 'rabbits', 2, 5, ['jump', 'run'], ['white', 'brown']],
@@ -82,7 +82,7 @@ const GEN = (() => {
     ['write a letter', 'writes a letter', 'wrote a letter', 'writing a letter', '✉️', '편지를 써요', '편지를 썼어요', '편지를 쓸 거예요', '편지를 쓰고 있어요', '편지를 쓸 수 있어요', 'irr2'],
     ['make a sandwich', 'makes a sandwich', 'made a sandwich', 'making a sandwich', '🥪', '샌드위치를 만들어요', '샌드위치를 만들었어요', '샌드위치를 만들 거예요', '샌드위치를 만들고 있어요', '샌드위치를 만들 수 있어요', 'irr2'],
     ['take a picture', 'takes a picture', 'took a picture', 'taking a picture', '📷', '사진을 찍어요', '사진을 찍었어요', '사진을 찍을 거예요', '사진을 찍고 있어요', '사진을 찍을 수 있어요', 'irr2'],
-    ['feed the dog', 'feeds the dog', 'fed the dog', 'feeding the dog', '🐶', '개에게 밥을 줘요', '개에게 밥을 줬어요', '개에게 밥을 줄 거예요', '개에게 밥을 주고 있어요', '개에게 밥을 줄 수 있어요', 'irr2'],
+    ['feed the dog', 'feeds the dog', 'fed the dog', 'feeding the dog', '🐶', '강아지에게 밥을 줘요', '강아지에게 밥을 줬어요', '강아지에게 밥을 줄 거예요', '강아지에게 밥을 주고 있어요', '강아지에게 밥을 줄 수 있어요', 'irr2'],
     ['build a sandcastle', 'builds a sandcastle', 'built a sandcastle', 'building a sandcastle', '🏰', '모래성을 쌓아요', '모래성을 쌓았어요', '모래성을 쌓을 거예요', '모래성을 쌓고 있어요', '모래성을 쌓을 수 있어요', 'irr2'],
     ['catch a ball', 'catches a ball', 'caught a ball', 'catching a ball', '⚾', '공을 잡아요', '공을 잡았어요', '공을 잡을 거예요', '공을 잡고 있어요', '공을 잡을 수 있어요', 'irr2'],
     ['watch TV', 'watches TV', 'watched TV', 'watching TV', '📺', 'TV를 봐요', 'TV를 봤어요', 'TV를 볼 거예요', 'TV를 보고 있어요', 'TV를 볼 수 있어요', 'reg'],

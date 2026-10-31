@@ -30,7 +30,7 @@ const PHONICS = {
     ['bed', '🛏️', '침대'], ['hen', '🐔', '암탉'], ['net', '🥅', '그물'], ['pen', '🖊️', '펜'], ['web', '🕸️', '거미줄'], ['leg', '🦵', '다리'],
     ['ten', '🔟', '열'], ['red', '🟥', '빨간'], ['pig', '🐷', '돼지'], ['pin', '📌', '핀'], ['six', '6️⃣', '여섯'], ['lip', '👄', '입술']],
   D: [ // 짧은 o · 짧은 u · sh · ch · th
-    ['dog', '🐶', '개'], ['box', '📦', '상자'], ['fox', '🦊', '여우'], ['pot', '🍲', '냄비'], ['log', '🪵', '통나무'], ['frog', '🐸', '개구리'],
+    ['dog', '🐶', '강아지'], ['box', '📦', '상자'], ['fox', '🦊', '여우'], ['pot', '🍲', '냄비'], ['log', '🪵', '통나무'], ['frog', '🐸', '개구리'],
     ['sock', '🧦', '양말'], ['rock', '🪨', '바위'], ['mom', '👩', '엄마'], ['sun', '☀️', '해'], ['bus', '🚌', '버스'], ['cup', '☕', '컵'],
     ['bug', '🐛', '벌레'], ['nut', '🥜', '견과'], ['duck', '🦆', '오리'], ['drum', '🥁', '북'], ['truck', '🚚', '트럭'], ['ship', '🚢', '배'],
     ['fish', '🐟', '물고기'], ['shell', '🐚', '조개'], ['chick', '🐤', '병아리'], ['lunch', '🍱', '점심'], ['bath', '🛁', '목욕'], ['thumb', '👍', '엄지']],
@@ -45,7 +45,7 @@ const PHONICS = {
 const SENTENCES = {
   3: [
     // F: be동사 · this/that
-    ['This is a cat.', '이것은 고양이예요.', '🐱'], ['That is a dog.', '저것은 개예요.', '🐶'], ['It is a big dog.', '그것은 큰 개예요.', '🐕'],
+    ['This is a cat.', '이것은 고양이예요.', '🐱'], ['That is a dog.', '저것은 강아지예요.', '🐶'], ['It is a big dog.', '그것은 큰 강아지예요.', '🐕'],
     ['I am happy.', '나는 행복해요.', '😊'], ['I am six.', '나는 여섯 살이에요.', '6️⃣'], ['You are my friend.', '너는 내 친구야.', '🤝'],
     ['She is my mom.', '그녀는 우리 엄마예요.', '👩'], ['He is my dad.', '그는 우리 아빠예요.', '👨'], ['We are kids.', '우리는 어린이예요.', '🧒'],
     ['It is a pen.', '그것은 펜이에요.', '🖊️'], ['That is my bag.', '저것은 내 가방이에요.', '🎒'], ['This is my hat.', '이것은 내 모자예요.', '🎩'],
@@ -63,7 +63,7 @@ const SENTENCES = {
     // H: can · 위치 · 복수
     ['We can run.', '우리는 달릴 수 있어요.', '🏃'], ['I can jump.', '나는 뛸 수 있어요.', '🦘'], ['I can swim.', '나는 수영할 수 있어요.', '🏊'],
     ['A bird can fly.', '새는 날 수 있어요.', '🐦'], ['A fish can swim.', '물고기는 헤엄칠 수 있어요.', '🐟'], ['I can sing a song.', '나는 노래를 부를 수 있어요.', '🎤'],
-    ['The cat is on the bed.', '고양이가 침대 위에 있어요.', '🛏️'], ['The ball is in the box.', '공이 상자 안에 있어요.', '📦'], ['The dog is under the table.', '개가 탁자 밑에 있어요.', '🐕'],
+    ['The cat is on the bed.', '고양이가 침대 위에 있어요.', '🛏️'], ['The ball is in the box.', '공이 상자 안에 있어요.', '📦'], ['The dog is under the table.', '강아지가 탁자 밑에 있어요.', '🐕'],
     ['I see three ducks.', '나는 오리 세 마리를 봐요.', '🦆'], ['There are two cats.', '고양이가 두 마리 있어요.', '🐱'], ['The apples are red.', '사과들이 빨개요.', '🍎'],
     ['My shoes are new.', '내 신발은 새것이에요.', '👟'], ['Look at the frog.', '개구리를 봐요.', '🐸'], ['Open the door.', '문을 열어요.', '🚪'],
     ['Sit down, please.', '앉아 주세요.', '🪑'], ["Let's play together.", '같이 놀자.', '🤸'], ['It is time to sleep.', '잘 시간이에요.', '😴'],
@@ -92,7 +92,7 @@ const SENTENCES = {
     ['The flowers smell nice.', '꽃들이 좋은 냄새가 나요.', '🌸'], ['The music is loud.', '음악 소리가 커요.', '🔊'], ['The library is quiet.', '도서관은 조용해요.', '📚'],
     ['The kitten is warm and fuzzy.', '아기 고양이는 따뜻하고 보송보송해요.', '🐱'],
     // P: 비교 · 장소
-    ['My room is clean.', '내 방은 깨끗해요.', '🛏️'], ['The flowers are pretty.', '꽃들이 예뻐요.', '🌸'], ['An elephant is bigger than a dog.', '코끼리는 개보다 커요.', '🐘'],
+    ['My room is clean.', '내 방은 깨끗해요.', '🛏️'], ['The flowers are pretty.', '꽃들이 예뻐요.', '🌸'], ['An elephant is bigger than a dog.', '코끼리는 강아지보다 커요.', '🐘'],
     ['A turtle is slower than a rabbit.', '거북이는 토끼보다 느려요.', '🐢'], ['My bag is heavier than yours.', '내 가방은 네 것보다 무거워.', '🎒'], ['Summer is hotter than spring.', '여름은 봄보다 더워요.', '☀️'],
     ['The park is big and green.', '공원은 크고 푸르러요.', '🏞️'], ['Our kitchen is small but cozy.', '우리 부엌은 작지만 아늑해요.', '🍳'], ['The beach has white sand.', '해변에는 하얀 모래가 있어요.', '🏖️'],
     ['The city is busy and noisy.', '도시는 바쁘고 시끄러워요.', '🏙️'], ['The farm has many animals.', '농장에는 동물이 많아요.', '🐄'], ['This is the best day ever.', '오늘은 최고의 날이에요.', '🌟'],
@@ -102,7 +102,7 @@ const SENTENCES = {
   7: [
     // U: 규칙 과거형 (-ed)
     ['I played soccer yesterday.', '나는 어제 축구를 했어요.', '⚽'], ['They watched a movie.', '그들은 영화를 봤어요.', '🎬'], ['I helped my mom.', '나는 엄마를 도왔어요.', '🤲'],
-    ['The dog jumped high.', '개가 높이 뛰었어요.', '🐕'], ['She cleaned her room.', '그녀는 방을 청소했어요.', '🧹'], ['We walked to the park.', '우리는 공원까지 걸어갔어요.', '🚶'],
+    ['The dog jumped high.', '강아지가 높이 뛰었어요.', '🐕'], ['She cleaned her room.', '그녀는 방을 청소했어요.', '🧹'], ['We walked to the park.', '우리는 공원까지 걸어갔어요.', '🚶'],
     ['I washed my hands.', '나는 손을 씻었어요.', '🧼'], ['He opened the window.', '그는 창문을 열었어요.', '🪟'], ['We visited Grandma.', '우리는 할머니 댁을 방문했어요.', '👵'],
     ['I painted a picture.', '나는 물감으로 그림을 그렸어요.', '🎨'], ['She danced at the party.', '그녀는 파티에서 춤을 췄어요.', '💃'], ['The baby cried at night.', '아기가 밤에 울었어요.', '👶'],
     ['We cooked pancakes.', '우리는 팬케이크를 만들었어요.', '🥞'], ['I climbed a tree.', '나는 나무에 올랐어요.', '🌳'], ['He brushed his teeth.', '그는 이를 닦았어요.', '🪥'],
@@ -163,9 +163,9 @@ const QA = {
     ['Are you hungry?', 'Yes, I am.', '배고프니? — 응, 배고파.'], ['Thank you!', 'You are welcome.', '고마워! — 천만에.'],
     // J: 물건 · 색 · 수
     ['What is this?', 'It is a pencil.', '이건 뭐야? — 연필이야.'], ['What color is it?', 'It is green.', '무슨 색이야? — 초록색이야.'],
-    ['Is it a cat?', 'No, it is a dog.', '고양이야? — 아니, 개야.'], ['How many apples are there?', 'There are three apples.', '사과가 몇 개 있어? — 사과가 세 개 있어.'],
+    ['Is it a cat?', 'No, it is a dog.', '고양이야? — 아니, 강아지야.'], ['How many apples are there?', 'There are three apples.', '사과가 몇 개 있어? — 사과가 세 개 있어.'],
     ['What is that?', 'It is a kite.', '저건 뭐야? — 연이야.'], ['What color is the sky?', 'The sky is blue.', '하늘은 무슨 색이야? — 하늘은 파래.'],
-    ['How many legs does a dog have?', 'A dog has four legs.', '개는 다리가 몇 개야? — 개는 다리가 네 개야.'], ['Is it big?', 'No, it is small.', '그거 커? — 아니, 작아.'],
+    ['How many legs does a dog have?', 'A dog has four legs.', '강아지는 다리가 몇 개야? — 강아지는 다리가 네 개야.'], ['Is it big?', 'No, it is small.', '그거 커? — 아니, 작아.'],
     ['What shape is it?', 'It is a circle.', '무슨 모양이야? — 동그라미야.'], ['How many pencils do you have?', 'I have five pencils.', '연필 몇 자루 있어? — 다섯 자루 있어.'],
     ['Whose book is this?', 'It is my book.', '이건 누구 책이야? — 내 책이야.'], ['Is the water cold?', 'Yes, it is very cold.', '물이 차가워? — 응, 아주 차가워.'],
     ['What is in the box?', 'There is a teddy bear in it.', '상자 안에 뭐가 있어? — 곰 인형이 있어.'], ['What color are bananas?', 'Bananas are yellow.', '바나나는 무슨 색이야? — 바나나는 노란색이야.'],
@@ -178,7 +178,7 @@ const QA = {
     ['What animal do you like?', 'I like pandas.', '어떤 동물을 좋아해? — 판다를 좋아해.'], ['Can I help you?', 'Yes, please.', '도와줄까? — 응, 부탁해.'],
     ['Do you want some milk?', 'No, thank you.', '우유 좀 줄까? — 아니, 괜찮아.'], ['Can you count to ten?', 'Yes, I can.', '열까지 셀 수 있어? — 응, 할 수 있어.'],
     ['What sport do you like?', 'I like basketball.', '어떤 운동을 좋아해? — 농구를 좋아해.'], ['Do you like music?', 'Yes, I love music.', '음악 좋아해? — 응, 정말 좋아해.'],
-    ['Can your dog run fast?', 'Yes, it can.', '너희 개는 빨리 달릴 수 있어? — 응, 할 수 있어.'], ['Which one do you want?', 'I want the red one.', '어떤 걸 원해? — 빨간 걸 원해.'],
+    ['Can your dog run fast?', 'Yes, it can.', '너희 강아지는 빨리 달릴 수 있어? — 응, 할 수 있어.'], ['Which one do you want?', 'I want the red one.', '어떤 걸 원해? — 빨간 걸 원해.'],
     // L: 시간 · 하루 일과 · 기분
     ['What time is it?', 'It is two o\'clock.', '몇 시야? — 두 시야.'], ['What day is it today?', 'It is Monday.', '오늘 무슨 요일이야? — 월요일이야.'],
     ['How do you feel?', 'I feel happy.', '기분이 어때? — 행복해.'], ['Are you tired?', 'Yes, I am sleepy.', '피곤하니? — 응, 졸려.'],
@@ -207,7 +207,7 @@ const QA = {
     ['What is he drawing?', 'He is drawing a house.', '그는 뭘 그리고 있어? — 집을 그리고 있어.'], ['Who can help me?', 'I can help you.', '누가 나를 도와줄 수 있어? — 내가 도와줄게.'],
     ['What is the baby doing?', 'The baby is sleeping.', '아기는 뭐 하고 있어? — 아기는 자고 있어.'], ['Who is your teacher?', 'Ms Kim is my teacher.', '선생님은 누구야? — 김 선생님이야.'],
     ['What are you eating?', 'I am eating an apple.', '뭐 먹고 있어? — 사과를 먹고 있어.'], ['Who is the tallest?', 'Dad is the tallest.', '누가 제일 키가 커? — 아빠가 제일 커.'],
-    ['What is the dog doing?', 'The dog is digging a hole.', '개는 뭐 하고 있어? — 구멍을 파고 있어.'], ['Who wants cake?', 'I want cake!', '케이크 먹을 사람? — 나요!'],
+    ['What is the dog doing?', 'The dog is digging a hole.', '강아지는 뭐 하고 있어? — 구멍을 파고 있어.'], ['Who wants cake?', 'I want cake!', '케이크 먹을 사람? — 나요!'],
     // S: When · 시간
     ['When do you get up?', 'I get up at seven.', '언제 일어나? — 일곱 시에 일어나.'], ['When is your birthday?', 'It is in May.', '생일이 언제야? — 5월이야.'],
     ['When do you sleep?', 'I sleep at nine.', '언제 자? — 아홉 시에 자.'], ['When does school start?', 'School starts at nine.', '학교는 언제 시작해? — 아홉 시에 시작해.'],
@@ -220,7 +220,7 @@ const QA = {
     // T: Why · How
     ['Why are you sad?', 'Because I lost my toy.', '왜 슬퍼? — 장난감을 잃어버렸거든.'], ['How do you go to school?', 'I go to school by bus.', '학교에 어떻게 가? — 버스로 가.'],
     ['Why are you late?', 'Because I missed the bus.', '왜 늦었어? — 버스를 놓쳤거든.'], ['How do you make a sandwich?', 'I put cheese on bread.', '샌드위치는 어떻게 만들어? — 빵에 치즈를 올려.'],
-    ['Why do you like dogs?', 'Because they are cute.', '왜 개를 좋아해? — 귀엽거든.'], ['How is your mom?', 'She is fine.', '어머니는 잘 계셔? — 잘 계셔.'],
+    ['Why do you like dogs?', 'Because they are cute.', '왜 강아지를 좋아해? — 귀엽거든.'], ['How is your mom?', 'She is fine.', '어머니는 잘 계셔? — 잘 계셔.'],
     ['How much is this?', 'It is two dollars.', '이거 얼마예요? — 2달러예요.'], ['Why is he crying?', 'Because he fell down.', '그는 왜 울어? — 넘어졌거든.'],
     ['How do you say this in English?', 'It is a watermelon.', '이걸 영어로 뭐라고 해? — 수박이야.'], ['Why do we need water?', 'Because we need it to live.', '왜 물이 필요해? — 살려면 물이 있어야 하니까.'],
     ['How tall are you?', 'I am one meter tall.', '키가 얼마야? — 1미터야.'], ['How many friends came?', 'Five friends came.', '친구가 몇 명 왔어? — 다섯 명 왔어.'],
