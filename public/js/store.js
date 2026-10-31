@@ -3,7 +3,7 @@
  * 로컬 모드: 서버 없이 index.html만 열면 브라우저 localStorage에 저장하는 데모로 동작한다.
  */
 const API = {
-  on: false, cfg: null,
+  on: false, down: false, cfg: null,
   async req(method, path, body) {
     const r = await fetch(path, {
       method, credentials: 'same-origin',
@@ -44,15 +44,30 @@ const Store = (() => {
     try { const raw = JSON.parse(localStorage.getItem(KEY)); if (raw && raw.users) db = raw; } catch (e) { /* storage unavailable */ }
     Object.values(db.users).forEach(u => { u.id = u.id || u.email; u.profiles = (u.profiles || []).map(normalizeProfile); }); // 예전 데이터 보정
   }
+  // 로컬 모드는 서버가 없다고 확실할 때만 쓴다 (파일로 열었거나 정적 호스팅이 없는 주소라고 답할 때).
+  // 응답이 늦거나 잠깐 끊겼을 때 데모로 바꾸면 회원이 자기 기록을 못 보고 기록도 브라우저에만 남는다.
+  async function findServer() {
+    if (location.protocol === 'file:') return;
+    for (let i = 0; i < 3; i++) {
+      if (i) await new Promise(ok => setTimeout(ok, i * 1500));
+      try {
+        const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 10000);
+        const r = await fetch('api/config', { signal: ctl.signal });
+        clearTimeout(timer);
+        if (r.status === 404) return;
+        if (r.ok) {
+          if (!(r.headers.get('content-type') || '').includes('json')) return;
+          API.cfg = await r.json(); API.on = !!API.cfg.server;
+          return;
+        }
+      } catch (e) { /* 다시 시도 */ }
+    }
+    API.down = true;
+  }
   async function init() {
     try { db.theme = localStorage.getItem('sprout-theme'); } catch (e) { /* ignore */ }
-    try {
-      const ctl = new AbortController(); setTimeout(() => ctl.abort(), 2500);
-      const r = await fetch('api/config', { signal: ctl.signal });
-      if (r.ok && (r.headers.get('content-type') || '').includes('json')) {
-        API.cfg = await r.json(); API.on = !!API.cfg.server;
-      }
-    } catch (e) { /* 서버 없음 → 로컬 모드 */ }
+    await findServer();
+    if (API.down) return;
     if (!API.on) { loadLocal(); return; }
     Object.assign(PLANS, API.cfg.plans || {});
     await Promise.all([loadMe(), loadReviews()]);

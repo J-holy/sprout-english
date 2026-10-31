@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import express from 'express';
 import { config } from './lib/env.js';
 import { db, dbFile, now, DAY, json, kv, id } from './lib/db.js';
-import { createUser, getUser, getUserByEmail, isAdmin, linkIdentity, notify, userDoc, access } from './lib/users.js';
+import { createUser, deleteUser, getUser, getUserByEmail, isAdmin, linkIdentity, notify, userDoc, access } from './lib/users.js';
 import {
   parseCookies, setCookie, clearCookie, sign, unsign, startSession, endSession, loadSession, requireUser, requireAdmin,
   cleanupSessions, csrf, rateLimit, securityHeaders, clientIp, hashCode,
@@ -46,8 +46,12 @@ app.get('/api/tts', wrap(async (req, res) => {
   if (!ttsProvider()) return bad(res, 'AI 음성이 설정되지 않았어요.', 404);
   const text = cleanText(req.query.text), slow = req.query.slow === '1';
   if (!validText(text)) return bad(res, '읽을 수 없는 문장이에요.');
-  // 이미 만든 문장은 바로 보내고, 새로 만드는 요청만 IP별로 제한한다 (요금 보호)
-  if (!fs.existsSync(cacheFile(text, slow)) && !rateLimit('tts:' + clientIp(req), 300, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  // 미리 만든 음성(public/audio)에 없는 문장만 여기로 온다. 이미 만든 문장은 바로 보내고,
+  // 새로 만드는 요청은 로그인한 사용자만, 사용자별·전체 횟수를 제한한다 (요금 보호). 안 되면 화면이 기기 목소리로 읽는다
+  if (!fs.existsSync(cacheFile(text, slow))) {
+    if (!req.user) return bad(res, '로그인이 필요해요.', 401);
+    if (!rateLimit('tts:' + req.user.id, 120, 3600000) || !rateLimit('tts:all', 300, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  }
   let file;
   try { ({ file } = await getSpeech(text, slow)); }
   catch (err) { console.error('[TTS]', err.message); return bad(res, 'AI 음성을 만들지 못했어요.', 502); }
@@ -92,7 +96,7 @@ app.post('/api/me/notifications/read', requireUser, (req, res) => {
   db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id); res.json({ ok: true });
 });
 app.delete('/api/me', requireUser, (req, res) => {
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+  deleteUser(req.user.id);
   clearCookie(res, 'sid'); res.json({ ok: true });
 });
 
@@ -302,14 +306,14 @@ app.post('/api/admin/users/:id/action', (req, res) => {
 });
 app.delete('/api/admin/users/:id', (req, res) => {
   if (req.params.id === req.user.id) return bad(res, '내 계정은 여기서 지울 수 없어요.');
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id); res.json({ ok: true });
+  deleteUser(req.params.id); res.json({ ok: true });
 });
 app.get('/api/admin/stats', (req, res) => {
   const t = now();
   res.json({
     users: db.prepare('SELECT COUNT(*) n FROM users').get().n,
     members: db.prepare('SELECT COUNT(*) n FROM memberships WHERE until > ?').get(t).n,
-    revenue: db.prepare("SELECT COALESCE(SUM(amount),0) n FROM payments WHERE status = '결제완료'").get().n,
+    revenue: db.prepare("SELECT COALESCE(SUM(amount),0) n FROM (SELECT amount, status FROM payments UNION ALL SELECT amount, status FROM payment_records) WHERE status = '결제완료'").get().n,
     reviews: db.prepare('SELECT COUNT(*) n FROM reviews').get().n,
     server: { node: process.version, uptimeMin: Math.round(process.uptime() / 60), load: os.loadavg()[0].toFixed(2), freeMemMB: Math.round(os.freemem() / 1048576), dbSizeKB: Math.round(fs.statSync(dbFile).size / 1024) },
     setup: { mail: mailReady, providers: enabledProviders(), payments: paymentMode(), publicUrl: config.publicUrl, tts: ttsStats() },
@@ -317,7 +321,7 @@ app.get('/api/admin/stats', (req, res) => {
 });
 app.get('/api/admin/export', (req, res) => {
   const dump = {};
-  for (const t of ['users', 'identities', 'memberships', 'payments', 'coupons', 'notifications', 'reviews', 'kv']) dump[t] = db.prepare(`SELECT * FROM ${t}`).all();
+  for (const t of ['users', 'identities', 'memberships', 'payments', 'payment_records', 'coupons', 'notifications', 'reviews', 'kv']) dump[t] = db.prepare(`SELECT * FROM ${t}`).all();
   dump.memberships.forEach(m => { m.billing_key = m.billing_key ? '(숨김)' : null; });
   res.attachment(`sprout-english-export-${new Date().toISOString().slice(0, 10)}.json`).json(dump);
 });

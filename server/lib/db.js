@@ -36,6 +36,9 @@ const MIGRATIONS = [
    CREATE TABLE reviews (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id) ON DELETE SET NULL, rating INTEGER NOT NULL,
      name TEXT NOT NULL, text TEXT NOT NULL, date TEXT NOT NULL, created_at INTEGER NOT NULL);
    CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);`,
+  // 탈퇴 회원의 결제 기록: 계정과 떼어 5년 보관 (전자상거래법)
+  `CREATE TABLE payment_records (id TEXT PRIMARY KEY, email TEXT, customer_key TEXT, order_id TEXT, at INTEGER NOT NULL, amount INTEGER NOT NULL,
+     description TEXT NOT NULL, months INTEGER, coupon_label TEXT, status TEXT NOT NULL, payment_key TEXT, method TEXT, left_at INTEGER NOT NULL);`,
 ];
 
 db.exec('CREATE TABLE IF NOT EXISTS schema_version (v INTEGER NOT NULL)');

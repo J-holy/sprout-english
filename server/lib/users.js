@@ -21,6 +21,17 @@ export function createUser({ email, parentName, provider, providerUid, marketing
   });
 }
 
+// 탈퇴: 계정과 학습 기록은 바로 지우고, 끝난 결제의 기록만 계정과 떼어 남긴다
+export function deleteUser(uid) {
+  tx(() => {
+    const u = getUser(uid); if (!u) return;
+    db.prepare(`INSERT INTO payment_records (id, email, customer_key, order_id, at, amount, description, months, coupon_label, status, payment_key, method, left_at)
+      SELECT id, ?, ?, order_id, at, amount, description, months, coupon_label, status, payment_key, method, ? FROM payments WHERE user_id = ? AND status IN ('결제완료', '환불완료')`)
+      .run(u.email, u.customer_key, now(), uid);
+    db.prepare('DELETE FROM users WHERE id = ?').run(uid);
+  });
+}
+
 export function linkIdentity(uid, provider, providerUid) {
   db.prepare('INSERT OR IGNORE INTO identities (provider, provider_uid, user_id, created_at) VALUES (?, ?, ?, ?)').run(provider, providerUid, uid, now());
 }

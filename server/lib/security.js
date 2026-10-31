@@ -65,6 +65,7 @@ export const requireAdmin = (req, res, next) => isAdmin(req.user) ? next() : res
 export function cleanupSessions() {
   db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(now());
   db.prepare('DELETE FROM login_codes WHERE expires_at < ?').run(now() - DAY);
+  db.prepare('DELETE FROM payment_records WHERE at < ?').run(now() - 1830 * DAY); // 탈퇴 회원의 결제 기록은 5년 보관 후 지운다
 }
 
 // ---------- CSRF: 상태를 바꾸는 API는 사용자 정의 헤더가 있어야 한다 (다른 사이트 폼/스크립트 차단) ----------
@@ -92,7 +93,7 @@ export function securityHeaders(req, res, next) {
     'Permissions-Policy': 'camera=(), geolocation=(), microphone=(self)',
     'Content-Security-Policy': [
       "default-src 'self'", "script-src 'self' https://js.tosspayments.com", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data:", "connect-src 'self' https://*.tosspayments.com",
+      "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data:", "media-src 'self' data: blob:", "connect-src 'self' https://*.tosspayments.com",
       "frame-src https://*.tosspayments.com", "form-action 'self' https://*.tosspayments.com", "base-uri 'self'", "object-src 'none'",
     ].join('; '),
   });

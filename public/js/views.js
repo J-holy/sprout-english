@@ -1775,7 +1775,7 @@ const ParentTabs = {
       const file = e.target.files[0]; if (!file) return;
       try { Store.importData(await file.text()); App.toast('불러오기 완료!'); App.refreshHeader(); App.route(); } catch (x) { App.toast(x.message); }
     };
-    $('[data-leave]', el).onclick = async () => { if (prompt('탈퇴하면 모든 학습 기록이 삭제돼요. 계속하려면 "탈퇴"를 입력하세요.') === '탈퇴') { try { await Store.deleteAccount(); } catch (x) { return App.toast(x.message); } App.refreshHeader(); location.hash = '#/'; App.toast('탈퇴했어요. 그동안 고마웠어요.'); } };
+    $('[data-leave]', el).onclick = async () => { if (prompt('탈퇴하면 모든 학습 기록이 삭제돼요. 결제 기록은 법에 따라 5년 동안 따로 보관돼요. 계속하려면 "탈퇴"를 입력하세요.') === '탈퇴') { try { await Store.deleteAccount(); } catch (x) { return App.toast(x.message); } App.refreshHeader(); location.hash = '#/'; App.toast('탈퇴했어요. 그동안 고마웠어요.'); } };
   },
 };
 

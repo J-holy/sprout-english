@@ -203,13 +203,20 @@ const App = (() => {
   }
 
   async function init() {
+    // 회선이 느려 오래 걸리면 빈 화면 대신 안내를 보여준다
+    const root = document.getElementById('app');
+    const slowNote = setTimeout(() => { root.innerHTML = '<div class="empty"><div class="empty-ico">🌱</div><p>서버에 연결하는 중이에요…</p></div>'; }, 2500);
     await Store.init();
-    // AI 음성: 서버에 TTS 키가 있으면 /api/tts, 없으면 미리 만든 audio/manifest.json (있을 때만)
-    let manifest = null;
-    if (!(API.on && API.cfg.tts)) {
-      // 늘 새로 확인한다: 음성을 새로 올린 뒤 브라우저에 남은 옛 목록으로 없는 파일을 찾지 않게
-      try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
+    if (API.down) {
+      clearTimeout(slowNote);
+      root.innerHTML = '<div class="empty"><div class="empty-ico">🌱</div><p>지금 서버에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.</p><button class="btn btn-primary" data-retry>다시 연결하기</button></div>';
+      root.querySelector('[data-retry]').onclick = () => location.reload();
+      return;
     }
+    // AI 음성: 미리 만든 audio/manifest.json을 먼저 쓰고, 없는 문장은 서버에 TTS 키가 있을 때 /api/tts로 만든다
+    let manifest = null;
+    // 늘 새로 확인한다: 음성을 새로 올린 뒤 브라우저에 남은 옛 목록으로 없는 파일을 찾지 않게
+    try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
     Speech.configure({ server: API.on && !!API.cfg.tts, manifest, stt: API.on && !!API.cfg.stt });
     // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만). 첫 화면이 이모지로 그려지지 않게 받고 나서 시작한다
     try { const r = await fetch('img/manifest.json', { cache: 'no-cache' }); if (r.ok) setPics(await r.json()); } catch (e) { /* 없음 */ }
@@ -229,6 +236,7 @@ const App = (() => {
     const qs = new URLSearchParams((location.hash.split('?')[1]) || '');
     if (qs.get('paid')) { toast('결제가 완료되었어요! 💎'); Lesson.confetti(); }
     if (qs.get('welcome')) toast('다시 만나서 반가워요! 👋');
+    clearTimeout(slowNote);
     route();
     Store.checkReminder();
     setInterval(() => Store.checkReminder(), 60000);

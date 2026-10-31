@@ -171,23 +171,20 @@ sudo chown sprout:sprout /opt/sprout-english/server/secrets/AuthKey.p8 && sudo c
 
 ### 4-4. AI 음성 — 자연스러운 낭독 (선택, 강력 추천)
 
-키가 없으면 기기에 있는 목소리로 읽어줘요. 키를 넣으면 사람처럼 자연스러운 AI 음성으로 바뀌어요. 문장마다 한 번만 만들어 `data/tts`에 저장하고 다시 쓰니 비용이 거의 들지 않아요.
+모든 학습 문장(4,313개)의 AI 음성은 `public/audio/`에 파일로 들어 있어서 **키가 없어도 바로 재생돼요.** 화면은 이 파일을 먼저 쓰고, 파일에 없는 문장만 서버에 요청해요.
+
+키를 넣으면 파일에 없는 문장도 AI 음성으로 읽어요. 문장마다 한 번만 만들어 `data/tts`에 저장하고, 새로 만드는 요청은 로그인한 사용자만 사용자당 시간당 120회, 전체 시간당 300회로 제한돼요. 키가 없거나 제한을 넘으면 그 문장은 기기 목소리로 읽어요. **키를 넣기 전에 Google Cloud에 예산 알림을 걸어 두세요.**
 
 | 공급자 | 준비 | .env |
 |---|---|---|
-| OpenAI (추천) | platform.openai.com › API keys에서 키 발급 (결제 수단 등록 필요) | `OPENAI_API_KEY`, 목소리 `OPENAI_TTS_VOICE=nova` (밝은 여성) |
-| Google Cloud | 프로젝트 › Text-to-Speech API 사용 설정 › API 키 발급 (월 100만 자 무료) | `GOOGLE_TTS_API_KEY`, 목소리 `GOOGLE_TTS_VOICE=en-US-Neural2-F` |
+| Google Cloud (추천) | 프로젝트 › Text-to-Speech API 사용 설정 › API 키 발급 | `GOOGLE_TTS_API_KEY`, 목소리 `GOOGLE_TTS_VOICE=en-US-Studio-O` (`public/audio`와 같은 목소리) |
+| OpenAI | platform.openai.com › API keys에서 키 발급 (결제 수단 등록 필요) | `OPENAI_API_KEY`, 목소리 `OPENAI_TTS_VOICE=nova` (`public/audio`와 목소리가 달라 섞여 들려요) |
 
-키를 넣고 재시작한 뒤, 모든 학습 문장(약 1,200개)을 미리 만들어 두면 처음 듣는 문장도 바로 재생돼요.
-```bash
-sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts -- --dry'   # 문장 수 확인
-sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts'           # 만들기 (수 분)
-```
 - 관리자 콘솔 › 시스템에 **AI 음성 ✅**와 저장된 음성 개수가 보여요.
 - 부모님은 부모페이지 › 설정 › **읽어주는 목소리**에서 AI 음성과 기기 목소리 중 고를 수 있어요.
-- **GitHub Pages(서버 없는 데모)** 에도 AI 음성을 넣으려면 PC에서 다음 명령으로 `public/audio/`에 파일을 만들어 같이 올려요(약 10~20MB).
+- 학습 문장을 고친 뒤에는 PC에서 다음 명령으로 바뀐 문장의 파일만 다시 만들어 같이 올려요.
   ```bash
-  cd server && OPENAI_API_KEY=키 npm run pregen-tts -- --static ../public/audio
+  cd server && npm run pregen-tts -- --static ../public/audio
   ```
 
 ### 4-4-1. 말하기 채점 음성 인식 — 아이패드·아이폰 Chrome용 (선택, 추천)
@@ -195,9 +192,10 @@ sudo -u sprout bash -c 'cd /opt/sprout-english/server && npm run pregen-tts'    
 말하기 점수는 보통 브라우저의 음성 인식으로 매겨요. 그런데 **아이폰·아이패드의 Chrome·네이버·카카오 브라우저**는 애플 정책 때문에 음성 인식이 막혀 있어요.
 서버에 음성 인식을 켜 두면, 이런 기기에서는 화면이 아이 목소리를 녹음해 서버로 보내 채점해요.
 
-- AI 음성에 쓰는 **Google Cloud 프로젝트**에서 **Cloud Speech-to-Text API**를 "사용 설정"만 하면 돼요. 같은 키(`GOOGLE_TTS_API_KEY`)를 그대로 써요.
+- **Google Cloud 프로젝트**에서 **Cloud Speech-to-Text API**를 "사용 설정"하고 키를 `.env`의 `GOOGLE_STT_API_KEY`에 넣어요. `GOOGLE_TTS_API_KEY`가 있으면 그 키를 그대로 써도 돼요.
   - 매달 60분 무료, 그 뒤로 1분에 약 0.016달러(문장 하나가 2~3초라 1,000번 말해도 약 1달러)
-  - 다른 키를 쓰려면 `.env`에 `GOOGLE_STT_API_KEY=키`, 끄려면 `STT_PROVIDER=off`
+  - 끄려면 `STT_PROVIDER=off`
+  - 녹음이 Google로 전송되므로 `public/privacy.html`의 국외 이전 항목을 빠짐없이 채워 두세요.
 - OpenAI 키만 있으면 OpenAI 음성 인식을 써요.
 - 로그인한 사용자만, 시간당 400번까지 쓸 수 있어요.
 - 서버가 없는 GitHub Pages 데모에서는 채점 대신 **녹음해서 내 목소리와 원어민 소리를 비교해 듣기**로 바뀌어요.
@@ -293,7 +291,8 @@ sudo systemctl start sprout-english
 
 | 영역 | 동작 |
 |---|---|
-| AI 음성 | 문장마다 한 번 생성해 디스크에 저장, 새로 만드는 요청만 IP당 시간당 300회로 제한, 영어 문장만 허용 |
+| AI 음성 | `public/audio` 파일을 먼저 사용. 없는 문장만 한 번 생성해 디스크에 저장, 새로 만드는 요청은 로그인한 사용자만 사용자당 시간당 120회·전체 시간당 300회, 영어 문장만 허용 |
+| 탈퇴 | 계정·학습 기록은 즉시 삭제, 끝난 결제 기록만 `payment_records`에 계정과 떼어 5년 보관 후 삭제 |
 | 음성 인식(STT) | 로그인한 사용자만, 사용자당 시간당 400회, 16kHz WAV 15초 이하만 받음, 녹음은 저장하지 않음 |
 | 로그인 | 비밀번호 없음. 이메일 6자리 코드(3분 유효, 5회 제한, 30초 재전송 제한) 또는 SNS(OAuth) |
 | 세션 | 60일, HttpOnly·Secure 쿠키. DB에는 해시만 저장 |

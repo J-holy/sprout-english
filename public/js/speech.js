@@ -30,9 +30,10 @@ const Speech = (() => {
   let audio = null, timers = [];
   const useNeural = () => (neural.server || neural.manifest) && chosen !== 'browser' && !(chosen && chosen !== 'neural' && voice && voice.voiceURI === chosen);
   function audioUrl(text, slow) {
-    if (neural.server) return `api/tts?text=${encodeURIComponent(text)}${slow ? '&slow=1' : ''}`;
+    // 미리 만들어 검증한 파일을 먼저 쓰고, 없는 문장만 서버에 요청한다
     const f = neural.manifest && neural.manifest[text.trim()];
-    return f ? `audio/${f}` : null;
+    if (f) return `audio/${f}`;
+    return neural.server ? `api/tts?text=${encodeURIComponent(text)}${slow ? '&slow=1' : ''}` : null;
   }
   // ---------- iPhone·iPad 소리 잠금 풀기 ----------
   // iOS(아이패드 Chrome 포함)는 손가락으로 누른 순간에만 새 소리를 켤 수 있어서, 자동 넘김처럼 시간이 지나 재생하면 막혔다.
@@ -78,7 +79,7 @@ const Speech = (() => {
     a.src = url;
     a.volume = vol.voice;
     // 서버는 천천히 버전을 따로 만들고, 미리 만든 파일은 재생 속도로 늦춘다
-    a.defaultPlaybackRate = a.playbackRate = slow ? (neural.server ? 1 : 0.75) : rate / 0.85;
+    a.defaultPlaybackRate = a.playbackRate = slow ? (url.startsWith('api/') ? 1 : 0.75) : rate / 0.85;
     let ended = false, guard = 0;
     const alive = () => id === playId && !ended;
     const stopHere = () => { ended = true; clearTimeout(tickTimer); clearTimeout(guard); if (audio === a) audio = null; };
