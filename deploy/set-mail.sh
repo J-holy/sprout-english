@@ -19,8 +19,16 @@ read -rp "보내는 메일 주소: " ADDR
 read -rsp "앱 비밀번호 (입력해도 화면에 안 보여요): " PASS; echo
 read -rp "시험 메일을 받을 주소: " TO
 [[ -n "$HOST" && -n "$PORT" && -n "$ADDR" && -n "$PASS" && -n "$TO" ]] || { echo "빈칸이 있어요. 처음부터 다시 실행해 주세요."; exit 1; }
-# Gmail은 앱 비밀번호를 네 글자씩 띄워서 보여 준다
-[[ "$KIND" == 1 ]] && PASS="${PASS// /}"
+if [[ "$KIND" == 1 ]]; then
+  [[ "$ADDR" == *@* ]] || ADDR="$ADDR@gmail.com"
+  # Gmail은 앱 비밀번호를 네 글자씩 띄워서 보여 주고, 복사하면 특수한 공백이 섞이기도 한다
+  PASS="${PASS//[^a-zA-Z0-9]/}"
+  if [[ ${#PASS} -ne 16 ]]; then
+    echo "앱 비밀번호는 16자리인데 ${#PASS}자리가 입력됐어요. 일반 로그인 비밀번호가 아닌지 확인하고 다시 실행해 주세요."
+    exit 1
+  fi
+fi
+echo "보내는 주소: $ADDR"
 
 SMTP_HOST="$HOST" SMTP_PORT="$PORT" SMTP_USER="$ADDR" SMTP_PASS="$PASS" MAIL_FROM="새싹영어 <$ADDR>" ENV_FILE="$ENV_FILE" node -e '
 const fs = require("fs"), f = process.env.ENV_FILE;
