@@ -220,7 +220,8 @@ const App = (() => {
     Speech.configure({ server: API.on && !!API.cfg.tts, manifest, stt: API.on && !!API.cfg.stt });
     // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만). 첫 화면이 이모지로 그려지지 않게 받고 나서 시작한다
     try { const r = await fetch('img/manifest.json', { cache: 'no-cache' }); if (r.ok) setPics(await r.json()); } catch (e) { /* 없음 */ }
-    if (Speech.env.inApp || Speech.env.iosNotSafari) inAppBanner();
+    // 서버 음성 인식이 켜져 있으면 아이패드·아이폰의 Chrome에서도 말하기가 되니 Safari로 보내지 않는다
+    if (Speech.env.inApp || !Speech.canListen && Speech.env.iosNotSafari) inAppBanner();
     // 서버 없이(예: GitHub Pages) 열렸을 때는 데모라는 걸 알려준다
     const banner = document.getElementById('demoBanner');
     let closed = false; try { closed = sessionStorage.getItem('sprout-demo-closed') === '1'; } catch (e) { /* ignore */ }

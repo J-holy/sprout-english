@@ -217,6 +217,7 @@ const Speech = (() => {
   }
   const stopRecording = () => recording && recording.stop();
   async function listenServer(hint) {
+    if (!Store.user()) throw new Error('login'); // 서버 채점은 로그인한 사용자만 된다. 녹음부터 시키지 않는다
     let wav;
     try { wav = await record(); } catch (e) { throw new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'); }
     if (!wav) throw new Error('no-speech');
@@ -282,7 +283,7 @@ const Speech = (() => {
   }
   // 음성 인식 오류 코드 → 아이·부모님이 할 일
   function micHelp(code) {
-    const permIOS = '설정 › Safari › 마이크를 "허용"으로 바꾸고, 설정 › 일반 › 키보드 › "받아쓰기"를 켜 주세요.';
+    const permIOS = env.iosNotSafari ? '설정 앱 › Chrome › 마이크를 켠 뒤 새로고침해 주세요.' : '설정 › Safari › 마이크를 "허용"으로 바꾸고, 설정 › 일반 › 키보드 › "받아쓰기"를 켜 주세요.';
     const permAndroid = '주소창 왼쪽 자물쇠(ⓘ) › 권한 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     const permPC = '주소창 왼쪽 자물쇠 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     // iPhone의 Chrome·네이버 앱 등은 권한을 줘도 음성 인식이 막혀 있다

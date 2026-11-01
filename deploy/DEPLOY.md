@@ -196,7 +196,7 @@ sudo chown sprout:sprout /opt/sprout-english/server/secrets/AuthKey.p8 && sudo c
 말하기 점수는 보통 브라우저의 음성 인식으로 매겨요. 그런데 **아이폰·아이패드의 Chrome·네이버·카카오 브라우저**는 애플 정책 때문에 음성 인식이 막혀 있어요.
 서버에 음성 인식을 켜 두면, 이런 기기에서는 화면이 아이 목소리를 녹음해 서버로 보내 채점해요.
 
-- **Google Cloud 프로젝트**에서 **Cloud Speech-to-Text API**를 "사용 설정"하고 키를 `.env`의 `GOOGLE_STT_API_KEY`에 넣어요. `GOOGLE_TTS_API_KEY`가 있으면 그 키를 그대로 써도 돼요.
+- **Google Cloud 프로젝트**에서 **Cloud Speech-to-Text API**를 "사용 설정"한 뒤 `sudo bash deploy/set-stt.sh`로 키를 넣어요. 키를 시험하고 서버를 다시 시작해요. `GOOGLE_TTS_API_KEY`가 있으면 그 키를 그대로 써도 돼요.
   - 매달 60분 무료, 그 뒤로 1분에 약 0.016달러(문장 하나가 2~3초라 1,000번 말해도 약 1달러)
   - 끄려면 `STT_PROVIDER=off`
   - 녹음이 Google로 전송되므로 `public/privacy.html`의 국외 이전 항목을 빠짐없이 채워 두세요.
