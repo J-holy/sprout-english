@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><title>새싹영어</title>
-  <!-- 새싹이 돋아난 영어 글자 A: 사이트의 스티커 그림처럼 굵은 테두리 -->
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M32 28 L17.5 56 M32 28 L46.5 56 M23 45.5 H41" stroke="#3f2d46" stroke-width="13"/>
-    <path d="M32 28 L17.5 56 M32 28 L46.5 56 M23 45.5 H41" stroke="#ffd23f" stroke-width="8"/>
-    <path d="M32 29 V15" stroke="#3f2d46" stroke-width="7"/>
-    <path d="M32 29 V15" stroke="#58c472" stroke-width="3"/>
-  </g>
-  <path d="M32 17 C27 5 15 3 6 7 C8 18 21 24 32 17 Z" fill="#8be36b" stroke="#3f2d46" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M32 17 C37 6 49 4 58 8 C56 19 43 24 32 17 Z" fill="#58c472" stroke="#3f2d46" stroke-width="2.8" stroke-linejoin="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><title>새싹영어</title><defs><linearGradient id="l1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6cc63f"/><stop offset="1" stop-color="#2f9e3f"/></linearGradient><linearGradient id="l2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3bb055"/><stop offset="1" stop-color="#178045"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="#9fdcff"/><path d="M32 42 V27" stroke="#1f8a45" stroke-width="4.500" stroke-linecap="round"/><path d="M32 29 C31 17 20 11 10 14 C9 25 20 34 32 29 Z" fill="url(#l1)"/><path d="M32 29 C33 17 44 11 54 14 C55 25 44 34 32 29 Z" fill="url(#l2)"/><path d="M12 56 C12 46 21 40 32 40 C43 40 52 46 52 56 C52 58 50 59 48 59 H16 C14 59 12 58 12 56 Z" fill="#c98a5a"/><circle cx="25" cy="49" r="2.200" fill="#4a2f1e"/><circle cx="39" cy="49" r="2.200" fill="#4a2f1e"/><path d="M28 52 Q32 55.500 36 52" fill="none" stroke="#4a2f1e" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="53" r="2.400" fill="#f0a58a" opacity=".8"/><circle cx="44" cy="53" r="2.400" fill="#f0a58a" opacity=".8"/></svg>
