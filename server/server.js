@@ -104,7 +104,7 @@ app.delete('/api/me', requireUser, (req, res) => {
 app.post('/api/auth/email/send', wrap(async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   if (!validEmail(email)) return bad(res, '이메일 주소를 다시 확인해 주세요.');
-  if (!rateLimit('send-ip:' + clientIp(req), 10, 600000) || !rateLimit('send-mail:' + email, 5, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  if (!rateLimit('send-ip:' + clientIp(req), 10, 600000) || !rateLimit('send-mail:' + email, 5, 3600000) || !rateLimit('send-all', 300, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
   const prev = db.prepare('SELECT * FROM login_codes WHERE email = ?').get(email);
   const wait = prev ? config.code.resendSec * 1000 - (now() - prev.sent_at) : 0;
   if (wait > 0) return bad(res, `${Math.ceil(wait / 1000)}초 후에 다시 보낼 수 있어요.`, 429);

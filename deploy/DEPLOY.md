@@ -122,6 +122,8 @@ sudo systemctl restart sprout-english      # 저장한 뒤 반드시 재시작
 
 이메일 가입·로그인에 꼭 필요해요. 설정하지 않으면 이메일 인증이 동작하지 않아요(운영 모드).
 
+`sudo bash deploy/set-mail.sh`를 실행하면 비밀번호를 화면에 보이지 않고 `.env`에 넣은 뒤, 시험 메일을 보내고 서버를 다시 시작해요. 보내는 주소는 고객에게 그대로 보이니 개인 메일 대신 서비스 전용 주소를 쓰세요.
+
 | 메일 | 설정 |
 |---|---|
 | 네이버 | 네이버 메일 › 환경설정 › POP3/SMTP 사용. `SMTP_HOST=smtp.naver.com`, `SMTP_PORT=465`, `SMTP_USER=아이디@naver.com`, `SMTP_PASS=비밀번호` (2단계 인증이면 애플리케이션 비밀번호) |
