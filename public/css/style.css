@@ -1096,6 +1096,8 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .fish b { flex: none; font-family: var(--en); font-size: 1.25rem; font-weight: 700; color: #fff; background: #3f2d46; border: 2px solid #fff; border-radius: 50%; width: 1.7em; height: 1.7em; display: grid; place-items: center; }
 @keyframes fish-tug { from { transform: translateY(-50%) rotate(-9deg); } to { transform: translateY(-50%) rotate(9deg); } }
 @keyframes fish-tug-r { from { transform: translateY(-50%) rotate(9deg); } to { transform: translateY(-50%) rotate(-9deg); } }
+.fish.turned .fish-tow b { animation: fish-swing .28s ease-out; }
+@keyframes fish-swing { from { transform: scale(.4); opacity: .2; } }
 .fish.gold .fish-body { filter: drop-shadow(0 0 8px #ffd23f) drop-shadow(0 0 3px #ffd23f); }
 .fish.nope b { background: #e8455a; } .fish.nope { opacity: .55; }
 .fish.shark { width: 72px; } .fish.shark .fish-body { width: 72px; font-size: 3.6rem; }

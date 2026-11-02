@@ -471,15 +471,22 @@ const PLAY_RUN = {
       const swimmers = letters.map(l => ({ l })).concat(Array.from({ length: s.shark }, () => ({ shark: true })));
       const W = pond.clientWidth, top = $('.fish-q', k.board).offsetHeight + 34, gap = (pond.clientHeight - top - 60) / Math.max(1, swimmers.length - 1);
       shuffle(swimmers).forEach((sw, i) => {
-        const b = document.createElement('button'), dir = i % 2 ? -1 : 1, gold = !sw.shark && Math.random() < 0.22;
+        const b = document.createElement('button'), dir = Math.random() < 0.5 ? 1 : -1, gold = !sw.shark && Math.random() < 0.22;
         const body = sw.shark ? '🦈' : gold ? '🐠' : ['🐟', '🐠', '🐡'][i % 3];
         b.className = `fish ${sw.shark ? 'shark' : ''} ${gold ? 'gold' : ''}`; b.setAttribute('aria-label', sw.shark ? '상어' : `글자 ${sw.l}`);
         b.innerHTML = `<span class="fish-body">${body}</span>${sw.shark ? '' : `<span class="fish-tow"><i></i><b>${sw.l}</b></span>`}`;
         pond.appendChild(b);
-        const f = { el: b, l: sw.l, shark: sw.shark, gold, dir, y: top + i * gap, x: Math.random() * W, v: s.speed * (sw.shark ? 1.5 : gold ? 1.25 : 0.8 + Math.random() * 0.4) * (k.reduced ? 0.6 : 1) };
+        // 양쪽 가장자리에서 안쪽을 보고 시작해, 가운데쯤 모인 뒤부터 제멋대로 돌아선다
+        const half = b.offsetWidth / 2, base = s.speed * (sw.shark ? 1.5 : gold ? 1.25 : 1) * (k.reduced ? 0.6 : 1), inset = half + Math.random() * W * 0.06, reach = W * (0.35 + Math.random() * 0.25);
+        const f = { el: b, l: sw.l, shark: sw.shark, gold, dir, y: top + i * gap, x: dir > 0 ? inset : W - inset, goal: dir > 0 ? reach : W - reach, wait: null, half, swing: sw.shark ? 0 : half, base, v: base * (0.8 + Math.random() * 0.4) };
         fishes.push(f); k.tap(b, () => onFish(f));
       });
       lock = false;
+    };
+    // 몸통은 그 자리에 두고 돌아선다 (끌던 글자만 반대쪽 꼬리로 옮겨 간다)
+    const turn = f => {
+      f.x += f.dir * f.swing; f.dir *= -1;
+      f.el.classList.remove('turned'); void f.el.offsetWidth; f.el.classList.add('turned');
     };
     const drawWord = () => {
       const w = cur.w.en, parts = w.split('').map((c, i) => {
@@ -515,7 +522,7 @@ const PLAY_RUN = {
     };
     function onFish(f) {
       if (lock || f.flee || !fishes.includes(f)) return;
-      if (f.shark) { k.float('앗, 상어!', f.el, 'oops'); f.dir *= -1; return wrongFish(); }
+      if (f.shark) { k.float('앗, 상어!', f.el, 'oops'); turn(f); return wrongFish(); }
       if (f.l === cur.w.en[cur.blanks[cur.at]]) {
         lock = true; caughtN++; cur.at++; drawWord();
         k.hit(15, f.el, f.gold ? 2 : 1); GameFx.pop();
@@ -524,7 +531,7 @@ const PLAY_RUN = {
         return;
       }
       k.float('그 글자가 아니에요', f.el, 'oops'); k.meet(cur.w, true);
-      f.flee = true; f.dir *= -1; f.v = Math.max(f.v, 60) * 2.4; f.el.classList.add('nope');
+      f.flee = true; turn(f); f.v = Math.max(f.v, 60) * 2.4; f.el.classList.add('nope');
       wrongFish();
     }
     function wrongFish() {
@@ -539,7 +546,13 @@ const PLAY_RUN = {
         if (reel && reel.f === f) continue;
         f.x += f.dir * f.v * dt;
         if (f.flee && (f.x > W + 66 || f.x < -66)) { f.el.remove(); fishes = fishes.filter(x => x !== f); continue; }
-        if (f.x > W + 70) f.x = -70; else if (f.x < -70) f.x = W + 70;
+        if (!f.flee) {
+          if (f.wait === null && (f.dir > 0 ? f.x >= f.goal : f.x <= f.goal)) f.wait = 1.5 + Math.random() * 2.5;
+          if (f.wait !== null) f.wait -= dt;
+          // 벽에 닿기 전에 돌아서서 글자가 늘 화면 안에 있게 한다
+          const atWall = f.dir > 0 ? f.x >= W - f.half - f.swing : f.x <= f.half + f.swing;
+          if (atWall || (f.wait !== null && f.wait <= 0)) { turn(f); f.wait = 1.5 + Math.random() * 2.5; f.v = f.base * (0.8 + Math.random() * 0.4); }
+        }
         const wob = k.reduced ? 0 : Math.sin(now / 500 + f.y) * 5;
         f.el.style.transform = `translate(calc(${f.x.toFixed(1)}px - 50%), ${(f.y + wob).toFixed(1)}px)`;
         f.el.classList.toggle('swim-r', f.dir > 0); // 오른쪽으로 갈 때는 몸을 뒤집고 글자를 왼쪽에 끈다
