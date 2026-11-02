@@ -11,7 +11,7 @@ const PLAY_GAMES = {
   frog: { title: '개구리 징검다리', icon: '🐸', c: '#3fae6a', hub: '악어가 오기 전에 글자 연잎을 밟아 단어를 만들어요', medals: [40, 200, 450],
     how: ['단어를 듣고 글자 연잎을 차례로 콕!', '🐊 악어가 오기 전에 단어를 끝내요', '🐞 무당벌레를 잡으면 악어가 뒤로 가요'] },
   fish: { title: '빈칸 낚시', icon: '🐟', c: '#2f9fd8', hub: '빠진 글자를 가진 물고기를 낚아 올려요', medals: [50, 220, 520],
-    how: ['빠진 글자가 적힌 물고기를 콕!', '틀리거나 🦈 상어를 누르면 🪱 미끼가 줄어요', '반짝이는 금빛 물고기는 점수가 2배예요'] },
+    how: ['빠진 글자를 끌고 가는 물고기를 콕!', '틀리거나 🦈 상어를 누르면 🪱 미끼가 줄어요', '반짝이는 금빛 물고기는 점수가 2배예요'] },
   ox: { title: 'OX 스피드', icon: '⏱️', c: '#ff9f43', hub: '그림과 단어가 맞는지 빨리 골라요. 불꽃 타임을 노려요', medals: [60, 200, 450],
     how: ['그림과 단어가 맞으면 O, 다르면 X!', '맞히면 시간이 늘고, 틀리면 줄어요', '5번 연속 맞히면 🔥 불꽃 타임! 점수가 2배예요'] },
   basket: { title: '첫소리 바구니', icon: '🧺', c: '#c06ad8', hub: '떨어지는 그림의 첫소리 바구니를 빨리 눌러요', medals: [40, 200, 450],
@@ -474,7 +474,7 @@ const PLAY_RUN = {
         const b = document.createElement('button'), dir = i % 2 ? -1 : 1, gold = !sw.shark && Math.random() < 0.22;
         const body = sw.shark ? '🦈' : gold ? '🐠' : ['🐟', '🐠', '🐡'][i % 3];
         b.className = `fish ${sw.shark ? 'shark' : ''} ${gold ? 'gold' : ''}`; b.setAttribute('aria-label', sw.shark ? '상어' : `글자 ${sw.l}`);
-        b.innerHTML = `<span class="fish-body">${body}</span>${sw.shark ? '' : `<b>${sw.l}</b>`}`;
+        b.innerHTML = `<span class="fish-body">${body}</span>${sw.shark ? '' : `<span class="fish-tow"><i></i><b>${sw.l}</b></span>`}`;
         pond.appendChild(b);
         const f = { el: b, l: sw.l, shark: sw.shark, gold, dir, y: top + i * gap, x: Math.random() * W, v: s.speed * (sw.shark ? 1.5 : gold ? 1.25 : 0.8 + Math.random() * 0.4) * (k.reduced ? 0.6 : 1) };
         fishes.push(f); k.tap(b, () => onFish(f));
@@ -519,7 +519,7 @@ const PLAY_RUN = {
       if (f.l === cur.w.en[cur.blanks[cur.at]]) {
         lock = true; caughtN++; cur.at++; drawWord();
         k.hit(15, f.el, f.gold ? 2 : 1); GameFx.pop();
-        const line = $('.fish-line', k.board); line.hidden = false; line.style.left = `${f.x}px`; line.style.height = `${f.y + 20}px`;
+        const line = $('.fish-line', k.board); line.hidden = false; line.style.left = `${f.x + f.el.offsetWidth * 0.25 * f.dir}px`; line.style.height = `${f.y + 20}px`;
         reel = { f, line };
         return;
       }
@@ -538,11 +538,11 @@ const PLAY_RUN = {
       for (const f of [...fishes]) {
         if (reel && reel.f === f) continue;
         f.x += f.dir * f.v * dt;
-        if (f.flee && (f.x > W + 45 || f.x < -45)) { f.el.remove(); fishes = fishes.filter(x => x !== f); continue; }
-        if (f.x > W + 50) f.x = -50; else if (f.x < -50) f.x = W + 50;
+        if (f.flee && (f.x > W + 66 || f.x < -66)) { f.el.remove(); fishes = fishes.filter(x => x !== f); continue; }
+        if (f.x > W + 70) f.x = -70; else if (f.x < -70) f.x = W + 70;
         const wob = k.reduced ? 0 : Math.sin(now / 500 + f.y) * 5;
         f.el.style.transform = `translate(calc(${f.x.toFixed(1)}px - 50%), ${(f.y + wob).toFixed(1)}px)`;
-        f.el.firstElementChild.style.transform = f.dir > 0 ? 'scaleX(-1)' : '';
+        f.el.classList.toggle('swim-r', f.dir > 0); // 오른쪽으로 갈 때는 몸을 뒤집고 글자를 왼쪽에 끈다
       }
       if (treasure) {
         treasure.x += dt * 34;
@@ -552,7 +552,7 @@ const PLAY_RUN = {
       // 낚싯줄로 끌어올린다
       if (reel) {
         const r = reel; r.f.y -= dt * 620;
-        r.f.el.style.transform = `translate(calc(${r.f.x.toFixed(1)}px - 50%), ${r.f.y.toFixed(1)}px) rotate(-70deg)`;
+        r.f.el.style.transform = `translate(calc(${r.f.x.toFixed(1)}px - 50%), ${r.f.y.toFixed(1)}px) rotate(${r.f.dir > 0 ? -70 : 70}deg)`; // 입이 위로, 끌던 글자는 아래로
         r.line.style.height = `${Math.max(0, r.f.y + 20)}px`;
         if (r.f.y < -60) {
           reel = null; r.line.hidden = true; r.f.el.remove(); fishes = fishes.filter(x => x !== r.f);
