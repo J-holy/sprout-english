@@ -5,18 +5,18 @@ set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "sudo로 실행해 주세요."; exit 1; }
 APP=/opt/sprout-english; ENV_FILE="$APP/server/.env"; DEST=/opt/whisper
 SRC="/home/${SUDO_USER:-nextcode}/whisper-test/whisper.cpp"
-BIN="$SRC/build-static/bin/whisper-cli"; MODEL="$SRC/models/ggml-tiny.en.bin"
+BIN="$SRC/build-static/bin/whisper-cli"; MODEL="$SRC/models/ggml-tiny.en-q5_1.bin"
 [[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE 이 없어요. 먼저 install-pi.sh를 실행해 주세요."; exit 1; }
 [[ -x "$BIN" && -s "$MODEL" ]] || { echo "$BIN 또는 $MODEL 이 없어요. deploy/DEPLOY.md의 Whisper 안내를 봐 주세요."; exit 1; }
 
 install -d -m 755 "$DEST"
 install -m 755 "$BIN" "$DEST/whisper-cli"
-install -m 644 "$MODEL" "$DEST/ggml-tiny.en.bin"
+install -m 644 "$MODEL" "$DEST/ggml-tiny.en-q5_1.bin"
 
 ENV_FILE="$ENV_FILE" DEST="$DEST" node -e '
 const fs = require("fs"), f = process.env.ENV_FILE, d = process.env.DEST;
 const lines = fs.readFileSync(f, "utf8").split("\n");
-for (const [k, v] of [["STT_PROVIDER", "whisper"], ["WHISPER_BIN", d + "/whisper-cli"], ["WHISPER_MODEL", d + "/ggml-tiny.en.bin"], ["WHISPER_THREADS", "2"], ["WHISPER_AUDIO_CTX", "512"]]) {
+for (const [k, v] of [["STT_PROVIDER", "whisper"], ["WHISPER_BIN", d + "/whisper-cli"], ["WHISPER_MODEL", d + "/ggml-tiny.en-q5_1.bin"], ["WHISPER_THREADS", "2"], ["WHISPER_AUDIO_CTX", "512"]]) {
   const i = lines.findIndex(l => l.startsWith(k + "="));
   if (i >= 0) lines[i] = k + "=" + v; else lines.push(k + "=" + v);
 }

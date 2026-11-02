@@ -57,6 +57,18 @@ async function openaiSTT(wav, hint) {
   return j.text ? [j.text.trim()] : [];
 }
 
+// 짧은 음성에서 Whisper가 같은 문장을 되풀이해 적을 때가 있어서('I can jump. I can jump. I can') 한 번만 남긴다
+export function dropRepeats(text) {
+  const key = t => t.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+  const kept = [];
+  for (const part of text.split(/(?<=[.?!])\s+/)) {
+    const k = key(part), prev = kept.length ? key(kept[kept.length - 1]) : '';
+    if (!k || (prev && prev.startsWith(k))) continue;
+    kept.push(part);
+  }
+  return kept.join(' ');
+}
+
 // Whisper는 CPU를 많이 써서 한 번에 한 문장씩만 돌린다. 줄이 길면 기다리게 하지 않고 다시 눌러 달라고 한다
 const MAX_WAITING = 6;
 let waiting = 0, last = Promise.resolve();
@@ -74,15 +86,17 @@ async function runWhisper(wav, hint) {
   const file = path.join(dir, crypto.randomUUID() + '.wav');
   fs.writeFileSync(file, wav, { mode: 0o600 });
   try {
-    // -ac 512: 짧은 문장을 30초 길이로 처리하지 않게 해서 3배쯤 빨라진다 (10초까지 인식, 녹음은 최대 8초)
-    const args = ['-n', '10', e.WHISPER_BIN, '-m', e.WHISPER_MODEL, '-f', file, '-l', 'en', '-nt', '-t', e.WHISPER_THREADS || '2', '-ac', e.WHISPER_AUDIO_CTX || '512'];
+    // -ac 512: 짧은 문장을 30초 길이로 처리하지 않게 해서 3배쯤 빨라진다 (10초까지 인식, 녹음은 최대 8초). 더 줄이면 같은 문장을 되풀이하며 오히려 느려진다
+    // -bs 1 -bo 1 -nf: 후보를 하나만 보고 다시 시도하지 않는다. 라즈베리파이 4의 tiny.en-q5_1에서 문장당 평균 약 2초 (2026-11 측정)
+    const args = ['-n', '10', e.WHISPER_BIN, '-m', e.WHISPER_MODEL, '-f', file, '-l', 'en', '-nt', '-t', e.WHISPER_THREADS || '2', '-ac', e.WHISPER_AUDIO_CTX || '512', '-bs', '1', '-bo', '1', '-nf'];
     if (hint) args.push('--prompt', hint);
     const text = await new Promise((resolve, reject) => {
       execFile('nice', args, { timeout: 30000, maxBuffer: 1024 * 1024 }, (err, stdout) => (err ? reject(new Error(`Whisper: ${err.message}`.slice(0, 200))) : resolve(stdout)));
     });
     // [BLANK_AUDIO], (music) 같은 표시는 말한 내용이 아니다
     const heard = text.replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
-    return heard ? [heard] : [];
+    if (!heard) return [];
+    return [hint && dropRepeats(hint) !== hint ? heard : dropRepeats(heard)]; // 읽을 문장 자체가 되풀이되면('Run! Run!') 그대로 둔다
   } finally {
     fs.rmSync(file, { force: true });
   }

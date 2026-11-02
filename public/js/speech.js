@@ -192,7 +192,7 @@ const Speech = (() => {
     }
     return new Blob([b], { type: 'audio/wav' });
   }
-  async function record({ maxMs = 8000, silenceMs = 1300 } = {}) {
+  async function record({ maxMs = 8000, silenceMs = 1000 } = {}) {
     stop();
     // iOS는 손가락으로 누른 그 순간에 만든 AudioContext만 소리를 받는다. 마이크 허용 창을 기다린 뒤에 만들면 멈춘 채로 남아 녹음이 끝나지 않았다
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
