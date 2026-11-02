@@ -14,7 +14,8 @@ const voiceOptions = () => [
 ].join('');
 const dayLabel = d => `Day ${d + 1}${Gen.isReviewDay(d) ? ' · 복습' : ''}`;
 const scoreClass = s => s >= 80 ? 'good' : s >= 60 ? 'mid' : 'low';
-const avatarHtml = (p, cls = '') => `<span class="avatar ${cls}">${p.avatar}${Store.worn(p).map(w => `<i class="acc acc-${w.slot}" aria-hidden="true">${w.emoji}</i>`).join('')}</span>`;
+// 꾸미기는 원이 아니라 캐릭터(ava-body)를 기준으로 놓는다. 효과는 캐릭터 둘레에 세 개를 띄운다
+const avatarHtml = (p, cls = '') => `<span class="avatar ${cls}"><span class="ava-body">${p.avatar}${Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${x}" aria-hidden="true">${w.emoji}</i>`).join('')).join('')}</span></span>`;
 // 놀이터·카드에 쓸 그림 단어 (알파벳 단어 + 파닉스 단어)
 const PICTURE_WORDS = [...LETTERS.flatMap(l => l.words.map(([en, emoji]) => ({ en, emoji }))), ...Object.values(PHONICS).flat().map(([en, emoji]) => ({ en, emoji }))]
   .filter((w, i, a) => a.findIndex(x => x.en === w.en) === i);
@@ -523,7 +524,7 @@ Views.speakWidget = (box, sentences, record = true) => {
       if (!Speech.usesServerStt) mic.disabled = true;
       const res = $('.speak-result', box);
       try {
-        const r = Speech.score(s, await Speech.listen({ hint: s }));
+        const r = Speech.score(s, await Speech.listen({ hint: s, onThinking: () => { mic.disabled = true; mic.textContent = '🤔 점수를 매기는 중…'; } }));
         $$('.speak-target span', box).forEach((sp, j) => { const w = r.words[j]; if (w) sp.className = w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'; });
         const miss = r.words.filter(w => w.ok < 1).map(w => w.w);
         let got = 0;
@@ -1289,7 +1290,7 @@ Views.story = (el, id) => {
       mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
       const res = $('.follow-result', box);
       try {
-        const r = Speech.score(text, await Speech.listen({ hint: text }));
+        const r = Speech.score(text, await Speech.listen({ hint: text, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } }));
         clearHl(); sp.forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
         const got = Store.profile() ? Store.recordSpeaking(text, r.score) : 0;
         res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= Lesson.passMark() ? '잘 읽었어요! 🌟' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;

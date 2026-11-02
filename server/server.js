@@ -69,8 +69,12 @@ app.post('/api/stt', requireUser, express.raw({ type: ['audio/wav', 'application
   if (hint && !validText(hint)) return bad(res, '읽을 수 없는 문장이에요.');
   if (!checkWav(req.body)) return bad(res, '녹음 파일을 읽을 수 없어요.');
   if (!rateLimit('stt:' + req.user.id, 400, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
-  try { res.json({ alts: await recognize(req.body, hint) }); }
-  catch (err) {
+  const t0 = now();
+  try {
+    const alts = await recognize(req.body, hint);
+    console.log(`[STT] ${((now() - t0) / 1000).toFixed(1)}초, ${(req.body.length / 32000).toFixed(1)}초 녹음, ${alts.length ? '인식함' : '인식 못 함'}`); // 들은 내용은 남기지 않는다
+    res.json({ alts });
+  } catch (err) {
     if (err.message === 'busy') return bad(res, '지금 말하기를 하는 친구가 많아요. 잠시 후 다시 해 주세요.', 429);
     console.error('[STT]', err.message); bad(res, '음성을 알아듣지 못했어요.', 502);
   }

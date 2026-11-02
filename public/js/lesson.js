@@ -595,7 +595,7 @@ const Lesson = (() => {
       if (mic) mic.onclick = async () => {
         mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
         try {
-          const alts = await Speech.listen({ hint: q.target });
+          const alts = await Speech.listen({ hint: q.target, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } });
           const r = Speech.score(q.target, alts); tries++;
           const pass = passMark();
           if (R.recordSpeech && Store.profile()) Store.recordSpeaking(q.target, r.score);
