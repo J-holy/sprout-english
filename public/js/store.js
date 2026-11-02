@@ -133,6 +133,17 @@ const Store = (() => {
     codes[email] = { code, sentAt: now, expires: now + CONFIG.CODE_TTL_SEC * 1000, tries: 0, verified: false };
     return { code, expires: codes[email].expires };
   }
+  // 휴대폰 인증 (서버가 있고 발송이 준비되어 있을 때만)
+  const phoneReady = () => API.on && !!API.cfg.phone;
+  async function sendPhoneCode(phone) {
+    const r = await API.req('POST', 'api/auth/phone/send', { phone });
+    return { expires: r.expires, code: r.devCode };
+  }
+  async function verifyPhoneCode(phone, code) {
+    const r = await API.req('POST', 'api/auth/phone/verify', { phone, code: String(code).trim() });
+    if (r.status === 'login') { await loadMe(); return { needSignup: false }; }
+    return { needSignup: true };
+  }
   // → { needSignup }
   async function verifyCode(email, code) {
     email = normEmail(email);
@@ -644,7 +655,7 @@ const Store = (() => {
     p.recent = [...(p.recent || []).filter(k => !keys.includes(k)), ...keys].slice(-120); save();
   }
   return {
-    get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, completeSignup, pendingSignup,
+    get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,

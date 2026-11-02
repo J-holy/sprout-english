@@ -12,6 +12,7 @@ import {
   cleanupSessions, csrf, rateLimit, securityHeaders, clientIp, hashCode,
 } from './lib/security.js';
 import { sendCodeMail, mailReady, verifyMailer } from './lib/mailer.js';
+import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, validPlan, quote } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
@@ -39,6 +40,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), tossClientKey: config.toss.clientKey || null,
   plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
+  phone: smsMode() || (config.devShowCode ? 'dev' : null),
 }));
 
 // ---------- AI 음성 (TTS) ----------
@@ -103,6 +105,28 @@ app.delete('/api/me', requireUser, (req, res) => {
   clearCookie(res, 'sid'); res.json({ ok: true });
 });
 
+// 인증코드 저장·확인 (이메일과 휴대폰이 함께 쓴다). key는 이메일 또는 'phone:번호의 해시'
+const saveCode = (key, code) => {
+  const expires = now() + config.code.ttlSec * 1000;
+  db.prepare(`INSERT INTO login_codes (email, code_hash, sent_at, expires_at, tries) VALUES (?, ?, ?, ?, 0)
+    ON CONFLICT(email) DO UPDATE SET code_hash = excluded.code_hash, sent_at = excluded.sent_at, expires_at = excluded.expires_at, tries = 0`)
+    .run(key, hashCode(key, code), now(), expires);
+  return expires;
+};
+// 틀리면 안내 문구, 맞으면 코드를 지우고 null
+const checkCode = (key, code) => {
+  const row = db.prepare('SELECT * FROM login_codes WHERE email = ?').get(key);
+  if (!row) return '먼저 인증코드를 받아 주세요.';
+  if (now() > row.expires_at) return '인증코드가 만료되었어요. 다시 받아 주세요.';
+  if (row.tries >= config.code.maxTries) return '입력 횟수를 넘었어요. 코드를 다시 받아 주세요.';
+  if (!crypto.timingSafeEqual(Buffer.from(hashCode(key, code)), Buffer.from(row.code_hash))) {
+    db.prepare('UPDATE login_codes SET tries = tries + 1 WHERE email = ?').run(key);
+    return `인증코드가 맞지 않아요. (${config.code.maxTries - row.tries - 1}번 남음)`;
+  }
+  db.prepare('DELETE FROM login_codes WHERE email = ?').run(key);
+  return null;
+};
+
 // ---------- 이메일 인증코드 로그인/가입 ----------
 app.post('/api/auth/email/send', wrap(async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
@@ -113,10 +137,7 @@ app.post('/api/auth/email/send', wrap(async (req, res) => {
   if (wait > 0) return bad(res, `${Math.ceil(wait / 1000)}초 후에 다시 보낼 수 있어요.`, 429);
   if (!mailReady && !config.devShowCode) return bad(res, '메일 발송 설정이 아직 안 되어 있어요. 관리자에게 문의해 주세요.', 503);
   const code = String(crypto.randomInt(100000, 1000000));
-  const expires = now() + config.code.ttlSec * 1000;
-  db.prepare(`INSERT INTO login_codes (email, code_hash, sent_at, expires_at, tries) VALUES (?, ?, ?, ?, 0)
-    ON CONFLICT(email) DO UPDATE SET code_hash = excluded.code_hash, sent_at = excluded.sent_at, expires_at = excluded.expires_at, tries = 0`)
-    .run(email, hashCode(email, code), now(), expires);
+  const expires = saveCode(email, code);
   try { await sendCodeMail(email, code); }
   catch (err) { console.error('[메일] 발송 실패:', err.message); return bad(res, '메일을 보내지 못했어요. 주소를 확인하고 다시 시도해 주세요.', 502); }
   res.json({ ok: true, expires, devCode: !mailReady && config.devShowCode ? code : undefined });
@@ -125,20 +146,49 @@ app.post('/api/auth/email/send', wrap(async (req, res) => {
 app.post('/api/auth/email/verify', (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase(), code = String(req.body?.code || '').trim();
   if (!rateLimit('verify-ip:' + clientIp(req), 30, 600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
-  const row = db.prepare('SELECT * FROM login_codes WHERE email = ?').get(email);
-  if (!row) return bad(res, '먼저 인증코드를 받아 주세요.');
-  if (now() > row.expires_at) return bad(res, '인증코드가 만료되었어요. 다시 받아 주세요.');
-  if (row.tries >= config.code.maxTries) return bad(res, '입력 횟수를 넘었어요. 코드를 다시 받아 주세요.');
-  const ok = crypto.timingSafeEqual(Buffer.from(hashCode(email, code)), Buffer.from(row.code_hash));
-  if (!ok) {
-    db.prepare('UPDATE login_codes SET tries = tries + 1 WHERE email = ?').run(email);
-    return bad(res, `인증코드가 맞지 않아요. (${config.code.maxTries - row.tries - 1}번 남음)`);
-  }
-  db.prepare('DELETE FROM login_codes WHERE email = ?').run(email);
+  const wrong = checkCode(email, code);
+  if (wrong) return bad(res, wrong);
   const u = getUserByEmail(email);
   if (u) { linkIdentity(u.id, 'email', email); startSession(req, res, u.id); return res.json({ status: 'login' }); }
   setCookie(res, 'pending', sign({ provider: 'email', uid: email, email, name: '' }, PENDING_TTL), { maxAge: PENDING_TTL });
   res.json({ status: 'signup', email });
+});
+
+// ---------- 휴대폰 인증코드 로그인/가입 (카카오 알림톡, 못 받으면 문자) ----------
+// 번호는 발송할 때만 쓰고 해시만 저장한다. 건당 요금이 들어서 국내 휴대폰 번호만 받고 발송량을 제한한다
+const normPhone = v => { const d = String(v || '').replace(/\D/g, '').replace(/^82(?=10)/, '0'); return /^01[016789]\d{7,8}$/.test(d) ? d : null; };
+const phoneUid = phone => crypto.createHash('sha256').update(`${config.sessionSecret}:phone:${phone}`).digest('hex');
+
+app.post('/api/auth/phone/send', wrap(async (req, res) => {
+  const phone = normPhone(req.body?.phone);
+  if (!phone) return bad(res, '휴대폰 번호를 다시 확인해 주세요.');
+  if (!smsMode() && !config.devShowCode) return bad(res, '휴대폰 인증이 아직 준비 중이에요. 이메일로 받아 주세요.', 503);
+  const uid = phoneUid(phone), key = 'phone:' + uid;
+  if (!rateLimit('phone-ip:' + clientIp(req), 10, 600000) || !rateLimit('phone-num:' + uid, 5, 3600000) || !rateLimit('phone-hour', 200, 3600000) || !rateLimit('phone-day', 1000, DAY)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  const prev = db.prepare('SELECT * FROM login_codes WHERE email = ?').get(key);
+  const wait = prev ? config.code.resendSec * 1000 - (now() - prev.sent_at) : 0;
+  if (wait > 0) return bad(res, `${Math.ceil(wait / 1000)}초 후에 다시 보낼 수 있어요.`, 429);
+  const code = String(crypto.randomInt(100000, 1000000));
+  const expires = saveCode(key, code);
+  try { await sendCodeMessage(phone, code); }
+  catch (err) {
+    console.error('[문자] 발송 실패:', err.message);
+    db.prepare('DELETE FROM login_codes WHERE email = ?').run(key);
+    return bad(res, '인증번호를 보내지 못했어요. 번호를 확인하고 다시 시도해 주세요.', 502);
+  }
+  res.json({ ok: true, expires, devCode: !smsMode() && config.devShowCode ? code : undefined });
+}));
+
+app.post('/api/auth/phone/verify', (req, res) => {
+  const phone = normPhone(req.body?.phone), code = String(req.body?.code || '').trim();
+  if (!phone) return bad(res, '휴대폰 번호를 다시 확인해 주세요.');
+  if (!rateLimit('verify-ip:' + clientIp(req), 30, 600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  const uid = phoneUid(phone), wrong = checkCode('phone:' + uid, code);
+  if (wrong) return bad(res, wrong);
+  const ident = db.prepare('SELECT user_id FROM identities WHERE provider = ? AND provider_uid = ?').get('phone', uid);
+  if (ident) { startSession(req, res, ident.user_id); return res.json({ status: 'login' }); }
+  setCookie(res, 'pending', sign({ provider: 'phone', uid, email: '', name: '' }, PENDING_TTL), { maxAge: PENDING_TTL });
+  res.json({ status: 'signup' });
 });
 
 app.get('/api/auth/pending', (req, res) => {
@@ -319,7 +369,7 @@ app.get('/api/admin/stats', (req, res) => {
     revenue: db.prepare("SELECT COALESCE(SUM(amount),0) n FROM (SELECT amount, status FROM payments UNION ALL SELECT amount, status FROM payment_records) WHERE status = '결제완료'").get().n,
     reviews: db.prepare('SELECT COUNT(*) n FROM reviews').get().n,
     server: { node: process.version, uptimeMin: Math.round(process.uptime() / 60), load: os.loadavg()[0].toFixed(2), freeMemMB: Math.round(os.freemem() / 1048576), dbSizeKB: Math.round(fs.statSync(dbFile).size / 1024) },
-    setup: { mail: mailReady, providers: enabledProviders(), payments: paymentMode(), publicUrl: config.publicUrl, tts: ttsStats() },
+    setup: { mail: mailReady, phone: smsMode(), providers: enabledProviders(), payments: paymentMode(), publicUrl: config.publicUrl, tts: ttsStats() },
   });
 });
 app.get('/api/admin/export', (req, res) => {

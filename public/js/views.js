@@ -748,9 +748,12 @@ Views.auth = (el, mode, params) => {
   const LAST_KEY = 'sprout-last-login';
   let last = {}; try { last = JSON.parse(localStorage.getItem(LAST_KEY)) || {}; } catch (e) { /* ignore */ }
   const remember = (method, email) => { try { localStorage.setItem(LAST_KEY, JSON.stringify({ method, email })); } catch (e) { /* ignore */ } };
-  let email = last.email || '', timer = null;
+  let email = last.email || '', phone = '', timer = null;
+  // 인증코드를 어디로 받을지: 휴대폰 인증이 준비되어 있으면 휴대폰이 먼저, 지난번에 이메일을 썼으면 이메일
+  let via = Store.phoneReady() && last.method !== 'email' ? 'phone' : 'email';
+  const showPhone = p => p.length > 7 ? `${p.slice(0, 3)}-****-${p.slice(-4)}` : p;
   const steps = isUp ? ['방법 선택', '본인 확인', '정보 입력'] : ['방법 선택', '본인 확인'];
-  const NAMES = { kakao: '카카오', naver: '네이버', google: 'Google', apple: 'Apple', email: '이메일' };
+  const NAMES = { kakao: '카카오', naver: '네이버', google: 'Google', apple: 'Apple', email: '이메일', phone: '휴대폰' };
   const providers = Object.entries(CONFIG.AUTH_PROVIDERS).filter(([k]) => Store.providerReady(k));
   const done = () => { App.refreshHeader(); location.hash = Store.profile() ? '#' + next : '#/profiles'; };
   const busy = (btn, on) => { if (!btn) return; btn.disabled = on; btn.classList.toggle('loading', on); };
@@ -770,34 +773,47 @@ Views.auth = (el, mode, params) => {
       ${isUp ? '<ul class="perks"><li>🌱 알파벳·파닉스(1~2단계) 평생 무료</li><li>🎁 7일 동안 전체 단계 체험</li><li>🎟️ 플러스 첫 결제 20% 쿠폰</li><li>🔒 카드 등록·자동결제 없음</li></ul>' : '<p class="center sec-desc">가입할 때 쓴 방법을 눌러 주세요. 비밀번호는 필요 없어요.</p>'}
       ${error ? `<p class="form-err center">${esc(error)}</p>` : ''}
       ${providers.length ? `<div class="sns">${providers.map(([k, p]) => `<button class="sns-btn ${k}" data-sns="${k}"><span class="sns-ico">${p.icon}</span>${NAMES[k]}로 ${isUp ? '가입하기' : '로그인'}${last.method === k ? '<em class="last">최근 사용</em>' : ''}</button>`).join('')}</div>
-      <div class="or"><span>또는 이메일로${last.method === 'email' ? ' <em class="last">최근 사용</em>' : ''}</span></div>` : ''}
-      <form class="email-form" novalidate><label>이메일 주소<input name="email" type="email" autocomplete="email" inputmode="email" placeholder="parent@example.com" required></label>
+      <div class="or"><span>또는 ${via === 'phone' ? '휴대폰으로' : '이메일로'}${last.method === via ? ' <em class="last">최근 사용</em>' : ''}</span></div>` : ''}
+      ${via === 'phone' ? `<form class="email-form" novalidate><label>휴대폰 번호<input name="phone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="010-1234-5678" required></label>
+      <p class="form-err" role="alert"></p><button class="btn btn-primary full lg">💬 인증번호 받기</button>
+      <p class="fine center">카카오톡으로 6자리 숫자가 와요. 카카오톡을 못 받으면 문자로 보내요.</p></form>` : `<form class="email-form" novalidate><label>이메일 주소<input name="email" type="email" autocomplete="email" inputmode="email" placeholder="parent@example.com" required></label>
       <p class="form-err" role="alert"></p><button class="btn btn-primary full lg">📮 인증코드 받기</button>
-      <p class="fine center">입력한 메일로 6자리 숫자가 와요. 그 숫자만 넣으면 끝!</p></form>
+      <p class="fine center">입력한 메일로 6자리 숫자가 와요. 그 숫자만 넣으면 끝!</p></form>`}
+      ${Store.phoneReady() ? `<div class="row-center"><button class="link-btn" data-via>${via === 'phone' ? '이메일로 받을래요' : '휴대폰으로 받을래요'}</button></div>` : ''}
       <p class="center switch">${isUp ? '이미 계정이 있나요? <a href="#/login">로그인</a>' : '처음이세요? <a href="#/signup">무료로 회원가입</a>'}</p>`);
     $$('[data-sns]', el).forEach(b => b.onclick = () => snsFlow(b.dataset.sns));
-    const f = $('form', el);
-    f.email.value = email;
-    if (!email) f.email.focus();
+    const toggle = $('[data-via]', el);
+    if (toggle) toggle.onclick = () => { via = via === 'phone' ? 'email' : 'phone'; choose(); };
+    const f = $('form', el), input = via === 'phone' ? f.phone : f.email;
+    input.value = via === 'phone' ? phone : email;
+    if (!input.value) input.focus();
     f.onsubmit = async e => {
       e.preventDefault();
       const btn = $('button', f); busy(btn, true);
-      try { email = f.email.value.trim(); await send(); } catch (x) { $('.form-err', el).textContent = x.message; busy(btn, false); }
+      try {
+        if (via === 'phone') phone = f.phone.value.replace(/\D/g, ''); else email = f.email.value.trim();
+        await send();
+      } catch (x) { $('.form-err', el).textContent = x.message; busy(btn, false); }
     };
   };
 
-  const send = async () => { const r = await Store.sendCode(email); if (r.code) App.demoMail(email, r.code); codeStep(r); };
+  const send = async () => {
+    const r = via === 'phone' ? await Store.sendPhoneCode(phone) : await Store.sendCode(email);
+    if (r.code) App.demoMail(via === 'phone' ? showPhone(phone) : email, r.code);
+    codeStep(r);
+  };
 
   const codeStep = r => {
-    shell(1, `<h1>메일함을 확인해 주세요 📬</h1>
-      <p class="center"><b>${esc(email)}</b>(으)로 보낸<br>6자리 인증코드를 입력해 주세요.</p>
+    const isPhone = via === 'phone', shown = isPhone ? showPhone(phone) : email;
+    shell(1, `<h1>${isPhone ? '카카오톡을 확인해 주세요 💬' : '메일함을 확인해 주세요 📬'}</h1>
+      <p class="center"><b>${esc(shown)}</b>(으)로 보낸<br>6자리 인증코드를 입력해 주세요.</p>
       <form class="code-form" novalidate>
         <input class="code-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="인증코드 6자리" placeholder="••••••">
         <p class="timer" aria-live="polite"></p><p class="form-err" role="alert"></p>
         <button class="btn btn-primary full lg">확인</button>
       </form>
-      <div class="row-center"><button class="link-btn" data-back>← 이메일 바꾸기</button><button class="link-btn" data-resend>코드 다시 받기</button></div>
-      <p class="fine center">메일이 안 보이면 스팸함을 확인해 주세요.${r.code ? ' (테스트 모드: 화면 오른쪽 아래에 코드가 보여요)' : ''}</p>`);
+      <div class="row-center"><button class="link-btn" data-back>← ${isPhone ? '번호' : '이메일'} 바꾸기</button><button class="link-btn" data-resend>코드 다시 받기</button></div>
+      <p class="fine center">${isPhone ? '카카오톡에 없으면 문자함을 확인해 주세요.' : '메일이 안 보이면 스팸함을 확인해 주세요.'}${r.code ? ' (테스트 모드: 화면 오른쪽 아래에 코드가 보여요)' : ''}</p>`);
     const f = $('form', el), t = $('.timer', el), err = $('.form-err', el);
     f.code.focus();
     const tick = () => {
@@ -812,10 +828,10 @@ Views.auth = (el, mode, params) => {
       e.preventDefault(); if (sending) return;
       err.textContent = ''; sending = true; busy($('button', f), true);
       try {
-        const res = await Store.verifyCode(email, f.code.value);
+        const res = isPhone ? await Store.verifyPhoneCode(phone, f.code.value) : await Store.verifyCode(email, f.code.value);
         clearInterval(timer);
-        if (!res.needSignup) { remember('email', email); App.toast(isUp ? '이미 가입된 이메일이라 바로 로그인했어요 👋' : '다시 만나서 반가워요! 👋'); return done(); }
-        isUp ? signupStep('email', email) : notMember('email', email);
+        if (!res.needSignup) { remember(via, email); App.toast(isUp ? '이미 가입된 계정이라 바로 로그인했어요 👋' : '다시 만나서 반가워요! 👋'); return done(); }
+        isUp ? signupStep(via, shown) : notMember(via, shown);
       } catch (x) { err.textContent = x.message; f.code.value = ''; f.code.focus(); }
       sending = false; busy($('button', f), false);
     };
@@ -1682,6 +1698,7 @@ const AdminTabs = {
         <dt>남은 메모리</dt><dd>${stats.server.freeMemMB}MB</dd><dt>DB 크기</dt><dd>${stats.server.dbSizeKB}KB</dd></dl></div>
       <div class="card"><h3>연동 설정 <small>서버의 .env에서 바꿔요</small></h3><dl class="summary">
         <dt>인증코드 메일(SMTP)</dt><dd>${ok(stats.setup.mail)}</dd>
+        <dt>휴대폰 인증</dt><dd>${stats.setup.phone ? `✅ ${stats.setup.phone === 'alimtalk' ? '카카오 알림톡 + 문자' : '문자'}` : '⚠️ 꺼짐'}</dd>
         ${Object.entries(stats.setup.providers).map(([k, v]) => `<dt>${k} 로그인</dt><dd>${ok(v)}</dd>`).join('')}
         <dt>결제</dt><dd>${{ toss: '✅ 토스페이먼츠', demo: '🧪 데모 결제', off: '⚠️ 꺼짐' }[stats.setup.payments]}</dd>
         <dt>AI 음성</dt><dd>${stats.setup.tts.provider ? `✅ ${esc(stats.setup.tts.provider)} (${esc(stats.setup.tts.voice)}) · 저장된 음성 ${stats.setup.tts.files}개, ${stats.setup.tts.sizeKB}KB` : '⚠️ 미설정 (기기 목소리 사용)'}</dd></dl></div>
