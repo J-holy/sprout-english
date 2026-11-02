@@ -210,6 +210,8 @@ button.chip { cursor: pointer; }
 .seg { display: flex; width: max-content; margin: 0 auto 22px; background: var(--paper); border: var(--bw) solid var(--line); border-radius: 18px; padding: 4px; box-shadow: var(--shadow-sm); }
 .seg button { border: 0; background: none; padding: 8px 20px; border-radius: 13px; cursor: pointer; font-family: var(--title); font-size: 1.05rem; }
 .seg button.on { background: var(--grape); color: #fff; }
+.plan-kids { margin: 0 0 14px; }
+.sibling-step { display: grid; gap: 10px; }
 .plan-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .plan-card { background: var(--paper); border: var(--bw) solid var(--line); border-radius: var(--radius); padding: 22px; position: relative; display: grid; gap: 10px; box-shadow: var(--shadow); }
 .plan-card.best { outline: 4px dashed var(--berry); outline-offset: 4px; }

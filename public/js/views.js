@@ -67,14 +67,16 @@ const UI = {
   },
   plans() {
     return `<div class="plans">
-      <div class="seg" role="tablist"><button class="on" data-kids="one" role="tab">👧 한 자녀</button><button data-kids="two" role="tab">👧👦 두 자녀</button></div>
+      <p class="plan-kids center"></p>
       <div class="plan-cards"></div>
       <p class="fine center">모든 상품 자동갱신은 부모페이지에서 언제든 해지할 수 있어요 · 데모라 실제 결제는 일어나지 않아요.</p>
     </div>`;
   },
   wirePlans(root) {
-    let kids = 'one';
-    const loggedIn = !!Store.user();
+    const loggedIn = !!Store.user(), kids = Store.kidsPlan();
+    $('.plan-kids', root).innerHTML = kids === 'two'
+      ? `👧👦 아이 ${Store.user().profiles.length}명을 등록해서 <b>형제·자매 요금</b>이 적용되고 있어요.`
+      : '👧👦 형제·자매가 함께 배우나요? 아이를 추가하면 <b>형제·자매 할인</b>이 자동으로 적용돼요.';
     const draw = () => {
       const P = PLANS[kids];
       $('.plan-cards', root).innerHTML = [1, 6, 12].map(months => {
@@ -94,9 +96,8 @@ const UI = {
           <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}${months === 1 ? ' / 매월' : ''}</div>
           <button class="btn btn-primary full" data-buy="${months}">선택하기</button></div>`;
       }).join('');
-      $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(kids, +b.dataset.buy));
+      $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(+b.dataset.buy));
     };
-    $$('.seg button', root).forEach(b => b.onclick = () => { kids = b.dataset.kids; $$('.seg button', root).forEach(x => x.classList.toggle('on', x === b)); draw(); });
     draw();
   },
   faq(list) {
@@ -678,7 +679,7 @@ Views.pricing = (el, params) => {
     <p class="sec-desc left">가입하면 바로 받는 웰컴쿠폰으로, 10일 안에 결제하면 <b>${pct(WELCOME_RATE)} 더</b> 할인돼요.</p>
     <div class="table-wrap"><table class="table price-table">
       <thead><tr><th></th><th>1개월</th><th>6개월</th><th>12개월</th></tr></thead>
-      <tbody>${['one', 'two'].map(k => `<tr><th>${k === 'one' ? '👧 한 자녀' : '👧👦 두 자녀'}</th>${[1, 6, 12].map(m => {
+      <tbody>${[Store.kidsPlan()].map(k => `<tr><th>${k === 'two' ? '👧👦 형제·자매' : '플러스'}</th>${[1, 6, 12].map(m => {
         const monthly = round10(planMonthly(k, m) * (1 - WELCOME_RATE));
         return `<td><small class="strike">월 ${won(planMonthly(k, m))}</small><br><b class="hot">월 ${won(monthly)}</b></td>`;
       }).join('')}</tr>`).join('')}</tbody></table></div>
@@ -687,7 +688,7 @@ Views.pricing = (el, params) => {
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
       <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', '8권', '32권 전체'],
-        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['자녀 프로필', '여러 명', '한 자녀 / 두 자녀'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
@@ -910,14 +911,14 @@ Views.auth = (el, mode, params) => {
 };
 
 /* ---------- 프로필 ---------- */
-Views.profiles = el => {
+Views.profiles = (el, { adding = false } = {}) => {
   const u = Store.user();
   el.innerHTML = `<div class="wrap sec narrow">
     <h1 class="page-title center">누가 모험을 떠날까요?</h1>
     <div class="profile-grid">${u.profiles.map(p => `<button class="profile-pick" data-id="${p.id}">${avatarHtml(p)}<b>${esc(p.name)}</b><small>Level ${Store.currentLevel(p)} · ⭐${p.stars || 0}</small></button>`).join('')}
-      <button class="profile-pick add" data-add><span class="avatar">＋</span><b>프로필 추가</b></button></div>
+      <button class="profile-pick add" data-add><span class="avatar">＋</span><b>${u.profiles.length ? '형제·자매 추가' : '프로필 추가'}</b></button></div>
     <form class="card profile-form" hidden>
-      <h3>아이 프로필 만들기</h3>
+      <h3>${u.profiles.length ? '형제·자매 프로필 만들기' : '아이 프로필 만들기'}</h3>
       <label>이름<input name="name" required maxlength="10"></label>
       <label>나이<select name="age">${[4, 5, 6, 7, 8, 9, 10].map(a => `<option ${a === 6 ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
       <div><b class="lbl">캐릭터를 골라요</b><div class="avatar-pick">${AVATARS.map((a, i) => `<label><input type="radio" name="avatar" value="${a}" ${i === 0 ? 'checked' : ''}><span>${a}</span></label>`).join('')}</div></div>
@@ -927,18 +928,34 @@ Views.profiles = el => {
   $$('[data-id]', el).forEach(b => b.onclick = () => { Store.selectProfile(b.dataset.id); App.refreshHeader(); location.hash = '#/study'; });
   const f = $('.profile-form', el);
   $('[data-add]', el).onclick = () => { f.hidden = false; f.name.focus(); };
-  if (!u.profiles.length) f.hidden = false;
+  if (!u.profiles.length || adding) { f.hidden = false; f.name.focus(); }
   f.onsubmit = async e => {
     e.preventDefault(); const d = new FormData(f);
     if (!d.get('name').trim()) return;
+    // 자동갱신 중에 두 번째 아이를 추가하면 다음 결제 금액이 바뀌니 먼저 알린다
+    const m = u.membership;
+    if (m && !m.granted && m.autoRenew && u.profiles.length === 1 && !confirm(`아이를 추가하면 다음 결제부터 형제·자매 요금(월 ${won(planMonthly('two', m.months))})으로 바뀌어요. 추가할까요?`)) return;
     Store.addProfile({ name: d.get('name').trim(), age: +d.get('age'), avatar: d.get('avatar') });
     u.settings.notify = !!d.get('notify'); Store.persist();
     if (u.settings.notify && 'Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (x) { /* ignore */ } }
     App.refreshHeader();
-    App.toast('프로필이 만들어졌어요! 레벨 테스트로 출발할 섬을 정해볼까요?');
-    location.hash = '#/leveltest';
+    siblingStep(el, d.get('name').trim());
   };
 };
+
+// 프로필을 만든 뒤: 형제·자매를 더 등록하거나 레벨 테스트로 출발한다
+function siblingStep(el, name) {
+  const u = Store.user(), n = u.profiles.length;
+  el.innerHTML = `<div class="wrap sec narrow"><div class="card auth-card center sibling-step">
+    <div class="auth-logo">🎉</div><h1>${esc(name)} 프로필을 만들었어요!</h1>
+    <p>${n >= 2 ? `아이 ${n}명이 함께 배워요. 플러스를 결제할 때 <b>형제·자매 요금</b>이 자동으로 적용돼요.` : '형제·자매도 함께 배우나요? 지금 추가하면 플러스를 결제할 때 <b>형제·자매 할인</b>이 자동으로 적용돼요.'}</p>
+    <p class="fine">플러스 12개월 기준: 1명 월 ${won(PLANS.one.m12)} · 2명 이상 월 ${won(PLANS.two.m12)}</p>
+    <button class="btn btn-ghost full" data-more>👧👦 형제·자매 추가하기</button>
+    ${u.profiles.map(p => `<button class="btn btn-primary full" data-go="${p.id}">🧪 ${esc(p.name)} 레벨 테스트로 출발</button>`).join('')}
+  </div></div>`;
+  $('[data-more]', el).onclick = () => Views.profiles(el, { adding: true });
+  $$('[data-go]', el).forEach(b => b.onclick = () => { Store.selectProfile(b.dataset.go); App.refreshHeader(); location.hash = '#/leveltest'; });
+}
 
 /* ---------- 학습 홈 (모험 지도) ---------- */
 Views.learn = el => {
@@ -1531,14 +1548,14 @@ const ParentTabs = {
     const a = Store.access(), m = u.membership;
     el.innerHTML = `<div class="card status-card">${statusText(a, u)}</div>
       ${m ? `<div class="card sub-card"><h3>내 구독</h3><dl class="summary">
-        <dt>상품</dt><dd>${m.kids === 'two' ? '두 자녀' : '한 자녀'} ${m.months}개월${m.granted ? ' (관리자 지급)' : ''}</dd>
+        <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
         <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.monthly * m.months)}` : '해지됨 (추가 결제 없음)'}</dd>
         ${m.card ? '<dt>결제수단</dt><dd>등록된 카드 (토스페이먼츠)</dd>' : ''}</dl>
         <div class="row">${m.granted ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
-      ${m && m.kids === 'one' && u.profiles.length > 1 ? '<div class="card notice">프로필이 2개 이상이에요. 두 자녀 요금제를 쓰면 모든 아이가 계속 학습할 수 있어요.</div>' : ''}
+      ${m && !m.granted && m.autoRenew && m.kids !== Store.kidsPlan() ? `<div class="card notice">등록한 아이 수가 바뀌어서 다음 결제부터 월 ${won(planMonthly(Store.kidsPlan(), m.months))}${Store.kidsPlan() === 'two' ? ' (형제·자매 요금)' : ''}으로 바뀌어요. 쿠폰을 쓰면 달라질 수 있어요.</div>` : ''}
       ${a.kind === 'admin' ? '' : UI.plans()}`;
     if (a.kind !== 'admin') UI.wirePlans($('.plans', el));
     $$('[data-renew]', el).forEach(b => b.onclick = async () => {

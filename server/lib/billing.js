@@ -3,7 +3,7 @@
 import crypto from 'node:crypto';
 import { db, id, now, DAY, tx } from './db.js';
 import { config } from './env.js';
-import { quote } from './pricing.js';
+import { quote, kidsOf } from './pricing.js';
 import { notify, getUser } from './users.js';
 
 export const tossReady = () => !!(config.toss.clientKey && config.toss.secretKey);
@@ -109,17 +109,17 @@ export async function refund(uid) {
 export async function renewalJob() {
   const t = now();
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until BETWEEN ? AND ?').all(t + 3 * DAY - 3600000, t + 3 * DAY)) {
-    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
+    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 결제 금액은 ${quote(m.user_id, kidsOf(getUser(m.user_id)), m.months).total.toLocaleString('ko-KR')}원이에요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
   }
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until <= ? AND renew_fail < 3').all(t)) {
     const u = getUser(m.user_id);
     if (!m.billing_key) {
       if (paymentMode() === 'demo') {
-        const { orderId } = createOrder(u, m.kids, m.months); completeDemo(orderId);
+        const { orderId } = createOrder(u, kidsOf(u), m.months); completeDemo(orderId);
       } else db.prepare('UPDATE memberships SET auto_renew = 0 WHERE user_id = ?').run(u.id);
       continue;
     }
-    const { orderId } = createOrder(u, m.kids, m.months);
+    const { orderId } = createOrder(u, kidsOf(u), m.months);
     const order = db.prepare('SELECT * FROM payments WHERE order_id = ?').get(orderId);
     try {
       const pay = await toss(`/v1/billing/${m.billing_key}`, { customerKey: u.customer_key, amount: order.amount, orderId, orderName: order.description + ' (자동갱신)', customerEmail: u.email || undefined });

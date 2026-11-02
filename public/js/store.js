@@ -244,6 +244,8 @@ const Store = (() => {
     const u = user(); if (!u) return null;
     return u.coupons.filter(c => !c.used && c.expires > Date.now()).sort((a, b) => b.rate - a.rate)[0] || null;
   }
+  // 요금은 등록한 아이 수로 정해진다. 2명부터 형제·자매 요금
+  const kidsPlan = (u = user()) => (u && u.profiles.length >= 2 ? 'two' : 'one');
   const couponRate = c => !c ? 0 : c.welcome ? WELCOME_RATE : c.rate;
   function quote(kids, months) {
     const c = bestCoupon(), rate = couponRate(c);
@@ -254,6 +256,8 @@ const Store = (() => {
   // → 'demo'(완료) | 'redirect'(토스 결제창으로 이동)
   async function purchase({ kids, months }) {
     if (API.on) {
+      // 방금 추가한 아이가 서버에 먼저 저장되어야 같은 금액으로 결제된다
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await pushState(); }
       const r = await API.req('POST', 'api/billing/checkout', { kids, months });
       if (r.mode === 'demo') { await loadMe(); return 'demo'; }
       await loadScript('https://js.tosspayments.com/v1/payment');
@@ -265,9 +269,9 @@ const Store = (() => {
     if (u.trialStart && !u.membership) bonus = Math.max(0, u.trialStart + 7 * DAY - now);
     const base = u.membership && u.membership.until > now ? u.membership.until : now;
     u.membership = { kids, months, since: now, until: base + months * 30 * DAY + bonus, autoRenew: true, monthly: q.monthly };
-    u.payments.unshift({ id: uid(), at: now, amount: q.total, desc: `${kids === 'two' ? '두 자녀' : '한 자녀'} ${months}개월`, coupon: q.coupon ? `${q.coupon.name} ${Math.round(q.rate * 100)}%` : '', couponId: q.coupon ? q.coupon.id : null, status: '결제완료' });
+    u.payments.unshift({ id: uid(), at: now, amount: q.total, desc: `플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`, coupon: q.coupon ? `${q.coupon.name} ${Math.round(q.rate * 100)}%` : '', couponId: q.coupon ? q.coupon.id : null, status: '결제완료' });
     if (q.coupon) q.coupon.used = true;
-    save(); notify(`💳 멤버십(${kids === 'two' ? '두 자녀' : '한 자녀'} · ${months}개월)이 시작되었어요. 결제 금액 ${q.total.toLocaleString()}원`, 'member');
+    save(); notify(`💳 멤버십(${kids === 'two' ? '형제·자매 · ' : ''}${months}개월)이 시작되었어요. 결제 금액 ${q.total.toLocaleString()}원`, 'member');
     return 'demo';
   }
   const loadScript = src => new Promise((ok, fail) => {
@@ -655,7 +659,7 @@ const Store = (() => {
     p.recent = [...(p.recent || []).filter(k => !keys.includes(k)), ...keys].slice(-120); save();
   }
   return {
-    get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
+    get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, kidsPlan, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
     levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,

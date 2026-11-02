@@ -164,14 +164,14 @@ const App = (() => {
     return m;
   }
 
-  function buy(kids, months) {
+  function buy(months) {
     if (!Store.user()) { toast('로그인 후 구매할 수 있어요. 처음이면 회원가입부터!'); return go('/login?next=/pricing'); }
     if (Store.isAdmin()) return toast('관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
-    const q = Store.quote(kids, months);
+    const kids = Store.kidsPlan(), q = Store.quote(kids, months);
     const payMode = API.on ? API.cfg.payments : 'demo';
     if (payMode === 'off') return toast('결제 기능을 준비 중이에요. 잠시 후 다시 시도해 주세요.');
     const m = modal(`<h2>🧾 구매 확인</h2>
-      <dl class="summary"><dt>상품</dt><dd>${kids === 'two' ? '두 자녀' : '한 자녀'} ${months}개월</dd>
+      <dl class="summary"><dt>상품</dt><dd>플러스 ${months}개월${kids === 'two' ? ` · 형제·자매 요금 (아이 ${Store.user().profiles.length}명)` : ''}</dd>
       ${q.list > planMonthly(kids, months) * months ? `<dt>1개월 요금 기준</dt><dd class="strike">${won(q.list)}</dd>` : ''}
       <dt>플러스 ${months}개월</dt><dd>${won(planMonthly(kids, months) * months)}</dd>
       <dt>쿠폰</dt><dd>${q.coupon ? `${esc(q.coupon.name)} −${Math.round(q.rate * 100)}%` : '없음'}</dd>

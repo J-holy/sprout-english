@@ -14,7 +14,7 @@ import {
 import { sendCodeMail, mailReady, verifyMailer } from './lib/mailer.js';
 import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
-import { PLANS, validPlan, quote } from './lib/pricing.js';
+import { PLANS, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
 import { sttProvider, checkWav, recognize } from './lib/stt.js';
 import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
@@ -256,14 +256,16 @@ app.post('/api/auth/:provider/callback', oauthCallback);
 
 // ---------- 결제 ----------
 app.get('/api/billing/quote', requireUser, (req, res) => {
-  const { kids, months } = req.query;
+  const { months } = req.query, kids = kidsOf(req.user);
   if (!validPlan(kids, months)) return bad(res, '상품을 다시 골라 주세요.');
   const q = quote(req.user.id, kids, months);
   res.json({ ...q, coupon: q.coupon ? { id: q.coupon.id, name: q.coupon.name } : null });
 });
 app.post('/api/billing/checkout', requireUser, wrap(async (req, res) => {
-  const { kids, months } = req.body || {};
+  const { months } = req.body || {}, kids = kidsOf(req.user);
   if (!validPlan(kids, months)) return bad(res, '상품을 다시 골라 주세요.');
+  // 화면에 보여 준 요금과 다르면 결제하지 않는다 (다른 기기에서 아이를 추가·삭제한 경우)
+  if (req.body?.kids && req.body.kids !== kids) return bad(res, '등록한 아이 수가 바뀌었어요. 새로고침한 뒤 금액을 다시 확인해 주세요.', 409);
   if (isAdmin(req.user)) return bad(res, '관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
   const mode = paymentMode();
   if (mode === 'off') return bad(res, '결제 기능을 준비 중이에요. 잠시 후 다시 시도해 주세요.', 503);

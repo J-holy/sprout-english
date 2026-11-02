@@ -1,5 +1,5 @@
 // 요금표와 결제 금액 계산 — 결제 금액은 항상 서버에서 계산한다
-import { db, now } from './db.js';
+import { db, now, json } from './db.js';
 
 // 화면(public/js/data.js)과 같은 값. 1~2단계는 평생 무료, 3단계부터 플러스.
 export const PLANS = {
@@ -9,6 +9,8 @@ export const PLANS = {
 export const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인
 const round10 = n => Math.round(n / 10) * 10;
 export const validPlan = (kids, months) => !!PLANS[kids] && [1, 6, 12].includes(Number(months));
+// 요금은 고르는 것이 아니라 등록한 아이 수로 정해진다. 2명부터 형제·자매 요금
+export const kidsOf = u => ((json(u.state, {}).profiles || []).length >= 2 ? 'two' : 'one');
 
 export function bestCoupon(uid) {
   return db.prepare('SELECT * FROM coupons WHERE user_id = ? AND used = 0 AND expires_at > ? ORDER BY rate DESC LIMIT 1').get(uid, now()) || null;
@@ -23,7 +25,7 @@ export function quote(uid, kids, months) {
   const monthly = rate ? round10(member * (1 - rate)) : member;
   return {
     kids, months, coupon: c, rate, monthly, total: monthly * months, list: P.list * months,
-    name: `새싹영어 ${kids === 'two' ? '두 자녀' : '한 자녀'} ${months}개월`,
+    name: `새싹영어 플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`,
     couponLabel: c ? `${c.name} ${Math.round(rate * 100)}%` : '',
   };
 }
