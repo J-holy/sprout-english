@@ -437,7 +437,7 @@ const Store = (() => {
   }
   const isWorn = (itemId, p = profile()) => !!(p && p.wear && Object.values(p.wear).includes(itemId));
   // 입고 있는 꾸미기 [{slot, emoji}]
-  const worn = (p = profile()) => (p && p.wear ? ACC_SLOTS.map(([slot]) => SHOP.find(x => x.id === p.wear[slot])).filter(Boolean).map(it => ({ slot: it.slot, emoji: it.emoji })) : []);
+  const worn = (p = profile()) => (p && p.wear ? ACC_SLOTS.map(([slot]) => SHOP.find(x => x.id === p.wear[slot])).filter(Boolean).map(it => ({ id: it.id, slot: it.slot, emoji: it.emoji })) : []);
   // stars: 이번 판에 딴 메달 수 (0~3)
   function gameResult(game, score, stars = 0) {
     const p = profile(); p.games = p.games || {};

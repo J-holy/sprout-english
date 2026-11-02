@@ -293,11 +293,17 @@ label.check { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .avatar .acc { position: absolute; font-style: normal; line-height: 1; pointer-events: none; }
 /* 부위마다 자리: 머리 위 · 눈 · 목 · 오른손 · 왼쪽 친구 · 둘레 효과 (캐릭터 글자 크기 기준) */
 .ava-body { position: relative; display: inline-block; line-height: 1; }
-.avatar .acc-head { top: -.3em; left: 50%; transform: translateX(-50%); font-size: .5em; }
-.avatar .acc-face { top: 50%; left: 50%; transform: translate(-50%, -38%); font-size: .46em; }
-.avatar .acc-neck { bottom: -.1em; left: 50%; transform: translateX(-50%); font-size: .36em; }
-.avatar .acc-hand { bottom: -.02em; right: -.3em; font-size: .42em; transform: rotate(10deg); }
-.avatar .acc-pet { bottom: -.1em; left: -.4em; font-size: .4em; }
+.avatar .acc-head { top: calc(var(--hy, .2) * 100%); left: 50%; transform: translate(-50%, -78%); font-size: .62em; }
+.avatar .acc-sunhat, .avatar .acc-grad { font-size: .74em; }
+.avatar .acc-crown { font-size: .56em; }
+.avatar .acc-cap { transform: translate(-50%, -74%) rotate(-8deg); font-size: .68em; }
+/* 리본과 꽃 핀은 머리 한쪽에 꽂는다 */
+.avatar .acc-bow, .avatar .acc-flower { left: 70%; font-size: .4em; transform: translate(-50%, -48%) rotate(14deg); }
+.avatar .acc-face { top: calc(var(--ey, .5) * 100%); left: 50%; transform: translate(-50%, -50%); font-size: .66em; }
+.avatar .acc-neck { top: calc(var(--ny, .88) * 100%); left: 50%; transform: translate(-50%, -22%); font-size: .46em; }
+.avatar .acc-medal { transform: translate(-50%, -30%); font-size: .36em; }
+.avatar .acc-hand { bottom: -.02em; right: -.3em; font-size: .46em; transform: rotate(10deg); }
+.avatar .acc-pet { bottom: -.1em; left: -.42em; font-size: .42em; }
 /* 어두운 화면에서 검은 음표도 보이게 밝은 테두리를 준다 */
 .avatar .acc-fx { font-size: .36em; filter: drop-shadow(0 0 2px rgba(255, 255, 255, .95)); animation: acc-twinkle 1.8s ease-in-out infinite; }
 .avatar .acc-fx.f1 { top: -.25em; left: -.5em; }

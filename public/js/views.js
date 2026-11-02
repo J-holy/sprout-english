@@ -15,7 +15,9 @@ const voiceOptions = () => [
 const dayLabel = d => `Day ${d + 1}${Gen.isReviewDay(d) ? ' · 복습' : ''}`;
 const scoreClass = s => s >= 80 ? 'good' : s >= 60 ? 'mid' : 'low';
 // 꾸미기는 원이 아니라 캐릭터(ava-body)를 기준으로 놓는다. 효과는 캐릭터 둘레에 세 개를 띄운다
-const avatarHtml = (p, cls = '') => `<span class="avatar ${cls}"><span class="ava-body">${p.avatar}${Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${x}" aria-hidden="true">${w.emoji}</i>`).join('')).join('')}</span></span>`;
+// 캐릭터마다 머리 꼭대기·눈·턱 높이가 달라서(글자 칸 높이에 대한 비율) 모자가 뜨지 않게 맞춘다
+const AVATAR_FIT = { '🐰': [.42, .6, .92], '🐻': [.2, .5, .88], '🦊': [.24, .55, .9], '🐼': [.2, .5, .88], '🐯': [.2, .5, .88], '🐨': [.22, .52, .88], '🐸': [.2, .36, .86], '🦁': [.14, .5, .9], '🐧': [.12, .38, .72], '🦄': [.16, .42, .92] };
+const avatarHtml = (p, cls = '') => { const [hy, ey, ny] = AVATAR_FIT[p.avatar] || [.2, .5, .88]; return `<span class="avatar ${cls}"><span class="ava-body" style="--hy:${hy};--ey:${ey};--ny:${ny}">${p.avatar}${Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${w.emoji}</i>`).join('')).join('')}</span></span>`; };
 // 놀이터·카드에 쓸 그림 단어 (알파벳 단어 + 파닉스 단어)
 const PICTURE_WORDS = [...LETTERS.flatMap(l => l.words.map(([en, emoji]) => ({ en, emoji }))), ...Object.values(PHONICS).flat().map(([en, emoji]) => ({ en, emoji }))]
   .filter((w, i, a) => a.findIndex(x => x.en === w.en) === i);
