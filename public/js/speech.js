@@ -173,7 +173,7 @@ const Speech = (() => {
   // 아이패드·아이폰의 Chrome 등은 브라우저 음성 인식이 막혀 있어서, 직접 녹음해 서버(/api/stt)로 채점하거나
   // 서버가 없으면 내 목소리와 원어민 소리를 비교해 듣게 한다. 말이 끝나고 조용해지면 저절로 멈춘다.
   let sttOn = false, recording = null;
-  const webSpeechOk = () => !!Rec && env.secure && !env.inApp && !env.iosNotSafari;
+  const webSpeechOk = () => !!Rec && env.secure && !env.inApp && !env.iosNotSafari && !env.iosApp;
   const canRecord = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!(window.AudioContext || window.webkitAudioContext) && env.secure && !env.inApp;
   function toWav(chunks, inRate) {
     const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0;
@@ -263,6 +263,8 @@ const Speech = (() => {
   };
   // 아이패드 Chrome은 Mac처럼 보이는 주소(UA)를 쓰기도 해서, Chrome이 넣는 __gCrWeb 로도 알아본다
   env.iosNotSafari = env.ios && (/CriOS|FxiOS|EdgiOS|Whale|NAVER|DaumApps|KAKAOTALK/i.test(ua) || typeof window.__gCrWeb !== 'undefined');
+  // 아이폰·아이패드 홈 화면에서 연 앱: 브라우저 음성 인식이 막혀 있어서 서버 채점을 쓴다
+  env.iosApp = env.ios && (navigator.standalone === true || !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches));
   env.secure = window.isSecureContext !== false;
   // 외부 브라우저로 열기 주소 (카카오톡은 전용 주소, 안드로이드는 Chrome 인텐트)
   function externalUrl(url = location.href) {
@@ -274,7 +276,8 @@ const Speech = (() => {
   }
   // 음성 인식을 쓸 수 없는 이유 (쓸 수 있으면 '')
   function unsupportedReason() {
-    if (Rec && env.secure && !env.inApp && !env.iosNotSafari) return '';
+    if (webSpeechOk()) return '';
+    if (env.iosApp) return '홈 화면 앱에서는 로그인하면 말하기 점수를 받을 수 있어요. 지금은 Safari에서 열어 주세요.';
     if (!env.secure) return '보안 연결(https)이 아니라 마이크를 쓸 수 없어요. https:// 주소로 열어 주세요.';
     if (env.inApp) return env.ios ? '앱 안의 브라우저에서는 말하기가 안 돼요. 오른쪽 아래 공유(⋯) 버튼 › "Safari로 열기"로 열어 주세요.' : '앱 안의 브라우저에서는 말하기가 안 돼요. 위쪽 "Chrome으로 열기"를 눌러 주세요.';
     if (env.iosNotSafari) return 'iPhone·iPad에서는 Safari에서만 말하기(마이크)가 돼요. 위쪽 "Safari로 열기"를 눌러 주세요. (듣기·따라 읽기는 지금 브라우저에서도 돼요)';
@@ -283,7 +286,7 @@ const Speech = (() => {
   }
   // 음성 인식 오류 코드 → 아이·부모님이 할 일
   function micHelp(code) {
-    const permIOS = env.iosNotSafari ? '설정 앱 › Chrome › 마이크를 켠 뒤 새로고침해 주세요.' : '설정 › Safari › 마이크를 "허용"으로 바꾸고, 설정 › 일반 › 키보드 › "받아쓰기"를 켜 주세요.';
+    const permIOS = env.iosApp ? '앱을 닫았다가 다시 열고 마이크를 허용해 주세요. 그래도 안 되면 설정 앱 › Safari › 마이크를 "허용"으로 바꿔 주세요.' : env.iosNotSafari ? '설정 앱 › Chrome › 마이크를 켠 뒤 새로고침해 주세요.' : '설정 › Safari › 마이크를 "허용"으로 바꾸고, 설정 › 일반 › 키보드 › "받아쓰기"를 켜 주세요.';
     const permAndroid = '주소창 왼쪽 자물쇠(ⓘ) › 권한 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     const permPC = '주소창 왼쪽 자물쇠 › 마이크 "허용"으로 바꾸고 새로고침해 주세요.';
     // iPhone의 Chrome·네이버 앱 등은 권한을 줘도 음성 인식이 막혀 있다
