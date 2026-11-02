@@ -1061,7 +1061,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .gm-box .memory.n8 { gap: 8px; }
 .mcard.nope { animation: shake .3s; }
 .mcard .front.long { font-size: 1rem; } .mcard .front.xlong { font-size: .8rem; }
-.mcard.matched { opacity: .8; box-shadow: 0 0 0 3px var(--grass); }
+.mcard.matched { box-shadow: 0 0 0 3px var(--grass); } /* opacity를 주면 3D가 납작해져 뒷면이 보인다 */
 
 /* 🐸 개구리 징검다리 */
 .pond { position: relative; background: linear-gradient(#bde9ff, #7cc8ee); border: var(--bw) solid var(--line); border-radius: 26px; overflow: hidden; box-shadow: var(--shadow); padding: 14px; }
