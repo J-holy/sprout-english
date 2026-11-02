@@ -34,9 +34,9 @@ const vowelSound = w => /^(hour|honest)/i.test(w) || (/^[aeiou]/i.test(w) && !/^
 const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 const LETTER_OF = { ay: 'A', ee: 'E', jee: 'G', aitch: 'H', el: 'L', em: 'M', en: 'N', ess: 'S', eff: 'F', ar: 'R', ex: 'X',
   cue: 'Q', dee: 'D', pee: 'P', tee: 'T', vee: 'V', zee: 'Z', kay: 'K', jay: 'J' };
-const SINGLE_IPA = { live: 'lɪv', lives: 'lɪvz', wind: 'wɪnd', minute: 'ˈmɪnɪt', present: 'ˈpɹɛzənt' };
+const SINGLE_IPA = { live: 'lɪv', lives: 'lɪvz', wind: 'wɪnd', minute: 'ˈmɪnɪt', present: 'ˈpɹɛzənt', dry: 'dɹaɪ', brought: 'bɹɔt', be: 'bi' };
 // 어느 문장에서든 틀리게 읽는 이름: Jeju를 '지주'로, Ms를 '미스'로 읽었다 (2026-11 전체 음성 받아쓰기 비교)
-const WORD_IPA = { jeju: 'ˈdʒɛdʒu', ms: 'mɪz' };
+const WORD_IPA = { jeju: 'ˈdʒɛdʒu', ms: 'mɪz', kimbap: 'ˈkɪmbɑp', hanbok: 'ˈhɑnbɔk' };
 const phoneme = (w, ph) => `<phoneme alphabet="ipa" ph="${ph}">${xml(w)}</phoneme>`;
 // 단어 하나를 고쳐 읽을 SSML (고칠 필요가 없으면 null)
 function fixWord(ws, i) {
