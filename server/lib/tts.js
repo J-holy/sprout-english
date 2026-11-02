@@ -35,6 +35,8 @@ const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&
 const LETTER_OF = { ay: 'A', ee: 'E', jee: 'G', aitch: 'H', el: 'L', em: 'M', en: 'N', ess: 'S', eff: 'F', ar: 'R', ex: 'X',
   cue: 'Q', dee: 'D', pee: 'P', tee: 'T', vee: 'V', zee: 'Z', kay: 'K', jay: 'J' };
 const SINGLE_IPA = { live: 'lɪv', lives: 'lɪvz', wind: 'wɪnd', minute: 'ˈmɪnɪt', present: 'ˈpɹɛzənt' };
+// 어느 문장에서든 틀리게 읽는 이름: Jeju를 '지주'로, Ms를 '미스'로 읽었다 (2026-11 전체 음성 받아쓰기 비교)
+const WORD_IPA = { jeju: 'ˈdʒɛdʒu', ms: 'mɪz' };
 const phoneme = (w, ph) => `<phoneme alphabet="ipa" ph="${ph}">${xml(w)}</phoneme>`;
 // 단어 하나를 고쳐 읽을 SSML (고칠 필요가 없으면 null)
 function fixWord(ws, i) {
@@ -42,7 +44,7 @@ function fixWord(ws, i) {
   if (!word) return null;
   const low = word.toLowerCase();
   if (LETTER_OF[low]) return `<say-as interpret-as="characters">${LETTER_OF[low]}</say-as>${xml(punct)}`;
-  const ph = low === 'a' ? 'ə' : low === 'the' ? (vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə') : ws.length === 1 && SINGLE_IPA[low];
+  const ph = low === 'a' ? 'ə' : low === 'the' ? (vowelSound(ws[i + 1] || '') ? 'ði' : 'ðə') : WORD_IPA[low] || (ws.length === 1 && SINGLE_IPA[low]);
   return ph ? phoneme(word, ph) + xml(punct) : null;
 }
 const fixed = text => ttsProvider() === 'google' && speechSsml(text) !== `<speak>${xml(text)}</speak>`;
@@ -56,10 +58,12 @@ export function speechSsml(text) {
   const spell = text.match(/^((?:[a-z ]+, )+[a-z ]+)\. (.+)$/);
   if (spell && spell[1].split(', ').every(n => NAME_OF[n])) return '<speak>' + spelledSsml(spell[1].split(', ')) + ' ' + xml(spell[2].replace(/[.!?]*$/, '.')) + '</speak>';
   const ws = text.split(' ');
+  // 단어 하나만 읽을 때도 마침표로 맺는다 (마침표가 없으면 fresh를 'press', noon을 'nude'처럼 읽었다). 글자 이름은 그대로 둔다
+  const end = ws.length === 1 && /^[A-Za-z'-]+$/.test(text) && !NAME_OF[text.toLowerCase()] ? '.' : '';
   return '<speak>' + ws.map((w, i) => {
     const f = fixWord(ws, i) || xml(w);
     return /^[a-z]+,$/.test(w) && NAME_OF[w.slice(0, -1)] && ws[i + 1] === 'is' ? f + pause(150) : f; // 'dee, is for dog'
-  }).join(' ') + '</speak>';
+  }).join(' ') + end + '</speak>';
 }
 // 미리 만든 정적 파일 이름에도 쓴다 (발음을 고친 파일은 이름이 바뀌어 브라우저에 남은 옛 소리를 쓰지 않게).
 // 보내는 SSML 자체로 만들어서, 고치는 규칙이 바뀌면 그 규칙에 걸리는 문장만 다시 만든다
