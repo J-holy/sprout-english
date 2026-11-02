@@ -427,11 +427,12 @@ const Store = (() => {
   const isWorn = (itemId, p = profile()) => !!(p && p.wear && Object.values(p.wear).includes(itemId));
   // 입고 있는 꾸미기 [{slot, emoji}]
   const worn = (p = profile()) => (p && p.wear ? ACC_SLOTS.map(([slot]) => SHOP.find(x => x.id === p.wear[slot])).filter(Boolean).map(it => ({ slot: it.slot, emoji: it.emoji })) : []);
-  function gameResult(game, score) {
+  // stars: 이번 판에 딴 메달 수 (0~3)
+  function gameResult(game, score, stars = 0) {
     const p = profile(); p.games = p.games || {};
     const best = p.games[game] || 0; p.games[game] = Math.max(best, score);
-    const got = addStars(score >= 8 ? 3 : score >= 5 ? 2 : score >= 2 ? 1 : 0, 'game', 6);
-    addXp(Math.min(10, score));
+    const got = addStars(stars, 'game', 6);
+    addXp(score ? stars * 3 + 1 : 0);
     save(); return { best: p.games[game], newBest: score > best, got };
   }
 
