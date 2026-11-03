@@ -22,6 +22,9 @@ import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder,
 const app = express();
 app.disable('x-powered-by');
 if (config.trustProxy) app.set('trust proxy', 'loopback');
+// www 주소는 기본 주소로 보낸다 (로그인 쿠키가 주소마다 따로라서 하나로 모은다)
+const wwwHost = 'www.' + new URL(config.publicUrl).hostname;
+app.use((req, res, next) => (req.hostname === wwwHost ? res.redirect(301, config.publicUrl + req.originalUrl) : next()));
 app.use(securityHeaders);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '64kb' }));
