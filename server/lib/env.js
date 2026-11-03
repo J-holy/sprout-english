@@ -49,7 +49,7 @@ export const config = {
   devShowCode: bool(e.DEV_SHOW_CODE, !production),
   code: { ttlSec: Number(e.CODE_TTL_SEC || 180), maxTries: Number(e.CODE_MAX_TRIES || 5), resendSec: Number(e.CODE_RESEND_SEC || 30) },
   oauth: {
-    kakao: { clientId: e.KAKAO_REST_API_KEY, clientSecret: e.KAKAO_CLIENT_SECRET },
+    kakao: { clientId: e.KAKAO_REST_API_KEY, clientSecret: e.KAKAO_CLIENT_SECRET, email: bool(e.KAKAO_EMAIL, true) },
     naver: { clientId: e.NAVER_CLIENT_ID, clientSecret: e.NAVER_CLIENT_SECRET },
     google: { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
     apple: { clientId: e.APPLE_SERVICE_ID, teamId: e.APPLE_TEAM_ID, keyId: e.APPLE_KEY_ID, privateKeyPath: e.APPLE_PRIVATE_KEY_PATH },

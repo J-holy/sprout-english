@@ -772,34 +772,49 @@ Views.auth = (el, mode, params) => {
   const providers = Object.entries(CONFIG.AUTH_PROVIDERS).filter(([k]) => Store.providerReady(k));
   const done = () => { App.refreshHeader(); location.hash = Store.profile() ? '#' + next : '#/profiles'; };
   const busy = (btn, on) => { if (!btn) return; btn.disabled = on; btn.classList.toggle('loading', on); };
+  // 화면을 열 때마다 인사말과 맞이하는 동물 친구 셋을 새로 고른다 (같은 화면 안에서는 그대로)
+  const hello = greeting();
+  const friends = Object.keys(PICS.a).sort(() => Math.random() - .5).slice(0, 3);
+  const hero = () => `<div class="auth-hero" aria-hidden="true">${friends.length === 3
+    ? friends.map(e => `<img src="img/${PICS.a[e]}" alt="" draggable="false">`).join('')
+    : '<img class="sprout" src="img/logo-live.svg" alt="">'}</div>`;
+  // SNS 버튼이 있으면 이메일·휴대폰 칸은 접어 두고, 지난번에 그 방법을 썼을 때만 펼친다
+  let showForm = !providers.length || last.method === 'email' || last.method === 'phone';
 
   const shell = (step, inner) => {
     clearInterval(timer);
     const q = next !== '/study' ? '?next=' + encodeURIComponent(next) : '';
     el.innerHTML = `<div class="wrap sec auth"><div class="card auth-card">
       <div class="seg auth-tabs" role="tablist"><a href="#/login${q}" class="${isUp ? '' : 'on'}" role="tab">로그인</a><a href="#/signup${q}" class="${isUp ? 'on' : ''}" role="tab">회원가입</a></div>
-      <ol class="steps">${steps.map((s, k) => `<li class="${k < step ? 'done' : k === step ? 'now' : ''}"><span>${k < step ? '✓' : k + 1}</span>${s}</li>`).join('')}</ol>
+      ${isUp ? `<ol class="steps">${steps.map((s, k) => `<li class="${k < step ? 'done' : k === step ? 'now' : ''}"><span>${k < step ? '✓' : k + 1}</span>${s}</li>`).join('')}</ol>` : ''}
       ${inner}</div></div>`;
   };
 
   const choose = (error = '') => {
-    shell(0, `
-      <h1>${isUp ? '무료로 시작해요 🌱' : '다시 오셨네요! 👋'}</h1>
-      ${isUp ? '<ul class="perks"><li>🌱 알파벳·파닉스(1~2단계) 평생 무료</li><li>🎁 7일 동안 전체 단계 체험</li><li>🎟️ 플러스 첫 결제 20% 쿠폰</li><li>🔒 카드 등록·자동결제 없음</li></ul>' : '<p class="center sec-desc">가입할 때 쓴 방법을 눌러 주세요. 비밀번호는 필요 없어요.</p>'}
+    const viaName = via === 'phone' ? '휴대폰' : '이메일';
+    shell(0, `${hero()}
+      ${isUp ? '<h1>무료로 시작해요 🌱</h1><ul class="perks"><li>🌱 알파벳·파닉스(1~2단계) 평생 무료</li><li>🎁 7일 동안 전체 단계 체험</li><li>🎟️ 플러스 첫 결제 20% 쿠폰</li><li>🔒 카드 등록·자동결제 없음</li></ul>'
+        : `<h1 class="hello">${esc(hello[0])}</h1><p class="center hello-sub">${esc(hello[1])}</p>`}
       ${error ? `<p class="form-err center">${esc(error)}</p>` : ''}
       ${providers.length ? `<div class="sns">${providers.map(([k, p]) => `<button class="sns-btn ${k}" data-sns="${k}"><span class="sns-ico">${p.icon}</span>${NAMES[k]}로 ${isUp ? '가입하기' : '로그인'}${last.method === k ? '<em class="last">최근 사용</em>' : ''}</button>`).join('')}</div>
-      <div class="or"><span>또는 ${via === 'phone' ? '휴대폰으로' : '이메일로'}${last.method === via ? ' <em class="last">최근 사용</em>' : ''}</span></div>` : ''}
-      ${via === 'phone' ? `<form class="email-form" novalidate><label>휴대폰 번호<input name="phone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="010-1234-5678" required></label>
+      ${showForm ? `<div class="or"><span>또는 ${viaName}로${last.method === via ? ' <em class="last">최근 사용</em>' : ''}</span></div>` : ''}` : ''}
+      ${!showForm ? `<div class="row-center"><button class="link-btn" data-show-form>${via === 'phone' ? '💬' : '✉️'} ${viaName}로 ${isUp ? '가입하기' : '로그인'}</button></div>`
+        : via === 'phone' ? `<form class="email-form" novalidate><label>휴대폰 번호<input name="phone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="010-1234-5678" required></label>
       <p class="form-err" role="alert"></p><button class="btn btn-primary full lg">💬 인증번호 받기</button>
       <p class="fine center">카카오톡으로 6자리 숫자가 와요. 카카오톡을 못 받으면 문자로 보내요.</p></form>` : `<form class="email-form" novalidate><label>이메일 주소<input name="email" type="email" autocomplete="email" inputmode="email" placeholder="parent@example.com" required></label>
       <p class="form-err" role="alert"></p><button class="btn btn-primary full lg">📮 인증코드 받기</button>
       <p class="fine center">입력한 메일로 6자리 숫자가 와요. 그 숫자만 넣으면 끝!</p></form>`}
-      ${Store.phoneReady() ? `<div class="row-center"><button class="link-btn" data-via>${via === 'phone' ? '이메일로 받을래요' : '휴대폰으로 받을래요'}</button></div>` : ''}
+      ${showForm && Store.phoneReady() ? `<div class="row-center"><button class="link-btn" data-via>${via === 'phone' ? '이메일로 받을래요' : '휴대폰으로 받을래요'}</button></div>` : ''}
+      ${isUp ? '' : '<p class="fine center">비밀번호 없이, 가입할 때 쓴 방법으로 들어와요.</p>'}
       <p class="center switch">${isUp ? '이미 계정이 있나요? <a href="#/login">로그인</a>' : '처음이세요? <a href="#/signup">무료로 회원가입</a>'}</p>`);
     $$('[data-sns]', el).forEach(b => b.onclick = () => snsFlow(b.dataset.sns));
     const toggle = $('[data-via]', el);
     if (toggle) toggle.onclick = () => { via = via === 'phone' ? 'email' : 'phone'; choose(); };
-    const f = $('form', el), input = via === 'phone' ? f.phone : f.email;
+    const open = $('[data-show-form]', el);
+    if (open) open.onclick = () => { showForm = true; choose(error); };
+    const f = $('form', el);
+    if (!f) return;
+    const input = via === 'phone' ? f.phone : f.email;
     input.value = via === 'phone' ? phone : email;
     if (!input.value) input.focus();
     f.onsubmit = async e => {
@@ -845,7 +860,7 @@ Views.auth = (el, mode, params) => {
       try {
         const res = isPhone ? await Store.verifyPhoneCode(phone, f.code.value) : await Store.verifyCode(email, f.code.value);
         clearInterval(timer);
-        if (!res.needSignup) { remember(via, email); App.toast(isUp ? '이미 가입된 계정이라 바로 로그인했어요 👋' : '다시 만나서 반가워요! 👋'); return done(); }
+        if (!res.needSignup) { remember(via, email); App.toast(isUp ? '이미 가입된 계정이라 바로 로그인했어요 👋' : hello[0]); return done(); }
         isUp ? signupStep(via, shown) : notMember(via, shown);
       } catch (x) { err.textContent = x.message; f.code.value = ''; f.code.focus(); }
       sending = false; busy($('button', f), false);
@@ -907,7 +922,7 @@ Views.auth = (el, mode, params) => {
       const em = f.email.value.trim().toLowerCase();
       if (!/^\S+@\S+\.\S+$/.test(em)) return $('.form-err', m.el).textContent = '이메일 형식을 확인해 주세요.';
       m.close();
-      if (Store.exists(em)) { Store.snsLocalLogin(provider, em); remember(provider, em); App.toast(isUp ? '이미 가입된 계정이라 바로 로그인했어요 👋' : '다시 만나서 반가워요! 👋'); done(); }
+      if (Store.exists(em)) { Store.snsLocalLogin(provider, em); remember(provider, em); App.toast(isUp ? '이미 가입된 계정이라 바로 로그인했어요 👋' : hello[0]); done(); }
       else isUp ? signupStep(provider, em) : notMember(provider, em);
     };
   };

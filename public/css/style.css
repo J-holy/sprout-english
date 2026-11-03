@@ -265,6 +265,14 @@ label.check { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .auth-card { width: min(460px, 100%); display: grid; gap: 12px; }
 .auth-card h1 { text-align: center; font-size: 1.8rem; margin: 0; }
 .auth-logo { font-size: 3.4rem; text-align: center; animation: bob 2.6s ease-in-out infinite; }
+.auth-hero { display: flex; justify-content: center; align-items: flex-end; margin-top: 4px; }
+.auth-hero img { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: var(--bw) solid var(--line); background: var(--paper); box-shadow: var(--shadow-sm); animation: bob 2.6s ease-in-out infinite; }
+.auth-hero img:nth-child(2) { width: 96px; height: 96px; margin: 0 -12px; position: relative; z-index: 1; animation-delay: -.9s; }
+.auth-hero img:nth-child(3) { animation-delay: -1.7s; }
+.auth-hero img.sprout { width: 84px; height: 84px; border: 0; box-shadow: none; background: none; border-radius: 0; }
+.auth-card h1.hello { font-size: 1.6rem; line-height: 1.3; text-wrap: balance; }
+.hello-sub { margin: -4px 0 4px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .auth-hero img { animation: none; } }
 .form-err { color: var(--bad); min-height: 1.2em; margin: 0; font-size: .92rem; font-weight: 700; }
 .sns { display: grid; gap: 10px; }
 .sns-btn { display: flex; align-items: center; gap: 10px; justify-content: center; border: var(--bw) solid var(--line); border-radius: 16px; padding: 11px; font-family: var(--title); font-size: 1.08rem; cursor: pointer; box-shadow: var(--shadow-sm); transition: transform .08s, box-shadow .08s; }

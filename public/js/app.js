@@ -236,7 +236,7 @@ const App = (() => {
     // 결제·SNS 로그인에서 돌아왔을 때 안내
     const qs = new URLSearchParams((location.hash.split('?')[1]) || '');
     if (qs.get('paid')) { toast('결제가 완료되었어요! 💎'); Lesson.confetti(); }
-    if (qs.get('welcome')) toast('다시 만나서 반가워요! 👋');
+    if (qs.get('welcome')) toast(greeting()[0]);
     clearTimeout(slowNote);
     route();
     Store.checkReminder();

@@ -41,7 +41,7 @@ async function verifyAppleIdToken(idToken) {
 export const PROVIDERS = {
   kakao: {
     ready: () => !!O.kakao.clientId,
-    authUrl: state => 'https://kauth.kakao.com/oauth/authorize?' + form({ client_id: O.kakao.clientId, redirect_uri: redirectUri('kakao'), response_type: 'code', state, scope: 'account_email profile_nickname' }),
+    authUrl: state => 'https://kauth.kakao.com/oauth/authorize?' + form({ client_id: O.kakao.clientId, redirect_uri: redirectUri('kakao'), response_type: 'code', state, scope: O.kakao.email ? 'account_email profile_nickname' : 'profile_nickname' }),
     async profile(code) {
       const tok = await getJson('https://kauth.kakao.com/oauth/token', { method: 'POST', body: form({ grant_type: 'authorization_code', client_id: O.kakao.clientId, client_secret: O.kakao.clientSecret, redirect_uri: redirectUri('kakao'), code }) });
       const me = await getJson('https://kapi.kakao.com/v2/user/me', { headers: { Authorization: `Bearer ${tok.access_token}` } });
