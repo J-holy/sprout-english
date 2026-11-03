@@ -1,14 +1,14 @@
 /* 새싹영어 — 커리큘럼 구조, 레벨 테스트, 요금제, 상점, FAQ */
 
 const STAGES = [
-  { id: 1, levels: ['A', 'B'], title: '알파벳', desc: '즐겁고 재미나게 알파벳 대소문자를 마스터해요.', skills: ['알파벳 소리', '대소문자 짝짓기', '따라 쓰기'], color: '#ff8a65' },
-  { id: 2, levels: ['C', 'D', 'E'], title: '파닉스 시작', desc: '파닉스 시작! 단어를 읽고 의미를 알아가요.', skills: ['단모음', '장모음·매직 e', '단어 철자'], color: '#ffb74d' },
-  { id: 3, levels: ['F', 'G', 'H'], title: '첫 문장', desc: '영어 문장은 이렇구나! 기초 문법을 배우기 시작해요.', skills: ['be동사', '문장 순서', '뜻 이해'], color: '#ffd54f' },
-  { id: 4, levels: ['I', 'J', 'K', 'L'], title: '일상 대화', desc: '파닉스 마스터! 질문하고 대답하며 일상 속 대화를 배워요.', skills: ['질문과 대답', '인사', '자기소개'], color: '#aed581' },
-  { id: 5, levels: ['M', 'N', 'O', 'P'], title: '묘사하기', desc: '더 설명할래요! 다양하고 심화된 표현으로 상황을 묘사해요.', skills: ['형용사', '색깔·크기', '감정'], color: '#4db6ac' },
-  { id: 6, levels: ['Q', 'R', 'S', 'T'], title: '육하원칙', desc: '문장이 길어져요! 누가, 언제, 어디서, 무엇을 했는지 설명해요.', skills: ['Who/Where', 'When/What', '전치사'], color: '#64b5f6' },
-  { id: 7, levels: ['U', 'V', 'W', 'X'], title: '과거 시제', desc: '과거를 말해요! 과거 시제를 배워서 나의 하루를 묘사해요.', skills: ['규칙 과거형', '불규칙 과거형', '일기 쓰기'], color: '#9575cd' },
-  { id: 8, levels: ['Y', 'Z'], title: '미래 시제', desc: '미래의 계획! 미래 시제를 알고 나의 꿈을 얘기할 수 있어요.', skills: ['will', 'be going to', '나의 꿈'], color: '#f06292' },
+  { id: 1, levels: ['A', 'B'], title: '알파벳', desc: '노래하고 따라 쓰며 A부터 Z까지 26개 글자와 친구가 돼요.', skills: ['알파벳 소리', '대소문자 짝짓기', '따라 쓰기'], color: '#ff8a65' },
+  { id: 2, levels: ['C', 'D', 'E'], title: '파닉스 시작', desc: '글자가 내는 소리를 이어 붙여, 처음으로 단어를 혼자 읽어요.', skills: ['단모음', '장모음·매직 e', '단어 철자'], color: '#ffb74d' },
+  { id: 3, levels: ['F', 'G', 'H'], title: '첫 문장', desc: '단어 두세 개를 모아 "This is my cat." 같은 첫 문장을 만들어요.', skills: ['be동사', '문장 순서', '뜻 이해'], color: '#ffd54f' },
+  { id: 4, levels: ['I', 'J', 'K', 'L'], title: '일상 대화', desc: '묻고 답하는 짧은 대화로 인사, 기분, 좋아하는 것을 말해요.', skills: ['질문과 대답', '인사', '자기소개'], color: '#aed581' },
+  { id: 5, levels: ['M', 'N', 'O', 'P'], title: '묘사하기', desc: '색깔, 크기, 느낌을 넣어 눈앞의 모습을 생생하게 그려 내요.', skills: ['형용사', '색깔·크기', '감정'], color: '#4db6ac' },
+  { id: 6, levels: ['Q', 'R', 'S', 'T'], title: '육하원칙', desc: '누가, 언제, 어디서, 왜를 묻고 답하며 이야기를 따라가요.', skills: ['Who/Where', 'When/What', '전치사'], color: '#64b5f6' },
+  { id: 7, levels: ['U', 'V', 'W', 'X'], title: '과거 시제', desc: '어제 한 일과 지난 주말 이야기를 과거형으로 들려줘요.', skills: ['규칙 과거형', '불규칙 과거형', '일기 쓰기'], color: '#9575cd' },
+  { id: 8, levels: ['Y', 'Z'], title: '미래 시제', desc: 'will과 be going to로 내일 계획과 나의 꿈을 말해요.', skills: ['will', 'be going to', '나의 꿈'], color: '#f06292' },
 ];
 const ALL_LEVELS = STAGES.flatMap(s => s.levels);
 const stageOf = lv => STAGES.find(s => s.levels.includes(lv));
