@@ -192,7 +192,8 @@ const Speech = (() => {
     }
     return new Blob([b], { type: 'audio/wav' });
   }
-  async function record({ maxMs = 8000, silenceMs = 1000 } = {}) {
+  // onStart: 마이크 소리가 실제로 들어오기 시작할 때 (iPhone은 누르고 잠깐 뒤라서, 그 전에 말하면 첫 단어가 잘렸다)
+  async function record({ maxMs = 8000, silenceMs = 1000, onStart } = {}) {
     stop();
     // iOS는 손가락으로 누른 그 순간에 만든 AudioContext만 소리를 받는다. 마이크 허용 창을 기다린 뒤에 만들면 멈춘 채로 남아 녹음이 끝나지 않았다
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -218,6 +219,7 @@ const Speech = (() => {
       recording = { stop: finish };
       proc.onaudioprocess = ev => {
         const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
+        if (chunks.length === 1 && onStart) onStart();
         let e = 0; for (let i = 0; i < d.length; i += 4) e += d[i] * d[i];
         const now = Date.now(), rms = Math.sqrt(e / (d.length / 4));
         if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.02, Math.max(0.006, floor * 2.5)); }
@@ -229,10 +231,10 @@ const Speech = (() => {
     });
   }
   const stopRecording = () => recording && recording.stop();
-  async function listenServer(hint, onThinking) {
+  async function listenServer(hint, onThinking, onStart) {
     if (!Store.user()) throw new Error('login'); // 서버 채점은 로그인한 사용자만 된다. 녹음부터 시키지 않는다
     let wav;
-    try { wav = await record(); } catch (e) { throw new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'); }
+    try { wav = await record({ onStart }); } catch (e) { throw new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'); }
     if (!wav) throw new Error('no-speech');
     if (onThinking) onThinking(); // 서버 채점은 몇 초 걸린다
     let r;
@@ -249,9 +251,9 @@ const Speech = (() => {
     return alts;
   }
 
-  // 한 번 듣고 결과 후보 문장들을 돌려줌 (hint: 아이가 읽으려는 문장 — 서버 인식이 알아듣는 데 쓴다)
-  function listen({ timeout = 8000, hint = '', onThinking } = {}) {
-    if (useServer()) return listenServer(hint, onThinking);
+  // 한 번 듣고 결과 후보 문장들을 돌려줌 (hint: 아이가 읽으려는 문장 — 서버 인식이 알아듣는 데 쓴다, onStart: 마이크가 소리를 받기 시작함)
+  function listen({ timeout = 8000, hint = '', onThinking, onStart } = {}) {
+    if (useServer()) return listenServer(hint, onThinking, onStart);
     return new Promise((resolve, reject) => {
       if (!Rec) return reject(new Error('unsupported'));
       stop();
@@ -267,6 +269,8 @@ const Speech = (() => {
         finish(reject, new Error(e.error || 'error'));
       };
       r.onend = () => finish(reject, new Error('no-speech'));
+      let started = false;
+      if (onStart) r.onstart = r.onaudiostart = () => { if (!done && !started) { started = true; onStart(); } };
       try { r.start(); } catch (e) { finish(reject, new Error('busy')); }
     });
   }
@@ -335,6 +339,14 @@ const Speech = (() => {
   }
   const sim = (a, b) => 1 - lev(a, b) / Math.max(a.length, b.length, 1);
 
+  // 알파벳 한 글자는 이름 소리로 받아써도 맞게 본다 ('J is for juice'를 'Jay is for juice'로 적었다)
+  const LETTER_SOUNDS = { a: 'eh hey', c: 'sea si', g: 'gee ji', h: 'age eich', i: 'aye', j: 'jae jey', l: 'ell elle', o: 'owe', p: 'pea',
+    q: 'queue kyu', r: 'are', s: 'es', t: 'tea', u: 'you', x: 'ex', y: 'wai', z: 'zed' };
+  const spellings = w => {
+    if (!/^[a-z]$/.test(w)) return [w];
+    const name = (typeof LETTER_NAMES === 'object' && LETTER_NAMES[w.toUpperCase()]) || '';
+    return [w, ...(name.includes(' ') ? [] : [name]), ...(LETTER_SOUNDS[w] || '').split(' ')].filter(Boolean);
+  };
   // 목표 문장 대비 단어별 일치도 (순서를 고려한 정렬)
   function scoreOne(target, heard) {
     const T = norm(target), H = norm(heard);
@@ -343,7 +355,7 @@ const Speech = (() => {
     for (const tw of words) {
       let best = 0, bestJ = -1;
       for (let j = hi; j < Math.min(H.length, hi + 3); j++) {
-        const s = sim(tw.w, H[j]); if (s > best) { best = s; bestJ = j; }
+        const s = Math.max(...spellings(tw.w).map(v => sim(v, H[j]))); if (s > best) { best = s; bestJ = j; }
       }
       if (best >= 0.99) tw.ok = 1; else if (best >= 0.6) tw.ok = 0.5;
       if (tw.ok) hi = bestJ + 1;

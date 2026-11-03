@@ -523,11 +523,12 @@ Views.speakWidget = (box, sentences, record = true) => {
     const mic = $('[data-mic]', box);
     if (mic) mic.onclick = async () => {
       if (mic.classList.contains('rec')) return Speech.stopRecording(); // 녹음 방식이면 한 번 더 눌러 멈출 수 있다
-      mic.classList.add('rec'); mic.textContent = Speech.usesServerStt ? '🎙️ 듣고 있어요… 다 말하면 저절로 멈춰요' : '🎙️ 듣고 있어요…';
+      mic.classList.add('rec'); mic.textContent = '⏳ 마이크 준비 중…';
       if (!Speech.usesServerStt) mic.disabled = true;
       const res = $('.speak-result', box);
+      const onStart = () => { mic.textContent = Speech.usesServerStt ? '🎙️ 지금 말해요! 다 말하면 저절로 멈춰요' : '🎙️ 지금 말해요!'; };
       try {
-        const r = Speech.score(s, await Speech.listen({ hint: s, onThinking: () => { mic.disabled = true; mic.textContent = '🤔 점수를 매기는 중…'; } }));
+        const r = Speech.score(s, await Speech.listen({ hint: s, onStart, onThinking: () => { mic.disabled = true; mic.textContent = '🤔 점수를 매기는 중…'; } }));
         $$('.speak-target span', box).forEach((sp, j) => { const w = r.words[j]; if (w) sp.className = w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'; });
         const miss = r.words.filter(w => w.ok < 1).map(w => w.w);
         let got = 0;
@@ -737,8 +738,8 @@ Views.help = el => {
   // 마이크 테스트: "Hello"라고 말하면 들은 말을 보여주고, 안 되면 원인과 해결 방법을 알려준다
   const micBtn = $('[data-test-mic]', el), micOut = $('.mic-test-result', el);
   micBtn.onclick = async () => {
-    micBtn.disabled = true; micBtn.textContent = '🎙️ "Hello!" 라고 말해 보세요…';
-    try { const alts = await Speech.listen(); micOut.innerHTML = `✅ 마이크가 잘 돼요! 들은 말: "<b>${esc(alts[0])}</b>"`; }
+    micBtn.disabled = true; micBtn.textContent = '⏳ 마이크 준비 중…';
+    try { const alts = await Speech.listen({ onStart: () => { micBtn.textContent = '🎙️ 지금 "Hello!" 라고 말해 보세요'; } });micOut.innerHTML = `✅ 마이크가 잘 돼요! 들은 말: "<b>${esc(alts[0])}</b>"`; }
     catch (e) { micOut.innerHTML = `⚠️ ${esc(Speech.micHelp(e.message))} <small class="fine">(코드: ${esc(e.message)})</small>`; }
     micBtn.disabled = false; micBtn.textContent = '🎤 다시 테스트';
   };
@@ -1308,10 +1309,10 @@ Views.story = (el, id) => {
     const mic = $('[data-mic]', box);
     if (mic) mic.onclick = async () => {
       cancelTurn(); // 아이가 말하는 동안은 자동으로 넘기지 않는다
-      mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
+      mic.disabled = true; mic.classList.add('rec'); mic.textContent = '⏳ 마이크 준비 중…';
       const res = $('.follow-result', box);
       try {
-        const r = Speech.score(text, await Speech.listen({ hint: text, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } }));
+        const r = Speech.score(text, await Speech.listen({ hint: text, onStart: () => { mic.textContent = '🎙️ 지금 말해요!'; }, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } }));
         clearHl(); sp.forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
         const got = Store.profile() ? Store.recordSpeaking(text, r.score) : 0;
         res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= Lesson.passMark() ? '잘 읽었어요! 🌟' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;

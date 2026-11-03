@@ -599,9 +599,10 @@ const Lesson = (() => {
       if (skip) skip.onclick = () => { el.querySelectorAll('button').forEach(b => b.disabled = true); done(false, q); };
       const mic = el.querySelector('[data-mic]');
       if (mic) mic.onclick = async () => {
-        mic.disabled = true; mic.classList.add('rec'); mic.textContent = '🎙️ 듣고 있어요…';
+        // 마이크가 실제로 켜진 뒤에 "말해요"를 보여준다 (먼저 말하면 첫 단어가 잘린다)
+        mic.disabled = true; mic.classList.add('rec'); mic.textContent = '⏳ 마이크 준비 중…';
         try {
-          const alts = await Speech.listen({ hint: q.target, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } });
+          const alts = await Speech.listen({ hint: q.target, onStart: () => { mic.textContent = '🎙️ 지금 말해요!'; }, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } });
           const r = Speech.score(q.target, alts); tries++;
           const pass = passMark();
           if (R.recordSpeech && Store.profile()) Store.recordSpeaking(q.target, r.score);
