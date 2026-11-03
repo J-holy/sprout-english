@@ -567,7 +567,7 @@ Views.study = (el, params) => {
     ${u && p && a.ok ? `<div class="card status-card">📍 ${esc(p.name)}의 학습은 <a href="#/study">모험 지도</a>에서 이어갈 수 있어요.</div>` : ''}
     <div class="start-3">
       <a class="start-card" href="#/sample/A" style="--c:#ffd23f"><span>▶</span><b>3분 체험 레슨</b><small>가입 없이 알파벳 레슨 5문제</small></a>
-      <a class="start-card" href="#/leveltest" style="--c:#7fd3ff"><span>${ico('🧪')}</span><b>무료 레벨 진단</b><small>12문제로 시작 레벨 찾기</small></a>
+      <a class="start-card" href="#/leveltest" style="--c:#7fd3ff"><span>${ico('🧪')}</span><b>무료 레벨 진단</b><small>섬마다 6~8문제로 출발 레벨 찾기</small></a>
       <a class="start-card" href="${u ? (p ? '#/study' : '#/profiles') : '#/signup'}" style="--c:#7ed957"><span>${ico('🌱')}</span><b>${u ? '내 학습 시작' : '무료로 시작'}</b><small>${u ? '진도·별·리포트가 저장돼요' : '알파벳·파닉스 평생 무료'}</small></a>
     </div>
 
@@ -1362,27 +1362,45 @@ Views.story = (el, id) => {
 };
 
 /* ---------- 레벨 테스트 ---------- */
-// 🧪 레벨 테스트 — 찍어서 맞힌 답으로 레벨이 올라가지 않게
-// · 섬마다 5문제(3섬부터는 찍기 어려운 문장 순서 맞추기 1문제 포함), 4문제 이상 맞혀야 다음 섬으로 (틀린 섬에서 멈춤)
-//   보기 3개 문제를 찍어서 5문제 중 4문제를 맞힐 확률은 약 5%, 두 섬 연속은 약 0.2%
+// 🧪 레벨 테스트 — 찍어서 맞힌 답으로 레벨이 올라가지 않게, 운 나쁜 실수 하나로 떨어지지 않게
+// · 섬마다 레벨별로 고르게 2~3문제(레벨이 4개인 섬은 8문제, 나머지는 6문제). 같은 종류·같은 답 문제는 겹치지 않게 뽑고,
+//   3섬부터는 찍기 어려운 문장 순서 맞추기 1문제를 넣는다
+// · 2문제까지 틀려도 통과(6문제 중 5, 8문제 중 6). 딱 하나 모자라면 확인 문제 2개를 더 내서 둘 다 맞히면 통과
+//   보기 3개를 찍어서 통과할 확률은 섬마다 약 3%, 85%쯤 아는 아이가 통과할 확률은 약 90%
+// · 멈춘 섬에서는 레벨마다 다시 본다: 앞 레벨 문제를 2개 이상 모두 맞혔으면 그 레벨은 건너뛰고 다음 레벨에서 출발
 // · 문제가 나오고 너무 빨리(글 문제 1.5초·소리 문제 2.5초 안에) 고른 정답은 찍은 것으로 보고 세지 않는다
 // · '🤔 모르겠어요'를 고를 수 있고, 테스트 중에는 정답을 보여주지 않는다. 문제는 매번 새로 뽑는다
-const TEST_PER_STAGE = 5, TEST_PASS = 4, DONT_KNOW = '🤔 모르겠어요';
+const DONT_KNOW = '🤔 모르겠어요', TEST_CONFIRM = 2;
+const testSize = st => Math.max(6, st.levels.length * 2), testPass = st => testSize(st) - (testSize(st) > 6 ? 2 : 1);
 const tooFast = x => x.ms < (x.listen ? 2500 : 1500);
-function testBlock(st) {
-  const ids = shuffle(st.levels.flatMap(lv => Gen.levelItems(lv)).map(Gen.itemId));
-  const pool = Gen.reviewQuestions(ids, 60).filter(q => q.type === 'choice' || (q.type === 'tiles' && q.joiner === ' '));
-  const pick = [], items = new Set();
-  const take = q => { if (items.has(q.item) || pick.length >= TEST_PER_STAGE) return; items.add(q.item); pick.push(q); };
-  if (st.id >= 3) pool.filter(q => q.type === 'tiles').slice(0, 1).forEach(take);
-  pool.filter(q => q.type === 'choice').forEach(take);
-  return shuffle(pick).map((q, k) => ({ ...q, key: `lt${st.id}-${k}`, sayAfter: null, ...(q.type === 'choice' ? { options: [...q.options, DONT_KNOW] } : {}) }));
+// levels: 문제를 낼 레벨들, used: 이미 낸 문항(item)·답(겹치지 않게)
+function testBlock(st, n = testSize(st), levels = st.levels, used = { items: new Set(), answers: new Set() }) {
+  const pools = levels.map(lv => Gen.reviewQuestions(shuffle(Gen.levelItems(lv).map(Gen.itemId)), 40)
+    .filter(q => q.type === 'choice' || (q.type === 'tiles' && q.joiner === ' ')));
+  const ans = q => String(Array.isArray(q.answer) ? q.answer.join(' ') : q.answer);
+  const pick = [], kinds = levels.map(() => new Set()), count = levels.map(() => 0), inStage = {};
+  const take = (q, k, anyKind) => {
+    const kind = Gen.kindOf(q.key || '');
+    if (used.items.has(q.item) || used.answers.has(ans(q)) || (!anyKind && (kinds[k].has(kind) || inStage[kind] >= 2))) return false;
+    used.items.add(q.item); used.answers.add(ans(q)); kinds[k].add(kind); inStage[kind] = (inStage[kind] || 0) + 1; count[k]++; pick.push(q); return true;
+  };
+  // 문장 순서 맞추기 1문제 (3섬부터, 아무 레벨에서나)
+  if (st.id >= 3 && n >= 6) shuffle(levels.map((_, k) => k)).some(k => pools[k].some(q => q.type === 'tiles' && take(q, k)));
+  // 나머지는 문제가 가장 적은 레벨부터 한 문제씩 채운다. 같은 레벨에서는 종류가 다른 문제부터 쓰고, 모자랄 때만 종류가 겹쳐도 쓴다
+  const fill = anyKind => {
+    while (pick.length < n) {
+      const order = levels.map((_, k) => k).sort((a, b) => count[a] - count[b] || a - b);
+      if (!order.some(k => pools[k].some(q => q.type === 'choice' && take(q, k, anyKind)))) return;
+    }
+  };
+  fill(false); fill(true);
+  return shuffle(pick).map((q, k) => ({ ...q, key: `lt${st.id}-${used.items.size}-${k}`, sayAfter: null, ...(q.type === 'choice' ? { options: [...q.options, DONT_KNOW] } : {}) }));
 }
 Views.leveltest = el => {
   const p = Store.profile();
   el.innerHTML = `<div class="wrap sec narrow"><div class="card intro center">
     <div class="auth-logo">🧪</div><h1>우리 아이 출발 섬 찾기</h1>
-    <p>섬마다 ${TEST_PER_STAGE}문제씩, 아는 데까지 풀어요 (약 3~8분). 소리가 나오니 볼륨을 켜 주세요.</p>
+    <p>섬마다 6~8문제씩, 아는 데까지 풀어요 (약 5~12분). 소리가 나오니 볼륨을 켜 주세요.</p>
     <p class="hint">🤔 모르는 문제는 찍지 말고 <b>"모르겠어요"</b>를 눌러요. 그래야 딱 맞는 레벨에서 시작해서 재미있게 배울 수 있어요.</p>
     <button class="btn btn-primary lg" data-start>테스트 시작</button>
     ${p ? '' : '<p class="fine">로그인 없이도 볼 수 있어요. 결과를 학습에 반영하려면 프로필이 필요해요.</p>'}</div></div>`;
@@ -1390,29 +1408,64 @@ Views.leveltest = el => {
     el.innerHTML = '<div class="wrap lesson-wrap"></div>';
     const root = $('.lesson-wrap', el), report = [];
     const exit = () => { location.hash = p ? '#/study' : '#/'; };
+    // 레벨별 결과: 찍은 것으로 보이는 정답은 틀린 것으로 센다
+    const byLevel = (qs, results) => {
+      const lv = {}; results.forEach((x, i) => { const L = qs.find(q => q.item === x.item)?.level || qs[i]?.level; if (!L) return; (lv[L] = lv[L] || { ok: 0, n: 0 }).n++; if (x.ok && !tooFast(x)) lv[L].ok++; });
+      return lv;
+    };
     const runStage = k => {
-      const st = STAGES[k];
-      Lesson.run(root, testBlock(st), {
+      const st = STAGES[k], used = { items: new Set(), answers: new Set() }, qs = testBlock(st, testSize(st), st.levels, used);
+      Lesson.run(root, qs, {
         title: `레벨 테스트 · 섬 ${st.id} ${st.title}`, test: true, recordSpeech: false, onExit: exit,
         onDone: r => {
           const right = r.results.filter(x => x.ok), counted = right.filter(x => !tooFast(x)).length;
-          report.push({ st, counted, fast: right.length - counted, total: r.total });
-          if (counted >= TEST_PASS && k + 1 < STAGES.length) {
-            root.innerHTML = `<div class="result card anim-in"><div class="stamp">섬 ${st.id}<br>통과</div><h2>${st.title}섬 통과! 🎉</h2>
-              <p>다음은 <b>섬 ${k + 2} · ${STAGES[k + 1].title}</b> 문제예요. 모르면 "모르겠어요"를 눌러도 괜찮아요.</p>
-              <div class="row-center"><button class="btn btn-ghost" data-stop>여기까지 할래요</button><button class="btn btn-primary" data-next>다음 섬 문제 ▶</button></div></div>`;
-            Speech.sfx.cheer();
-            $('[data-next]', root).onclick = () => runStage(k + 1);
-            $('[data-stop]', root).onclick = () => result(k + 2);
-          } else result(counted >= TEST_PASS ? 8 : st.id);
+          const rec = { st, counted, fast: right.length - counted, total: r.total, levels: byLevel(qs, r.results) };
+          report.push(rec);
+          if (counted >= testPass(st)) return passed(k);
+          if (counted < testPass(st) - 1) return stopAt(k);
+          // 딱 하나 모자라면 확인 문제 2개: 틀린 레벨에서 내고, 둘 다 맞히면 통과
+          const weak = st.levels.filter(L => rec.levels[L] && rec.levels[L].ok < rec.levels[L].n);
+          const more = testBlock(st, TEST_CONFIRM, weak.length ? weak : st.levels, used);
+          root.innerHTML = `<div class="result card anim-in"><h2>조금만 더 볼게요 🔍</h2>
+            <p>${st.title}섬을 거의 다 알고 있어요! 확인 문제 <b>${more.length}개</b>만 더 풀어요.</p>
+            <div class="row-center"><button class="btn btn-primary" data-more>확인 문제 풀기 ▶</button></div></div>`;
+          $('[data-more]', root).onclick = () => Lesson.run(root, more, {
+            title: `레벨 테스트 · 섬 ${st.id} 확인 문제`, test: true, recordSpeech: false, onExit: exit,
+            onDone: r2 => {
+              const ok2 = r2.results.filter(x => x.ok && !tooFast(x)).length, lv2 = byLevel(more, r2.results);
+              rec.counted += ok2; rec.total += r2.total; rec.fast += r2.results.filter(x => x.ok && tooFast(x)).length;
+              Object.entries(lv2).forEach(([L, v]) => { const t = rec.levels[L] = rec.levels[L] || { ok: 0, n: 0 }; t.ok += v.ok; t.n += v.n; });
+              ok2 === more.length && more.length ? passed(k) : stopAt(k);
+            },
+          });
         },
       });
     };
-    const result = stage => {
-      const start = STAGES[stage - 1].levels[0], fast = report.reduce((n, x) => n + x.fast, 0);
+    const passed = k => {
+      const st = STAGES[k];
+      report[report.length - 1].passed = true;
+      if (k + 1 >= STAGES.length) return stopAt(k);
+      root.innerHTML = `<div class="result card anim-in"><div class="stamp">섬 ${st.id}<br>통과</div><h2>${st.title}섬 통과! 🎉</h2>
+        <p>다음은 <b>섬 ${k + 2} · ${STAGES[k + 1].title}</b> 문제예요. 모르면 "모르겠어요"를 눌러도 괜찮아요.</p>
+        <div class="row-center"><button class="btn btn-ghost" data-stop>여기까지 할래요</button><button class="btn btn-primary" data-next>다음 섬 문제 ▶</button></div></div>`;
+      Speech.sfx.cheer();
+      $('[data-next]', root).onclick = () => runStage(k + 1);
+      $('[data-stop]', root).onclick = () => result(STAGES[k + 1].levels[0]);
+    };
+    // 멈춘 섬 안에서 출발 레벨 정하기: 앞에서부터, 문제를 2개 이상 냈고 모두 맞힌 레벨은 건너뛴다
+    const stopAt = k => {
+      const st = STAGES[k], lv = report[report.length - 1].levels, mastered = L => lv[L] && lv[L].n >= 2 && lv[L].ok === lv[L].n;
+      let i = 0;
+      while (i < st.levels.length - 1 && mastered(st.levels[i])) i++;
+      result(st.levels[i]);
+    };
+    const result = start => {
+      const stage = stageOf(start).id, fast = report.reduce((n, x) => n + x.fast, 0);
+      const mark = x => x.passed ? '✅' : '🌱';
       root.innerHTML = `<div class="result card anim-in"><div class="stamp">추천<br>섬 ${stage}</div>
         <h2>추천 출발 레벨은 Level ${start}</h2><p>${STAGES[stage - 1].title}섬 — ${STAGES[stage - 1].desc}</p>
-        <ul class="plain test-report">${report.map(x => `<li>${x.counted >= TEST_PASS ? '✅' : '🌱'} 섬 ${x.st.id} ${x.st.title} · ${x.counted}/${x.total}</li>`).join('')}</ul>
+        <ul class="plain test-report">${report.map(x => `<li>${mark(x)} 섬 ${x.st.id} ${x.st.title} · ${x.counted}/${x.total}
+          <small class="fine">${x.st.levels.filter(L => x.levels[L]).map(L => `${L} ${x.levels[L].ok}/${x.levels[L].n}`).join(' · ')}</small></li>`).join('')}</ul>
         ${fast ? `<p class="hint">⚡ 문제를 다 보기 전에 고른 정답 ${fast}개는 찍었을 수 있어서 세지 않았어요.</p>` : ''}
         ${p && stage > 1 ? '<p class="hint">처음 2번의 레슨이 어려우면(평균 60점 아래) 한 섬 앞에서 다시 시작하도록 자동으로 맞춰 드려요.</p>' : ''}
         <div class="row-center">${p ? `<button class="btn btn-ghost" data-keep>지금 레벨 유지</button><button class="btn btn-primary" data-apply>Level ${start}부터 시작</button>` : '<a class="btn btn-primary" href="#/signup">가입하고 이 레벨로 시작</a>'}</div></div>`;
