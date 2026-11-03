@@ -17,7 +17,17 @@ const scoreClass = s => s >= 80 ? 'good' : s >= 60 ? 'mid' : 'low';
 // 꾸미기는 원이 아니라 캐릭터(ava-body)를 기준으로 놓는다. 효과는 캐릭터 둘레에 세 개를 띄운다
 // 캐릭터마다 머리 꼭대기·눈·턱 높이가 달라서(글자 칸 높이에 대한 비율) 모자가 뜨지 않게 맞춘다
 const AVATAR_FIT = { '🐰': [.42, .6, .92], '🐻': [.2, .5, .88], '🦊': [.24, .55, .9], '🐼': [.2, .5, .88], '🐯': [.2, .5, .88], '🐨': [.22, .52, .88], '🐸': [.2, .36, .86], '🦁': [.14, .5, .9], '🐧': [.12, .38, .72], '🦄': [.16, .42, .92] };
-const avatarHtml = (p, cls = '') => { const [hy, ey, ny] = AVATAR_FIT[p.avatar] || [.2, .5, .88]; return `<span class="avatar ${cls}"><span class="ava-body" style="--hy:${hy};--ey:${ey};--ny:${ny}">${p.avatar}${Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${w.emoji}</i>`).join('')).join('')}</span></span>`; };
+// 그린 캐릭터(img/a)는 둥근 얼굴 그림 위에 그린 꾸미기(img/x)를 얹는다. [머리 가운데 x, 머리 꼭대기 y, 머리 폭, 눈 높이, 턱 높이] (그림 크기에 대한 비율)
+const DRAWN_FIT = {
+  '🐰': [.5, .46, .52, .65, .8], '🐻': [.48, .2, .58, .52, .76], '🦊': [.5, .27, .6, .55, .76], '🐼': [.5, .2, .6, .5, .72], '🐯': [.49, .2, .64, .49, .75],
+  '🐨': [.5, .22, .55, .53, .75], '🐸': [.5, .13, .6, .34, .8], '🦁': [.5, .17, .62, .53, .84], '🐧': [.49, .17, .58, .46, .7], '🦄': [.49, .28, .58, .54, .8],
+};
+const accArt = w => PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
+const avatarHtml = (p, cls = '') => {
+  const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w) : w.emoji}</i>`).join('')).join('');
+  if (PICS.a[p.avatar]) { const [hx, hy, hw, ey, ny] = DRAWN_FIT[p.avatar] || [.5, .4, .56, .62, .9]; return `<span class="avatar drawn ${cls}"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny}"><img class="ava-face" src="img/${PICS.a[p.avatar]}" alt="" draggable="false">${acc}</span></span>`; }
+  const [hy, ey, ny] = AVATAR_FIT[p.avatar] || [.2, .5, .88]; return `<span class="avatar ${cls}"><span class="ava-body" style="--hy:${hy};--ey:${ey};--ny:${ny}">${p.avatar}${acc}</span></span>`;
+};
 // 놀이터·카드에 쓸 그림 단어 (알파벳 단어 + 파닉스 단어)
 const PICTURE_WORDS = [...LETTERS.flatMap(l => l.words.map(([en, emoji]) => ({ en, emoji }))), ...Object.values(PHONICS).flat().map(([en, emoji]) => ({ en, emoji }))]
   .filter((w, i, a) => a.findIndex(x => x.en === w.en) === i);
@@ -922,7 +932,7 @@ Views.profiles = (el, { adding = false } = {}) => {
       <h3>${u.profiles.length ? '형제·자매 프로필 만들기' : '아이 프로필 만들기'}</h3>
       <label>이름<input name="name" required maxlength="10"></label>
       <label>나이<select name="age">${[4, 5, 6, 7, 8, 9, 10].map(a => `<option ${a === 6 ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
-      <div><b class="lbl">캐릭터를 골라요</b><div class="avatar-pick">${AVATARS.map((a, i) => `<label><input type="radio" name="avatar" value="${a}" ${i === 0 ? 'checked' : ''}><span>${a}</span></label>`).join('')}</div></div>
+      <div><b class="lbl">캐릭터를 골라요</b><div class="avatar-pick">${AVATARS.map((a, i) => `<label><input type="radio" name="avatar" value="${a}" ${i === 0 ? 'checked' : ''}><span>${avaFace(a)}</span></label>`).join('')}</div></div>
       <label class="check"><input type="checkbox" name="notify" checked> 학습알림 켜기 (레슨 완료·리마인더)</label>
       <button class="btn btn-primary full">만들기</button>
     </form></div>`;
@@ -1177,11 +1187,11 @@ Views.stories = el => {
     <h1 class="page-title">📖 스토리북</h1>
     <p class="sec-desc left">모두 ${STORIES.length}권이에요. 🐢 천천히·👆 한 단어씩 들으며 🗣️ 따라 읽어요. 읽다 멈춘 책은 그 쪽부터 이어 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
     ${STAGES.map(st => `<h3 class="book-stage" style="--c:${st.color}">섬 ${st.id} · ${st.title}</h3>
-    <div class="book-grid">${STORIES.filter(s => s.stage === st.id).map(s => { const locked = bookNeedsPlus(s), open = !locked && Store.isUnlocked(st.levels[0]), at = storyMark(s); return `
-      <a class="book ${open ? '' : 'locked'}" href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${st.color}">
-        <span class="cover">${open ? s.cover : locked || Store.needsPlus(st.levels[0]) ? '💎' : '🔒'}</span><b>${esc(s.title)}</b><small>${s.pages.length}쪽${at ? ` · 📑 ${at + 1}쪽부터` : ''}${p.stories[s.id] ? ` · ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>`).join('')}
+    <div class="book-grid">${STORIES.filter(s => s.stage === st.id).map(s => { const locked = bookNeedsPlus(s), open = !locked && Store.isUnlocked(st.levels[0]), plus = locked || Store.needsPlus(st.levels[0]), at = storyMark(s); return `
+      <a class="book ${open ? '' : 'locked'}"${open ? '' : ` data-plus="${plus ? 1 : ''}"`} href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${st.color}">
+        <span class="cover">${bookCover(s)}${open ? '' : `<i class="cover-lock">${ico(plus ? '💎' : '🔒')}</i>`}</span><b>${esc(s.title)}</b><small>${s.pages.length}쪽${at ? ` · 📑 ${at + 1}쪽부터` : ''}${p.stories[s.id] ? ` · ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>`).join('')}
   </div>`;
-  $$('.book.locked', el).forEach(b => b.onclick = e => { e.preventDefault(); b.innerText.includes('💎') ? App.upsell() : App.toast('그 섬에 도착하면 열려요 🔒'); });
+  $$('.book.locked', el).forEach(b => b.onclick = e => { e.preventDefault(); b.dataset.plus ? App.upsell() : App.toast('그 섬에 도착하면 열려요 🔒'); });
 };
 // 1~2단계에도 플러스로 읽는 책이 있다
 const bookNeedsPlus = s => !!s.plus && !Store.hasPlus();
@@ -1461,7 +1471,7 @@ Views.shop = el => {
   };
   const item = i => {
     const own = p.owned.includes(i.id), on = Store.isWorn(i.id, p);
-    return `<div class="shop-item ${own ? 'own' : ''} ${on ? 'worn' : ''}"><span class="si-emoji">${i.emoji}</span><b>${i.name}</b>
+    return `<div class="shop-item ${own ? 'own' : ''} ${on ? 'worn' : ''}"><span class="si-emoji">${i.kind === 'acc' && PICS.x[i.emoji] ? accArt(i) : i.emoji}</span><b>${i.name}</b>
       ${own ? (i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}" aria-pressed="${on}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>`}</div>`;
   };
   draw();
@@ -1710,7 +1720,7 @@ const AdminTabs = {
       <div class="table-wrap"><table class="table"><thead><tr><th>레벨</th><th>단계</th><th>학습 항목</th><th>검수</th></tr></thead><tbody>
       ${ALL_LEVELS.map(lv => `<tr><td><span class="level-box sm" style="--c:${stageOf(lv).color}">${lv}</span></td><td>${stageOf(lv).id}. ${stageOf(lv).title}</td><td>${Gen.levelItems(lv).length}개</td>
         <td><a class="link-btn" href="#/sample/${lv}">체험</a> <a class="link-btn" href="#/worksheet/${lv}">워크시트</a></td></tr>`).join('')}</tbody></table></div></div>
-      <div class="card"><h3>스토리북</h3><ul class="plain">${STORIES.map(s => `<li>${s.cover} ${esc(s.title)} (${s.stage}단계, ${s.pages.length}쪽)</li>`).join('')}</ul></div>`;
+      <div class="card"><h3>스토리북</h3><ul class="plain">${STORIES.map(s => `<li><span class="cover-mini">${bookCover(s)}</span> ${esc(s.title)} (${s.stage}단계, ${s.pages.length}쪽)</li>`).join('')}</ul></div>`;
   },
   system(el, users, stats) {
     const ok = v => v ? '✅ 설정됨' : '⚠️ 미설정';
