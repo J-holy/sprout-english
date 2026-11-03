@@ -69,6 +69,11 @@ export function dropRepeats(text) {
   return kept.join(' ');
 }
 
+// Whisper는 숫자를 'Day 3'처럼 적어서, 채점이 문장의 'three'와 맞춰 보게 99까지 글자로 바꾼다
+const ONES = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ');
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+export const numberWords = t => t.replace(/\b\d{1,2}\b/g, d => (d < 20 ? ONES[+d] : TENS[d[0]] + (d[1] !== '0' ? ' ' + ONES[d[1]] : '')));
+
 // Whisper는 CPU를 많이 써서 한 번에 한 문장씩만 돌린다. 줄이 길면 기다리게 하지 않고 다시 눌러 달라고 한다
 const MAX_WAITING = 6;
 let waiting = 0, last = Promise.resolve();
@@ -86,15 +91,18 @@ async function runWhisper(wav, hint) {
   const file = path.join(dir, crypto.randomUUID() + '.wav');
   fs.writeFileSync(file, wav, { mode: 0o600 });
   try {
-    // -ac 512: 짧은 문장을 30초 길이로 처리하지 않게 해서 3배쯤 빨라진다 (10초까지 인식, 녹음은 최대 8초). 더 줄이면 같은 문장을 되풀이하며 오히려 느려진다
-    // -bs 1 -bo 1 -nf: 후보를 하나만 보고 다시 시도하지 않는다. 라즈베리파이 4의 tiny.en-q5_1에서 문장당 평균 약 2초 (2026-11 측정)
-    const args = ['-n', '10', e.WHISPER_BIN, '-m', e.WHISPER_MODEL, '-f', file, '-l', 'en', '-nt', '-t', e.WHISPER_THREADS || '2', '-ac', e.WHISPER_AUDIO_CTX || '512', '-bs', '1', '-bo', '1', '-nf'];
-    if (hint) args.push('--prompt', hint);
+    // -ac: 짧은 문장을 30초 길이로 처리하지 않게 해서 빨라진다. 384는 7.6초, 512는 10초까지 듣는다 (녹음은 최대 8초).
+    //   이보다 줄이면 같은 문장을 되풀이하며 오히려 느려진다
+    // -bs 1 -bo 1 -nf: 후보를 하나만 보고 다시 시도하지 않는다
+    // 읽을 문장을 --prompt로 주지 않는다: 주면 그 문장을 끝없이 되풀이해 적는 일이 30문장 중 9번(문장당 4초), 빼면 1번이었다
+    //   라즈베리파이 4의 tiny.en-q5_1, -ac 384에서 문장당 약 1.4초 (2026-11 측정)
+    const ac = Math.min(Number(e.WHISPER_AUDIO_CTX) || 512, (wav.length - 44) / 32000 > 7.2 ? 512 : 384);
+    const args = ['-n', '10', e.WHISPER_BIN, '-m', e.WHISPER_MODEL, '-f', file, '-l', 'en', '-nt', '-t', e.WHISPER_THREADS || '2', '-ac', String(ac), '-bs', '1', '-bo', '1', '-nf'];
     const text = await new Promise((resolve, reject) => {
       execFile('nice', args, { timeout: 30000, maxBuffer: 1024 * 1024 }, (err, stdout) => (err ? reject(new Error(`Whisper: ${err.message}`.slice(0, 200))) : resolve(stdout)));
     });
     // [BLANK_AUDIO], (music) 같은 표시는 말한 내용이 아니다
-    const heard = text.replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+    const heard = numberWords(text.replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim());
     if (!heard) return [];
     return [hint && dropRepeats(hint) !== hint ? heard : dropRepeats(heard)]; // 읽을 문장 자체가 되풀이되면('Run! Run!') 그대로 둔다
   } finally {
