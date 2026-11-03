@@ -532,12 +532,18 @@ const Lesson = (() => {
       wireSay(el, q);
       const cv = el.querySelector('canvas'), c = cv.getContext('2d');
       const font = `bold 250px "Baloo 2", "Arial Rounded MT Bold", Arial, sans-serif`;
+      // 글자 테두리: strokeText는 글꼴에 따라 글자 안에 겹친 윤곽선까지 그려서 점선이 여러 겹 보였다(iPhone).
+      // 글자를 둘레로 3px씩 밀어 찍고 가운데를 지워서 바깥 테두리 한 겹만 남긴다
+      const edge = document.createElement('canvas'); edge.width = edge.height = 320;
+      const ec = edge.getContext('2d'); ec.font = font; ec.textAlign = 'center'; ec.textBaseline = 'middle'; ec.fillStyle = '#bbb';
+      for (let a = 0; a < 16; a++) ec.fillText(q.letter, 160 + 3 * Math.cos(a * Math.PI / 8), 175 + 3 * Math.sin(a * Math.PI / 8));
+      ec.globalCompositeOperation = 'destination-out'; ec.fillText(q.letter, 160, 175);
       const guide = () => {
         c.clearRect(0, 0, 320, 320);
         c.font = font; c.textAlign = 'center'; c.textBaseline = 'middle';
         c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--trace-guide') || '#ddd';
         c.fillText(q.letter, 160, 175);
-        c.setLineDash([6, 8]); c.strokeStyle = '#bbb'; c.lineWidth = 2; c.strokeText(q.letter, 160, 175); c.setLineDash([]);
+        c.drawImage(edge, 0, 0);
       };
       // 글자 모양 마스크 (채점용)
       const mask = document.createElement('canvas'); mask.width = mask.height = 320;

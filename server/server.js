@@ -396,8 +396,9 @@ app.get('/api/admin/backup', (req, res) => {
 // ---------- 정적 파일 ----------
 app.use('/api', (req, res) => bad(res, '없는 API예요.', 404));
 // index.html의 ?v=dev 를 서버 시작 시각으로 바꿔, 업데이트 후 예전 JS/CSS 캐시와 섞이지 않게 한다
-const BUILD = Date.now().toString(36);
-const indexHtml = () => fs.readFileSync(path.join(config.publicDir, 'index.html'), 'utf8').replaceAll('?v=dev', '?v=' + BUILD);
+// 화면 파일(js·css)마다 고친 시각을 주소 뒤에 붙인다: 파일만 바꿔 올려도 서버를 다시 시작하지 않고 브라우저가 새 파일을 받는다
+const fileVersion = f => { try { return Math.round(fs.statSync(path.join(config.publicDir, f)).mtimeMs).toString(36); } catch { return 'dev'; } };
+const indexHtml = () => fs.readFileSync(path.join(config.publicDir, 'index.html'), 'utf8').replace(/([\w/.-]+)\?v=dev/g, (_, f) => `${f}?v=${fileVersion(f)}`);
 app.get(['/', '/index.html'], (req, res) => res.set('Cache-Control', 'no-cache').type('html').send(indexHtml()));
 app.use(express.static(config.publicDir, {
   index: 'index.html', extensions: ['html'],
