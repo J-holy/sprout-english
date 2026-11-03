@@ -1620,6 +1620,7 @@ const ParentTabs = {
       <h3>🔔 알림</h3>
       <label class="check"><input type="checkbox" name="notify" ${u.settings.notify ? 'checked' : ''}> 학습알림 받기</label>
       <label>매일 리마인더 시간<input type="time" name="remind" value="${u.settings.remindTime}"></label>
+      <label class="check"><input type="checkbox" name="mkt" ${u.settings.marketing ? 'checked' : ''}> 학습 소식·혜택 알림 받기 (마케팅 수신 동의, 끄면 바로 철회돼요)</label>
       <p class="fine">브라우저 알림 권한: <b data-perm>${'Notification' in window ? Notification.permission : '미지원'}</b> <button type="button" class="link-btn" data-ask>권한 요청</button> <button type="button" class="link-btn" data-test>테스트 알림</button></p>
       <h3>🔐 보안</h3>
       <label>부모페이지 PIN (숫자 4자리, 비우면 그대로)<input name="pin" inputmode="numeric" maxlength="4" placeholder="${u.settings.pin ? '설정됨 · 새 PIN 입력' : '미설정'}"></label>
@@ -1643,7 +1644,7 @@ const ParentTabs = {
       e.preventDefault();
       if (p) { p.dailyGoal = +f.goal.value; p.difficulty = f.diff.value; }
       App.rate = +f.rate.value; Speech.setRate(App.rate); try { localStorage.setItem('sprout-rate', App.rate); } catch (x) { /* ignore */ }
-      u.settings.notify = f.notify.checked; u.settings.remindTime = f.remind.value || '19:00'; u.settings.gentle = f.gentle.checked;
+      u.settings.notify = f.notify.checked; u.settings.remindTime = f.remind.value || '19:00'; u.settings.gentle = f.gentle.checked; u.settings.marketing = f.mkt.checked;
       if (f.pin.value) { if (!/^\d{4}$/.test(f.pin.value)) return App.toast('PIN은 숫자 4자리예요.'); u.settings.pin = await Store.hash(f.pin.value); App.pinOk = true; }
       else if (f.unpin && f.unpin.checked) u.settings.pin = '';
       Store.persist(); App.toast('저장했어요.'); App.route();
