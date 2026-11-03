@@ -198,9 +198,14 @@ const Speech = (() => {
     // iOS는 손가락으로 누른 그 순간에 만든 AudioContext만 소리를 받는다. 마이크 허용 창을 기다린 뒤에 만들면 멈춘 채로 남아 녹음이 끝나지 않았다
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    // 효과음용 소리 장치는 녹음하는 동안 멈춘다. 레슨에서 효과음이 한 번 난 뒤에는 iPhone 녹음에 소리가 들어오지 않아
+    // "마이크를 찾지 못했어요"가 났다 (처음 말하기는 되고 나중 말하기만 안 됨, 2026-11 제보)
+    const sfxWasOn = sfxCtx && sfxCtx.state === 'running';
+    if (sfxWasOn) sfxCtx.suspend().catch(() => {});
+    const done = () => { ctx.close().catch(() => {}); if (sfxWasOn) sfxCtx.resume().catch(() => {}); };
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } }); }
-    catch (e) { ctx.close().catch(() => {}); throw e; }
+    catch (e) { done(); throw e; }
     if (ctx.state !== 'running') await Promise.race([ctx.resume().catch(() => {}), new Promise(r => setTimeout(r, 800))]);
     const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1);
     const chunks = [], t0 = Date.now(); let heard = false, quiet = t0;
@@ -211,8 +216,8 @@ const Speech = (() => {
         if (!recording) return; recording = null;
         clearTimeout(guard); clearTimeout(dead);
         proc.onaudioprocess = null; proc.disconnect(); src.disconnect();
-        stream.getTracks().forEach(t => t.stop()); ctx.close().catch(() => {}); // 마이크를 바로 꺼서 소리 크기가 돌아오게
-        if (!chunks.length) reject(new Error('audio-capture')); else resolve(heard || peak > 0.006 ? toWav(chunks, ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
+        stream.getTracks().forEach(t => t.stop()); done(); // 마이크를 바로 꺼서 소리 크기가 돌아오게
+        if (!chunks.length) reject(Object.assign(new Error('audio-capture'), { detail: 'no-audio-' + ctx.state })); else resolve(heard || peak > 0.006 ? toWav(chunks, ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
       };
       // 소리 알림이 아예 오지 않아도 "듣고 있어요"에 멈춰 있지 않게 한다
       const guard = setTimeout(finish, maxMs + 1000), dead = setTimeout(() => { if (!chunks.length) finish(); }, 3000);
@@ -234,7 +239,8 @@ const Speech = (() => {
   async function listenServer(hint, onThinking, onStart) {
     if (!Store.user()) throw new Error('login'); // 서버 채점은 로그인한 사용자만 된다. 녹음부터 시키지 않는다
     let wav;
-    try { wav = await record({ onStart }); } catch (e) { throw new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'); }
+    // detail: 원인을 화면에 작게 보여서 제보로 알 수 있게 한다 (getUserMedia 오류 이름 또는 소리가 안 들어온 상태)
+    try { wav = await record({ onStart }); } catch (e) { throw Object.assign(new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'), { detail: (e && (e.detail || e.name)) || '' }); }
     if (!wav) throw new Error('no-speech');
     if (onThinking) onThinking(); // 서버 채점은 몇 초 걸린다
     let r;
@@ -368,12 +374,13 @@ const Speech = (() => {
   }
 
   // ---------- 효과음 (Web Audio) ----------
-  let ctx = null;
+  let sfxCtx = null;
   function tone(freqs, dur = 0.12, type = 'sine', level = 0.15) {
     const v = level * vol.sfx * 2;
     if (v <= 0) return;
     try {
-      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = sfxCtx = sfxCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state !== 'running' && !recording) ctx.resume().catch(() => {}); // 녹음 뒤에 멈춘 채로 남았으면 다시 켠다
       freqs.forEach((f, i) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.type = type; o.frequency.value = f; o.connect(g); g.connect(ctx.destination);

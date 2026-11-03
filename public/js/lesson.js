@@ -617,7 +617,7 @@ const Lesson = (() => {
             res.innerHTML += `<div class="hint">${coach(r)} (${3 - tries}번 더 해볼 수 있어요)</div>`;
           }
         } catch (e) {
-          res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}</div>`;
+          res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}${e.detail ? ` <small class="fine">(${esc(e.detail)})</small>` : ''}</div>`;
         }
         mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 말하기';
       };

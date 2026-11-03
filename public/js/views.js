@@ -537,7 +537,7 @@ Views.speakWidget = (box, sentences, record = true) => {
           <div class="hint">${miss.length ? `<b>${miss.map(esc).join(', ')}</b>을(를) 다시 들어보고 말해봐요.` : '완벽해요! 🌟'}${got ? ' · ⭐ 별 1개 획득!' : ''}</div>`;
         if (r.score >= 80) Speech.sfx.correct();
       } catch (e) {
-        res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}</div>`;
+        res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}${e.detail ? ` <small class="fine">(${esc(e.detail)})</small>` : ''}</div>`;
       }
       mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 말하기';
     };
@@ -740,7 +740,7 @@ Views.help = el => {
   micBtn.onclick = async () => {
     micBtn.disabled = true; micBtn.textContent = '⏳ 마이크 준비 중…';
     try { const alts = await Speech.listen({ onStart: () => { micBtn.textContent = '🎙️ 지금 "Hello!" 라고 말해 보세요'; } });micOut.innerHTML = `✅ 마이크가 잘 돼요! 들은 말: "<b>${esc(alts[0])}</b>"`; }
-    catch (e) { micOut.innerHTML = `⚠️ ${esc(Speech.micHelp(e.message))} <small class="fine">(코드: ${esc(e.message)})</small>`; }
+    catch (e) { micOut.innerHTML = `⚠️ ${esc(Speech.micHelp(e.message))} <small class="fine">(코드: ${esc(e.message)}${e.detail ? ' · ' + esc(e.detail) : ''})</small>`; }
     micBtn.disabled = false; micBtn.textContent = '🎤 다시 테스트';
   };
   draw();
@@ -1319,7 +1319,7 @@ Views.story = (el, id) => {
         if (r.score >= Lesson.passMark()) Speech.sfx.correct();
         if (auto && r.score >= Lesson.passMark()) later(() => { pg++; draw(); }, 1800);
       } catch (e) {
-        res.innerHTML = `<span class="mic-hint">${esc(Speech.micHelp(e.message))}</span>`;
+        res.innerHTML = `<span class="mic-hint">${esc(Speech.micHelp(e.message))}${e.detail ? ` <small class="fine">(${esc(e.detail)})</small>` : ''}</span>`;
       }
       mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 점수 받기';
     };
