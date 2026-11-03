@@ -57,8 +57,12 @@ async function openaiSTT(wav, hint) {
   return j.text ? [j.text.trim()] : [];
 }
 
-// 짧은 음성에서 Whisper가 같은 문장을 되풀이해 적을 때가 있어서('I can jump. I can jump. I can') 한 번만 남긴다
+// 짧은 음성에서 Whisper가 같은 말을 되풀이해 적을 때가 있어서('I can jump. I can jump. I can', 'Hello! Can you hear me? Hello! Can') 한 번만 남긴다
 export function dropRepeats(text) {
+  // 처음부터 같은 단어 묶음이 되풀이되면 첫 묶음만 (문장 두 개짜리도). 끝이 잘려 있어서 두 단어 이상 되풀이될 때만 본다
+  const words = text.split(' '), w = words.map(x => x.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  for (let p = 1; p <= w.length - 2; p++) if (w.slice(p).every((x, i) => x === w[i])) { text = words.slice(0, p).join(' '); break; }
+  // 문장 하나가 잇달아 되풀이되면 한 번만
   const key = t => t.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
   const kept = [];
   for (const part of text.split(/(?<=[.?!])\s+/)) {
@@ -84,6 +88,10 @@ async function whisperSTT(wav, hint) {
   last = job.catch(() => {});
   return job;
 }
+let maxTokens = null;
+const hasMaxTokens = () => (maxTokens ??= new Promise(resolve => {
+  execFile(e.WHISPER_BIN, ['--help'], { timeout: 10000 }, (err, stdout, stderr) => resolve(/--max-tokens/.test(stdout + stderr)));
+}));
 // 녹음은 인식하는 동안만 파일로 두고 바로 지운다
 async function runWhisper(wav, hint) {
   const dir = path.join(config.dataDir, 'stt-tmp');
@@ -94,10 +102,13 @@ async function runWhisper(wav, hint) {
     // -ac: 짧은 문장을 30초 길이로 처리하지 않게 해서 빨라진다. 384는 7.6초, 512는 10초까지 듣는다 (녹음은 최대 8초).
     //   이보다 줄이면 같은 문장을 되풀이하며 오히려 느려진다
     // -bs 1 -bo 1 -nf: 후보를 하나만 보고 다시 시도하지 않는다
-    // 읽을 문장을 --prompt로 주지 않는다: 주면 그 문장을 끝없이 되풀이해 적는 일이 30문장 중 9번(문장당 4초), 빼면 1번이었다
-    //   라즈베리파이 4의 tiny.en-q5_1, -ac 384에서 문장당 약 1.4초 (2026-11 측정)
+    // 읽을 문장을 --prompt로 주면 서툰 발음도 알아듣는다 (빼면 'dad is sad'를 'that is said'로 적었다).
+    //   대신 그 문장을 끝없이 되풀이해 적어서(30문장 중 9번, 문장당 4초) -mt로 문장 길이만큼만 받아쓰고 끊는다. 되풀이는 dropRepeats가 지운다
+    //   -mt는 whisper.cpp에 deploy/whisper-max-tokens.patch를 붙여 빌드해야 있다. 없는 실행 파일이면 문장을 주지 않는다
+    //   라즈베리파이 4의 tiny.en-q5_1, -ac 384에서 문장당 약 1.5초 (2026-11 측정)
     const ac = Math.min(Number(e.WHISPER_AUDIO_CTX) || 512, (wav.length - 44) / 32000 > 7.2 ? 512 : 384);
     const args = ['-n', '10', e.WHISPER_BIN, '-m', e.WHISPER_MODEL, '-f', file, '-l', 'en', '-nt', '-t', e.WHISPER_THREADS || '2', '-ac', String(ac), '-bs', '1', '-bo', '1', '-nf'];
+    if (hint && await hasMaxTokens()) args.push('--prompt', hint, '-mt', String(Math.ceil(hint.length / 3) + 6));
     const text = await new Promise((resolve, reject) => {
       execFile('nice', args, { timeout: 30000, maxBuffer: 1024 * 1024 }, (err, stdout) => (err ? reject(new Error(`Whisper: ${err.message}`.slice(0, 200))) : resolve(stdout)));
     });
