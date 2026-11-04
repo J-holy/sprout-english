@@ -17,9 +17,17 @@ old.forEach(f => fs.rmSync(path.join(dir, f)));
 const copyDir = process.env.BACKUP_COPY_DIR;
 if (copyDir) {
   try {
+    // copyFileSync는 원본 그룹(sprout)을 따라가서 바깥에서 못 읽음 → 새로 써서 폴더 그룹(setgid)을 받게 함
+    const dirGid = fs.statSync(copyDir).gid;
+    const put = (src, dest) => {
+      const tmp = `${dest}.tmp`;
+      fs.writeFileSync(tmp, fs.readFileSync(src), { mode: 0o640 });
+      fs.renameSync(tmp, dest);
+    };
     const dest = path.join(copyDir, path.basename(file));
-    fs.copyFileSync(file, dest);
-    fs.chmodSync(dest, 0o640);
+    put(file, dest);
+    fs.readdirSync(copyDir).filter(f => /^sprout-.*\.db$/.test(f)).map(f => path.join(copyDir, f))
+      .filter(f => fs.statSync(f).gid !== dirGid).forEach(f => put(f, f));
     fs.readdirSync(copyDir).filter(f => /^sprout-.*\.db$/.test(f)).sort().reverse().slice(keep)
       .forEach(f => fs.rmSync(path.join(copyDir, f)));
     console.log(`바깥 보관용 복사: ${dest}`);
