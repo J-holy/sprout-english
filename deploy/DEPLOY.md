@@ -279,12 +279,21 @@ cd ../.. && npm run pregen-img -- --local     # 처음 한 번 모델(약 4GB)�
 ### 백업에서 복원하기
 ```bash
 sudo systemctl stop sprout-english
-sudo -u sprout cp /opt/sprout-english/server/data/backups/sprout-YYYYMMDD-HH.db /opt/sprout-english/server/data/sprout.db
+sudo -u sprout cp /opt/sprout-english/server/data/backups/sprout-YYYYMMDD-HHMM.db /opt/sprout-english/server/data/sprout.db
 sudo rm -f /opt/sprout-english/server/data/sprout.db-wal /opt/sprout-english/server/data/sprout.db-shm
 sudo systemctl start sprout-english
 ```
 
-> 💡 백업 파일을 라즈베리파이 밖(Google Drive, NAS 등)에도 보관하세요. `rclone`을 설치하고 cron에 `rclone copy /opt/sprout-english/server/data/backups remote:sprout-backups` 를 추가하면 자동으로 올라가요.
+### Pi 바깥(Mac)에도 보관하기
+SSD나 Pi가 고장 나면 Pi 안의 백업도 함께 사라져요. 그래서 Mac이 매일 백업을 가져와요.
+1. Pi에서 한 번: `cd /opt/sprout-english && sudo ./deploy/set-backup.sh`
+   - `/var/backups/sprout`(nextcode만 읽기 가능)에도 복사되게 하고, 바로 한 번 백업해요.
+2. Mac에서 한 번: `./deploy/mac-backup.sh install`
+   - 매일 10:00에 `~/sprout-backups`로 가져와요. Mac이 잠자고 있었으면 깨어날 때 가져와요.
+   - 15일 지난 파일은 지워요(개인정보처리방침의 백업 보관 14일).
+   - 지금 바로 받기: `./deploy/mac-backup.sh run`. 기록은 `~/sprout-backups/pull.log`.
+3. Mac에서 복원하려면 받은 파일을 Pi로 올린 뒤 위 "백업에서 복원하기"대로 해요.
+   - `scp ~/sprout-backups/sprout-YYYYMMDD-HHMM.db nextcode@100.109.175.94:/tmp/`
 
 ## 7. 문제 해결
 
