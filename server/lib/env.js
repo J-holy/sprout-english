@@ -43,7 +43,7 @@ export const config = {
   trustProxy: bool(e.TRUST_PROXY, production),
   mail: {
     host: e.SMTP_HOST, port: Number(e.SMTP_PORT || 465), secure: bool(e.SMTP_SECURE, Number(e.SMTP_PORT || 465) === 465),
-    user: e.SMTP_USER, pass: e.SMTP_PASS, from: e.MAIL_FROM || (e.SMTP_USER ? `새싹영어 <${e.SMTP_USER}>` : ''),
+    user: e.SMTP_USER, pass: e.SMTP_PASS, from: e.MAIL_FROM || (e.SMTP_USER ? `새싹스쿨 <${e.SMTP_USER}>` : ''),
   },
   // SMTP가 없을 때 인증코드를 화면에 보여줄지 (개발용. 운영에서는 꼭 false)
   devShowCode: bool(e.DEV_SHOW_CODE, !production),

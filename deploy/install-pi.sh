@@ -57,7 +57,7 @@ if [[ ! -f .env ]]; then
   sed -i "s|^PUBLIC_URL=.*|PUBLIC_URL=https://$DOMAIN|" .env
   sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -hex 32)|" .env
   sed -i "s|^ADMIN_EMAILS=.*|ADMIN_EMAILS=$ADMIN|" .env
-  sed -i "s|^MAIL_FROM=.*|MAIL_FROM=새싹영어 <no-reply@$DOMAIN>|" .env
+  sed -i "s|^MAIL_FROM=.*|MAIL_FROM=새싹스쿨 <no-reply@$DOMAIN>|" .env
   sed -i "s|^APPLE_PRIVATE_KEY_PATH=.*|APPLE_PRIVATE_KEY_PATH=$APP/server/secrets/AuthKey.p8|" .env
   echo ".env를 만들었어요. SMTP·SNS·토스 키는 $APP/server/.env 를 열어 채워 주세요."
 else

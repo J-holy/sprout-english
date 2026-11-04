@@ -114,7 +114,7 @@ const App = (() => {
   function demoMail(email, code) {
     const box = document.getElementById('mailbox');
     box.innerHTML = `<div class="mail anim-in"><button class="icon-btn" aria-label="닫기" data-x>✕</button>
-      <small>📬 ${API.on ? '테스트 메일함 (메일 서버 설정 전이라 화면에 보여요)' : '데모 메일함'} · ${esc(email)}</small><b>[새싹영어] 인증코드</b><p>인증코드 <strong class="mail-code">${code}</strong> 를 입력해 주세요. 3분 동안 유효해요.</p></div>`;
+      <small>📬 ${API.on ? '테스트 메일함 (메일 서버 설정 전이라 화면에 보여요)' : '데모 메일함'} · ${esc(email)}</small><b>[새싹스쿨] 인증코드</b><p>인증코드 <strong class="mail-code">${code}</strong> 를 입력해 주세요. 3분 동안 유효해요.</p></div>`;
     box.hidden = false;
     box.querySelector('[data-x]').onclick = () => { box.hidden = true; };
     clearTimeout(demoMail.t); demoMail.t = setTimeout(() => { box.hidden = true; }, CONFIG.CODE_TTL_SEC * 1000);

@@ -277,7 +277,7 @@ Views.certificate = (el, stageId) => {
   el.innerHTML = `<div class="wrap sec narrow">
     <div class="no-print row"><a class="link-btn" href="#/parent/report">← 부모페이지</a><button class="btn btn-primary" data-print>🖨️ 인쇄 / PDF 저장</button></div>
     <article class="certificate">
-      <div class="cert-top"><img class="logo-inline" src="img/logo.svg" alt=""> 새싹영어</div>
+      <div class="cert-top"><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨</div>
       <h1>수 료 증</h1>
       <p class="cert-name">${esc(p.name)}</p>
       <p class="cert-body">위 어린이는 새싹영어 <b>${st.id}단계 「${esc(st.title)}」</b>의 레벨 ${st.levels.join('·')} 과정<br>${st.levels.length * LESSONS_PER_LEVEL}레슨을 모두 훌륭하게 마쳤기에 이 증서를 드립니다.</p>
@@ -914,7 +914,7 @@ Views.auth = (el, mode, params) => {
     const m = App.modal(`<div class="sns-consent ${provider}"><div class="sns-head"><span class="sns-ico">${P.icon}</span>${name} 로그인</div>
       <p class="fine">⚠️ 서버 없이 실행 중인 데모예요. 서버에 ${name} 키를 설정하면 실제 ${name} 로그인 창이 열려요.</p>
       <form novalidate><label>${name} 계정 이메일<input name="email" type="email" required value="${last.method === provider ? esc(last.email || '') : ''}" placeholder="me@${{ kakao: 'kakao.com', naver: 'naver.com', apple: 'icloud.com', google: 'gmail.com' }[provider]}"></label>
-      <p class="fine">새싹영어가 받는 정보: 이메일, 닉네임</p><p class="form-err" role="alert"></p>
+      <p class="fine">새싹스쿨이 받는 정보: 이메일, 닉네임</p><p class="form-err" role="alert"></p>
       <div class="row-center"><button type="button" class="btn btn-ghost" data-close>취소</button><button class="btn btn-primary">동의하고 계속하기</button></div></form></div>`);
     const f = $('form', m.el); f.email.focus();
     f.onsubmit = e => {
@@ -1555,7 +1555,7 @@ Views.worksheet = (el, lv) => {
   el.innerHTML = `<div class="wrap sec narrow worksheet-wrap">
     <div class="no-print row"><a class="link-btn" href="#/study">← 모험 지도</a><button class="btn btn-primary" data-print>🖨️ 인쇄 / PDF 저장</button></div>
     <article class="worksheet">
-      <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹영어 워크시트</b><span>Level ${lv} · ${s.title}섬</span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
+      <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨 · 새싹영어 워크시트</b><span>Level ${lv} · ${s.title}섬</span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
       <h3>1. 따라 써 보세요</h3>
       ${trace.map(t => `<div class="ws-trace"><span class="dotted">${esc(t)}</span><span class="line"></span></div>`).join('')}
       ${pics.length >= 3 ? `<h3>2. 그림과 단어를 선으로 이어요</h3><div class="ws-match"><div>${pics.map(it => `<span>${it.emoji} ●</span>`).join('')}</div><div>${shuffle(pics).map(it => `<span>● ${esc(it.word || it.en)}</span>`).join('')}</div></div>` : ''}

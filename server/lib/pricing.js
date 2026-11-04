@@ -25,7 +25,7 @@ export function quote(uid, kids, months) {
   const monthly = rate ? round10(member * (1 - rate)) : member;
   return {
     kids, months, coupon: c, rate, monthly, total: monthly * months, list: P.list * months,
-    name: `새싹영어 플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`,
+    name: `새싹스쿨 · 새싹영어 플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`,
     couponLabel: c ? `${c.name} ${Math.round(rate * 100)}%` : '',
   };
 }

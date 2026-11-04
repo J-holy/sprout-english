@@ -30,7 +30,7 @@ if [[ "$KIND" == 1 ]]; then
 fi
 echo "보내는 주소: $ADDR"
 
-SMTP_HOST="$HOST" SMTP_PORT="$PORT" SMTP_USER="$ADDR" SMTP_PASS="$PASS" MAIL_FROM="새싹영어 <$ADDR>" ENV_FILE="$ENV_FILE" node -e '
+SMTP_HOST="$HOST" SMTP_PORT="$PORT" SMTP_USER="$ADDR" SMTP_PASS="$PASS" MAIL_FROM="새싹스쿨 <$ADDR>" ENV_FILE="$ENV_FILE" node -e '
 const fs = require("fs"), f = process.env.ENV_FILE;
 let lines = fs.readFileSync(f, "utf8").split("\n");
 for (const k of ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "MAIL_FROM"]) {

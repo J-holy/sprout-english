@@ -577,7 +577,7 @@ const Store = (() => {
     u.notifications = u.notifications.slice(0, 100);
     if (API.on) API.req('POST', 'api/me/notifications', { text, kind }).catch(() => {}); else save();
     if (push && u.settings.notify && 'Notification' in window && Notification.permission === 'granted') {
-      try { new Notification('새싹영어 학습알림', { body: text.replace(/^\S+\s/, '') }); } catch (e) { /* ignore */ }
+      try { new Notification('새싹스쿨 학습알림', { body: text.replace(/^\S+\s/, '') }); } catch (e) { /* ignore */ }
     }
     document.dispatchEvent(new CustomEvent('store:notify'));
   }

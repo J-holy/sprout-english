@@ -20,7 +20,7 @@ export async function sendCodeMessage(phone, code) {
   if (!mode) { console.log(`[문자:개발] 인증코드 ${code}`); return; }
   const message = { to: phone, from: e.SOLAPI_FROM };
   if (mode === 'alimtalk') message.kakaoOptions = { pfId: e.SOLAPI_PF_ID, templateId: e.SOLAPI_TEMPLATE_ID, variables: { [e.SOLAPI_CODE_VAR || '#{인증번호}']: code } };
-  else message.text = `[새싹영어] 인증번호 ${code} (${Math.round(config.code.ttlSec / 60)}분 안에 입력)`;
+  else message.text = `[새싹스쿨] 인증번호 ${code} (${Math.round(config.code.ttlSec / 60)}분 안에 입력)`;
   const r = await fetch(`${e.SOLAPI_URL || 'https://api.solapi.com'}/messages/v4/send-many/detail`, {
     method: 'POST', signal: AbortSignal.timeout(15000),
     headers: { Authorization: authHeader(), 'Content-Type': 'application/json' },
