@@ -1206,3 +1206,16 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .boost-report h4 { margin: 12px 0 0; font-size: 1rem; }
 .boost-report h4 small, .boost-report .muted { color: var(--muted); font-family: var(--font); font-size: .82rem; }
 .boost-report .wrong-list { margin-top: 6px; }
+
+/* 홈 화면 설치 안내 */
+.ins { text-align: center; }
+.ins-app { border-radius: 18px; border: var(--bw) solid var(--line); box-shadow: var(--shadow); margin: 0 auto 8px; display: block; }
+.ins h2 { justify-content: center; font-size: 1.3rem; }
+.ins-steps { text-align: left; margin: 14px 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 10px; }
+.ins-steps li { counter-increment: s; position: relative; padding: 10px 12px 10px 48px; border: 2px solid var(--line); border-radius: 16px; line-height: 1.5; }
+.ins-steps li::before { content: counter(s); position: absolute; left: 10px; top: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--sun); color: var(--sun-ink); border: 2px solid var(--line); display: grid; place-items: center; font-weight: 700; }
+.ins-ico { width: 1.3em; height: 1.3em; vertical-align: -.3em; color: #1a7cf5; }
+.ins-key { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; border: 2px solid currentColor; border-radius: 6px; font-size: .85em; font-weight: 700; vertical-align: -.15em; }
+.ins .btn.block { display: block; width: 100%; margin: 14px 0 6px; }
+.ins-foot { display: flex; justify-content: center; gap: 18px; margin-top: 12px; }
+.footer-links .link-btn { font: inherit; }

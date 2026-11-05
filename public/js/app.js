@@ -239,6 +239,8 @@ const App = (() => {
     if (qs.get('welcome')) toast(greeting()[0]);
     clearTimeout(slowNote);
     route();
+    Install.footer();
+    Install.auto();
     Store.checkReminder();
     setInterval(() => Store.checkReminder(), 60000);
   }
