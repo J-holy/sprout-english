@@ -47,6 +47,8 @@ export const config = {
   },
   // SMTP가 없을 때 인증코드를 화면에 보여줄지 (개발용. 운영에서는 꼭 false)
   devShowCode: bool(e.DEV_SHOW_CODE, !production),
+  // 베타 테스트: 이 날짜(YYYY-MM-DD, 한국 시간 그날 끝)까지 모든 회원이 전체 단계를 무료로 쓴다. 비우면 꺼짐
+  betaUntil: /^\d{4}-\d{2}-\d{2}$/.test(e.BETA_UNTIL || '') ? Date.parse(`${e.BETA_UNTIL}T23:59:59+09:00`) : 0,
   // 결제사 심사용 계정 (심사가 끝나면 비워 둔다)
   review: { email: (e.REVIEW_EMAIL || '').trim().toLowerCase(), code: (e.REVIEW_CODE || '').trim() },
   code: { ttlSec: Number(e.CODE_TTL_SEC || 180), maxTries: Number(e.CODE_MAX_TRIES || 5), resendSec: Number(e.CODE_RESEND_SEC || 30) },

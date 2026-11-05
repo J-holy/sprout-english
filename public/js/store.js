@@ -233,12 +233,12 @@ const Store = (() => {
     if (isAdmin(u)) return { ok: true, kind: 'admin', daysLeft: Infinity };
     const now = Date.now(), m = u.membership;
     if (m && m.until > now) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - now) / DAY) };
-    if (u.trialStart) {
-      const end = u.trialStart + 7 * DAY + (u.trialBonus || 0);
-      if (end > now) return { ok: true, kind: 'trial', daysLeft: Math.ceil((end - now) / DAY) };
-      return { ok: true, kind: 'free' }; // 체험이 끝나도 1~2단계는 평생 무료
-    }
-    return { ok: true, kind: 'trial', daysLeft: 7 };
+    // 베타 기간에는 모두 전체 단계를 쓴다 (체험이 더 길면 체험 기준)
+    const beta = API.on && API.cfg.betaUntil > now ? API.cfg.betaUntil : 0;
+    const trialEnd = u.trialStart ? u.trialStart + 7 * DAY + (u.trialBonus || 0) : now + 7 * DAY;
+    const end = Math.max(trialEnd, beta);
+    if (end > now) return { ok: true, kind: 'trial', daysLeft: Math.ceil((end - now) / DAY), beta: beta >= trialEnd };
+    return { ok: true, kind: 'free' }; // 체험이 끝나도 1~2단계는 평생 무료
   }
   function bestCoupon() {
     const u = user(); if (!u) return null;

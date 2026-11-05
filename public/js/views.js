@@ -717,6 +717,7 @@ function statusText(a, u) {
   if (a.kind === 'admin') return '🛠️ 관리자 계정 · 모든 기능을 제한 없이 이용 중';
   if (a.kind === 'member') return `💎 멤버십 이용 중 · <b>${a.daysLeft}일</b> 남음 · ${u.membership.autoRenew ? `다음 결제일 ${fmtDay(u.membership.until)}` : '자동갱신 해지됨'}`;
   if (a.kind === 'free') return '🌱 무료 이용 중 · 1~2단계(알파벳·파닉스)는 평생 무료예요. 💎 플러스로 3단계부터 이어갈 수 있어요.';
+  if (a.beta) return `🧪 베타 테스트 기간 · <b>${fmtDay(API.cfg.betaUntil)}</b>까지 전체 단계 무료 · 끝나도 1~2단계는 계속 무료 (자동결제 없음)`;
   return `🎁 전체 단계 체험 중 · <b>${a.daysLeft}일</b> 남음 · 끝나도 1~2단계는 계속 무료 (자동결제 없음)`;
 }
 
@@ -1000,7 +1001,7 @@ Views.learn = el => {
   el.innerHTML = `<div class="wrap sec">
     <div class="learner-bar card">
       ${avatarHtml(p, 'big')}
-      <div class="lb-info"><h1>${esc(p.name)}의 모험</h1><p>${a.kind === 'admin' ? '🛠️ 관리자 · 전체 열림' : a.kind === 'member' ? '💎 플러스' : a.kind === 'free' ? '🌱 무료 (1~2단계) · <a href="#/pricing">💎 플러스 보기</a>' : `🎁 전체 체험 ${a.daysLeft}일 남음`} · <a href="#/profiles">프로필 변경</a></p></div>
+      <div class="lb-info"><h1>${esc(p.name)}의 모험</h1><p>${a.kind === 'admin' ? '🛠️ 관리자 · 전체 열림' : a.kind === 'member' ? '💎 플러스' : a.kind === 'free' ? '🌱 무료 (1~2단계) · <a href="#/pricing">💎 플러스 보기</a>' : a.beta ? `🧪 베타 테스트 · ${fmtDay(API.cfg.betaUntil)}까지 전체 무료` : `🎁 전체 체험 ${a.daysLeft}일 남음`} · <a href="#/profiles">프로필 변경</a></p></div>
       <div class="lb-stats">
         <div><b>🔥 ${Store.streak()}</b><small>연속 학습일</small></div>
         <a href="#/shop"><b>⭐ ${p.stars || 0}</b><small>별 (상점 가기)</small></a>
@@ -1749,7 +1750,7 @@ const AdminTabs = {
     const draw = q => {
       const list = users.filter(u => !q || ((u.email || '') + u.parentName).toLowerCase().includes(q.toLowerCase()));
       tbody.innerHTML = list.map(u => { const a = Store.access(u); return `<tr><td><b>${esc(u.parentName)}</b><br><small>${esc(u.email || '(이메일 없음)')}</small></td><td>${u.providers.map(p => prov[p] || p).join(' ')}</td>
-        <td>${u.role === 'admin' ? '<span class="chip on">관리자</span>' : '보호자'}</td><td>${a.kind === 'member' ? `💎 ${a.daysLeft}일` : a.kind === 'trial' ? `🎁 체험 ${a.daysLeft}일` : a.kind === 'admin' ? '전체 이용' : '🌱 무료'}</td>
+        <td>${u.role === 'admin' ? '<span class="chip on">관리자</span>' : '보호자'}</td><td>${a.kind === 'member' ? `💎 ${a.daysLeft}일` : a.kind === 'trial' ? `${a.beta ? '🧪 베타' : '🎁 체험'} ${a.daysLeft}일` : a.kind === 'admin' ? '전체 이용' : '🌱 무료'}</td>
         <td>${u.profiles.map(p => p.avatar).join('') || '-'}</td><td>${fmtDay(u.createdAt)}</td><td><button class="btn btn-ghost sm" data-u="${esc(u.id)}">관리</button></td></tr>`; }).join('') || '<tr><td colspan="7">회원이 없어요.</td></tr>';
       $$('[data-u]', tbody).forEach(b => b.onclick = () => detail(b.dataset.u));
     };

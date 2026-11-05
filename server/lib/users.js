@@ -74,10 +74,10 @@ export function access(u) {
   if (isAdmin(u)) return { ok: true, kind: 'admin' };
   const m = membershipOf(u.id), t = now();
   if (m && m.until > t) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - t) / DAY) };
-  if (u.trial_start) {
-    const end = u.trial_start + 7 * DAY + (u.trial_bonus || 0);
-    // 체험이 끝나도 1~2단계는 평생 무료로 계속 쓴다
-    return end > t ? { ok: true, kind: 'trial', daysLeft: Math.ceil((end - t) / DAY) } : { ok: true, kind: 'free' };
-  }
-  return { ok: true, kind: 'trial', daysLeft: 7 };
+  // 베타 기간에는 모두 전체 단계를 쓴다 (체험이 더 길면 체험 기준)
+  const beta = config.betaUntil > t ? config.betaUntil : 0;
+  const trialEnd = u.trial_start ? u.trial_start + 7 * DAY + (u.trial_bonus || 0) : t + 7 * DAY;
+  const end = Math.max(trialEnd, beta);
+  // 체험이 끝나도 1~2단계는 평생 무료로 계속 쓴다
+  return end > t ? { ok: true, kind: 'trial', daysLeft: Math.ceil((end - t) / DAY), beta: beta >= trialEnd } : { ok: true, kind: 'free' };
 }

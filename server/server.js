@@ -43,7 +43,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), tossClientKey: config.toss.clientKey || null,
   plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
-  phone: smsMode() || (config.devShowCode ? 'dev' : null),
+  phone: smsMode() || (config.devShowCode ? 'dev' : null), betaUntil: config.betaUntil > now() ? config.betaUntil : 0,
 }));
 
 // ---------- AI 음성 (TTS) ----------
