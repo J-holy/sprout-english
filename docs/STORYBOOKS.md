@@ -36,7 +36,7 @@
 - **발음:** 아이가 소리만 듣고 헷갈릴 수 있는 말은 다른 말로 바꿔요. 예를 들어 비슷한 소리가 나는 단어(ham/him), 잘못 들리기 쉬운 이름(Jun → John), 뭉개지는 반복 표현(yawns a big yawn)이 그래요. 음성을 만든 뒤 Whisper로 받아써서 원문과 다르게 들린 문장은 고쳐요.
 - **그림:** 그림 주의사항은 `server/scripts/pregen-img.js`의 장면 설명 규칙을 따라요. 사람은 모두 cast에 넣고, 하나만 나와야 하면 "only one"을 붙이고, 넷 넘게 세는 장면은 피해요.
 
-## 올라간 책 1~80번
+## 올라간 책 1~92번
 
 | 번호 | 단계 | 제목 | 내용 |
 |---|---|---|---|
@@ -48,6 +48,7 @@
 | 45 | 1 | By the Sea | N~Z 바다 단어, 바다에서 조개 줍기 |
 | 57 | 1 | ABC School | A~M 학교 물건, 친구와 학교 가기 |
 | 69 | 1 | ABC Zoo | A~M 동물, 동물원 |
+| 81 | 1 | ABC Farm | 농장 알파벳 A~M |
 | 2 | 2 | The Fat Cat | 뚱뚱한 고양이가 쥐의 빨간 모자를 탐냄 (짧은 a) |
 | 10 | 2 | Ben and the Bus | 벤과 톰의 버스 여행 (짧은 e·u) |
 | 19 | 2 | The Red Hen | 암탉이 알을 노리는 여우를 쫓아냄 (짧은 e) |
@@ -56,6 +57,7 @@
 | 46 | 2 | Tim and the Jam | 팀의 잼 빵을 젖은 개가 노림 |
 | 58 | 2 | Dan and the Van | 댄의 밴, 고양이, 뜨거운 빵 |
 | 70 | 2 | Kip the Pup | 강아지 킵이 빨간 컵을 파내고 무당벌레와 놂 |
+| 82 | 2 | Gus the Duck | 오리 거스의 북과 토끼 |
 | 3 | 3 | My Family | 가족 소개 |
 | 11 | 3 | My Toy Box | 장난감 소개 |
 | 21 | 3 | My School | 학교·선생님·친구 소개 |
@@ -66,6 +68,7 @@
 | 48 | 3 | Clean Up! | 어질러진 방 정리 |
 | 59 | 3 | Good Night | 목욕·양치·책 읽기 뒤 잠자리 |
 | 71 | 3 | My Color Walk | 산책하며 색깔 찾기, 무지개 |
+| 83 | 3 | My Body | 몸으로 할 수 있는 일 |
 | 4 | 4 | New Friend | 릴리와 샘의 첫 만남, 자기소개 |
 | 12 | 4 | At the Shop | 가게에서 사과·우유 사기 |
 | 23 | 4 | At the Doctor | 감기로 병원 진료 |
@@ -76,6 +79,7 @@
 | 50 | 4 | At the Bakery | 빵집에서 빵·쿠키 사기 |
 | 60 | 4 | Let's Make Pizza | 아빠와 피자 만들기 |
 | 72 | 4 | At the Park | 미아와 그네·미끄럼틀·아이스크림 |
+| 84 | 4 | On the Phone | 친구에게 전화해서 놀러 가기 |
 | 5 | 5 | The Rainy Day | 천둥 치는 비 오는 날 밖에서 놀기 |
 | 13 | 5 | The Big Red Kite | 아빠와 언덕에서 연날리기 |
 | 25 | 5 | The Little Seed | 씨앗이 해바라기로 자람 |
@@ -88,6 +92,8 @@
 | 62 | 5 | The Red Mitten | 숲에 떨어진 장갑에 동물들이 들어감 |
 | 73 | 5 | The Sleepy Bear | 봄에 깬 곰 보보가 새의 도움으로 꿀을 찾음 |
 | 74 | 5 | The Lion and the Mouse | 사자와 생쥐 (이솝) |
+| 85 | 5 | The Ant and the Grasshopper | 개미와 베짱이 (이솝) |
+| 86 | 5 | The Giant Turnip | 커다란 순무 (옛이야기) |
 | 6 | 6 | Where Is Max? | 저녁 시간에 개 맥스 찾기 |
 | 14 | 6 | Busy Sunday | 일요일 하루 일과 묻고 답하기 |
 | 27 | 6 | The Missing Cake | 사라진 케이크, 개가 먹음 |
@@ -100,6 +106,8 @@
 | 64 | 6 | Who Is at the Door? | 친구들이 차례로 와서 깜짝 생일 파티 |
 | 75 | 6 | What Season Is It? | 사계절 묻고 답하기 |
 | 76 | 6 | Who Helps in Our Town? | 우리 동네에서 일하는 사람들 |
+| 87 | 6 | Who Lives in the Tree? | 나무에 사는 동물 묻고 답하기 |
+| 88 | 6 | Walk, Bus, or Boat? | 무엇을 타고 가는지 묻고 답하기 |
 | 7 | 7 | My Weekend | 주말에 간 동물원 |
 | 15 | 7 | The Lost Puppy | 공원에서 강아지를 구해 주인을 찾아 줌 |
 | 29 | 7 | The Camping Trip | 호숫가 캠핑 |
@@ -110,6 +118,8 @@
 | 66 | 7 | My First Sleepover | 친구 하나네 집에서 처음 자고 옴 |
 | 77 | 7 | Moving Day | 새집으로 이사 |
 | 78 | 7 | A Day at the Aquarium | 할머니와 수족관 |
+| 89 | 7 | The New Kid in Class | 스페인에서 온 전학생 소피아 |
+| 90 | 7 | Strawberry Picking | 딸기 따기와 딸기잼 |
 | 8 | 8 | When I Grow Up | 커서 될 직업 |
 | 16 | 8 | Our Space Trip | 로켓 타고 달 여행 |
 | 31 | 8 | Next Summer | 다음 여름 제주 여행 |
@@ -120,27 +130,12 @@
 | 68 | 8 | Our Treehouse | 아빠와 나무 위 집 짓기 계획 |
 | 79 | 8 | Christmas Is Coming | 크리스마스 준비 |
 | 80 | 8 | Our New Baby | 동생이 태어날 준비 |
+| 91 | 8 | Grandma Is Coming! | 할머니가 오실 준비 |
+| 92 | 8 | The First Day of School | 1학년 첫날 준비 |
 
-## 앞으로 만들 책 81~200번
+## 앞으로 만들 책 93~200번
 
 1단계 책은 알파벳 13개 단어를 미리 정해 두었어요. 단어 순서는 A부터예요.
-
-### 5차 (81~92)
-
-| 번호 | 단계 | 제목 | 내용 |
-|---|---|---|---|
-| 81 | 1 | ABC Farm | A~M: alpaca, barn, cow, donkey, eagle, farmer, goat, horse, insect, jeep, kitten, lamb, mud. 마지막 3쪽: 농장에 가서 새끼 양을 안아 봄 |
-| 82 | 2 | Bud the Cub | 짧은 u. 아기 곰 버드가 진흙투성이가 되어 통(tub)에서 씻고, 햇볕에 몸을 말리고, 엄마를 안아 줌 (cub, tub, rub, hug, sun) |
-| 83 | 3 | My Body | 몸 소개. This is my nose. I can smell. 눈·귀·손·발로 할 수 있는 일 |
-| 84 | 4 | On the Phone | 친구에게 전화해 같이 놀자고 함. Hello? Can I talk to Mina? What are you doing? 약속 시간과 장소 정하기 |
-| 85 | 5 | The Ant and the Grasshopper | 여름 내내 일하는 개미와 노래만 하는 베짱이. 겨울에 개미가 먹을 것을 나눠 줌 (이솝) |
-| 86 | 5 | The Giant Turnip | 할아버지가 키운 커다란 순무를 할머니·아이·개·고양이·생쥐가 차례로 붙어 뽑음 (옛이야기) |
-| 87 | 6 | Who Lives in the Tree? | 나무 한 그루에 사는 동물 묻고 답하기. 구멍 속 부엉이, 가지 위 다람쥐, 둥지의 새, 잎 위 애벌레 |
-| 88 | 6 | How Do We Get There? | 어디에 무엇을 타고 가는지 묻고 답하기. 지하철로 할머니 댁, 배로 섬, 버스로 학교 |
-| 89 | 7 | The New Kid in Class | 다른 나라에서 온 새 친구에게 한국말을 가르쳐 주고, 친구 나라 말도 배움 |
-| 90 | 7 | Strawberry Picking | 비닐하우스 딸기 농장에서 딸기를 따고, 딸기잼을 만들어 이웃과 나눔 |
-| 91 | 8 | Grandma Is Coming! | 다음 주 할머니가 우리 집에 오심. 방 청소, 할머니가 좋아하는 음식, 같이 할 일 계획 |
-| 92 | 8 | The First Day of School | 내일 1학년 첫날. 새 가방, 새 선생님, 새 친구에 대한 기대와 걱정 |
 
 ### 6차 (93~104)
 
@@ -299,21 +294,21 @@
 
 새 1단계 책을 쓸 때 이 표에 없는 단어만 골라요. 계획된 단어도 이미 쓴 것으로 봐요.
 
-| 글자 | 올라간 책 | 계획 (81~200) |
+| 글자 | 올라간 책 | 계획 (93~200) |
 |---|---|---|
-| A | apple, airplane, apron, art, alligator | alpaca, armchair, acrobat, ant, ambulance |
-| B | banana, ball, bowl, bag, bear | barn, bed, balloon, bee, bus |
-| C | cookie, car, cup, crayon, camel | cow, clock, candle, caterpillar, crane |
-| D | donut, doll, dish, desk, duck | donkey, door, drum, dragonfly, digger |
-| E | egg, engine, eggplant, eraser, elephant | eagle, easel, envelope, earthworm, electric car |
-| F | fruit, flag, fork, friend, flamingo | farmer, fan, face paint, firefly, fire truck |
-| G | grapes, guitar, glass, glue, giraffe | goat, gate, gift, grasshopper, garbage truck |
-| H | honey, hat, hot dog, hopscotch, hippo | horse, house, horn, hummingbird, helicopter |
-| I | ice cream, ice skates, ice, ink, iguana | insect, iron, ice pop, inchworm, ice cream truck |
-| J | juice, jump rope, jam, jacket, jaguar | jeep, jar, jelly, jay, jet |
-| K | kiwi, kite, kettle, keyboard, koala | kitten, key, king, koi, kick scooter |
-| L | lemon, lamp, lid, lunch, lion | lamb, ladder, lollipop, ladybug, limo |
-| M | milk, mask, mug, map, monkey | mud, mirror, muffin, moth, motorcycle |
+| A | apple, airplane, apron, art, alligator, alpaca | armchair, acrobat, ant, ambulance |
+| B | banana, ball, bowl, bag, bear, barn | bed, balloon, bee, bus |
+| C | cookie, car, cup, crayon, camel, cow | clock, candle, caterpillar, crane |
+| D | donut, doll, dish, desk, duck, donkey | door, drum, dragonfly, digger |
+| E | egg, engine, eggplant, eraser, elephant, eagle | easel, envelope, earthworm, electric car |
+| F | fruit, flag, fork, friend, flamingo, farmer | fan, face paint, firefly, fire truck |
+| G | grapes, guitar, glass, glue, giraffe, goat | gate, gift, grasshopper, garbage truck |
+| H | honey, hat, hot dog, hopscotch, hippo, horse | house, horn, hummingbird, helicopter |
+| I | ice cream, ice skates, ice, ink, iguana, insect | iron, ice pop, inchworm, ice cream truck |
+| J | juice, jump rope, jam, jacket, jaguar, jeep | jar, jelly, jay, jet |
+| K | kiwi, kite, kettle, keyboard, koala, kitten | key, king, koi, kick scooter |
+| L | lemon, lamp, lid, lunch, lion, lamb | ladder, lollipop, ladybug, limo |
+| M | milk, mask, mug, map, monkey, mud | mirror, muffin, moth, motorcycle |
 | N | nose, nest, net | night, newt, necklace, nap, nuts |
 | O | owl, ocean, octopus | opossum, otter, overalls, oak, oatmeal |
 | P | panda, plant, penguin | pillow, pebble, purse, puppy, pancakes |
