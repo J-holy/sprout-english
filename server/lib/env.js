@@ -47,6 +47,8 @@ export const config = {
   },
   // SMTP가 없을 때 인증코드를 화면에 보여줄지 (개발용. 운영에서는 꼭 false)
   devShowCode: bool(e.DEV_SHOW_CODE, !production),
+  // 결제사 심사용 계정 (심사가 끝나면 비워 둔다)
+  review: { email: (e.REVIEW_EMAIL || '').trim().toLowerCase(), code: (e.REVIEW_CODE || '').trim() },
   code: { ttlSec: Number(e.CODE_TTL_SEC || 180), maxTries: Number(e.CODE_MAX_TRIES || 5), resendSec: Number(e.CODE_RESEND_SEC || 30) },
   oauth: {
     kakao: { clientId: e.KAKAO_REST_API_KEY, clientSecret: e.KAKAO_CLIENT_SECRET, email: bool(e.KAKAO_EMAIL, true) },

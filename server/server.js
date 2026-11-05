@@ -134,11 +134,21 @@ const checkCode = (key, code) => {
   return null;
 };
 
+// 결제사(토스) 심사원이 쓰는 계정: .env의 REVIEW_EMAIL로 들어오면 REVIEW_CODE(숫자 6자리)가 인증코드가 된다
+const reviewEmail = email => !!config.review.email && email === config.review.email && /^\d{6}$/.test(config.review.code);
+const reviewCheck = (email, code) => {
+  if (!rateLimit('review:' + email, 10, 600000)) return '입력 횟수를 넘었어요. 잠시 후 다시 시도해 주세요.';
+  const a = Buffer.from(hashCode(email, code)), b = Buffer.from(hashCode(email, config.review.code));
+  return crypto.timingSafeEqual(a, b) ? null : '인증코드가 맞지 않아요.';
+};
+
 // ---------- 이메일 인증코드 로그인/가입 ----------
 app.post('/api/auth/email/send', wrap(async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   if (!validEmail(email)) return bad(res, '이메일 주소를 다시 확인해 주세요.');
   if (!rateLimit('send-ip:' + clientIp(req), 10, 600000) || !rateLimit('send-mail:' + email, 5, 3600000) || !rateLimit('send-all', 300, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
+  // 결제사 심사용 계정: 메일을 보내지 않고, 정해 둔 코드로 들어온다
+  if (reviewEmail(email)) return res.json({ ok: true, expires: now() + config.code.ttlSec * 1000 });
   const prev = db.prepare('SELECT * FROM login_codes WHERE email = ?').get(email);
   const wait = prev ? config.code.resendSec * 1000 - (now() - prev.sent_at) : 0;
   if (wait > 0) return bad(res, `${Math.ceil(wait / 1000)}초 후에 다시 보낼 수 있어요.`, 429);
@@ -153,7 +163,7 @@ app.post('/api/auth/email/send', wrap(async (req, res) => {
 app.post('/api/auth/email/verify', (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase(), code = String(req.body?.code || '').trim();
   if (!rateLimit('verify-ip:' + clientIp(req), 30, 600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
-  const wrong = checkCode(email, code);
+  const wrong = reviewEmail(email) ? reviewCheck(email, code) : checkCode(email, code);
   if (wrong) return bad(res, wrong);
   const u = getUserByEmail(email);
   if (u) { linkIdentity(u.id, 'email', email); startSession(req, res, u.id); return res.json({ status: 'login' }); }
