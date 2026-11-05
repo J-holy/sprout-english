@@ -964,7 +964,10 @@ Views.profiles = (el, { adding = false } = {}) => {
     if (m && !m.granted && m.autoRenew && u.profiles.length === 1 && !confirm(`아이를 추가하면 다음 결제부터 형제·자매 요금(월 ${won(planMonthly('two', m.months))})으로 바뀌어요. 추가할까요?`)) return;
     Store.addProfile({ name: d.get('name').trim(), age: +d.get('age'), avatar: d.get('avatar') });
     u.settings.notify = !!d.get('notify'); Store.persist();
-    if (u.settings.notify && 'Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (x) { /* ignore */ } }
+    // 알림에 동의했으면 이 기기를 학습 시간 알림에 등록한다 (아이폰은 홈 화면 앱에서만)
+    if (u.settings.notify && 'Notification' in window && Notification.permission !== 'denied') {
+      try { if (await Push.state() === 'off') await Push.enable(); else if (Notification.permission === 'default') await Notification.requestPermission(); } catch (x) { /* ignore */ }
+    }
     App.refreshHeader();
     siblingStep(el, d.get('name').trim());
   };
@@ -1675,7 +1678,8 @@ const ParentTabs = {
       <label class="check"><input type="checkbox" name="notify" ${u.settings.notify ? 'checked' : ''}> 학습알림 받기</label>
       <label>매일 리마인더 시간<input type="time" name="remind" value="${u.settings.remindTime}"></label>
       <label class="check"><input type="checkbox" name="mkt" ${u.settings.marketing ? 'checked' : ''}> 학습 소식·혜택 알림 받기 (마케팅 수신 동의, 끄면 바로 철회돼요)</label>
-      <p class="fine">브라우저 알림 권한: <b data-perm>${'Notification' in window ? Notification.permission : '미지원'}</b> <button type="button" class="link-btn" data-ask>권한 요청</button> <button type="button" class="link-btn" data-test>테스트 알림</button></p>
+      <p class="fine">시간을 바꾸면 아래 <b>저장</b>을 눌러 주세요.</p>
+      <div class="push-box" data-push></div>
       <h3>🔐 보안</h3>
       <label>부모페이지 PIN (숫자 4자리, 비우면 그대로)<input name="pin" inputmode="numeric" maxlength="4" placeholder="${u.settings.pin ? '설정됨 · 새 PIN 입력' : '미설정'}"></label>
       ${u.settings.pin ? '<label class="check"><input type="checkbox" name="unpin"> PIN 잠금 해제</label>' : ''}
@@ -1703,8 +1707,7 @@ const ParentTabs = {
       else if (f.unpin && f.unpin.checked) u.settings.pin = '';
       Store.persist(); App.toast('저장했어요.'); App.route();
     };
-    $('[data-ask]', el).onclick = async () => { if ('Notification' in window) { await Notification.requestPermission(); $('[data-perm]', el).textContent = Notification.permission; } };
-    $('[data-test]', el).onclick = () => { Store.notify('🔔 테스트 알림이에요. 알림이 잘 오고 있어요!', 'test', true); App.toast('학습알림 탭에 기록했어요.'); };
+    Push.render($('[data-push]', el));
     if (API.on) $('[data-export]', el).insertAdjacentHTML('afterend', '<span class="fine">학습 기록은 서버에 자동 저장돼요.</span>');
     $$('[data-del]', el).forEach(b => b.onclick = () => { const x = u.profiles.find(q => q.id === b.dataset.del); if (confirm(`${x.name} 프로필과 학습 기록을 삭제할까요? 되돌릴 수 없어요.`)) { Store.removeProfile(x.id); App.refreshHeader(); App.route(); } });
     $('[data-export]', el).onclick = () => App.download(`sprout-english-${Store.today()}.json`, Store.exportData());

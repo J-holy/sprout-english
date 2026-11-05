@@ -39,6 +39,10 @@ const MIGRATIONS = [
   // 탈퇴 회원의 결제 기록: 계정과 떼어 5년 보관 (전자상거래법)
   `CREATE TABLE payment_records (id TEXT PRIMARY KEY, email TEXT, customer_key TEXT, order_id TEXT, at INTEGER NOT NULL, amount INTEGER NOT NULL,
      description TEXT NOT NULL, months INTEGER, coupon_label TEXT, status TEXT NOT NULL, payment_key TEXT, method TEXT, left_at INTEGER NOT NULL);`,
+  // 웹 푸시 구독 (기기마다 하나)
+  `CREATE TABLE push_subs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, endpoint TEXT NOT NULL UNIQUE,
+     p256dh TEXT NOT NULL, auth TEXT NOT NULL, created_at INTEGER NOT NULL);
+   CREATE INDEX push_subs_user ON push_subs(user_id);`,
 ];
 
 db.exec('CREATE TABLE IF NOT EXISTS schema_version (v INTEGER NOT NULL)');

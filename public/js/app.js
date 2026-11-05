@@ -241,6 +241,7 @@ const App = (() => {
     route();
     Install.footer();
     Install.auto();
+    Push.sync();
     Store.checkReminder();
     setInterval(() => Store.checkReminder(), 60000);
   }

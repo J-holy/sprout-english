@@ -125,3 +125,81 @@ const Install = (() => {
 
   return { auto, open, footer, get available() { return !!deferred; } };
 })();
+
+/* 매일 학습 시간 알림 (웹 푸시, 무료)
+ * 이 기기를 서버에 등록해 두면 부모가 정한 시간에 휴대폰 알림이 온다. 아이폰·아이패드는 홈 화면에 설치한 앱에서만 된다. */
+const Push = (() => {
+  const KEY = 'sprout-push';
+  const env = Speech.env;
+  const standalone = () => navigator.standalone === true || !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  const can = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && window.isSecureContext;
+  const mark = on => { try { on ? localStorage.setItem(KEY, '1') : localStorage.removeItem(KEY); } catch (e) { /* ignore */ } };
+  const isOn = () => { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } };
+  const reg = () => navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready);
+  const toKey = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - s.length % 4) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+
+  async function current() { if (!can()) return null; try { return await (await reg()).pushManager.getSubscription(); } catch (e) { return null; } }
+
+  // 'login' | 'install'(아이폰 설치 필요) | 'unsupported' | 'denied' | 'on' | 'off'
+  async function state() {
+    if (!Store.user() || !API.on) return 'login';
+    if (env.ios && !standalone()) return 'install';
+    if (!can()) return 'unsupported';
+    if (Notification.permission === 'denied') return 'denied';
+    return Notification.permission === 'granted' && await current() ? 'on' : 'off';
+  }
+
+  async function enable() {
+    if (await Notification.requestPermission() !== 'granted') throw new Error('알림을 허용해야 받을 수 있어요.');
+    const r = await reg();
+    const { key } = await API.req('GET', 'api/push/key');
+    const sub = await r.pushManager.getSubscription() || await r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(key) });
+    await API.req('POST', 'api/push/subscribe', { sub: sub.toJSON() });
+    mark(true);
+  }
+  async function disable() {
+    const sub = await current();
+    if (sub) { await API.req('POST', 'api/push/unsubscribe', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
+    mark(false);
+  }
+  const test = () => API.req('POST', 'api/push/test', {});
+
+  // 앱을 열 때마다 이 기기 등록을 서버와 맞춘다 (다른 계정으로 로그인했거나 서버 DB가 바뀐 경우)
+  async function sync() {
+    if (!Store.user() || !API.on || !can() || Notification.permission !== 'granted') return;
+    const sub = await current();
+    if (sub) API.req('POST', 'api/push/subscribe', { sub: sub.toJSON() }).then(() => mark(true)).catch(() => {});
+    else mark(false);
+  }
+
+  // 부모페이지 › 설정의 알림 칸
+  async function render(box) {
+    const s = await state();
+    const msg = {
+      login: '로그인하면 휴대폰으로 학습 알림을 받을 수 있어요.',
+      install: '아이폰·아이패드는 <b>홈 화면에 설치한 새싹스쿨 앱</b>에서만 알림을 받을 수 있어요. 설치한 앱에서 이 화면을 다시 열어 켜 주세요.',
+      unsupported: '이 브라우저는 휴대폰 알림을 지원하지 않아요. Chrome·Safari 최신 버전이나 홈 화면에 설치한 앱에서 켤 수 있어요.',
+      denied: '알림이 차단되어 있어요. 휴대폰 설정에서 새싹스쿨(또는 이 브라우저)의 알림을 허용한 뒤 다시 열어 주세요.',
+      off: '이 기기로 매일 정한 시간에 학습 알림을 받을 수 있어요. 오늘 목표를 다 채웠으면 보내지 않아요.',
+      on: '✅ 이 기기로 매일 정한 시간에 학습 알림을 보내요. 오늘 목표를 다 채웠으면 보내지 않아요.',
+    }[s];
+    const btn = {
+      install: '<button type="button" class="btn btn-ghost sm" data-p="install">📲 앱으로 설치하기</button>',
+      off: '<button type="button" class="btn btn-primary sm" data-p="on">🔔 이 기기에서 알림 켜기</button>',
+      on: '<button type="button" class="btn btn-ghost sm" data-p="test">테스트 알림 보내기</button> <button type="button" class="link-btn" data-p="off">이 기기 알림 끄기</button>',
+    }[s] || '';
+    box.innerHTML = `<p class="fine">${msg}</p>${btn ? `<div class="row">${btn}</div>` : ''}`;
+    box.querySelectorAll('[data-p]').forEach(b => b.onclick = async () => {
+      const act = b.dataset.p; b.disabled = true;
+      try {
+        if (act === 'install') return Install.open(false);
+        if (act === 'on') { await enable(); App.toast('알림을 켰어요. 테스트 알림으로 확인해 보세요.'); }
+        if (act === 'off') { await disable(); App.toast('이 기기 알림을 껐어요.'); }
+        if (act === 'test') { const r = await test(); App.toast(r.sent ? '알림을 보냈어요. 잠시 뒤 휴대폰 알림을 확인해 주세요.' : '등록된 기기가 없어요. 알림을 다시 켜 주세요.'); }
+      } catch (e) { App.toast(e.message || '알림을 켜지 못했어요.'); }
+      finally { b.disabled = false; render(box); }
+    });
+  }
+
+  return { state, enable, disable, sync, render, isOn, can };
+})();

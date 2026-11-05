@@ -17,6 +17,7 @@ import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
 import { sttProvider, checkWav, recognize } from './lib/stt.js';
+import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
 import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
 
 const app = express();
@@ -97,6 +98,19 @@ app.put('/api/me/state', requireUser, (req, res) => {
     .run(state, JSON.stringify(nextSettings), nextSettings.marketing ? 1 : 0, profiles.length ? now() : null, req.user.id);
   res.json({ ok: true, trialStart: getUser(req.user.id).trial_start });
 });
+// ---------- 웹 푸시 (매일 학습 시간 알림) ----------
+app.get('/api/push/key', (req, res) => res.json({ key: pushKey() }));
+app.post('/api/push/subscribe', requireUser, (req, res) => {
+  if (!saveSub(req.user.id, req.body?.sub)) return bad(res, '알림 정보가 올바르지 않아요.');
+  res.json({ ok: true });
+});
+app.post('/api/push/unsubscribe', requireUser, (req, res) => { removeSub(req.user.id, req.body?.endpoint); res.json({ ok: true }); });
+app.post('/api/push/test', requireUser, wrap(async (req, res) => {
+  if (!rateLimit('push-test:' + req.user.id, 5, 600000)) return bad(res, '잠시 후 다시 시도해 주세요.', 429);
+  const n = await sendToUser(req.user.id, { title: '새싹스쿨 알림', body: '알림이 잘 와요! 정한 시간에 학습 알림을 보내 드릴게요.', url: '/#/parent/settings', tag: 'test' });
+  res.json({ ok: true, sent: n });
+}));
+
 app.post('/api/me/notifications', requireUser, (req, res) => {
   const { text, kind } = req.body || {};
   if (!text || typeof text !== 'string') return bad(res, '알림 내용이 없어요.');
@@ -424,6 +438,7 @@ app.use((err, req, res, next) => {
 // ---------- 주기 작업 ----------
 setInterval(cleanupSessions, 3600000).unref();
 setInterval(() => renewalJob().catch(err => console.error('[자동갱신]', err.message)), 3600000).unref();
+setInterval(() => reminderJob().catch(err => console.error('[학습알림]', err.message)), 60000).unref();
 setTimeout(() => renewalJob().catch(err => console.error('[자동갱신]', err.message)), 15000).unref();
 
 const server = app.listen(config.port, config.host, () => {

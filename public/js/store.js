@@ -576,7 +576,8 @@ const Store = (() => {
     u.notifications.unshift({ id: uid(), text, kind, at: Date.now(), read: false });
     u.notifications = u.notifications.slice(0, 100);
     if (API.on) API.req('POST', 'api/me/notifications', { text, kind }).catch(() => {}); else save();
-    if (push && u.settings.notify && 'Notification' in window && Notification.permission === 'granted') {
+    // 이 기기가 서버 알림(웹 푸시)을 받으면 화면 알림은 띄우지 않는다 (같은 알림이 두 번 오지 않게)
+    if (push && u.settings.notify && 'Notification' in window && Notification.permission === 'granted' && !(typeof Push !== 'undefined' && Push.isOn())) {
       try { new Notification('새싹스쿨 학습알림', { body: text.replace(/^\S+\s/, '') }); } catch (e) { /* ignore */ }
     }
     document.dispatchEvent(new CustomEvent('store:notify'));
