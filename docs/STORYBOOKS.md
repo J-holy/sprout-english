@@ -36,7 +36,7 @@
 - **발음:** 아이가 소리만 듣고 헷갈릴 수 있는 말은 다른 말로 바꿔요. 예를 들어 비슷한 소리가 나는 단어(ham/him), 잘못 들리기 쉬운 이름(Jun → John), 뭉개지는 반복 표현(yawns a big yawn)이 그래요. 음성을 만든 뒤 Whisper로 받아써서 원문과 다르게 들린 문장은 고쳐요.
 - **그림:** 그림 주의사항은 `server/scripts/pregen-img.js`의 장면 설명 규칙을 따라요. 사람은 모두 cast에 넣고, 하나만 나와야 하면 "only one"을 붙이고, 넷 넘게 세는 장면은 피해요.
 
-## 올라간 책 1~92번
+## 올라간 책 1~104번
 
 | 번호 | 단계 | 제목 | 내용 |
 |---|---|---|---|
@@ -49,6 +49,7 @@
 | 57 | 1 | ABC School | A~M 학교 물건, 친구와 학교 가기 |
 | 69 | 1 | ABC Zoo | A~M 동물, 동물원 |
 | 81 | 1 | ABC Farm | 농장 알파벳 A~M |
+| 93 | 1 | ABC Night | 밤 알파벳 N~Z, 별을 세다 잠듦 |
 | 2 | 2 | The Fat Cat | 뚱뚱한 고양이가 쥐의 빨간 모자를 탐냄 (짧은 a) |
 | 10 | 2 | Ben and the Bus | 벤과 톰의 버스 여행 (짧은 e·u) |
 | 19 | 2 | The Red Hen | 암탉이 알을 노리는 여우를 쫓아냄 (짧은 e) |
@@ -58,6 +59,7 @@
 | 58 | 2 | Dan and the Van | 댄의 밴, 고양이, 뜨거운 빵 |
 | 70 | 2 | Kip the Pup | 강아지 킵이 빨간 컵을 파내고 무당벌레와 놂 |
 | 82 | 2 | Gus the Duck | 오리 거스의 북과 토끼 |
+| 94 | 2 | Jen and the Web | 거미 젠이 비에 망가진 거미줄을 다시 침 (짧은 e) |
 | 3 | 3 | My Family | 가족 소개 |
 | 11 | 3 | My Toy Box | 장난감 소개 |
 | 21 | 3 | My School | 학교·선생님·친구 소개 |
@@ -69,6 +71,7 @@
 | 59 | 3 | Good Night | 목욕·양치·책 읽기 뒤 잠자리 |
 | 71 | 3 | My Color Walk | 산책하며 색깔 찾기, 무지개 |
 | 83 | 3 | My Body | 몸으로 할 수 있는 일 |
+| 95 | 3 | Shapes All Around | 집 안에서 모양 찾기 |
 | 4 | 4 | New Friend | 릴리와 샘의 첫 만남, 자기소개 |
 | 12 | 4 | At the Shop | 가게에서 사과·우유 사기 |
 | 23 | 4 | At the Doctor | 감기로 병원 진료 |
@@ -80,6 +83,7 @@
 | 60 | 4 | Let's Make Pizza | 아빠와 피자 만들기 |
 | 72 | 4 | At the Park | 미아와 그네·미끄럼틀·아이스크림 |
 | 84 | 4 | On the Phone | 친구에게 전화해서 놀러 가기 |
+| 96 | 4 | At the Hair Salon | 미용실에서 머리 자르기 |
 | 5 | 5 | The Rainy Day | 천둥 치는 비 오는 날 밖에서 놀기 |
 | 13 | 5 | The Big Red Kite | 아빠와 언덕에서 연날리기 |
 | 25 | 5 | The Little Seed | 씨앗이 해바라기로 자람 |
@@ -94,6 +98,8 @@
 | 74 | 5 | The Lion and the Mouse | 사자와 생쥐 (이솝) |
 | 85 | 5 | The Ant and the Grasshopper | 개미와 베짱이 (이솝) |
 | 86 | 5 | The Giant Turnip | 커다란 순무 (옛이야기) |
+| 97 | 5 | The Gray Duckling | 미운 오리 새끼 (안데르센) |
+| 98 | 5 | The Tiger and the Dried Persimmon | 호랑이와 곶감 (전래 동화) |
 | 6 | 6 | Where Is Max? | 저녁 시간에 개 맥스 찾기 |
 | 14 | 6 | Busy Sunday | 일요일 하루 일과 묻고 답하기 |
 | 27 | 6 | The Missing Cake | 사라진 케이크, 개가 먹음 |
@@ -108,6 +114,8 @@
 | 76 | 6 | Who Helps in Our Town? | 우리 동네에서 일하는 사람들 |
 | 87 | 6 | Who Lives in the Tree? | 나무에 사는 동물 묻고 답하기 |
 | 88 | 6 | Walk, Bus, or Boat? | 무엇을 타고 가는지 묻고 답하기 |
+| 99 | 6 | Where Do Animals Sleep? | 동물이 자는 곳 묻고 답하기 |
+| 100 | 6 | What Can Grandpa Fix? | 할아버지가 고쳐 주는 것 묻고 답하기 |
 | 7 | 7 | My Weekend | 주말에 간 동물원 |
 | 15 | 7 | The Lost Puppy | 공원에서 강아지를 구해 주인을 찾아 줌 |
 | 29 | 7 | The Camping Trip | 호숫가 캠핑 |
@@ -120,6 +128,8 @@
 | 78 | 7 | A Day at the Aquarium | 할머니와 수족관 |
 | 89 | 7 | The New Kid in Class | 스페인에서 온 전학생 소피아 |
 | 90 | 7 | Strawberry Picking | 딸기 따기와 딸기잼 |
+| 101 | 7 | The Day the Lights Went Out | 폭풍우 밤 정전과 그림자놀이 |
+| 102 | 7 | Making Kimchi | 할머니 댁 김장 |
 | 8 | 8 | When I Grow Up | 커서 될 직업 |
 | 16 | 8 | Our Space Trip | 로켓 타고 달 여행 |
 | 31 | 8 | Next Summer | 다음 여름 제주 여행 |
@@ -132,27 +142,12 @@
 | 80 | 8 | Our New Baby | 동생이 태어날 준비 |
 | 91 | 8 | Grandma Is Coming! | 할머니가 오실 준비 |
 | 92 | 8 | The First Day of School | 1학년 첫날 준비 |
+| 103 | 8 | My Pen Pal | 캐나다 펜팔에게 편지 쓰기 |
+| 104 | 8 | Learning Taekwondo | 태권도 배우기 계획 |
 
-## 앞으로 만들 책 93~200번
+## 앞으로 만들 책 105~200번
 
 1단계 책은 알파벳 13개 단어를 미리 정해 두었어요. 단어 순서는 A부터예요.
-
-### 6차 (93~104)
-
-| 번호 | 단계 | 제목 | 내용 |
-|---|---|---|---|
-| 93 | 1 | ABC Night | N~Z: night, opossum, pillow, quokka, raccoon, star, teddy bear, under, valley, wolf, Wax(ends with X), yawn, zipper. 마지막 3쪽: 밤하늘을 보다 잠듦 |
-| 94 | 2 | Jen and the Web | 짧은 e. 거미 젠이 거미줄을 치는데 비에 젖어 망가지고, 다시 쳐서 완성함 (web, wet, red, ten, mend) |
-| 95 | 3 | Shapes All Around | 모양 찾기. The clock is a circle. The window is a square. 집 안에서 동그라미·네모·세모·별 모양 찾기 |
-| 96 | 4 | At the Hair Salon | 미용실 대화. How do you want your hair? Short, please. Does it look good? |
-| 97 | 5 | The Gray Duckling | 오리들 사이에서 놀림받던 회색 새끼가 자라서 하얀 백조가 됨 (안데르센 미운 오리 새끼) |
-| 98 | 5 | The Tiger and the Dried Persimmon | 우는 아이가 곶감 소리에 뚝 그치자, 호랑이가 곶감을 무서운 동물로 알고 도망감 (전래 동화) |
-| 99 | 6 | Where Do Animals Sleep? | 동물이 어디서 어떻게 자는지 묻고 답하기. 박쥐는 거꾸로, 말은 선 채로, 새는 나뭇가지에서 |
-| 100 | 6 | What Is Grandma Knitting? | 할머니가 뜨개질하는 것을 날마다 묻고 추측함. 긴 것은 목도리, 작은 것은 장갑, 모두 나를 위한 선물 |
-| 101 | 7 | The Day the Lights Went Out | 폭풍우 밤에 정전. 촛불을 켜고 손전등 그림자놀이, 가족이 옛날이야기를 함 |
-| 102 | 7 | Making Kimchi | 할머니 댁에서 김장. 배추를 절이고 양념을 바르고, 이웃과 수육을 나눠 먹음 |
-| 103 | 8 | My Pen Pal | 캐나다에 사는 펜팔에게 편지를 씀. 내 소개, 우리 동네, 내년 여름에 만날 계획 |
-| 104 | 8 | Learning Taekwondo | 다음 달 태권도장에 다니기 시작함. 도복, 발차기, 노란 띠를 딸 목표 |
 
 ### 7차 (105~116)
 
@@ -243,7 +238,7 @@
 
 | 번호 | 단계 | 제목 | 내용 |
 |---|---|---|---|
-| 165 | 1 | ABC Park | N~Z: nap, oak, puppy, quail, roller skates, swing, tulip, up, violet, wagon, Max(ends with X), yard, zip line. 마지막 3쪽: 공원에서 짚라인 타기 |
+| 165 | 1 | ABC Park | N~Z: nap, oak, puppy, quick, roller skates, swing, tulip, up, violet, wagon, Max(ends with X), yard, zip line. 마지막 3쪽: 공원에서 짚라인 타기 |
 | 166 | 2 | Luke and the Mule | 매직 e(u_e). 루크가 귀여운(cute) 노새(mule)에게 플루트(flute)로 노래(tune)를 들려줌 |
 | 167 | 3 | Bubbles! | 비눗방울 놀이. I have a wand. I can blow bubbles. This bubble is big. It is round and shiny. |
 | 168 | 4 | At the Post Office | 우체국에서 할머니께 소포 보내기. How much is it? Is it heavy? When will it get there? |
@@ -294,7 +289,7 @@
 
 새 1단계 책을 쓸 때 이 표에 없는 단어만 골라요. 계획된 단어도 이미 쓴 것으로 봐요.
 
-| 글자 | 올라간 책 | 계획 (93~200) |
+| 글자 | 올라간 책 | 계획 (105~200) |
 |---|---|---|
 | A | apple, airplane, apron, art, alligator, alpaca | armchair, acrobat, ant, ambulance |
 | B | banana, ball, bowl, bag, bear, barn | bed, balloon, bee, bus |
@@ -309,16 +304,16 @@
 | K | kiwi, kite, kettle, keyboard, koala, kitten | key, king, koi, kick scooter |
 | L | lemon, lamp, lid, lunch, lion, lamb | ladder, lollipop, ladybug, limo |
 | M | milk, mask, mug, map, monkey, mud | mirror, muffin, moth, motorcycle |
-| N | nose, nest, net | night, newt, necklace, nap, nuts |
-| O | owl, ocean, octopus | opossum, otter, overalls, oak, oatmeal |
-| P | panda, plant, penguin | pillow, pebble, purse, puppy, pancakes |
-| Q | queen bee, quiet, quilt | quokka, quack, queen, quail, quiche |
-| R | rabbit, rainbow, rock | raccoon, raft, ring, roller skates, raisins |
-| S | snake, sun, shell | star, swan, scarf, swing, sausage |
-| T | tiger, tree, turtle | teddy bear, tadpole, tutu, tulip, toast |
-| U | unicorn, umbrella, ukulele | under, upside down, unicycle, up, utensils |
-| V | violin, volcano, van | valley, vine, vest, violet, vanilla |
-| W | whale, water, wave | wolf, willow, watch, wagon, waffle |
-| X | Fox, Six, Box | Wax, Ox, T-rex, Max, Mix |
-| Y | yo-yo, yellow, yacht | yawn, yummy, yarn, yard, yogurt |
-| Z | zebra, zoo, zigzag | zipper, zoom, zookeeper, zip line, zucchini |
+| N | nose, nest, net, night | newt, necklace, nap, nuts |
+| O | owl, ocean, octopus, ostrich | otter, overalls, oak, oatmeal |
+| P | panda, plant, penguin, pillow | pebble, purse, puppy, pancakes |
+| Q | queen bee, quiet, quilt, quail | quack, queen, quick, quiche |
+| R | rabbit, rainbow, rock, raccoon | raft, ring, roller skates, raisins |
+| S | snake, sun, shell, star | swan, scarf, swing, sausage |
+| T | tiger, tree, turtle, teddy bear | tadpole, tutu, tulip, toast |
+| U | unicorn, umbrella, ukulele, under | upside down, unicycle, up, utensils |
+| V | violin, volcano, van, valley | vine, vest, violet, vanilla |
+| W | whale, water, wave, wolf | willow, watch, wagon, waffle |
+| X | Fox, Six, Box, Wax | Ox, T-rex, Max, Mix |
+| Y | yo-yo, yellow, yacht, yawn | yummy, yarn, yard, yogurt |
+| Z | zebra, zoo, zigzag, zipper | zoom, zookeeper, zip line, zucchini |
