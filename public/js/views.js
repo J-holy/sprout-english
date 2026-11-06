@@ -1282,6 +1282,9 @@ Views.story = (el, id) => {
     $('.reader-dots', el).innerHTML = s.pages.map((_, k) => `<i class="${k === pg ? 'on' : ''}"></i>`).join('');
     $('[data-prev]', el).disabled = pg === 0;
     if (auto) later(read, 400);
+    // 다음 두 쪽의 그림과 다음 쪽 소리를 미리 받아 둔다 (넘길 때 바로 보이고 바로 읽게)
+    const next = s.pages[pg + 1];
+    Speech.preload({ imgs: [storyPic(s.id, pg + 1), storyPic(s.id, pg + 2)], texts: next ? [next[0], ...storyChunks(next[0]).map(g => chunkSay(next[0], g))] : [] });
   };
 
   // 한 쪽 읽기 → 끝나면 afterRead

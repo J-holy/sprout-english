@@ -362,6 +362,13 @@ const Lesson = (() => {
   // 문제마다 푸는 데 걸린 시간(ms)을 결과에 담아, 너무 빨리 찍은 정답을 가려낼 수 있게 한다.
   function run(root, questions, { title = '레슨', onDone, onExit, recordSpeech = true, difficulty = 'normal', challenge = null, test = false, exitMsg = '레슨을 그만할까요? 진행 내용은 저장되지 않아요.' } = {}) {
     questions = adjust(questions, difficulty);
+    // 문제에 나오는 그림·소리를 미리 받아 둔다 (첫 문제 그림이 먼저 받아지도록 조금 뒤에)
+    setTimeout(() => {
+      const texts = [], walk = v => { if (typeof v === 'string') texts.push(v); else if (v && typeof v === 'object') Object.values(v).forEach(walk); };
+      walk(questions);
+      const emo = new Set(PICS.re ? texts.join(' ').match(PICS.re) || [] : []);
+      Speech.preload({ texts, imgs: [...emo].map(e => `img/${PICS.w[e]}`) });
+    }, 300);
     let i = 0, correct = 0, answeredAt = -1, combo = 0, comboStar = false, played = false, bonus = 0, shownAt = 0; const wrong = [], results = []; const t0 = Date.now();
     const challengeAt = Math.min(3, questions.length - 2); // 4번째 문제 다음에 ⚡챌린지
     const diffLabel = { easy: '🐣 쉬움', normal: '🐥 보통', hard: '🦅 도전' }[difficulty];

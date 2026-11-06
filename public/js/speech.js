@@ -397,8 +397,22 @@ const Speech = (() => {
     cheer: () => tone([523, 659, 784, 1047], 0.11, 'triangle', 0.12),
   };
 
+  // 곧 쓸 그림·음성을 미리 받아 둔다. 휴대폰↔서버 왕복이 길어서, 누른 뒤에 받으면 다음 화면·소리가 늦게 나온다.
+  // 미리 만든 파일만(서버에 새로 만들게 하지 않는다), 한 번 받은 것은 다시 받지 않는다
+  const warmed = new Set();
+  function preload({ texts = [], imgs = [] } = {}) {
+    const add = u => { if (!u || warmed.has(u) || warmed.size > 600) return false; warmed.add(u); return true; };
+    imgs.forEach(src => { if (add(src)) { const im = new Image(); im.decoding = 'async'; im.src = src; } });
+    if (!neural.manifest || !useNeural()) return;
+    let n = 0;
+    for (const t of texts) {
+      const f = typeof t === 'string' && t.length < 300 && (neural.manifest[t.trim()] || neural.manifest[speechText(t).trim()]);
+      if (f && add(`audio/${f}`)) { fetch(`audio/${f}`).catch(() => {}); if (++n >= 40) break; }
+    }
+  }
+
   return {
-    speak, speakLater, stop, listen, score, sfx,
+    speak, speakLater, stop, listen, score, sfx, preload,
     get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return webSpeechOk() || (sttOn && canRecord()); },
     env, externalUrl, unsupportedReason, micHelp, micPermission,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
