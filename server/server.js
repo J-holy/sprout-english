@@ -424,9 +424,39 @@ app.use('/api', (req, res) => bad(res, '없는 API예요.', 404));
 const fileVersion = f => { try { return Math.round(fs.statSync(path.join(config.publicDir, f)).mtimeMs).toString(36); } catch { return 'dev'; } };
 const indexHtml = () => fs.readFileSync(path.join(config.publicDir, 'index.html'), 'utf8').replace(/([\w/.-]+)\?v=dev/g, (_, f) => `${f}?v=${fileVersion(f)}`);
 app.get(['/', '/index.html'], (req, res) => res.set('Cache-Control', 'no-cache').type('html').send(indexHtml()));
+// 그림·음성 목록의 파일마다 고친 시각을 붙여 보낸다(img/s/1-0.jpg?v=…). 다시 그린 그림은 주소가 바뀌니
+// 휴대폰과 Cloudflare가 파일을 오래 저장해 두고, 매번 라즈베리파이까지 확인하러 오지 않는다
+const versioned = new Map();
+async function versionedManifest(dir) {
+  const file = path.join(config.publicDir, dir, 'manifest.json');
+  const mtime = (await fs.promises.stat(file)).mtimeMs, hit = versioned.get(dir);
+  if (hit && hit.mtime === mtime && now() - hit.at < 600000) return hit.body;
+  const data = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  const jobs = [];
+  const walk = o => { for (const k of Object.keys(o)) {
+    const v = o[k];
+    if (v && typeof v === 'object') walk(v);
+    else if (typeof v === 'string' && /^[\w/.-]+\.(jpg|png|webp|mp3|wav)$/.test(v)) jobs.push([o, k, v]);
+  } };
+  walk(data);
+  for (let i = 0; i < jobs.length; i += 200) {
+    await Promise.all(jobs.slice(i, i + 200).map(async ([o, k, v]) => {
+      try { o[k] = `${v}?v=${Math.round((await fs.promises.stat(path.join(config.publicDir, dir, v))).mtimeMs).toString(36)}`; } catch { /* 없는 파일은 그대로 */ }
+    }));
+  }
+  const body = JSON.stringify(data);
+  versioned.set(dir, { mtime, at: now(), body });
+  return body;
+}
+app.get(['/img/manifest.json', '/audio/manifest.json'], wrap(async (req, res, next) => {
+  let body;
+  try { body = await versionedManifest(req.path.split('/')[1]); } catch { return next(); }
+  res.set('Cache-Control', 'no-cache').type('json').send(body);
+}));
 app.use(express.static(config.publicDir, {
   index: 'index.html', extensions: ['html'],
-  setHeaders: (res, file) => res.setHeader('Cache-Control', file.endsWith('.html') ? 'no-cache' : 'public, max-age=300'),
+  // 주소에 ?v= 가 붙은 파일은 내용이 바뀌면 주소도 바뀌니 1년 동안 저장해 둔다
+  setHeaders: (res, file) => res.setHeader('Cache-Control', file.endsWith('.html') ? 'no-cache' : res.req.query.v ? 'public, max-age=31536000, immutable' : 'public, max-age=300'),
 }));
 app.use((req, res) => res.status(404).sendFile(path.join(config.publicDir, 'index.html')));
 app.use((err, req, res, next) => {

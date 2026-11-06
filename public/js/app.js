@@ -206,6 +206,10 @@ const App = (() => {
     // 회선이 느려 오래 걸리면 빈 화면 대신 안내를 보여준다
     const root = document.getElementById('app');
     const slowNote = setTimeout(() => { root.innerHTML = '<div class="empty"><div class="empty-ico">🌱</div><p>서버에 연결하는 중이에요…</p></div>'; }, 2500);
+    // 그림·음성 목록은 로그인 확인과 함께 받기 시작한다 (하나씩 기다리면 휴대폰에서 첫 화면이 늦다).
+    // 늘 새로 확인한다: 새로 올린 그림·음성 대신 브라우저에 남은 옛 목록을 쓰지 않게
+    const getJson = u => fetch(u, { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+    const picsP = getJson('img/manifest.json'), voiceP = getJson('audio/manifest.json');
     await Store.init();
     if (API.down) {
       clearTimeout(slowNote);
@@ -214,12 +218,11 @@ const App = (() => {
       return;
     }
     // AI 음성: 미리 만든 audio/manifest.json을 먼저 쓰고, 없는 문장은 서버에 TTS 키가 있을 때 /api/tts로 만든다
-    let manifest = null;
-    // 늘 새로 확인한다: 음성을 새로 올린 뒤 브라우저에 남은 옛 목록으로 없는 파일을 찾지 않게
-    try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); if (r.ok) manifest = (await r.json()).files; } catch (e) { /* 없음 */ }
-    Speech.configure({ server: API.on && !!API.cfg.tts, manifest, stt: API.on && !!API.cfg.stt });
+    // 음성 목록은 커서(400KB) 첫 화면을 기다리게 하지 않는다. 오기 전에는 서버 음성이나 기기 목소리로 읽는다
+    const voice = m => Speech.configure({ server: API.on && !!API.cfg.tts, manifest: m && m.files, stt: API.on && !!API.cfg.stt });
+    voice(null); voiceP.then(m => { if (m) voice(m); });
     // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만). 첫 화면이 이모지로 그려지지 않게 받고 나서 시작한다
-    try { const r = await fetch('img/manifest.json', { cache: 'no-cache' }); if (r.ok) setPics(await r.json()); } catch (e) { /* 없음 */ }
+    const pics = await picsP; if (pics) setPics(pics);
     // 서버 음성 인식이 켜져 있으면 아이패드·아이폰의 Chrome에서도 말하기가 되니 Safari로 보내지 않는다
     if (Speech.env.inApp || !Speech.canListen && Speech.env.iosNotSafari) inAppBanner();
     // 서버 없이(예: GitHub Pages) 열렸을 때는 데모라는 걸 알려준다
