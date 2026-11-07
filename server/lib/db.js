@@ -43,6 +43,8 @@ const MIGRATIONS = [
   `CREATE TABLE push_subs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, endpoint TEXT NOT NULL UNIQUE,
      p256dh TEXT NOT NULL, auth TEXT NOT NULL, created_at INTEGER NOT NULL);
    CREATE INDEX push_subs_user ON push_subs(user_id);`,
+  // 가입 경로: 처음 들어온 링크의 utm_source 또는 들어온 사이트 (마케팅 채널별 가입 수)
+  `ALTER TABLE users ADD COLUMN source TEXT;`,
 ];
 
 db.exec('CREATE TABLE IF NOT EXISTS schema_version (v INTEGER NOT NULL)');

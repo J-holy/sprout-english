@@ -202,7 +202,23 @@ const App = (() => {
     });
   }
 
+  // 가입 경로: 처음 들어온 링크의 utm_source(없으면 들어온 사이트)를 30일 동안 기억했다가 가입할 때 보낸다.
+  // 로그인·결제 화면에서 돌아올 때의 주소는 경로가 아니므로 빼고, 이미 기억한 경로는 덮어쓰지 않는다.
+  function noteSource() {
+    try {
+      const q = new URLSearchParams(location.search), tag = q.get('utm_source') || q.get('ref') || '';
+      let ref = '';
+      if (!tag && document.referrer) {
+        const h = new URL(document.referrer).host;
+        if (h !== location.host && !/(^|\.)(kakao\.com|nid\.naver\.com|accounts\.google\.com|appleid\.apple\.com|tosspayments\.com|toss\.im)$/.test(h)) ref = h.replace(/^(www|m|search|l|lm)\./, '');
+      }
+      const s = (tag || ref).toLowerCase().replace(/[^\w.-]/g, '').slice(0, 40);
+      const old = JSON.parse(localStorage.getItem('sprout-src') || 'null');
+      if (s && !(old && Date.now() - old.at < 30 * 864e5)) localStorage.setItem('sprout-src', JSON.stringify({ s, at: Date.now() }));
+    } catch {}
+  }
   async function init() {
+    noteSource();
     // 회선이 느려 오래 걸리면 빈 화면 대신 안내를 보여준다
     const root = document.getElementById('app');
     const slowNote = setTimeout(() => { root.innerHTML = '<div class="empty"><div class="empty-ico">🌱</div><p>서버에 연결하는 중이에요…</p></div>'; }, 2500);

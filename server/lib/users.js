@@ -7,13 +7,13 @@ export const getUser = uid => db.prepare('SELECT * FROM users WHERE id = ?').get
 export const getUserByEmail = email => email ? db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).toLowerCase()) : undefined;
 export const isAdmin = u => !!u && (u.role === 'admin' || (u.email && config.adminEmails.includes(u.email)));
 
-export function createUser({ email, parentName, provider, providerUid, marketing }) {
+export function createUser({ email, parentName, provider, providerUid, marketing, source }) {
   return tx(() => {
     const uid = id(), t = now();
     const role = email && config.adminEmails.includes(email) ? 'admin' : 'parent';
-    db.prepare(`INSERT INTO users (id, email, parent_name, role, created_at, last_login, marketing, customer_key, settings)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, email || null, parentName, role, t, t, marketing ? 1 : 0, 'cus_' + crypto.randomBytes(12).toString('hex'),
-      JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing }));
+    db.prepare(`INSERT INTO users (id, email, parent_name, role, created_at, last_login, marketing, customer_key, settings, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, email || null, parentName, role, t, t, marketing ? 1 : 0, 'cus_' + crypto.randomBytes(12).toString('hex'),
+      JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing }), source || null);
     db.prepare('INSERT INTO identities (provider, provider_uid, user_id, created_at) VALUES (?, ?, ?, ?)').run(provider, providerUid || email, uid, t);
     db.prepare('INSERT INTO coupons (id, user_id, name, rate, welcome, expires_at) VALUES (?, ?, ?, ?, 1, ?)').run(id(), uid, '웰컴쿠폰', 0.2, t + 10 * DAY);
     notify(uid, '🎉 가입을 환영해요! 쿠폰함에 웰컴쿠폰이 발급되었어요.', 'coupon');

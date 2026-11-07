@@ -231,12 +231,14 @@ app.post('/api/auth/complete', (req, res) => {
   const p = unsign(parseCookies(req).pending);
   if (!p) return bad(res, '가입 정보가 만료되었어요. 처음부터 다시 해 주세요.');
   const { parentName, terms, age, marketing } = req.body || {};
+  // 가입 경로는 영문·숫자·점·밑줄·하이픈만, 40자까지 (화면이 utm_source나 들어온 사이트 이름을 보낸다)
+  const source = /^[\w.-]{1,40}$/.test(String(req.body?.source || '')) ? String(req.body.source).toLowerCase() : null;
   const name = String(parentName || '').trim().slice(0, 20);
   if (!name) return bad(res, '이름을 입력해 주세요.');
   if (!terms || !age) return bad(res, '필수 항목에 동의해 주세요.');
   let u = p.email ? getUserByEmail(p.email) : null;
   if (u) linkIdentity(u.id, p.provider, p.uid);
-  else u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing });
+  else u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, source });
   clearCookie(res, 'pending');
   startSession(req, res, u.id);
   res.json({ ok: true });
@@ -350,7 +352,7 @@ app.delete('/api/reviews/:id', requireUser, (req, res) => {
 // ---------- 관리자 ----------
 app.use('/api/admin', requireUser, requireAdmin);
 app.get('/api/admin/users', (req, res) => {
-  res.json(db.prepare('SELECT * FROM users ORDER BY created_at DESC').all().map(u => ({ ...userDoc(u), access: access(u), notifications: undefined })));
+  res.json(db.prepare('SELECT * FROM users ORDER BY created_at DESC').all().map(u => ({ ...userDoc(u), source: u.source || '', access: access(u), notifications: undefined })));
 });
 app.post('/api/admin/users/:id/action', (req, res) => {
   const u = getUser(req.params.id); if (!u) return bad(res, '회원을 찾을 수 없어요.', 404);

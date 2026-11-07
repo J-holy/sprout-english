@@ -164,7 +164,9 @@ const Store = (() => {
   // 가입 마무리 (이메일 인증 또는 SNS 이후)
   async function completeSignup({ provider, email, parentName, marketing }) {
     if (API.on) {
-      await API.req('POST', 'api/auth/complete', { parentName, terms: true, age: true, marketing: !!marketing });
+      let source = '';
+      try { const o = JSON.parse(localStorage.getItem('sprout-src') || 'null'); if (o && Date.now() - o.at < 30 * 864e5) source = o.s; } catch {}
+      await API.req('POST', 'api/auth/complete', { parentName, terms: true, age: true, marketing: !!marketing, source });
       await loadMe(); return user();
     }
     email = normEmail(email);

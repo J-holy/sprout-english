@@ -1749,15 +1749,24 @@ Views.admin = async (el, tab) => {
 const AdminTabs = {
   users(el, users) {
     const prov = { email: '📧', kakao: '💬', naver: 'N', google: 'G', apple: '🍎' };
-    el.innerHTML = `<input class="search" type="search" placeholder="이메일·이름으로 검색" aria-label="회원 검색">
-      <div class="table-wrap"><table class="table"><thead><tr><th>회원</th><th>로그인</th><th>권한</th><th>상태</th><th>아이</th><th>가입일</th><th></th></tr></thead><tbody></tbody></table></div>
+    // 가입 경로별 가입 수 (마케팅 링크의 utm_source, 없으면 들어온 사이트). 2026-11-07 전에 가입한 회원은 기록이 없다
+    const SRC = { blog: '블로그', instagram: '인스타그램', cafe: '카페', kakao: '카카오톡', threads: '스레드', daangn: '당근', 'naver.com': '네이버 검색', 'google.com': '구글 검색', 'google.co.kr': '구글 검색' };
+    const srcName = v => (v ? SRC[v] || v : '바로 들어옴·기록 없음');
+    const since = d => Date.now() - d * 864e5, bySrc = {};
+    users.forEach(u => { const r = bySrc[u.source || ''] ||= { d7: 0, d30: 0, all: 0 }; r.all++; if (u.createdAt > since(30)) r.d30++; if (u.createdAt > since(7)) r.d7++; });
+    const srcRows = Object.entries(bySrc).sort((a, b) => b[1].d30 - a[1].d30 || b[1].all - a[1].all);
+    el.innerHTML = `<div class="card"><h3>가입 경로</h3><p class="fine">홍보 링크에 붙인 utm_source로 셉니다 (예: ?utm_source=blog). 링크 없이 들어오면 들어온 사이트 이름이 남아요.</p>
+      <div class="table-wrap"><table class="table"><thead><tr><th>경로</th><th>최근 7일</th><th>최근 30일</th><th>전체</th></tr></thead><tbody>
+      ${srcRows.map(([k, r]) => `<tr><td>${esc(srcName(k))}</td><td>${r.d7}</td><td>${r.d30}</td><td>${r.all}</td></tr>`).join('')}</tbody></table></div></div>
+      <input class="search" type="search" placeholder="이메일·이름으로 검색" aria-label="회원 검색">
+      <div class="table-wrap"><table class="table"><thead><tr><th>회원</th><th>로그인</th><th>권한</th><th>상태</th><th>아이</th><th>가입일</th><th>경로</th><th></th></tr></thead><tbody class="user-rows"></tbody></table></div>
       <div class="card" id="userDetail" hidden></div>`;
-    const tbody = $('tbody', el);
+    const tbody = $('.user-rows', el);
     const draw = q => {
       const list = users.filter(u => !q || ((u.email || '') + u.parentName).toLowerCase().includes(q.toLowerCase()));
       tbody.innerHTML = list.map(u => { const a = Store.access(u); return `<tr><td><b>${esc(u.parentName)}</b><br><small>${esc(u.email || '(이메일 없음)')}</small></td><td>${u.providers.map(p => prov[p] || p).join(' ')}</td>
         <td>${u.role === 'admin' ? '<span class="chip on">관리자</span>' : '보호자'}</td><td>${a.kind === 'member' ? `💎 ${a.daysLeft}일` : a.kind === 'trial' ? `${a.beta ? '🧪 베타' : '🎁 체험'} ${a.daysLeft}일` : a.kind === 'admin' ? '전체 이용' : '🌱 무료'}</td>
-        <td>${u.profiles.map(p => p.avatar).join('') || '-'}</td><td>${fmtDay(u.createdAt)}</td><td><button class="btn btn-ghost sm" data-u="${esc(u.id)}">관리</button></td></tr>`; }).join('') || '<tr><td colspan="7">회원이 없어요.</td></tr>';
+        <td>${u.profiles.map(p => p.avatar).join('') || '-'}</td><td>${fmtDay(u.createdAt)}</td><td><small>${u.source ? esc(srcName(u.source)) : '-'}</small></td><td><button class="btn btn-ghost sm" data-u="${esc(u.id)}">관리</button></td></tr>`; }).join('') || '<tr><td colspan="8">회원이 없어요.</td></tr>';
       $$('[data-u]', tbody).forEach(b => b.onclick = () => detail(b.dataset.u));
     };
     const detail = key => {

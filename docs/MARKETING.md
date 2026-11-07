@@ -40,7 +40,7 @@
 유료 광고(메타·네이버 검색광고)는 무료 채널에서 가입 → 결제 흐름이 확인된 뒤에 소액으로 시작해요.
 
 ## 4. 링크 규칙
-채널마다 다른 링크를 써요. 지금은 사이트가 UTM을 기록하지 않아서, 어느 채널에서 왔는지는 아직 알 수 없어요(아래 6번).
+채널마다 다른 링크를 써요. 처음 들어온 링크의 `utm_source`를 30일 동안 기억했다가 가입할 때 저장해요. 링크 없이 들어오면 들어온 사이트 이름(예: naver.com)이 남아요. 관리자 콘솔 › 회원 탭 맨 위 "가입 경로" 표에서 최근 7일·30일·전체 가입 수를 봐요. 이름표: blog, instagram, cafe, kakao, threads, daangn (다른 이름도 그대로 보여요).
 ```
 https://saessakschool.co.kr/?utm_source=blog&utm_medium=organic&utm_campaign=beta1119
 https://saessakschool.co.kr/?utm_source=instagram&utm_medium=social&utm_campaign=beta1119
@@ -61,9 +61,10 @@ https://saessakschool.co.kr/?utm_source=kakao&utm_medium=friend&utm_campaign=bet
 | 가입 수 (하루·주) | 관리자 페이지 회원 목록 | 볼 수 있음 |
 | 첫 레슨 끝낸 아이 수 | 관리자 페이지 | 직접 세야 함 |
 | 체험 → 결제 전환 | 관리자 페이지 결제 내역 | 볼 수 있음 |
-| 채널별 가입 | — | **아직 없음.** 가입할 때 utm_source를 저장해야 해요 |
+| 채널별 가입 | 관리자 콘솔 › 회원 › 가입 경로 | 볼 수 있음 (2026-11-07부터 가입한 회원) |
 
 ## 7. 진행 기록
 | 날짜 | 한 일 | 결과 |
 |---|---|---|
 | 2026-11-07 | 마케팅 에이전트와 이 문서를 만듦. 첫 주 초안 작성 (`marketing/drafts/2026-11-07-week1.md`) | — |
+| 2026-11-07 | 가입 경로 기록 추가 (users.source, 관리자 회원 탭) | — |
