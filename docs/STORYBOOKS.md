@@ -1,6 +1,6 @@
 # 새싹영어 스토리북 200권 목록
 
-이 문서는 책끼리 내용이 겹치지 않게 하려고 만들었어요. 지금 올라간 80권(1~80번)과 앞으로 만들 120권(81~200번)의 제목과 내용을 정리했어요. 새 책을 쓰기 전에 이 목록부터 봐요. 만들면서 바뀐 내용도 여기에 고쳐 둬요.
+이 문서는 책끼리 내용이 겹치지 않게 하려고 만들었어요. 지금 올라간 116권(1~116번)과 앞으로 만들 84권(117~200번)의 제목과 내용을 정리했어요. 새 책을 쓰기 전에 이 목록부터 봐요. 만들면서 바뀐 내용도 여기에 고쳐 둬요.
 
 ## 만들 때 지키는 규칙
 
@@ -36,7 +36,7 @@
 - **발음:** 아이가 소리만 듣고 헷갈릴 수 있는 말은 다른 말로 바꿔요. 예를 들어 비슷한 소리가 나는 단어(ham/him), 잘못 들리기 쉬운 이름(Jun → John), 뭉개지는 반복 표현(yawns a big yawn)이 그래요. 음성을 만든 뒤 Whisper로 받아써서 원문과 다르게 들린 문장은 고쳐요.
 - **그림:** 그림 주의사항은 `server/scripts/pregen-img.js`의 장면 설명 규칙을 따라요. 사람은 모두 cast에 넣고, 하나만 나와야 하면 "only one"을 붙이고, 넷 넘게 세는 장면은 피해요.
 
-## 올라간 책 1~104번
+## 올라간 책 1~116번
 
 | 번호 | 단계 | 제목 | 내용 |
 |---|---|---|---|
@@ -50,6 +50,7 @@
 | 69 | 1 | ABC Zoo | A~M 동물, 동물원 |
 | 81 | 1 | ABC Farm | 농장 알파벳 A~M |
 | 93 | 1 | ABC Night | 밤 알파벳 N~Z, 별을 세다 잠듦 |
+| 105 | 1 | ABC Home | A~M 집 안 물건, 우리 집 소개 |
 | 2 | 2 | The Fat Cat | 뚱뚱한 고양이가 쥐의 빨간 모자를 탐냄 (짧은 a) |
 | 10 | 2 | Ben and the Bus | 벤과 톰의 버스 여행 (짧은 e·u) |
 | 19 | 2 | The Red Hen | 암탉이 알을 노리는 여우를 쫓아냄 (짧은 e) |
@@ -60,6 +61,7 @@
 | 70 | 2 | Kip the Pup | 강아지 킵이 빨간 컵을 파내고 무당벌레와 놂 |
 | 82 | 2 | Gus the Duck | 오리 거스의 북과 토끼 |
 | 94 | 2 | Jen and the Web | 거미 젠이 비에 망가진 거미줄을 다시 침 (짧은 e) |
+| 106 | 2 | Bob the Ox | 황소 밥이 동생 폴리에게 양말 상자를 언덕 위로 나름 (짧은 o) |
 | 3 | 3 | My Family | 가족 소개 |
 | 11 | 3 | My Toy Box | 장난감 소개 |
 | 21 | 3 | My School | 학교·선생님·친구 소개 |
@@ -72,6 +74,7 @@
 | 71 | 3 | My Color Walk | 산책하며 색깔 찾기, 무지개 |
 | 83 | 3 | My Body | 몸으로 할 수 있는 일 |
 | 95 | 3 | Shapes All Around | 집 안에서 모양 찾기 |
+| 107 | 3 | Moms and Babies | 동물 엄마와 아기 소개 |
 | 4 | 4 | New Friend | 릴리와 샘의 첫 만남, 자기소개 |
 | 12 | 4 | At the Shop | 가게에서 사과·우유 사기 |
 | 23 | 4 | At the Doctor | 감기로 병원 진료 |
@@ -84,6 +87,7 @@
 | 72 | 4 | At the Park | 미아와 그네·미끄럼틀·아이스크림 |
 | 84 | 4 | On the Phone | 친구에게 전화해서 놀러 가기 |
 | 96 | 4 | At the Hair Salon | 미용실에서 머리 자르기 |
+| 108 | 4 | Can I Borrow It? | 교실에서 오웬과 노라가 물건 빌리기 |
 | 5 | 5 | The Rainy Day | 천둥 치는 비 오는 날 밖에서 놀기 |
 | 13 | 5 | The Big Red Kite | 아빠와 언덕에서 연날리기 |
 | 25 | 5 | The Little Seed | 씨앗이 해바라기로 자람 |
@@ -100,6 +104,8 @@
 | 86 | 5 | The Giant Turnip | 커다란 순무 (옛이야기) |
 | 97 | 5 | The Gray Duckling | 미운 오리 새끼 (안데르센) |
 | 98 | 5 | The Tiger and the Dried Persimmon | 호랑이와 곶감 (전래 동화) |
+| 109 | 5 | The Three Little Pigs | 아기 돼지 삼형제 (영국 옛이야기) |
+| 110 | 5 | The Sun and the Wind | 해와 바람 (이솝) |
 | 6 | 6 | Where Is Max? | 저녁 시간에 개 맥스 찾기 |
 | 14 | 6 | Busy Sunday | 일요일 하루 일과 묻고 답하기 |
 | 27 | 6 | The Missing Cake | 사라진 케이크, 개가 먹음 |
@@ -116,6 +122,8 @@
 | 88 | 6 | Walk, Bus, or Boat? | 무엇을 타고 가는지 묻고 답하기 |
 | 99 | 6 | Where Do Animals Sleep? | 동물이 자는 곳 묻고 답하기 |
 | 100 | 6 | What Can Grandpa Fix? | 할아버지가 고쳐 주는 것 묻고 답하기 |
+| 111 | 6 | Whose Tail Is This? | 꼬리만 보고 누구 것인지 맞히기 |
+| 112 | 6 | Where Does Bread Come From? | 빵이 어디서 오는지 묻고 답하기 |
 | 7 | 7 | My Weekend | 주말에 간 동물원 |
 | 15 | 7 | The Lost Puppy | 공원에서 강아지를 구해 주인을 찾아 줌 |
 | 29 | 7 | The Camping Trip | 호숫가 캠핑 |
@@ -130,6 +138,8 @@
 | 90 | 7 | Strawberry Picking | 딸기 따기와 딸기잼 |
 | 101 | 7 | The Day the Lights Went Out | 폭풍우 밤 정전과 그림자놀이 |
 | 102 | 7 | Making Kimchi | 할머니 댁 김장 |
+| 113 | 7 | The Butterfly | 교실에서 애벌레가 나비가 됨 |
+| 114 | 7 | The School Play | 학예회 연극에서 나무 역 |
 | 8 | 8 | When I Grow Up | 커서 될 직업 |
 | 16 | 8 | Our Space Trip | 로켓 타고 달 여행 |
 | 31 | 8 | Next Summer | 다음 여름 제주 여행 |
@@ -144,27 +154,12 @@
 | 92 | 8 | The First Day of School | 1학년 첫날 준비 |
 | 103 | 8 | My Pen Pal | 캐나다 펜팔에게 편지 쓰기 |
 | 104 | 8 | Learning Taekwondo | 태권도 배우기 계획 |
+| 115 | 8 | The Cooking Contest | 친구 노아와 학교 요리 대회 비빔밥 계획 |
+| 116 | 8 | A Day in Seoul | 가족과 서울 나들이 계획 |
 
-## 앞으로 만들 책 105~200번
+## 앞으로 만들 책 117~200번
 
 1단계 책은 알파벳 13개 단어를 미리 정해 두었어요. 단어 순서는 A부터예요.
-
-### 7차 (105~116)
-
-| 번호 | 단계 | 제목 | 내용 |
-|---|---|---|---|
-| 105 | 1 | ABC Home | A~M: armchair, bed, clock, door, easel, fan, gate, house, iron, jar, key, ladder, mirror. 마지막 3쪽: 우리 집을 소개함 |
-| 106 | 2 | Bob the Ox | 짧은 o. 황소 밥이 상자(box)를 언덕 위(top)로 나르는데 덥고 지쳐서 연못(pond)에 풍덩 |
-| 107 | 3 | Moms and Babies | 동물 엄마와 아기 소개. This is a mother kangaroo. This is her baby. It is in her pocket. |
-| 108 | 4 | Can I Borrow It? | 교실에서 빌리고 나누는 대화. Can I borrow your eraser? Sure, here you are. Thank you! |
-| 109 | 5 | The Three Little Pigs | 짚·나무·벽돌 집을 지은 아기 돼지 삼형제와 늑대 (영국 옛이야기) |
-| 110 | 5 | The Sun and the Wind | 해와 바람이 나그네의 외투 벗기기 내기를 함. 따뜻한 해가 이김 (이솝) |
-| 111 | 6 | Whose Tail Is This? | 꼬리만 보고 누구 것인지 맞히기. 줄무늬는 너구리, 부채 모양은 공작, 긴 것은 원숭이 |
-| 112 | 6 | Where Does Bread Come From? | 밀밭에서 방앗간, 빵집, 식탁까지 빵이 오는 길을 묻고 답하기 |
-| 113 | 7 | The Butterfly | 교실에서 애벌레를 길렀더니 번데기가 되고 나비가 됨. 다 같이 나비를 날려 보냄 |
-| 114 | 7 | The School Play | 학예회 연극에서 나무 역을 맡음. 떨렸지만 끝까지 해내고 박수를 받음 |
-| 115 | 8 | The Cooking Contest | 다음 주 학교 요리 대회. 친구와 비빔밥을 만들 계획, 재료 나누기 |
-| 116 | 8 | A Day in Seoul | 토요일에 가족과 서울 나들이 계획. 지하철, 경복궁, 한복 입기, 남산 타워 |
 
 ### 8차 (117~128)
 
@@ -289,21 +284,21 @@
 
 새 1단계 책을 쓸 때 이 표에 없는 단어만 골라요. 계획된 단어도 이미 쓴 것으로 봐요.
 
-| 글자 | 올라간 책 | 계획 (105~200) |
+| 글자 | 올라간 책 | 계획 (117~200) |
 |---|---|---|
-| A | apple, airplane, apron, art, alligator, alpaca | armchair, acrobat, ant, ambulance |
-| B | banana, ball, bowl, bag, bear, barn | bed, balloon, bee, bus |
-| C | cookie, car, cup, crayon, camel, cow | clock, candle, caterpillar, crane |
-| D | donut, doll, dish, desk, duck, donkey | door, drum, dragonfly, digger |
-| E | egg, engine, eggplant, eraser, elephant, eagle | easel, envelope, earthworm, electric car |
-| F | fruit, flag, fork, friend, flamingo, farmer | fan, face paint, firefly, fire truck |
-| G | grapes, guitar, glass, glue, giraffe, goat | gate, gift, grasshopper, garbage truck |
-| H | honey, hat, hot dog, hopscotch, hippo, horse | house, horn, hummingbird, helicopter |
-| I | ice cream, ice skates, ice, ink, iguana, insect | iron, ice pop, inchworm, ice cream truck |
-| J | juice, jump rope, jam, jacket, jaguar, jeep | jar, jelly, jay, jet |
-| K | kiwi, kite, kettle, keyboard, koala, kitten | key, king, koi, kick scooter |
-| L | lemon, lamp, lid, lunch, lion, lamb | ladder, lollipop, ladybug, limo |
-| M | milk, mask, mug, map, monkey, mud | mirror, muffin, moth, motorcycle |
+| A | apple, airplane, apron, art, alligator, alpaca, armchair | acrobat, ant, ambulance |
+| B | banana, ball, bowl, bag, bear, barn, bed | balloon, bee, bus |
+| C | cookie, car, cup, crayon, camel, cow, clock | candle, caterpillar, crane |
+| D | donut, doll, dish, desk, duck, donkey, door | drum, dragonfly, digger |
+| E | egg, engine, eggplant, eraser, elephant, eagle, easel | envelope, earthworm, electric car |
+| F | fruit, flag, fork, friend, flamingo, farmer, fan | face paint, firefly, fire truck |
+| G | grapes, guitar, glass, glue, giraffe, goat, gate | gift, grasshopper, garbage truck |
+| H | honey, hat, hot dog, hopscotch, hippo, horse, house | horn, hummingbird, helicopter |
+| I | ice cream, ice skates, ice, ink, iguana, insect, iron | ice pop, inchworm, ice cream truck |
+| J | juice, jump rope, jam, jacket, jaguar, jeep, jar | jelly, jay, jet |
+| K | kiwi, kite, kettle, keyboard, koala, kitten, key | king, koi, kick scooter |
+| L | lemon, lamp, lid, lunch, lion, lamb, lock | lollipop, ladybug, limo |
+| M | milk, mask, mug, map, monkey, mud, mop | muffin, moth, motorcycle |
 | N | nose, nest, net, night | newt, necklace, nap, nuts |
 | O | owl, ocean, octopus, ostrich | otter, overalls, oak, oatmeal |
 | P | panda, plant, penguin, pillow | pebble, purse, puppy, pancakes |
