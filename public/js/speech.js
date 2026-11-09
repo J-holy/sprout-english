@@ -192,8 +192,41 @@ const Speech = (() => {
     }
     return new Blob([b], { type: 'audio/wav' });
   }
+  // 마이크는 한 번 열면 계속 다시 쓴다. 녹음할 때마다 새로 열고 닫으면 아이패드·아이폰(특히 Chrome·홈 화면 앱)은
+  // 그때마다 "마이크를 허용할까요?"를 다시 물었다 (2026-11 제보). 쉬는 동안에는 트랙만 꺼 두고,
+  // 오래 쓰지 않거나 화면을 떠나면 완전히 닫는다
+  const MIC_KEEP_MS = 180000;
+  let micStream = null, micIdle = null;
+  async function getMic() {
+    clearTimeout(micIdle);
+    const live = micStream && micStream.getAudioTracks().some(t => t.readyState === 'live');
+    if (!live) micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
+    micStream.getAudioTracks().forEach(t => { t.enabled = true; });
+    return micStream;
+  }
+  function releaseMic(later = 0) {
+    clearTimeout(micIdle);
+    if (!micStream) return;
+    const close = () => { if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; } };
+    if (!later) return close();
+    micStream.getAudioTracks().forEach(t => { t.enabled = false; });
+    micIdle = setTimeout(close, later);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseMic(); });
+  // 처음 한 번 마이크를 허용받는다 (프로필을 만든 뒤 안내 화면에서). 'granted' | 'denied' | 'unsupported'
+  async function askMic() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || !env.secure || env.inApp) return 'unsupported';
+    try { await getMic(); releaseMic(MIC_KEEP_MS); return 'granted'; }
+    catch (e) { return e && e.name === 'NotAllowedError' ? 'denied' : 'unsupported'; }
+  }
+  // 말소리 앞뒤의 조용한 부분은 잘라서 보낸다: 올리는 양이 줄고, 서버 인식도 녹음 길이에 맞춰 빨라진다
+  function trimChunks(chunks, first, last, rate) {
+    if (first < 0) return chunks;
+    const pad = Math.ceil(0.3 * rate / 4096), tail = Math.ceil(0.45 * rate / 4096);
+    return chunks.slice(Math.max(0, first - pad), Math.min(chunks.length, last + 1 + tail));
+  }
   // onStart: 마이크 소리가 실제로 들어오기 시작할 때 (iPhone은 누르고 잠깐 뒤라서, 그 전에 말하면 첫 단어가 잘렸다)
-  async function record({ maxMs = 8000, silenceMs = 1000, onStart } = {}) {
+  async function record({ maxMs = 8000, silenceMs = 700, onStart } = {}) {
     stop();
     // iOS는 손가락으로 누른 그 순간에 만든 AudioContext만 소리를 받는다. 마이크 허용 창을 기다린 뒤에 만들면 멈춘 채로 남아 녹음이 끝나지 않았다
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -204,11 +237,11 @@ const Speech = (() => {
     if (sfxWasOn) sfxCtx.suspend().catch(() => {});
     const done = () => { ctx.close().catch(() => {}); if (sfxWasOn) sfxCtx.resume().catch(() => {}); };
     let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } }); }
+    try { stream = await getMic(); }
     catch (e) { done(); throw e; }
     if (ctx.state !== 'running') await Promise.race([ctx.resume().catch(() => {}), new Promise(r => setTimeout(r, 800))]);
     const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1);
-    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0;
+    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0, first = -1, last = -1;
     // 말소리 기준: 처음 잠깐의 주변 소리로 정한다. 아이패드는 잡음 제거 때문에 소리가 작아서 고정값이면 말해도 못 들은 것이 되었다
     let floor = 1, level = 0.02, peak = 0;
     return new Promise((resolve, reject) => {
@@ -216,8 +249,8 @@ const Speech = (() => {
         if (!recording) return; recording = null;
         clearTimeout(guard); clearTimeout(dead);
         proc.onaudioprocess = null; proc.disconnect(); src.disconnect();
-        stream.getTracks().forEach(t => t.stop()); done(); // 마이크를 바로 꺼서 소리 크기가 돌아오게
-        if (!chunks.length) reject(Object.assign(new Error('audio-capture'), { detail: 'no-audio-' + ctx.state })); else resolve(heard || peak > 0.006 ? toWav(chunks, ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
+        releaseMic(MIC_KEEP_MS); done(); // 트랙을 꺼서 소리 크기가 돌아오게 (허용은 다시 묻지 않게 마이크는 잠시 남겨 둔다)
+        if (!chunks.length) reject(Object.assign(new Error('audio-capture'), { detail: 'no-audio-' + ctx.state })); else resolve(heard || peak > 0.006 ? toWav(trimChunks(chunks, first, last, ctx.sampleRate), ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
       };
       // 소리 알림이 아예 오지 않아도 "듣고 있어요"에 멈춰 있지 않게 한다
       const guard = setTimeout(finish, maxMs + 1000), dead = setTimeout(() => { if (!chunks.length) finish(); }, 3000);
@@ -229,7 +262,7 @@ const Speech = (() => {
         const now = Date.now(), rms = Math.sqrt(e / (d.length / 4));
         if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.02, Math.max(0.006, floor * 2.5)); }
         peak = Math.max(peak, rms);
-        if (rms > level) { heard = true; quiet = now; }
+        if (rms > level) { heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
         if ((heard && now - quiet > silenceMs) || now - t0 > maxMs) finish();
       };
       src.connect(proc); proc.connect(ctx.destination);
@@ -414,7 +447,7 @@ const Speech = (() => {
   return {
     speak, speakLater, stop, listen, score, sfx, preload,
     get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return webSpeechOk() || (sttOn && canRecord()); },
-    env, externalUrl, unsupportedReason, micHelp, micPermission,
+    env, externalUrl, unsupportedReason, micHelp, micPermission, askMic,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
     configure({ server, manifest, stt }) { neural = { server: !!server, manifest: manifest || null }; sttOn = !!stt; },
     record, stopRecording, get canRecord() { return canRecord(); }, get usesServerStt() { return useServer(); },

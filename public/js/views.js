@@ -980,11 +980,34 @@ function siblingStep(el, name) {
     <div class="auth-logo">🎉</div><h1>${esc(name)} 프로필을 만들었어요!</h1>
     <p>${n >= 2 ? `아이 ${n}명이 함께 배워요. 플러스를 결제할 때 <b>형제·자매 요금</b>이 자동으로 적용돼요.` : '형제·자매도 함께 배우나요? 지금 추가하면 플러스를 결제할 때 <b>형제·자매 할인</b>이 자동으로 적용돼요.'}</p>
     <p class="fine">플러스 12개월 기준: 1명 월 ${won(PLANS.one.m12)} · 2명 이상 월 ${won(PLANS.two.m12)}</p>
+    <div class="mic-ask" hidden><p>🎤 말하기 연습에는 마이크가 필요해요. 지금 한 번 허용해 두면 공부하는 중에 다시 묻지 않아요.</p>
+      <button class="btn btn-ghost full" data-mic>🎤 마이크 허용하기</button><p class="fine mic-ask-out"></p></div>
     <button class="btn btn-ghost full" data-more>👧👦 형제·자매 추가하기</button>
     ${u.profiles.map(p => `<button class="btn btn-primary full" data-go="${p.id}">🧪 ${esc(p.name)} 레벨 테스트로 출발</button>`).join('')}
   </div></div>`;
   $('[data-more]', el).onclick = () => Views.profiles(el, { adding: true });
   $$('[data-go]', el).forEach(b => b.onclick = () => { Store.selectProfile(b.dataset.go); App.refreshHeader(); location.hash = '#/leveltest'; });
+  // 마이크는 가입할 때 한 번 허용받는다 (이미 허용했거나 앱 안 브라우저처럼 쓸 수 없으면 묻지 않는다)
+  const ask = $('.mic-ask', el), E = Speech.env;
+  if (!E.inApp && E.secure && navigator.mediaDevices) Speech.micPermission().then(st => {
+    if (st === 'granted') return;
+    ask.hidden = false;
+    // 예전에 막아 두었으면 허용 창이 다시 뜨지 않으니, 켜는 방법을 바로 알려준다
+    if (st === 'denied') { $('[data-mic]', el).hidden = true; $('.mic-ask-out', el).textContent = Speech.micHelp('not-allowed'); }
+  });
+  $('[data-mic]', el).onclick = async () => {
+    const b = $('[data-mic]', el), out = $('.mic-ask-out', el);
+    b.disabled = true; b.textContent = '⏳ 허용 창을 확인해 주세요…';
+    const st = await Speech.askMic();
+    if (st === 'granted') {
+      b.textContent = '✅ 마이크를 허용했어요';
+      out.textContent = E.ios && !E.iosNotSafari && !E.iosApp ? 'Safari가 나중에 또 물으면: 주소창 왼쪽 가가(aA) 버튼 › 웹사이트 설정 › 마이크 › "허용"으로 바꿔 두면 다시 묻지 않아요.'
+        : E.ios ? 'iPhone·iPad의 Chrome과 홈 화면 앱은 사이트를 새로 열 때 한 번 더 물을 수 있어요. 공부하는 동안에는 다시 묻지 않아요.' : '';
+    } else {
+      b.disabled = false; b.textContent = '🎤 다시 시도';
+      out.textContent = st === 'denied' ? Speech.micHelp('not-allowed') : '이 브라우저에서는 마이크를 쓸 수 없어요. 말하기 없이도 공부할 수 있어요.';
+    }
+  };
 }
 
 /* ---------- 학습 홈 (모험 지도) ---------- */

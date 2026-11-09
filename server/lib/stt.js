@@ -99,14 +99,16 @@ async function runWhisper(wav, hint) {
   const file = path.join(dir, crypto.randomUUID() + '.wav');
   fs.writeFileSync(file, wav, { mode: 0o600 });
   try {
-    // -ac: 짧은 문장을 30초 길이로 처리하지 않게 해서 빨라진다. 384는 7.6초, 512는 10초까지 듣는다 (녹음은 최대 8초).
-    //   이보다 줄이면 같은 문장을 되풀이하며 오히려 느려진다
+    // -ac: 짧은 문장을 30초 길이로 처리하지 않게 해서 빨라진다. 50이 1초쯤이라 녹음 길이에 맞춰 정한다 (256은 5초, 512는 10초).
+    //   화면이 말소리 앞뒤의 조용한 부분을 잘라서 보내 녹음이 짧다. 라즈베리파이 시험 40문장: 384 고정 1.48초 → 길이에 맞춤 1.10초,
+    //   맞힌 단어 비율은 같았다 (93.7% → 93.2%, 2026-11-10). 256보다 줄이면 같은 문장을 되풀이하기 쉬워서 256에서 멈춘다
     // -bs 1 -bo 1 -nf: 후보를 하나만 보고 다시 시도하지 않는다
     // 읽을 문장을 --prompt로 주면 서툰 발음도 알아듣는다 (빼면 'dad is sad'를 'that is said'로 적었다).
     //   대신 그 문장을 끝없이 되풀이해 적어서(30문장 중 9번, 문장당 4초) -mt로 문장 길이만큼만 받아쓰고 끊는다. 되풀이는 dropRepeats가 지운다
     //   -mt는 whisper.cpp에 deploy/whisper-max-tokens.patch를 붙여 빌드해야 있다. 없는 실행 파일이면 문장을 주지 않는다
-    //   라즈베리파이 4의 tiny.en-q5_1, -ac 384에서 문장당 약 1.5초 (2026-11 측정)
-    const ac = Math.min(Number(e.WHISPER_AUDIO_CTX) || 512, (wav.length - 44) / 32000 > 7.2 ? 512 : 384);
+    //   라즈베리파이 4의 tiny.en-q5_1에서 짧은 문장당 약 1.1초 (2026-11-10 측정)
+    const sec = (wav.length - 44) / 32000;
+    const ac = Math.min(Number(e.WHISPER_AUDIO_CTX) || 512, Math.max(256, Math.ceil(sec * 50) + 75));
     const args = ['-n', '10', e.WHISPER_BIN, '-m', e.WHISPER_MODEL, '-f', file, '-l', 'en', '-nt', '-t', e.WHISPER_THREADS || '2', '-ac', String(ac), '-bs', '1', '-bo', '1', '-nf'];
     if (hint && await hasMaxTokens()) args.push('--prompt', hint, '-mt', String(Math.ceil(hint.length / 3) + 6));
     const text = await new Promise((resolve, reject) => {
