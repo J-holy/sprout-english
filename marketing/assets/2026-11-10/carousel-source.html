@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#fff4e2;--sky2:#ffe7c4;--ink:#3f2d46;--muted:#7b6882;--sun:#ffd23f;--grass:#58c472;--grass-soft:#dcf6e2;--berry:#ff6b8b;--berry-soft:#ffe1e8;--grape:#7c5cff;--grape-soft:#ece6ff;--ocean:#33a8ff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#ccc;font-family:'Gowun Dodum',sans-serif;color:var(--ink)}
+.slide{width:1080px;height:1350px;position:relative;overflow:hidden;background:var(--sky);margin-bottom:20px}
+.dot{position:absolute;border-radius:50%;opacity:.55}
+.brand{position:absolute;left:64px;bottom:52px;display:flex;align-items:center;gap:14px;font-family:'Jua';font-size:34px}
+.brand img{width:54px;height:54px}
+.page{position:absolute;right:64px;bottom:58px;font-family:'Fredoka';font-weight:700;font-size:28px;color:var(--muted)}
+.title{font-family:'Jua';font-size:84px;line-height:1.18;letter-spacing:-1px}
+.sub{font-size:40px;line-height:1.5;color:var(--ink);margin-top:22px}
+.hl{background:linear-gradient(transparent 58%,var(--sun) 58%);padding:0 4px}
+.chip{display:inline-block;font-family:'Jua';font-size:34px;padding:12px 28px;border:4px solid var(--ink);border-radius:999px;background:#fff;box-shadow:5px 5px 0 var(--ink)}
+.card{border:6px solid var(--ink);border-radius:40px;box-shadow:10px 10px 0 var(--ink);overflow:hidden;background:#fff}
+.txt{position:absolute;left:64px;right:64px}
+
+/* 1 cover */
+.grid{position:absolute;left:52px;right:52px;top:52px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.grid img{width:100%;aspect-ratio:1;object-fit:cover;border:5px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);display:block}
+.grid img:nth-child(odd){transform:rotate(-1.5deg)}.grid img:nth-child(even){transform:rotate(1.5deg)}
+/* 2 lesson */
+.phone{position:absolute;width:540px;height:960px;right:56px;top:270px;border:8px solid var(--ink);border-radius:64px;overflow:hidden;box-shadow:12px 12px 0 var(--ink);background:#fff}
+.phone img{width:100%;display:block;margin-top:-6px}
+.steps{position:absolute;left:64px;top:330px;width:390px;display:flex;flex-direction:column;gap:26px}
+.step{font-family:'Jua';font-size:38px;line-height:1.3;background:#fff;border:4px solid var(--ink);border-radius:28px;padding:20px 26px;box-shadow:5px 5px 0 var(--ink)}
+.step b{display:block;font-family:'Fredoka';font-size:26px;color:var(--grape);font-weight:700;margin-bottom:4px}
+/* 3 story */
+.book{position:absolute;left:64px;right:64px;top:430px}
+.book img{width:100%;display:block}
+.book .line{padding:34px 40px 40px;font-family:'Fredoka';font-weight:600;font-size:66px;text-align:center;border-top:6px solid var(--ink)}
+.book .line .sp{display:inline-block;margin-left:18px;font-size:44px;vertical-align:middle;border:4px solid var(--ink);border-radius:999px;padding:4px 20px;background:var(--sun)}
+/* 4 coach */
+.coach{position:absolute;left:190px;right:190px;top:420px}
+.coach img{width:100%;display:block}
+.legend{position:absolute;left:64px;right:64px;top:1110px;display:flex;gap:18px;justify-content:center}
+.legend span{font-family:'Jua';font-size:34px;padding:12px 26px;border-radius:999px;border:4px solid var(--ink)}
+/* 5 report */
+.report{position:absolute;left:215px;right:215px;top:410px}
+.report img{width:100%;display:block}
+.note{position:absolute;left:0;right:0;top:1150px;text-align:center;font-size:28px;color:var(--muted)}
+/* 6 cta */
+.cta-art{position:absolute;inset:0;background:url('file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/127.jpg') center 30%/cover}
+.cta-art:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,244,226,0) 18%,rgba(255,244,226,.92) 46%,var(--sky) 60%)}
+.big{font-family:'Jua';font-size:118px;line-height:1.1;letter-spacing:-2px}
+.free{margin-top:30px;display:flex;flex-direction:column;gap:16px}
+.free div{font-size:40px;line-height:1.4;font-family:'Jua'}
+.free div i{font-style:normal;display:inline-block;width:46px;height:46px;border-radius:50%;background:var(--grass);color:#fff;text-align:center;line-height:46px;margin-right:16px;font-size:30px;vertical-align:4px;border:3px solid var(--ink)}
+.url{margin-top:44px;display:inline-block;font-family:'Jua';font-size:44px;background:var(--sun);border:5px solid var(--ink);border-radius:28px;padding:20px 36px;box-shadow:8px 8px 0 var(--ink)}
+</style></head><body>
+
+<!-- 1 -->
+<section class="slide" id="s1">
+  <div class="grid">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/2.jpg">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/5.jpg">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/70.jpg">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/118.jpg">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/127.jpg">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/c/82.jpg">
+  </div>
+  <div class="txt" style="top:770px">
+    <div class="chip">5~10살 · 영어 그림책 128권</div>
+    <div class="title" style="margin-top:34px">하루 15분,<br><span class="hl">아이 혼자 하는</span> 영어</div>
+    <div class="sub">알파벳부터 그림책까지, 집에서 순서대로</div>
+  </div>
+  <div class="brand"><img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/logo.svg">새싹스쿨</div>
+  <div class="page">넘겨 보세요 →</div>
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <div class="dot" style="width:380px;height:380px;background:var(--grape-soft);left:-120px;bottom:120px"></div>
+  <div class="txt" style="top:90px">
+    <div class="title">알파벳부터 <span class="hl">차근차근</span></div>
+    <div class="sub">소리를 듣고, 그림을 고르고, 따라 말해요</div>
+  </div>
+  <div class="steps">
+    <div class="step"><b>STEP 1</b>알파벳 소리</div>
+    <div class="step"><b>STEP 2</b>파닉스로<br>단어 읽기</div>
+    <div class="step"><b>STEP 3</b>문장 말하기</div>
+    <div class="step" style="background:var(--sun)">8단계 260레슨<br>하루 한 레슨</div>
+  </div>
+  <div class="phone"><img src="site-lesson.png"></div>
+  <div class="brand"><img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/logo.svg">새싹스쿨</div>
+  <div class="page">2 / 6</div>
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s3">
+  <div class="dot" style="width:420px;height:420px;background:var(--berry-soft);right:-140px;top:-120px"></div>
+  <div class="txt" style="top:90px">
+    <div class="title">그림책 128권을<br><span class="hl">또박또박</span> 읽어 줘요</div>
+    <div class="sub">문장마다 다시 듣고, 따라 말해 봐요</div>
+  </div>
+  <div class="book card">
+    <img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/s/2-5.jpg">
+    <div class="line">The cat wants the hat! <span class="sp">🔊</span></div>
+  </div>
+  <div class="brand"><img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/logo.svg">새싹스쿨</div>
+  <div class="page">3 / 6</div>
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s4">
+  <div class="dot" style="width:360px;height:360px;background:var(--grass-soft);left:-100px;top:420px"></div>
+  <div class="dot" style="width:300px;height:300px;background:var(--sky2);right:-80px;top:900px"></div>
+  <div class="txt" style="top:90px">
+    <div class="title">따라 말하면<br><span class="hl">발음을 봐 줘요</span></div>
+    <div class="sub">아이 목소리에 맞춰 너그럽게 채점해요</div>
+  </div>
+  <div class="coach"><img src="site-coach.png"></div>
+  <div class="legend">
+    <span style="background:var(--grass-soft)">초록 정확</span>
+    <span style="background:#fff3c4">노랑 비슷</span>
+    <span style="background:var(--berry-soft)">빨강 다시 듣기</span>
+  </div>
+  <div class="brand"><img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/logo.svg">새싹스쿨</div>
+  <div class="page">4 / 6</div>
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s5">
+  <div class="dot" style="width:400px;height:400px;background:var(--grape-soft);right:-130px;top:380px"></div>
+  <div class="txt" style="top:90px">
+    <div class="title">부모님은<br><span class="hl">리포트만 확인</span>하세요</div>
+    <div class="sub">정답률 · 학습 시간 · 약한 단어 복습</div>
+  </div>
+  <div class="report"><img src="site-report.png"></div>
+  <div class="note">사이트에 있는 예시 화면이에요</div>
+  <div class="brand"><img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/logo.svg">새싹스쿨</div>
+  <div class="page">5 / 6</div>
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s6">
+  <div class="cta-art"></div>
+  <div class="txt" style="top:640px">
+    <div class="big">11월 19일(목)까지<br><span class="hl">모든 단계 무료</span></div>
+    <div class="free">
+      <div><i>✓</i>그 뒤에도 알파벳·파닉스는 평생 무료</div>
+      <div><i>✓</i>자동으로 결제되지 않아요</div>
+    </div>
+    <div class="url">프로필 링크에서 바로 시작</div>
+  </div>
+  <div class="brand"><img src="file:///Users/jaeholee/Desktop/project/sprout-english/public/img/logo.svg">새싹스쿨 · saessakschool.co.kr</div>
+  <div class="page">6 / 6</div>
+</section>
+</body></html>

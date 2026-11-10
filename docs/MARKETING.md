@@ -2,19 +2,22 @@
 
 마케팅 에이전트(`.claude/agents/saessak-marketer.md`)가 일을 시작할 때 이 문서를 먼저 읽어요. 숫자나 혜택이 바뀌면 여기부터 고쳐요.
 
-## 1. 제품 사실 (2026-11-07 기준)
+## 1. 제품 사실 (2026-11-10 기준, `/api/config`와 코드로 확인)
 | 항목 | 내용 |
 |---|---|
 | 서비스 | 새싹스쿨 · 새싹영어. 5~10세 어린이 영어 학습 웹 서비스 |
 | 주소 | https://saessakschool.co.kr (앱 설치 없이 휴대폰·태블릿·PC 브라우저) |
 | 학습량 | 8단계 26레벨, 260레슨. 하루 1레슨·주 5일이면 약 1년 |
-| 스토리북 | 116권. 그림과 원어민 같은 AI 음성, 문장 따라 말하기 |
+| 스토리북 | 128권. 그림과 원어민 같은 AI 음성, 문장 따라 말하기 |
 | 특징 | AI 발음 코치, 20가지가 넘는 문제 유형, 놀이터 게임, 별 상점, 망각 곡선 복습, 부모 리포트(듣기·읽기·말하기·쓰기), 워크시트 인쇄, 단계 수료증 |
-| 가입 | 비밀번호 없이 이메일 인증코드, 카카오·네이버·Google·Apple |
-| 무료 | 1~2단계(알파벳·파닉스)와 스토리북 12권은 평생 무료. 가입하면 7일 동안 전체 체험 |
-| 베타 | **2026-11-19까지 모든 회원이 전체 단계를 무료로 써요** (서버 `BETA_UNTIL`) |
+| 가입 | 비밀번호 없이 이메일 인증코드, 카카오·네이버·Google. (Apple 로그인은 지금 꺼져 있어요. 글에 쓰지 않아요) |
+| 무료 | 1~2단계(알파벳·파닉스)와 스토리북 12권은 평생 무료. 처음 아이 프로필을 만든 날부터 7일 동안 전체 체험 |
+| 베타 | **2026-11-19(목) 밤 11시 59분(KST)까지 모든 회원이 전체 단계를 무료로 써요** (서버 `BETA_UNTIL`, `/api/config`의 `betaUntil` = 1795100399000) |
+| 베타 뒤 | 체험 끝 = (체험 시작 + 7일)과 베타 끝 중 늦은 날. 그래서 11/12 이전에 시작한 회원은 11/20부터 무료 범위(1~2단계·12권)로 돌아가요. 11/13 이후 시작한 회원은 시작일 + 7일까지 체험이 이어져요 |
 | 요금 (플러스) | 한 자녀 1개월 29,900원 / 6개월 월 26,900원 / 12개월 월 23,900원. 두 자녀 44,900 / 39,900 / 35,900원 |
-| 쿠폰 | 첫 결제 20% 웰컴쿠폰 |
+| 쿠폰 | 첫 결제 20% 웰컴쿠폰. **가입 후 10일 동안만 쓸 수 있어요** (`server/lib/users.js`). 11/9 이전 가입자는 베타가 끝나기 전에 쿠폰이 이미 끝나요 |
+| 결제 | **2026-11-10 현재 운영 사이트 결제가 꺼져 있어요** (`/api/config`의 `payments: "off"`). 켜기 전에는 결제 유도 글을 올리지 않아요 |
+| 관리자 도구 | 회원 한 명씩 체험 연장(1~90일), 특별쿠폰(5~90%, 1~365일), 별 지급 가능. 전체 공지·단체 메일 기능은 없어요 |
 
 ### 아직 정하지 않은 혜택 (공개 글에 쓰지 않아요)
 - 기간 한정 1년 구독 월 17,700원 — 기간, 두 자녀 요금 미정. 사이트에 아직 없음.
@@ -46,7 +49,12 @@ https://saessakschool.co.kr/?utm_source=blog&utm_medium=organic&utm_campaign=bet
 https://saessakschool.co.kr/?utm_source=instagram&utm_medium=social&utm_campaign=beta1119
 https://saessakschool.co.kr/?utm_source=cafe&utm_medium=community&utm_campaign=beta1119
 https://saessakschool.co.kr/?utm_source=kakao&utm_medium=friend&utm_campaign=beta1119
+https://saessakschool.co.kr/?utm_source=threads&utm_medium=social&utm_campaign=beta1119
+https://saessakschool.co.kr/?utm_source=daangn&utm_medium=community&utm_campaign=beta1119
 ```
+- 가입 경로 표는 `utm_source`만 세요. `utm_campaign`은 나중에 구분하려고 붙여 두는 이름이에요.
+- 11/20부터는 캠페인 이름을 `plus1120`으로 바꿔요(채널 이름표는 그대로).
+- 당근·카페처럼 링크를 못 거는 곳은 댓글·쪽지로 위 링크를 보내요. 그래도 링크 없이 검색해서 들어오면 naver.com 등으로 남아요.
 
 ## 5. 지켜야 할 규칙
 - 가짜 후기, 부모인 척하는 글, 지어낸 숫자 금지.
@@ -54,6 +62,7 @@ https://saessakschool.co.kr/?utm_source=kakao&utm_medium=friend&utm_campaign=bet
 - 아이 얼굴·실명 사진 금지. 사이트 화면과 스토리북 그림만 사용.
 - "1등", "최고", "효과 100%"처럼 증명할 수 없는 말 금지. 다른 서비스 비방 금지.
 - 게시·발송·광고 결제는 운영자가 직접 해요. 에이전트는 초안만 만들어요.
+- 회원에게 보내는 결제 권유 메일·문자는 광고성 정보예요. 마케팅 수신에 동의한 회원(`users.marketing = 1`)에게만 보내고, 제목 앞에 "(광고)"를 붙이고, 수신 거부 방법을 적어요(정보통신망법 제50조). 베타 종료·서비스 변경 안내처럼 결제 권유가 없는 글은 모든 회원에게 보낼 수 있어요.
 
 ## 6. 재는 것
 | 숫자 | 어디서 보나 | 지금 |
@@ -68,3 +77,4 @@ https://saessakschool.co.kr/?utm_source=kakao&utm_medium=friend&utm_campaign=bet
 |---|---|---|
 | 2026-11-07 | 마케팅 에이전트와 이 문서를 만듦. 첫 주 초안 작성 (`marketing/drafts/2026-11-07-week1.md`) | — |
 | 2026-11-07 | 가입 경로 기록 추가 (users.source, 관리자 회원 탭) | — |
+| 2026-11-10 | 사실 바로잡음: 스토리북 128권, 베타 끝 11/19 23:59 KST, Apple 로그인 꺼짐, 결제 꺼짐, 웰컴쿠폰 가입 후 10일. 베타 마지막 주 계획·채널별 초안 (`marketing/drafts/2026-11-10-beta-lastweek.md`), 인스타 캐러셀 6장 (`marketing/assets/2026-11-10/`), 베타 뒤 전환 계획 (`marketing/drafts/2026-11-20-after-beta.md`) | 첫 주(11/8~9) 결과는 아직 못 받음 |
