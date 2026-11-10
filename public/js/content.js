@@ -721,10 +721,10 @@ const STORIES = [
     ['V is for vine.', '🌿'], ['W is for willow.', '🌳'], ['Ox ends with X.', '🐂'], ['Y is for yummy.', '😋'],
     ['Z is for zoom.', '💨'], ['I sit by the pond.', '🏞️'], ['I see little tadpoles.', '🐸'], ['Soon they will be frogs!', '🐸']] },
   { id: 118, stage: 2, plus: true, title: 'A Fish Wish', cover: '🐟', pages: [
-    ['Pip is a little fish.', '🐟'], ['Pip lives in a dish.', '🥣'], ['The dish is very small.', '🥣'], ['Pip swims in a ring.', '🔄'],
+    ['Pip is a little fish.', '🐟'], ['Pip lives in a little bowl.', '🫧'], ['The bowl is very small.', '🫧'], ['Pip swims in a ring.', '🔄'],
     ['Swish, swish, swish!', '💦'], ['Pip is not happy.', '😢'], ['Pip makes a wish.', '⭐'], ['I wish I could swim in big water!', '🌊'],
-    ['Liz looks at Pip.', '👧'], ['Liz gets a big fish tank.', '🐠'], ['She fills it with water.', '💧'], ['She tips the dish.', '🥣'],
-    ['Pip slips into the tank!', '💦'], ['Pip swims and spins.', '🐟'], ['Pip has new fish friends.', '🐠'], ['Pip got his wish!', '⭐']] },
+    ['Liz looks at Pip.', '👧'], ['Liz gets a big fish tank.', '🐠'], ['She fills it with water.', '💧'], ['Liz dips a net in the bowl.', '🥅'],
+    ['Pip slips into the big tank!', '💦'], ['Pip swims and spins.', '🐟'], ['Pip has new fish friends.', '🐠'], ['Pip got his wish!', '⭐']] },
   { id: 119, stage: 3, plus: true, title: 'My Best Friend', cover: '👭', pages: [
     ['This is my best friend.', '👭'], ['Her name is Lucy.', '👧'], ['She is seven years old.', '7️⃣'], ['She has long curly hair.', '👧'],
     ['She has a red backpack.', '🎒'], ['She can jump rope.', '🪢'], ['She can jump very fast.', '💨'], ['I can jump rope, too.', '🪢'],
