@@ -255,13 +255,19 @@ const Store = (() => {
     const monthly = rate ? round10(planMonthly(kids, months) * (1 - rate)) : planMonthly(kids, months);
     return { coupon: c, rate, monthly, total: monthly * months, list: PLANS[kids].list * months };
   }
-  // → 'demo'(완료) | 'redirect'(토스 결제창으로 이동)
-  async function purchase({ kids, months }) {
+  // → 'demo'(완료) | 'redirect'(토스·카카오페이 결제 화면으로 이동). method: 'card'(토스페이먼츠) | 'kakao'(카카오페이)
+  async function purchase({ kids, months, method = 'card' }) {
     if (API.on) {
       // 방금 추가한 아이가 서버에 먼저 저장되어야 같은 금액으로 결제된다
       if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await pushState(); }
-      const r = await API.req('POST', 'api/billing/checkout', { kids, months });
+      const r = await API.req('POST', 'api/billing/checkout', { kids, months, method });
       if (r.mode === 'demo') { await loadMe(); return 'demo'; }
+      if (r.mode === 'kakao') {
+        // 휴대폰·태블릿은 카카오톡 결제 화면으로, 컴퓨터는 QR·카카오톡 메시지로 결제하는 화면으로
+        const touch = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1;
+        location.href = (touch && r.mobileUrl) || r.pcUrl;
+        return 'redirect';
+      }
       await loadScript('https://js.tosspayments.com/v1/payment');
       await TossPayments(r.clientKey).requestBillingAuth('카드', { customerKey: r.customerKey, successUrl: r.successUrl, failUrl: r.failUrl });
       return 'redirect';

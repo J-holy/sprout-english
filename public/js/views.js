@@ -1668,7 +1668,7 @@ const ParentTabs = {
         <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
         <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.monthly * m.months)}` : '해지됨 (추가 결제 없음)'}</dd>
-        ${m.card ? '<dt>결제수단</dt><dd>등록된 카드 (토스페이먼츠)</dd>' : ''}</dl>
+        ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이 (정기결제)' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
         <div class="row">${m.granted ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
@@ -1847,7 +1847,7 @@ const AdminTabs = {
         <dt>인증코드 메일(SMTP)</dt><dd>${ok(stats.setup.mail)}</dd>
         <dt>휴대폰 인증</dt><dd>${stats.setup.phone ? `✅ ${stats.setup.phone === 'alimtalk' ? '카카오 알림톡 + 문자' : '문자'}` : '⚠️ 꺼짐'}</dd>
         ${Object.entries(stats.setup.providers).map(([k, v]) => `<dt>${k} 로그인</dt><dd>${ok(v)}</dd>`).join('')}
-        <dt>결제</dt><dd>${{ toss: '✅ 토스페이먼츠', demo: '🧪 데모 결제', off: '⚠️ 꺼짐' }[stats.setup.payments]}</dd>
+        <dt>결제</dt><dd>${(stats.setup.payMethods || []).length ? '✅ ' + stats.setup.payMethods.map(k => ({ card: '토스페이먼츠(카드)', kakao: '카카오페이' }[k])).join(' · ') : { demo: '🧪 데모 결제', off: '⚠️ 꺼짐' }[stats.setup.payments] || '⚠️ 꺼짐'}</dd>
         <dt>AI 음성</dt><dd>${stats.setup.tts.provider ? `✅ ${esc(stats.setup.tts.provider)} (${esc(stats.setup.tts.voice)}) · 저장된 음성 ${stats.setup.tts.files}개, ${stats.setup.tts.sizeKB}KB` : '⚠️ 미설정 (기기 목소리 사용)'}</dd></dl></div>
       <div class="card"><h3>데이터</h3><p class="fine">매일 새벽 자동 백업돼요 (서버 data/backups). 지금 바로 받을 수도 있어요.</p>
         <div class="row"><a class="btn btn-ghost" href="api/admin/backup">💾 DB 백업 받기</a><a class="btn btn-ghost" href="api/admin/export">📄 전체 데이터 JSON</a></div></div>`

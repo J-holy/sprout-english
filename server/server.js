@@ -19,7 +19,7 @@ import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } fro
 import { sttProvider, checkWav, recognize } from './lib/stt.js';
 import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
 import { backfillMemberNos, addReferral, userByNo, socialDoc, lookupKids, requestFriend, respondFriend, sendMessage, markRead } from './lib/social.js';
-import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
+import { paymentMode, payMethods, createOrder, completeDemo, completeBillingAuth, startKakaoPay, completeKakaoPay, retireBillingKey, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -43,7 +43,7 @@ const PENDING_TTL = 30 * 60000;
 // ---------- 공통 ----------
 app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
-  server: true, providers: enabledProviders(), payments: paymentMode(), tossClientKey: config.toss.clientKey || null,
+  server: true, providers: enabledProviders(), payments: paymentMode(), payMethods: payMethods(), tossClientKey: config.toss.clientKey || null,
   plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
   phone: smsMode() || (config.devShowCode ? 'dev' : null), betaUntil: config.betaUntil > now() ? config.betaUntil : 0,
 }));
@@ -142,6 +142,9 @@ app.post('/api/me/notifications/read', requireUser, (req, res) => {
   db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id); res.json({ ok: true });
 });
 app.delete('/api/me', requireUser, (req, res) => {
+  // 탈퇴하면 카카오페이 정기결제 번호도 해지한다
+  const bk = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(req.user.id)?.billing_key;
+  if (bk) retireBillingKey(bk);
   deleteUser(req.user.id);
   clearCookie(res, 'sid'); res.json({ ok: true });
 });
@@ -320,8 +323,14 @@ app.post('/api/billing/checkout', requireUser, wrap(async (req, res) => {
   if (isAdmin(req.user)) return bad(res, '관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
   const mode = paymentMode();
   if (mode === 'off') return bad(res, '결제 기능을 준비 중이에요. 잠시 후 다시 시도해 주세요.', 503);
+  const methods = payMethods(), method = req.body?.method === 'kakao' ? 'kakao' : 'card';
+  if (mode !== 'demo' && !methods.includes(method)) return bad(res, '이 결제수단은 아직 쓸 수 없어요. 다른 결제수단을 골라 주세요.');
   const { orderId, q } = createOrder(req.user, kids, Number(months));
   if (mode === 'demo') { completeDemo(orderId); return res.json({ mode, done: true }); }
+  if (method === 'kakao') {
+    try { return res.json({ mode: 'kakao', orderId, ...await startKakaoPay(req.user, orderId) }); }
+    catch (err) { failOrder(orderId, err.message); console.error('[카카오페이]', err.message); return bad(res, `카카오페이 결제를 시작하지 못했어요. ${err.message}`, 502); }
+  }
   res.json({
     mode, clientKey: config.toss.clientKey, customerKey: req.user.customer_key, orderId, amount: q.total, orderName: q.name,
     successUrl: `${config.publicUrl}/api/billing/toss/success?orderId=${orderId}`, failUrl: `${config.publicUrl}/api/billing/toss/fail?orderId=${orderId}`,
@@ -336,6 +345,14 @@ app.get('/api/billing/toss/fail', (req, res) => {
   failOrder(req.query.orderId, req.query.message || '결제 실패');
   res.redirect(toHash('/pricing', { error: req.query.message || '결제를 완료하지 못했어요.' }));
 });
+// 카카오페이: 결제 화면에서 인증을 마치면 pg_token과 함께, 그만두거나 실패하면 그냥 돌아온다
+app.get('/api/billing/kakao/approve', wrap(async (req, res) => {
+  const { orderId, pg_token: pgToken } = req.query;
+  try { await completeKakaoPay(orderId, pgToken); res.redirect(toHash('/parent/member', { paid: '1' })); }
+  catch (err) { failOrder(orderId, err.message); console.error('[카카오페이]', err.message); res.redirect(toHash('/pricing', { error: err.message })); }
+}));
+app.get('/api/billing/kakao/cancel', (req, res) => { failOrder(req.query.orderId, '결제 취소'); res.redirect(toHash('/pricing', { error: '카카오페이 결제를 취소했어요.' })); });
+app.get('/api/billing/kakao/fail', (req, res) => { failOrder(req.query.orderId, '결제 실패'); res.redirect(toHash('/pricing', { error: '카카오페이 결제를 완료하지 못했어요.' })); });
 app.post('/api/billing/auto-renew', requireUser, (req, res) => {
   try { setAutoRenew(req.user.id, !!req.body?.on); res.json({ ok: true }); } catch (err) { bad(res, err.message); }
 });
@@ -416,6 +433,8 @@ app.post('/api/admin/users/:id/action', (req, res) => {
 });
 app.delete('/api/admin/users/:id', (req, res) => {
   if (req.params.id === req.user.id) return bad(res, '내 계정은 여기서 지울 수 없어요.');
+  const bk = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(req.params.id)?.billing_key;
+  if (bk) retireBillingKey(bk);
   deleteUser(req.params.id); res.json({ ok: true });
 });
 app.get('/api/admin/stats', (req, res) => {
@@ -426,7 +445,7 @@ app.get('/api/admin/stats', (req, res) => {
     revenue: db.prepare("SELECT COALESCE(SUM(amount),0) n FROM (SELECT amount, status FROM payments UNION ALL SELECT amount, status FROM payment_records) WHERE status = '결제완료'").get().n,
     reviews: db.prepare('SELECT COUNT(*) n FROM reviews').get().n,
     server: { node: process.version, uptimeMin: Math.round(process.uptime() / 60), load: os.loadavg()[0].toFixed(2), freeMemMB: Math.round(os.freemem() / 1048576), dbSizeKB: Math.round(fs.statSync(dbFile).size / 1024) },
-    setup: { mail: mailReady, phone: smsMode(), providers: enabledProviders(), payments: paymentMode(), publicUrl: config.publicUrl, tts: ttsStats() },
+    setup: { mail: mailReady, phone: smsMode(), providers: enabledProviders(), payments: paymentMode(), payMethods: payMethods(), publicUrl: config.publicUrl, tts: ttsStats() },
   });
 });
 app.get('/api/admin/export', (req, res) => {

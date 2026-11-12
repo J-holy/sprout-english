@@ -53,7 +53,7 @@ export function notify(uid, text, kind = 'info') {
 export function membershipOf(uid) {
   const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
   if (!m) return null;
-  return { kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key };
+  return { kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key, payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
 }
 
 // 프론트엔드 Store가 쓰는 모양 그대로 돌려준다

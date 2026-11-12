@@ -170,6 +170,10 @@ const App = (() => {
     if (Store.isAdmin()) return toast('관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
     const kids = Store.kidsPlan(), q = Store.quote(kids, months);
     const payMode = API.on ? API.cfg.payments : 'demo';
+    // 쓸 수 있는 결제수단 (card: 토스페이먼츠 카드, kakao: 카카오페이). 데모면 데모 버튼 하나
+    const methods = payMode === 'demo' ? [] : API.cfg.payMethods || (payMode === 'toss' ? ['card'] : []);
+    const PAY_BTN = { card: '<button class="btn btn-primary" data-ok="card">💳 카드 등록하고 결제</button>', kakao: '<button class="btn btn-kakaopay" data-ok="kakao">카카오페이로 결제</button>' };
+    const PAY_NOTE = { card: '🔒 카드: 토스페이먼츠 카드 등록 화면으로 이동해요. 등록한 카드로 지금 결제되고, 기간이 끝나면 자동갱신돼요.', kakao: '💛 카카오페이: 카카오톡에서 결제하면 다음부터는 같은 결제수단으로 자동갱신돼요.' };
     if (payMode === 'off') return toast('결제 기능을 준비 중이에요. 잠시 후 다시 시도해 주세요.');
     const m = modal(`<h2>🧾 구매 확인</h2>
       <dl class="summary"><dt>상품</dt><dd>플러스 ${months}개월${kids === 'two' ? ` · 형제·자매 요금 (아이 ${Store.user().profiles.length}명)` : ''}</dd>
@@ -178,17 +182,19 @@ const App = (() => {
       <dt>쿠폰</dt><dd>${q.coupon ? `${esc(q.coupon.name)} −${Math.round(q.rate * 100)}%` : '없음'}</dd>
       <dt>총 결제 금액</dt><dd class="total">${won(q.total)}</dd>
       <dt>자동갱신</dt><dd>${fmtDay(Date.now() + months * 30 * 86400000)}부터 · 언제든 해지</dd></dl>
-      <p class="fine">${payMode === 'toss' ? '🔒 토스페이먼츠 카드 등록 화면으로 이동해요. 등록한 카드로 지금 결제되고, 기간이 끝나면 자동갱신돼요.' : '⚠️ 데모 결제예요. 실제 카드 결제는 일어나지 않아요.'} 결제 후 7일 이내에는 부모페이지에서 바로 환불할 수 있어요.</p>
-      <div class="row-center"><button class="btn btn-ghost" data-close>취소</button><button class="btn btn-primary" data-ok>${payMode === 'toss' ? '💳 카드 등록하고 결제' : '데모 결제하기'}</button></div>`);
-    const ok = m.el.querySelector('[data-ok]');
-    ok.onclick = async () => {
-      ok.disabled = true; ok.textContent = '처리 중…';
+      ${methods.length ? methods.map(k => `<p class="fine">${PAY_NOTE[k]}</p>`).join('') : '<p class="fine">⚠️ 데모 결제예요. 실제 카드 결제는 일어나지 않아요.</p>'}
+      <p class="fine">결제 후 7일 이내에는 부모페이지에서 바로 환불할 수 있어요.</p>
+      <div class="row-center pay-buttons"><button class="btn btn-ghost" data-close>취소</button>${methods.length ? methods.map(k => PAY_BTN[k]).join('') : '<button class="btn btn-primary" data-ok="card">데모 결제하기</button>'}</div>`);
+    const btns = [...m.el.querySelectorAll('[data-ok]')];
+    btns.forEach(ok => ok.onclick = async () => {
+      const label = ok.textContent;
+      btns.forEach(b => b.disabled = true); ok.textContent = '처리 중…';
       try {
-        const r = await Store.purchase({ kids, months });
-        if (r === 'redirect') return; // 토스 결제창으로 이동
+        const r = await Store.purchase({ kids, months, method: ok.dataset.ok });
+        if (r === 'redirect') return; // 토스·카카오페이 결제 화면으로 이동
         m.close(); Lesson.confetti(); toast('멤버십이 시작되었어요! 💎'); route();
-      } catch (x) { ok.disabled = false; ok.textContent = '다시 시도'; toast(x.message); }
-    };
+      } catch (x) { btns.forEach(b => b.disabled = false); ok.textContent = label; toast(x.message); }
+    });
   }
 
   function sampleLesson(lv, el = main()) {
@@ -215,7 +221,7 @@ const App = (() => {
       let ref = '';
       if (!tag && document.referrer) {
         const h = new URL(document.referrer).host;
-        if (h !== location.host && !/(^|\.)(kakao\.com|nid\.naver\.com|accounts\.google\.com|appleid\.apple\.com|tosspayments\.com|toss\.im)$/.test(h)) ref = h.replace(/^(www|m|search|l|lm)\./, '');
+        if (h !== location.host && !/(^|\.)(kakao\.com|kakaopay\.com|nid\.naver\.com|accounts\.google\.com|appleid\.apple\.com|tosspayments\.com|toss\.im)$/.test(h)) ref = h.replace(/^(www|m|search|l|lm)\./, '');
       }
       const s = (tag || ref).toLowerCase().replace(/[^\w.-]/g, '').slice(0, 40);
       const old = JSON.parse(localStorage.getItem('sprout-src') || 'null');

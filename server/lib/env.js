@@ -59,6 +59,8 @@ export const config = {
     apple: { clientId: e.APPLE_SERVICE_ID, teamId: e.APPLE_TEAM_ID, keyId: e.APPLE_KEY_ID, privateKeyPath: e.APPLE_PRIVATE_KEY_PATH },
   },
   toss: { clientKey: e.TOSS_CLIENT_KEY, secretKey: e.TOSS_SECRET_KEY },
+  // 카카오페이 정기결제: 개발자센터 앱의 Secret key와 정기결제용 가맹점 코드(CID). 시험용 키(dev)에는 시험 CID TCSUBSCRIP를 쓴다
+  kakaopay: { secretKey: e.KAKAOPAY_SECRET_KEY, cid: e.KAKAOPAY_CID || 'TCSUBSCRIP', api: e.KAKAOPAY_API || 'https://open-api.kakaopay.com' },
   // 토스 키가 없을 때 데모 결제(즉시 완료)를 허용할지
   allowDemoPayment: bool(e.ALLOW_DEMO_PAYMENT, !production),
 };
