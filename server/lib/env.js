@@ -58,6 +58,9 @@ export const config = {
     google: { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
     apple: { clientId: e.APPLE_SERVICE_ID, teamId: e.APPLE_TEAM_ID, keyId: e.APPLE_KEY_ID, privateKeyPath: e.APPLE_PRIVATE_KEY_PATH },
   },
+  // 1년 특가 기간 (YYYY-MM-DD, 한국 시간). 비우면 pricing.js의 기본 기간
+  promoFrom: /^\d{4}-\d{2}-\d{2}$/.test(e.PROMO_FROM || '') ? Date.parse(`${e.PROMO_FROM}T00:00:00+09:00`) : 0,
+  promoUntil: /^\d{4}-\d{2}-\d{2}$/.test(e.PROMO_UNTIL || '') ? Date.parse(`${e.PROMO_UNTIL}T23:59:59+09:00`) : 0,
   toss: { clientKey: e.TOSS_CLIENT_KEY, secretKey: e.TOSS_SECRET_KEY },
   // 카카오페이 정기결제: 개발자센터 앱의 Secret key와 정기결제용 가맹점 코드(CID). 시험용 키(dev)에는 시험 CID TCSUBSCRIP를 쓴다
   kakaopay: { secretKey: e.KAKAOPAY_SECRET_KEY, cid: e.KAKAOPAY_CID || 'TCSUBSCRIP', api: e.KAKAOPAY_API || 'https://open-api.kakaopay.com' },

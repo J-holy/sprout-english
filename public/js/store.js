@@ -250,6 +250,9 @@ const Store = (() => {
   const kidsPlan = (u = user()) => (u && u.profiles.length >= 2 ? 'two' : 'one');
   const couponRate = c => !c ? 0 : c.welcome ? WELCOME_RATE : c.rate;
   function quote(kids, months) {
+    // 1년 특가는 쿠폰과 함께 쓰지 않는다 (서버와 같은 계산)
+    const promo = promoMonthly(kids, months);
+    if (promo) return { coupon: null, rate: 0, promo: true, monthly: promo, total: promo * months, list: PLANS[kids].list * months };
     const c = bestCoupon(), rate = couponRate(c);
     // 쿠폰은 멤버십 월 요금에서 할인하고 10원 단위로 맞춘다 (서버와 같은 계산)
     const monthly = rate ? round10(planMonthly(kids, months) * (1 - rate)) : planMonthly(kids, months);

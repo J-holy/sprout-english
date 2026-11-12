@@ -49,8 +49,8 @@ async function retireKakao(oldKey, newKey) {
 export const retireBillingKey = key => retireKakao(key, null);
 
 // 결제 대기 주문 만들기 (금액은 서버가 계산해서 저장)
-export function createOrder(u, kids, months) {
-  const q = quote(u.id, kids, months);
+export function createOrder(u, kids, months, opts) {
+  const q = quote(u.id, kids, months, opts);
   const orderId = 'ord_' + crypto.randomBytes(10).toString('hex');
   db.prepare(`INSERT INTO payments (id, user_id, order_id, at, amount, description, kids, months, coupon_id, coupon_label, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '대기')`).run(id(), u.id, orderId, now(), q.total, q.name, kids, Number(months), q.coupon?.id || null, q.couponLabel);
@@ -169,17 +169,17 @@ export async function refund(uid) {
 export async function renewalJob() {
   const t = now();
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until BETWEEN ? AND ?').all(t + 3 * DAY - 3600000, t + 3 * DAY)) {
-    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 결제 금액은 ${quote(m.user_id, kidsOf(getUser(m.user_id)), m.months).total.toLocaleString('ko-KR')}원이에요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
+    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 결제 금액은 ${quote(m.user_id, kidsOf(getUser(m.user_id)), m.months, { renew: true }).total.toLocaleString('ko-KR')}원이에요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
   }
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until <= ? AND renew_fail < 3').all(t)) {
     const u = getUser(m.user_id);
     if (!m.billing_key) {
       if (paymentMode() === 'demo') {
-        const { orderId } = createOrder(u, kidsOf(u), m.months); completeDemo(orderId);
+        const { orderId } = createOrder(u, kidsOf(u), m.months, { renew: true }); completeDemo(orderId);
       } else db.prepare('UPDATE memberships SET auto_renew = 0 WHERE user_id = ?').run(u.id);
       continue;
     }
-    const { orderId } = createOrder(u, kidsOf(u), m.months);
+    const { orderId } = createOrder(u, kidsOf(u), m.months, { renew: true });
     const order = db.prepare('SELECT * FROM payments WHERE order_id = ?').get(orderId);
     try {
       if (isKakaoKey(m.billing_key)) {

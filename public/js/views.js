@@ -79,7 +79,7 @@ const UI = {
     return `<div class="plans">
       <p class="plan-kids center"></p>
       <div class="plan-cards"></div>
-      <p class="fine center">모든 상품 자동갱신은 부모페이지에서 언제든 해지할 수 있어요 · 데모라 실제 결제는 일어나지 않아요.</p>
+      <p class="fine center">모든 상품은 정기결제(자동갱신)이고, 부모페이지에서 언제든 해지할 수 있어요.${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
     </div>`;
   },
   wirePlans(root) {
@@ -92,16 +92,18 @@ const UI = {
       $('.plan-cards', root).innerHTML = [1, 6, 12].map(months => {
         const monthly = planMonthly(kids, months);
         // 로그인 전에는 웰컴쿠폰을 받는다고 보고 보여준다
-        const q = loggedIn ? Store.quote(kids, months) : { rate: WELCOME_RATE, monthly: round10(monthly * (1 - WELCOME_RATE)) };
+        const promo = promoMonthly(kids, months);
+        const q = loggedIn ? Store.quote(kids, months) : promo ? { rate: 0, promo: true, monthly: promo } : { rate: WELCOME_RATE, monthly: round10(monthly * (1 - WELCOME_RATE)) };
         q.total = q.monthly * months;
         const disc = Math.round((1 - monthly / P.list) * 100);
-        const perDay = Math.round((q.rate ? q.monthly : monthly) / 30 / 10) * 10;
+        const perDay = Math.round((q.rate || q.promo ? q.monthly : monthly) / 30 / 10) * 10;
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
-          ${months === 12 ? '<span class="ribbon">가장 인기</span>' : ''}
+          ${months === 12 ? `<span class="ribbon">${q.promo ? `1년 특가 · ${promoEndText()}까지` : '가장 인기'}</span>` : ''}
           <h4>${months}개월</h4>
           <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 6: `하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: `하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
           <dl>${disc ? `<dt>1개월 요금</dt><dd class="strike">월 ${won(P.list)}</dd>` : ''}
           <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
+          ${q.promo ? `<dt>1년 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
           ${q.rate ? `<dt>첫 결제 쿠폰</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
           <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}${months === 1 ? ' / 매월' : ''}</div>
           <button class="btn btn-primary full" data-buy="${months}">선택하기</button></div>`;
@@ -671,7 +673,11 @@ Views.pricing = (el, params) => {
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
 
-    <h2 class="sec-sub">💎 플러스에 들어 있는 것 <small>하루 약 ${won(Math.round(PLANS.one.m12 / 30 / 10) * 10)} (12개월 기준)</small></h2>
+    ${promoOn() ? `<div class="card promo-card"><span class="chip">기간 한정</span><h2>🎉 1년 특가 · 월 ${won(PROMO.one)}</h2>
+      <p><b>${promoEndText()}까지</b> 플러스 12개월을 결제하면 월 ${won(PROMO.one)}(형제·자매 월 ${won(PROMO.two)})이에요. 1년 ${won(PROMO.one * 12)}을 한 번에 결제해요.
+      첫 결제 쿠폰과는 함께 쓸 수 없고, 1년 뒤 자동갱신은 정가(월 ${won(PLANS.one.m12)})로 결제돼요.</p></div>` : ''}
+
+    <h2 class="sec-sub">💎 플러스에 들어 있는 것 <small>하루 약 ${won(Math.round(lowestMonthly() / 30 / 10) * 10)} (12개월 기준)</small></h2>
     <div class="value-grid">${[
       ['📚', '1년 커리큘럼', `8단계 26레벨 ${TOTAL_LESSONS}레슨 · 미국 킨더~초2 수준`],
       ['🔁', '망각 곡선 복습', '배운 단어·문장을 1·3·7·14·30일에 다시 꺼내 오래 기억'],
@@ -691,15 +697,15 @@ Views.pricing = (el, params) => {
     <div class="table-wrap"><table class="table price-table">
       <thead><tr><th></th><th>1개월</th><th>6개월</th><th>12개월</th></tr></thead>
       <tbody>${[Store.kidsPlan()].map(k => `<tr><th>${k === 'two' ? '👧👦 형제·자매' : '플러스'}</th>${[1, 6, 12].map(m => {
-        const monthly = round10(planMonthly(k, m) * (1 - WELCOME_RATE));
-        return `<td><small class="strike">월 ${won(planMonthly(k, m))}</small><br><b class="hot">월 ${won(monthly)}</b></td>`;
+        const promo = promoMonthly(k, m), monthly = promo || round10(planMonthly(k, m) * (1 - WELCOME_RATE));
+        return `<td><small class="strike">월 ${won(planMonthly(k, m))}</small><br><b class="hot">${promo ? '1년 특가 ' : ''}월 ${won(monthly)}</b></td>`;
       }).join('')}</tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">무료 vs 플러스</h2>
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
       <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', `${FREE_BOOKS}권`, `${STORIES.length}권 전체`],
-        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(PLANS.one.m12)}부터 · 언제든 해지`]]
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(lowestMonthly())}부터 · 언제든 해지`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
@@ -708,8 +714,18 @@ Views.pricing = (el, params) => {
       <div class="card feat"><span class="feat-ico">↩️</span><h4>7일 이내 환불</h4><p>결제 후 7일 이내라면 부모페이지에서 바로 환불하고, 사용한 쿠폰도 돌려받아요.</p></div>
       <div class="card feat"><span class="feat-ico">🌱</span><h4>해지해도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
+    <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
+      <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 6개월 / 12개월</dd>
+      <dt>서비스 제공 기간</dt><dd>결제하면 바로 이용 시작 · 1개월 30일, 6개월 180일, 12개월 360일</dd>
+      <dt>결제 방식</dt><dd>정기결제(자동갱신) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
+      <dt>결제 시기</dt><dd>처음에는 구매할 때 결제하고, 그 뒤에는 이용 기간이 끝나는 날 같은 기간 상품을 같은 결제수단으로 결제해요. 3일 전에 결제일과 금액을 알려 드려요.</dd>
+      <dt>해지</dt><dd>부모페이지 › 멤버십 › 자동갱신 해지 (언제든, 남은 기간은 계속 이용하고 그 뒤로는 결제되지 않아요)</dd>
+      <dt>환불(청약철회)</dt><dd>결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 7일이 지난 뒤의 환불은 고객센터로 문의해 주시면 관련 법령에 따라 처리해요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
+      <dt>교환·상품 변경</dt><dd>디지털 이용권이라 교환은 없어요. 기간을 바꾸려면 고객센터로 문의해 주세요.</dd>
+      <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · team.saessakschool@gmail.com</dd>
+      <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(자동갱신)·제6조(청약철회와 환불)</dd></dl></div>
     ${UI.faq(FAQ.filter(f => f.cat === '요금' || f.cat === '멤버십'))}
-    <p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>
+    ${!API.on || API.cfg.payments === 'demo' ? '<p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>' : ''}
   </div>`;
   UI.wirePlans($('.plans', el));
 };
@@ -1667,7 +1683,7 @@ const ParentTabs = {
       ${m ? `<div class="card sub-card"><h3>내 구독</h3><dl class="summary">
         <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
-        <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.monthly * m.months)}` : '해지됨 (추가 결제 없음)'}</dd>
+        <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}` : '해지됨 (추가 결제 없음)'}</dd>
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이 (정기결제)' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
         <div class="row">${m.granted ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
@@ -1862,7 +1878,7 @@ const AdminTabs = {
 /* ---------- 이용권 만료 ---------- */
 Views.paywall = el => {
   el.innerHTML = `<div class="wrap sec narrow center"><div class="card intro">${UI.mascot('체험 기간이 끝났어! 그동안 모은 별과 기록은 그대로 있어. 다시 만나자!', '🥺')}
-    <h1>3단계부터는 플러스예요</h1><p>1~2단계는 평생 무료로 계속할 수 있어요. 플러스는 월 ${won(PLANS.one.m12)}부터예요.</p>
+    <h1>3단계부터는 플러스예요</h1><p>1~2단계는 평생 무료로 계속할 수 있어요. 플러스는 월 ${won(lowestMonthly())}부터예요.</p>
     <a class="btn btn-primary lg" href="#/pricing">요금·할인 보기</a></div></div>`;
 };
 

@@ -27,6 +27,14 @@ const PLANS = {
   one: { list: 19900, m1: 19900, m6: 17900, m12: 15900 },
   two: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
 };
+// 기간 한정 1년 특가 (서버 server/lib/pricing.js의 PROMO와 같은 값, 서버가 있으면 /api/config 값으로 바꾼다)
+// 이 기간에 12개월을 결제하면 월 9,900원(두 자녀 14,900원). 쿠폰과 함께 쓰지 않고, 1년 뒤 자동갱신은 정가
+const PROMO = { from: Date.parse('2026-11-20T00:00:00+09:00'), until: Date.parse('2026-12-03T23:59:59+09:00'), months: 12, one: 9900, two: 14900 };
+const promoOn = (t = Date.now()) => t >= PROMO.from && t <= PROMO.until;
+const promoMonthly = (kids, months) => (months === PROMO.months && promoOn() ? PROMO[kids] : 0);
+const promoEndText = () => { const d = new Date(PROMO.until); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
+// '월 ○원부터' 안내에 쓰는 가장 싼 월 요금
+const lowestMonthly = (kids = 'one') => promoMonthly(kids, PROMO.months) || PLANS[kids].m12;
 const wonText = n => n.toLocaleString('ko-KR') + '원';
 const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인 (모든 기간)
 const round10 = n => Math.round(n / 10) * 10;

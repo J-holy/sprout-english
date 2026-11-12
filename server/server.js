@@ -14,7 +14,7 @@ import {
 import { sendCodeMail, mailReady, verifyMailer } from './lib/mailer.js';
 import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
-import { PLANS, validPlan, quote, kidsOf } from './lib/pricing.js';
+import { PLANS, PROMO, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
 import { sttProvider, checkWav, recognize } from './lib/stt.js';
 import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
@@ -44,7 +44,7 @@ const PENDING_TTL = 30 * 60000;
 app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), payMethods: payMethods(), tossClientKey: config.toss.clientKey || null,
-  plans: PLANS, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
+  plans: PLANS, promo: PROMO, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
   phone: smsMode() || (config.devShowCode ? 'dev' : null), betaUntil: config.betaUntil > now() ? config.betaUntil : 0,
 }));
 

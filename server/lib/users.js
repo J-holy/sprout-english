@@ -2,6 +2,7 @@
 import crypto from 'node:crypto';
 import { db, id, now, json, DAY, tx } from './db.js';
 import { config } from './env.js';
+import { quote, kidsOf } from './pricing.js';
 
 export const getUser = uid => db.prepare('SELECT * FROM users WHERE id = ?').get(uid);
 export const getUserByEmail = email => email ? db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).toLowerCase()) : undefined;
@@ -53,7 +54,9 @@ export function notify(uid, text, kind = 'info') {
 export function membershipOf(uid) {
   const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
   if (!m) return null;
-  return { kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key, payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
+  // 다음 자동갱신 금액: 지금 아이 수·쿠폰으로 계산한 정가 (첫 결제 쿠폰·1년 특가는 갱신에 쓰지 않는다)
+  const u = getUser(uid), next = m.granted || !u ? null : quote(uid, kidsOf(u), m.months, { renew: true }).total;
+  return { nextAmount: next, kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key, payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
 }
 
 // 프론트엔드 Store가 쓰는 모양 그대로 돌려준다
