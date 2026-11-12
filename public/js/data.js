@@ -20,12 +20,12 @@ const stageOf = lv => STAGES.find(s => s.levels.includes(lv));
 const AVATARS = ['🐰', '🐻', '🦊', '🐼', '🐯', '🐨', '🐸', '🦁', '🐧', '🦄'];
 
 // 요금: 1~2단계(알파벳·파닉스, 50레슨)는 평생 무료, 3~8단계와 그 스토리북은 '플러스'
-// 서버 server/lib/pricing.js 와 같은 값. 1개월 29,900원 기준, 오래 쓸수록 월 요금이 내려간다
+// 서버 server/lib/pricing.js 와 같은 값. 1개월 19,900원 기준, 오래 쓸수록 월 요금이 내려간다
 const FREE_STAGES = [1, 2];
 const isFreeLevel = lv => FREE_STAGES.includes(stageOf(lv).id);
 const PLANS = {
-  one: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
-  two: { list: 44900, m1: 44900, m6: 39900, m12: 35900 },
+  one: { list: 19900, m1: 19900, m6: 17900, m12: 15900 },
+  two: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
 };
 const wonText = n => n.toLocaleString('ko-KR') + '원';
 const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인 (모든 기간)

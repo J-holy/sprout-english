@@ -2,9 +2,10 @@
 import { db, now, json } from './db.js';
 
 // 화면(public/js/data.js)과 같은 값. 1~2단계는 평생 무료, 3단계부터 플러스.
+// 2026-11-12 1개월 29,900원 → 19,900원. 6개월 10%, 12개월 20% 할인, 두 자녀는 한 자녀의 약 1.5배 (예전 비율 그대로)
 export const PLANS = {
-  one: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
-  two: { list: 44900, m1: 44900, m6: 39900, m12: 35900 },
+  one: { list: 19900, m1: 19900, m6: 17900, m12: 15900 },
+  two: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
 };
 export const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인
 const round10 = n => Math.round(n / 10) * 10;
