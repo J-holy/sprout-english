@@ -33,7 +33,7 @@ export const validText = t => t.length > 0 && t.length <= 300 && /^[A-Za-z0-9 .,
 const vowelSound = w => /^(hour|honest)/i.test(w) || (/^[aeiou]/i.test(w) && !/^(one|once|uni|use|usu|eu|u[bcdfgklmnpstvz][aeiou])/i.test(w));
 const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 const LETTER_OF = { ay: 'A', ee: 'E', jee: 'G', aitch: 'H', el: 'L', em: 'M', en: 'N', ess: 'S', eff: 'F', ar: 'R', ex: 'X',
-  cue: 'Q', dee: 'D', pee: 'P', tee: 'T', vee: 'V', zee: 'Z', kay: 'K', jay: 'J' };
+  cue: 'Q', dee: 'D', pee: 'P', tee: 'T', vee: 'V', zee: 'Z', kay: 'K', jay: 'J', doubleyou: 'W' };
 const SINGLE_IPA = { live: 'lɪv', lives: 'lɪvz', wind: 'wɪnd', minute: 'ˈmɪnɪt', present: 'ˈpɹɛzənt', dry: 'dɹaɪ', brought: 'bɹɔt', be: 'bi' };
 // 어느 문장에서든 틀리게 읽는 이름: Jeju를 '지주'로, Ms를 '미스'로 읽었다 (2026-11 전체 음성 받아쓰기 비교)
 const WORD_IPA = { jeju: 'ˈdʒɛdʒu', ms: 'mɪz', kimbap: 'ˈkɪmbɑp', hanbok: 'ˈhɑnbɔk' };
@@ -57,7 +57,8 @@ const spelledSsml = names => names.map(n => `<say-as interpret-as="characters">$
 export function speechSsml(text) {
   const spell = text.match(/^((?:[a-z ]+, )+[a-z ]+)\. (.+)$/);
   if (spell && spell[1].split(', ').every(n => NAME_OF[n])) return '<speak>' + spelledSsml(spell[1].split(', ')) + ' ' + xml(spell[2].replace(/[.!?]*$/, '.')) + '</speak>';
-  const ws = text.split(' ');
+  // W의 이름 'double you'는 두 단어로 읽어 '더블, 유'처럼 끊겨 들렸다 → 한 덩어리로 묶어 글자 읽기(W)로 보낸다
+  const ws = text.replace(/\bdouble you\b/g, 'doubleyou').split(' ');
   // 단어 하나만 읽을 때도 마침표로 맺는다 (마침표가 없으면 fresh를 'press', noon을 'nude'처럼 읽었다). 글자 이름은 그대로 둔다
   const end = ws.length === 1 && /^[A-Za-z'-]+$/.test(text) && !NAME_OF[text.toLowerCase()] ? '.' : '';
   return '<speak>' + ws.map((w, i) => {
