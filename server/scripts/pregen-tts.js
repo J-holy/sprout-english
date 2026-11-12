@@ -73,7 +73,10 @@ async function worker() {
       const { file } = await getSpeech(t, slow);
       if (staticDir) {
         const name = crypto.createHash('sha1').update(t + audioTag(t) + voiceTag()).digest('hex').slice(0, 16) + path.extname(file);
-        fs.copyFileSync(file, path.join(staticDir, name)); manifest[t] = name;
+        // 이미 있는 파일은 덮어쓰지 않는다 (음량을 키워 둔 파일이 캐시의 옛 소리로 돌아가지 않게)
+        const dest = path.join(staticDir, name);
+        if (!fs.existsSync(dest)) fs.copyFileSync(file, dest);
+        manifest[t] = name;
       }
       done++;
     } catch (err) {

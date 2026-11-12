@@ -78,8 +78,11 @@ const Speech = (() => {
     audio = a;
     a.src = url;
     a.volume = vol.voice;
-    // 서버는 천천히 버전을 따로 만들고, 미리 만든 파일은 재생 속도로 늦춘다
-    a.defaultPlaybackRate = a.playbackRate = slow ? (url.startsWith('api/') ? 1 : 0.75) : rate / 0.85;
+    // 서버는 천천히 버전을 따로 만들고, 미리 만든 파일은 재생 속도로 늦춘다.
+    // 0.75배는 짧은 문장('Six ends with X')에서 보통과 거의 차이가 안 나서 0.6배로 확실히 늦춘다 (2026-11 제보)
+    const speed = slow ? (url.startsWith('api/') ? 0.85 : 0.6) : rate / 0.85;
+    const setSpeed = () => { if ('preservesPitch' in a) a.preservesPitch = true; else if ('webkitPreservesPitch' in a) a.webkitPreservesPitch = true; if (a.playbackRate !== speed) a.playbackRate = speed; };
+    a.defaultPlaybackRate = speed; setSpeed();
     let ended = false, guard = 0;
     const alive = () => id === playId && !ended;
     const stopHere = () => { ended = true; clearTimeout(tickTimer); clearTimeout(guard); if (audio === a) audio = null; };
@@ -90,8 +93,11 @@ const Speech = (() => {
     guard = setTimeout(fallback, 4000);
     a.onended = () => { if (audio === a || alive()) finish(); };
     a.onerror = () => fallback();
+    // iPhone·iPad Safari는 새 파일을 불러오면서 재생 속도를 1로 되돌리기도 해서, 불러온 뒤·재생이 시작될 때 다시 맞춘다
+    a.onloadedmetadata = () => { if (alive()) setSpeed(); };
     a.onplaying = () => {
       if (!alive()) return;
+      setSpeed();
       clearTimeout(guard);
       const dur = isFinite(a.duration) && a.duration > 0 ? a.duration : text.length * 0.08;
       guard = setTimeout(finish, Math.max(0, dur - a.currentTime) / (a.playbackRate || 1) * 1000 + 2500);

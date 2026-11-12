@@ -87,10 +87,12 @@ async function synthOpenAI(text, slow) {
   if (!r.ok) throw new Error(`OpenAI TTS ${r.status}: ${(await r.text()).slice(0, 160)}`);
   return Buffer.from(await r.arrayBuffer());
 }
+// 기본 음량(약 -19 LUFS)은 휴대폰에서 작게 들려서 +8dB로 키운다 (구글이 끝을 눌러 줘서 약 -15 LUFS, 찢어지지 않음).
+// 예전 파일은 같은 크기로 맞춰 두었다 (2026-11-12)
 async function synthGoogle(text, slow) {
   const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(e.GOOGLE_TTS_API_KEY)}`, {
     method: 'POST', signal: AbortSignal.timeout(30000), headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input: fixed(text) ? { ssml: speechSsml(text) } : { text }, voice: { languageCode: voiceId().slice(0, 5), name: voiceId() }, audioConfig: { audioEncoding: 'MP3', speakingRate: slow ? 0.7 : 0.92 } }),
+    body: JSON.stringify({ input: fixed(text) ? { ssml: speechSsml(text) } : { text }, voice: { languageCode: voiceId().slice(0, 5), name: voiceId() }, audioConfig: { audioEncoding: 'MP3', speakingRate: slow ? 0.7 : 0.92, volumeGainDb: 8 } }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`Google TTS ${r.status}: ${j.error?.message || ''}`.slice(0, 200));
