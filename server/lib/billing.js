@@ -5,6 +5,7 @@ import { db, id, now, DAY, tx } from './db.js';
 import { config } from './env.js';
 import { quote, kidsOf } from './pricing.js';
 import { notify, getUser } from './users.js';
+import { applyReferralRewards } from './social.js';
 
 export const tossReady = () => !!(config.toss.clientKey && config.toss.secretKey);
 export const paymentMode = () => tossReady() ? 'toss' : config.allowDemoPayment ? 'demo' : 'off';
@@ -50,6 +51,8 @@ function fulfill(order, { paymentKey, method, billingKey, raw }) {
     if (order.coupon_id) db.prepare('UPDATE coupons SET used = 1 WHERE id = ?').run(order.coupon_id);
     notify(u.id, `💳 ${order.description} 결제가 완료되었어요. 결제 금액 ${won(order.amount)}`, 'member');
   });
+  // 무료일 때 쌓인 추천 보상을 첫 결제 때 더해 준다
+  try { applyReferralRewards(order.user_id); } catch (err) { console.error('[추천 보상]', err.message); }
 }
 
 export function completeDemo(orderId) {

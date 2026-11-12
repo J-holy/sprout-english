@@ -162,11 +162,11 @@ const Store = (() => {
     return { needSignup: true };
   }
   // 가입 마무리 (이메일 인증 또는 SNS 이후)
-  async function completeSignup({ provider, email, parentName, marketing }) {
+  async function completeSignup({ provider, email, parentName, marketing, referrer }) {
     if (API.on) {
       let source = '';
       try { const o = JSON.parse(localStorage.getItem('sprout-src') || 'null'); if (o && Date.now() - o.at < 30 * 864e5) source = o.s; } catch {}
-      await API.req('POST', 'api/auth/complete', { parentName, terms: true, age: true, marketing: !!marketing, source });
+      await API.req('POST', 'api/auth/complete', { parentName, terms: true, age: true, marketing: !!marketing, source, referrer: String(referrer || '').trim() });
       await loadMe(); return user();
     }
     email = normEmail(email);
@@ -611,6 +611,16 @@ const Store = (() => {
     save();
   }
 
+  // ---------- 친구·응원 쪽지·추천 (서버 모드에서만) ----------
+  const Social = {
+    load: () => API.req('GET', 'api/social'),
+    lookup: no => API.req('GET', 'api/social/lookup?no=' + encodeURIComponent(no)),
+    request: (kid, no, toKid) => API.req('POST', 'api/social/request', { kid, no, toKid }),
+    respond: (id, action) => API.req('POST', 'api/social/respond', { id, action }),
+    message: (friendId, kid, code) => API.req('POST', 'api/social/message', { friendId, kid, code }),
+    read: kid => API.req('POST', 'api/social/read', { kid }),
+  };
+
   // ---------- 관리자 (회원은 id로 구분) ----------
   const Admin = {
     async load() { adminCache = API.on ? await API.req('GET', 'api/admin/users') : Object.values(db.users); return adminCache; },
@@ -669,6 +679,6 @@ const Store = (() => {
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
-    notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, setTheme, exportData, importData, persist, hash,
+    notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, Social, setTheme, exportData, importData, persist, hash,
   };
 })();

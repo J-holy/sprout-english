@@ -45,6 +45,20 @@ const MIGRATIONS = [
    CREATE INDEX push_subs_user ON push_subs(user_id);`,
   // 가입 경로: 처음 들어온 링크의 utm_source 또는 들어온 사이트 (마케팅 채널별 가입 수)
   `ALTER TABLE users ADD COLUMN source TEXT;`,
+  // 회원번호(무작위 숫자 7자리, 친구 추가와 추천인 코드), 추천인, 추천 보상을 몇 번 받았는지
+  // 친구는 아이 프로필끼리 맺는다 (a가 신청, b가 받음). 쪽지는 정해진 문구·스티커 번호만 저장한다
+  `ALTER TABLE users ADD COLUMN member_no TEXT;
+   ALTER TABLE users ADD COLUMN referred_by TEXT;
+   ALTER TABLE users ADD COLUMN referral_rewards INTEGER NOT NULL DEFAULT 0;
+   CREATE UNIQUE INDEX users_member_no ON users(member_no);
+   CREATE INDEX users_referred_by ON users(referred_by);
+   CREATE TABLE friends (id TEXT PRIMARY KEY, a_user TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, a_kid TEXT NOT NULL,
+     b_user TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, b_kid TEXT NOT NULL, status TEXT NOT NULL, blocked_by TEXT,
+     created_at INTEGER NOT NULL, responded_at INTEGER, UNIQUE (a_user, a_kid, b_user, b_kid));
+   CREATE INDEX friends_b ON friends(b_user);
+   CREATE TABLE kid_messages (id TEXT PRIMARY KEY, friend_id TEXT NOT NULL REFERENCES friends(id) ON DELETE CASCADE,
+     from_user TEXT NOT NULL, from_kid TEXT NOT NULL, to_user TEXT NOT NULL, to_kid TEXT NOT NULL, code TEXT NOT NULL, at INTEGER NOT NULL, read INTEGER NOT NULL DEFAULT 0);
+   CREATE INDEX kid_messages_to ON kid_messages(to_user, at);`,
 ];
 
 db.exec('CREATE TABLE IF NOT EXISTS schema_version (v INTEGER NOT NULL)');

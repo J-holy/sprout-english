@@ -42,6 +42,7 @@ const App = (() => {
     [/^\/free$/, learner(el => Views.free(el))],
     [/^\/certificate\/(\d)$/, learner((el, m) => Views.certificate(el, +m[1]))],
     [/^\/shop$/, learner(el => Views.shop(el))],
+    [/^\/friends$/, learner(el => Views.friends(el))],
     [/^\/play(?:\/(balloon|match|frog|fish|ox|basket))?$/, learner((el, m) => Views.play(el, m[1]))],
     [/^\/worksheet\/([A-Z])$/, authed((el, m) => Views.worksheet(el, m[1]))],
     [/^\/parent(?:\/(\w+))?$/, authed((el, m) => Views.parent(el, m[1]))],
@@ -206,7 +207,11 @@ const App = (() => {
   // 로그인·결제 화면에서 돌아올 때의 주소는 경로가 아니므로 빼고, 이미 기억한 경로는 덮어쓰지 않는다.
   function noteSource() {
     try {
-      const q = new URLSearchParams(location.search), tag = q.get('utm_source') || q.get('ref') || '';
+      const q = new URLSearchParams(location.search);
+      // 추천 링크(?ref=회원번호 7자리): 가입할 때 추천인 칸에 넣는다
+      const refNo = /^\d{7}$/.test(q.get('ref') || '') ? q.get('ref') : '';
+      if (refNo) localStorage.setItem('sprout-ref', JSON.stringify({ no: refNo, at: Date.now() }));
+      const tag = q.get('utm_source') || (refNo ? 'referral' : q.get('ref')) || '';
       let ref = '';
       if (!tag && document.referrer) {
         const h = new URL(document.referrer).host;

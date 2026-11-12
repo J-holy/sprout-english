@@ -885,6 +885,7 @@ Views.auth = (el, mode, params) => {
     shell(2, `<h1>마지막 단계예요! 🎉</h1><p class="center">${NAMES[provider] || provider}${em ? ' · ' + esc(em) : ''}</p>
       <form class="auth-form" novalidate>
         <label>보호자 이름 (닉네임)<input name="parentName" maxlength="20" autocomplete="nickname" placeholder="예: 하린맘" required></label>
+        ${API.on ? `<label>추천인 회원번호 <small class="fine">(선택 · 숫자 7자리)</small><input name="referrer" inputmode="numeric" maxlength="7" pattern="\\d{7}" autocomplete="off" placeholder="예: 4827153"></label>` : ''}
         <label class="check all"><input type="checkbox" name="all"> <b>모두 동의해요</b></label>
         <label class="check"><input type="checkbox" name="terms" required> (필수) <a href="terms.html" target="_blank">이용약관</a> · <a href="privacy.html" target="_blank">개인정보 처리방침</a> 동의</label>
         <label class="check"><input type="checkbox" name="age" required> (필수) 만 14세 이상 보호자예요</label>
@@ -893,15 +894,19 @@ Views.auth = (el, mode, params) => {
         <button class="btn btn-primary full lg">가입 완료 →  아이 프로필 만들기</button></form>`);
     const f = $('form', el);
     f.parentName.value = name; f.parentName.focus();
+    // 추천 링크로 들어왔으면 추천인 번호를 미리 넣어 둔다 (30일 동안)
+    if (f.referrer) try { const r = JSON.parse(localStorage.getItem('sprout-ref') || 'null'); if (r && Date.now() - r.at < 30 * 864e5) f.referrer.value = r.no; } catch { /* ignore */ }
     f.all.onchange = () => ['terms', 'age', 'mkt'].forEach(k => f[k].checked = f.all.checked);
     f.onsubmit = async e => {
       e.preventDefault();
       const nm = f.parentName.value.trim();
       if (!nm) return $('.form-err', el).textContent = '이름을 입력해 주세요.';
       if (!f.terms.checked || !f.age.checked) return $('.form-err', el).textContent = '필수 항목에 동의해 주세요.';
+      const ref = f.referrer ? f.referrer.value.replace(/\D/g, '') : '';
+      if (ref && ref.length !== 7) return $('.form-err', el).textContent = '추천인 회원번호는 숫자 7자리예요. 모르면 비워 두세요.';
       busy($('button', f), true);
       try {
-        await Store.completeSignup({ provider, email: em, parentName: nm, marketing: f.mkt.checked });
+        await Store.completeSignup({ provider, email: em, parentName: nm, marketing: f.mkt.checked, referrer: ref });
         remember(provider, em); App.toast('가입 완료! 웰컴쿠폰이 도착했어요 🎟️'); done();
       } catch (x) { $('.form-err', el).textContent = x.message; busy($('button', f), false); }
     };
@@ -1051,6 +1056,7 @@ Views.learn = el => {
       <a class="quick-card" href="#/stories" style="--r:2deg"><span>${ico('📖')}</span><b>스토리북</b><small>${Object.keys(p.stories).length}/${STORIES.length}권 읽음</small></a>
       <a class="quick-card" href="#/speak" style="--r:-1.5deg"><span>${ico('🎤')}</span><b>말하기 연습</b><small>발음 점수 받기</small></a>
       <a class="quick-card" href="#/play" style="--r:1deg"><span>${ico('🎈')}</span><b>놀이터</b><small>풍선·카드 게임</small></a>
+      ${API.on ? `<a class="quick-card" href="#/friends" style="--r:-1deg"><span>${ico('👫')}</span><b>친구</b><small>친구 공부 보기 · 응원 쪽지</small></a>` : ''}
     </div>
     <div class="sw-head"><h2 class="sec-sub">🗺️ 모험 지도</h2><a class="link-btn" href="#/study?view=all">📚 전체 학습 내용 보기 →</a></div>
     <div class="path">${STAGES.map(s => `
@@ -1605,7 +1611,7 @@ Views.parent = (el, tab) => {
     f.onsubmit = async e => { e.preventDefault(); if (await Store.hash(f.pin.value) === u.settings.pin) { App.pinOk = true; Views.parent(el, tab); } else { $('.form-err', el).textContent = 'PIN이 맞지 않아요.'; f.pin.value = ''; } };
     return;
   }
-  const tabs = { report: '📊 리포트', alerts: '🔔 학습알림', member: '🧾 멤버십', coupons: '🎟️ 쿠폰함', worksheets: '🖨️ 워크시트', settings: '⚙️ 설정' };
+  const tabs = { report: '📊 리포트', alerts: '🔔 학습알림', member: '🧾 멤버십', coupons: '🎟️ 쿠폰함', friends: '👫 친구·추천', worksheets: '🖨️ 워크시트', settings: '⚙️ 설정' };
   tab = tabs[tab] ? tab : 'report';
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">부모페이지 <small>${esc(u.parentName)}님 · ${u.providers.map(x => ({ email: '이메일', kakao: '카카오', naver: '네이버', google: 'Google', apple: 'Apple' }[x])).join(', ')} 로그인</small></h1>
@@ -1781,13 +1787,13 @@ const AdminTabs = {
     el.innerHTML = `<div class="card"><h3>가입 경로</h3><p class="fine">홍보 링크에 붙인 utm_source로 셉니다 (예: ?utm_source=blog). 링크 없이 들어오면 들어온 사이트 이름이 남아요.</p>
       <div class="table-wrap"><table class="table"><thead><tr><th>경로</th><th>최근 7일</th><th>최근 30일</th><th>전체</th></tr></thead><tbody>
       ${srcRows.map(([k, r]) => `<tr><td>${esc(srcName(k))}</td><td>${r.d7}</td><td>${r.d30}</td><td>${r.all}</td></tr>`).join('')}</tbody></table></div></div>
-      <input class="search" type="search" placeholder="이메일·이름으로 검색" aria-label="회원 검색">
+      <input class="search" type="search" placeholder="이메일·이름·회원번호로 검색" aria-label="회원 검색">
       <div class="table-wrap"><table class="table"><thead><tr><th>회원</th><th>로그인</th><th>권한</th><th>상태</th><th>아이</th><th>가입일</th><th>경로</th><th></th></tr></thead><tbody class="user-rows"></tbody></table></div>
       <div class="card" id="userDetail" hidden></div>`;
     const tbody = $('.user-rows', el);
     const draw = q => {
-      const list = users.filter(u => !q || ((u.email || '') + u.parentName).toLowerCase().includes(q.toLowerCase()));
-      tbody.innerHTML = list.map(u => { const a = Store.access(u); return `<tr><td><b>${esc(u.parentName)}</b><br><small>${esc(u.email || '(이메일 없음)')}</small></td><td>${u.providers.map(p => prov[p] || p).join(' ')}</td>
+      const list = users.filter(u => !q || ((u.email || '') + u.parentName + (u.memberNo || '')).toLowerCase().includes(q.toLowerCase()));
+      tbody.innerHTML = list.map(u => { const a = Store.access(u); return `<tr><td><b>${esc(u.parentName)}</b><br><small>${esc(u.email || '(이메일 없음)')}${u.memberNo ? ` · №${esc(u.memberNo)}` : ''}${u.referrals ? ` · 추천 ${u.referrals}명` : ''}</small></td><td>${u.providers.map(p => prov[p] || p).join(' ')}</td>
         <td>${u.role === 'admin' ? '<span class="chip on">관리자</span>' : '보호자'}</td><td>${a.kind === 'member' ? `💎 ${a.daysLeft}일` : a.kind === 'trial' ? `${a.beta ? '🧪 베타' : '🎁 체험'} ${a.daysLeft}일` : a.kind === 'admin' ? '전체 이용' : '🌱 무료'}</td>
         <td>${u.profiles.map(p => p.avatar).join('') || '-'}</td><td>${fmtDay(u.createdAt)}</td><td><small>${u.source ? esc(srcName(u.source)) : '-'}</small></td><td><button class="btn btn-ghost sm" data-u="${esc(u.id)}">관리</button></td></tr>`; }).join('') || '<tr><td colspan="8">회원이 없어요.</td></tr>';
       $$('[data-u]', tbody).forEach(b => b.onclick = () => detail(b.dataset.u));
@@ -1858,4 +1864,116 @@ Views.paywall = el => {
   el.innerHTML = `<div class="wrap sec narrow center"><div class="card intro">${UI.mascot('체험 기간이 끝났어! 그동안 모은 별과 기록은 그대로 있어. 다시 만나자!', '🥺')}
     <h1>3단계부터는 플러스예요</h1><p>1~2단계는 평생 무료로 계속할 수 있어요. 플러스는 월 ${won(PLANS.one.m12)}부터예요.</p>
     <a class="btn btn-primary lg" href="#/pricing">요금·할인 보기</a></div></div>`;
+};
+
+/* ---------- 친구·응원 쪽지·추천 ---------- */
+// 쪽지는 정해진 문구·스티커만 보낸다 (서버 social.js의 MESSAGE_CODES와 같은 번호)
+const CHEERS = {
+  c1: '오늘도 화이팅! 💪', c2: '레벨 올린 거 축하해! 🎉', c3: '같이 공부하자! 📚', c4: '스토리북 재밌었어! 📖', c5: '나도 오늘 공부했어! ✅',
+  c6: '별 많이 모았네! ⭐', c7: '내일 또 만나! 👋', c8: '영어 실력 최고야! 👍', c9: 'Good job! 🌟', c10: 'You can do it! 🚀',
+  s1: '🌟', s2: '👏', s3: '🎈', s4: '🐣', s5: '🌈', s6: '🍀', s7: '🏆', s8: '💖',
+};
+const inviteUrl = no => `${location.origin}${location.pathname}?ref=${no}`;
+async function copyText(text, msg = '복사했어요.') {
+  try { await navigator.clipboard.writeText(text); App.toast(msg); } catch { prompt('아래 내용을 복사해 주세요.', text); }
+}
+// 친구 아이 카드에 보여 줄 레벨·연속 학습일·이번 주 학습일
+function friendStats(k) {
+  const p = { startLevel: k.startLevel || 'A', progress: k.progress || {}, stamps: k.stamps || {} };
+  const lv = Store.currentLevel(p), st = stageOf(lv === 'Z' ? ALL_LEVELS[ALL_LEVELS.length - 1] : lv);
+  const week = [...Array(7)].filter((_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return p.stamps[Store.today(d)]; }).length;
+  return { lv: lv === 'Z' ? '완주' : `Level ${lv}`, stage: `${st.id}단계 ${st.title}`, streak: Store.streak(p), week };
+}
+const kidChip = k => `<span class="fr-ava">${avatarHtml({ avatar: k.avatar, wear: k.wear || {} }, 'sm')}</span>`;
+
+Views.friends = async el => {
+  if (!API.on) { el.innerHTML = `<div class="wrap sec narrow">${UI.empty('👫', '친구 기능은 새싹스쿨 사이트에 로그인하면 쓸 수 있어요.')}</div>`; return; }
+  const u = Store.user(), me = Store.profile();
+  el.innerHTML = `<div class="wrap sec narrow"><h1 class="page-title">👫 ${esc(me.name)}의 친구</h1><p class="fine">불러오는 중…</p></div>`;
+  let S;
+  try { S = await Store.Social.load(); } catch (x) { el.innerHTML = `<div class="wrap sec narrow">${UI.empty('⚠️', esc(x.message))}</div>`; return; }
+  const parentOnly = !!u.settings.friendApproval;
+  const mine = list => list.filter(f => f.myKid === me.id);
+  const friends = mine(S.friends), incoming = mine(S.incoming), outgoing = mine(S.outgoing);
+  const inbox = S.messages.filter(m => m.toKid === me.id).slice(0, 20);
+  el.innerHTML = `<div class="wrap sec narrow friends-page">
+    <h1 class="page-title">👫 ${esc(me.name)}의 친구</h1>
+    <div class="card fr-mine"><div><small>우리 집 회원번호</small><b class="fr-no">${esc(S.memberNo)}</b><small>친구에게 이 번호를 알려 주면 친구 신청을 받을 수 있어요.</small></div>
+      <button class="btn btn-ghost sm" data-copy>번호 복사</button></div>
+    ${inbox.length ? `<div class="card"><h3>💌 받은 응원</h3><ul class="fr-inbox">${inbox.map(m => `<li class="${m.read ? '' : 'new'}">${kidChip(m.from)}<b>${esc(m.from.name)}</b><span class="fr-msg">${esc(CHEERS[m.code] || '')}</span><small>${fmtDate(m.at)}</small></li>`).join('')}</ul></div>` : ''}
+    ${incoming.length ? `<div class="card"><h3>📮 친구 신청이 왔어요</h3>${incoming.map(f => `<div class="fr-row">${kidChip(f.kid)}<b>${esc(f.kid.name)}</b>
+      ${parentOnly ? '<small class="fine">부모님이 부모페이지에서 수락해요</small>' : `<button class="btn btn-primary sm" data-act="accept" data-id="${f.id}">수락</button><button class="btn btn-ghost sm" data-act="remove" data-id="${f.id}">거절</button>`}</div>`).join('')}</div>` : ''}
+    <div class="card"><h3>🌟 내 친구 ${friends.length ? `<small>${friends.length}명</small>` : ''}</h3>
+      ${friends.length ? `<div class="fr-grid">${friends.map(f => { const s = friendStats(f.kid); return `<div class="fr-card">${kidChip(f.kid)}<b>${esc(f.kid.name)}</b>
+        <span class="chip">${s.lv}</span><small>${esc(s.stage)}</small><small>⭐${f.kid.stars} · 🔥연속 ${s.streak}일 · 이번 주 ${s.week}일 · 📖${f.kid.stories}권</small>
+        <button class="btn btn-ghost sm" data-cheer="${f.id}">💌 응원 보내기</button></div>`; }).join('')}</div>` : '<p class="fine">아직 친구가 없어요. 아래에서 친구의 회원번호로 신청해 보세요.</p>'}</div>
+    <div class="card"><h3>➕ 친구 추가</h3><form class="fr-add" novalidate><input name="no" inputmode="numeric" maxlength="7" placeholder="친구네 회원번호 7자리" aria-label="친구네 회원번호"><button class="btn btn-primary sm">찾기</button></form>
+      <div class="fr-found"></div>
+      ${outgoing.length ? `<p class="fine">수락을 기다리는 신청: ${outgoing.map(f => `${esc(f.kid.name)} <button class="link-btn" data-act="remove" data-id="${f.id}">취소</button>`).join(' · ')}</p>` : ''}
+      <p class="fine">회원번호를 직접 주고받은 친구만 신청할 수 있어요. 친구에게는 이름·캐릭터·레벨·별·학습일만 보여요.</p></div>
+    <dialog class="fr-dialog"><h3>💌 응원 보내기</h3>${['c', 's'].map(t => `<div class="cheer-grid ${t === 's' ? 'stickers' : ''}">${Object.entries(CHEERS).filter(([k]) => k[0] === t).map(([k, v]) => `<button class="cheer ${t === 's' ? 'sticker' : ''}" data-code="${k}">${esc(v)}</button>`).join('')}</div>`).join('')}
+      <button class="btn btn-ghost full" data-close>닫기</button></dialog>
+  </div>`;
+  if (inbox.some(m => !m.read)) Store.Social.read(me.id).catch(() => {});
+  $('[data-copy]', el).onclick = () => copyText(S.memberNo, '회원번호를 복사했어요.');
+  const act = async (id, action) => { try { await Store.Social.respond(id, action); App.toast(action === 'accept' ? '친구가 되었어요! 🎉' : '처리했어요.'); Views.friends(el); } catch (x) { App.toast(x.message); } };
+  $$('[data-act]', el).forEach(b => b.onclick = () => act(b.dataset.id, b.dataset.act));
+  const dlg = $('.fr-dialog', el); let target = null;
+  $$('[data-cheer]', el).forEach(b => b.onclick = () => { target = b.dataset.cheer; dlg.showModal(); });
+  $('[data-close]', dlg).onclick = () => dlg.close();
+  $$('[data-code]', dlg).forEach(b => b.onclick = async () => {
+    try { await Store.Social.message(target, me.id, b.dataset.code); dlg.close(); App.toast('응원을 보냈어요! 💌'); } catch (x) { App.toast(x.message); }
+  });
+  const f = $('.fr-add', el), found = $('.fr-found', el);
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const no = f.no.value.replace(/\D/g, '');
+    if (no.length !== 7) { found.innerHTML = '<p class="form-err">회원번호는 숫자 7자리예요.</p>'; return; }
+    if (no === S.memberNo) { found.innerHTML = '<p class="form-err">우리 집 번호예요. 친구네 번호를 넣어 주세요.</p>'; return; }
+    try {
+      const { kids } = await Store.Social.lookup(no);
+      found.innerHTML = `<p>누구와 친구가 될까요?</p><div class="fr-pick">${kids.map(k => `<button class="btn btn-ghost" data-kid="${esc(k.id)}">${avaFace(k.avatar)} ${esc(k.name)}</button>`).join('')}</div>`;
+      $$('[data-kid]', found).forEach(b => b.onclick = async () => {
+        try { await Store.Social.request(me.id, no, b.dataset.kid); App.toast('친구 신청을 보냈어요!'); Views.friends(el); } catch (x) { App.toast(x.message); }
+      });
+    } catch (x) { found.innerHTML = `<p class="form-err">${esc(x.message)}</p>`; }
+  };
+};
+
+ParentTabs.friends = async (el, u) => {
+  if (!API.on) { el.innerHTML = UI.empty('👫', '친구·추천은 새싹스쿨 사이트에 로그인하면 쓸 수 있어요.'); return; }
+  el.innerHTML = '<p class="fine">불러오는 중…</p>';
+  let S;
+  try { S = await Store.Social.load(); } catch (x) { el.innerHTML = UI.empty('⚠️', esc(x.message)); return; }
+  const R = S.referral, left = R.per - (R.count % R.per);
+  const kidName = id => esc((u.profiles.find(p => p.id === id) || {}).name || '');
+  const row = (f, btns) => `<div class="fr-row">${kidChip(f.kid)}<b>${esc(f.kid.name)}</b><small>↔ ${kidName(f.myKid)}</small>${btns}</div>`;
+  el.innerHTML = `
+    <div class="card fr-mine"><div><small>우리 집 회원번호</small><b class="fr-no">${esc(S.memberNo)}</b>
+      <small>친구 추가와 추천인 코드로 써요. 아래 초대 링크로 가입하면 추천인 칸에 이 번호가 자동으로 들어가요.</small></div>
+      <div class="fr-btns"><button class="btn btn-ghost sm" data-copy-no>번호 복사</button><button class="btn btn-primary sm" data-invite>초대 링크 보내기</button></div></div>
+    <div class="card"><h3>🎁 추천 현황</h3>
+      <div class="kpis"><div class="kpi"><small>내가 추천한 회원</small><b>${R.count}명</b></div><div class="kpi"><small>받은 보상</small><b>${R.rewards}개월</b></div></div>
+      <div class="rb-bar"><i style="width:${(R.count % R.per) / R.per * 100}%"></i></div>
+      <p>${R.count % R.per}/${R.per}명 · <b>${left}명</b> 더 추천받으면 이용 기간이 <b>1개월</b> 늘어나요.</p>
+      ${R.pending ? `<p class="hint">쌓인 보상 ${R.pending}개월이 있어요. 플러스를 결제하면 바로 더해져요.</p>` : ''}
+      <p class="fine">추천 보상은 플러스 결제 회원에게 드려요. 새 회원이 가입할 때 추천인 칸에 우리 집 회원번호를 넣으면 1명으로 세요.</p></div>
+    <div class="card"><h3>👫 아이 친구 관리</h3>
+      <label class="check"><input type="checkbox" name="approval" ${u.settings.friendApproval ? 'checked' : ''}> 친구 신청은 부모가 수락해요 <small class="fine">(켜면 아이 화면에서는 수락할 수 없어요)</small></label>
+      ${S.incoming.length ? `<h4>📮 받은 친구 신청</h4>${S.incoming.map(f => row(f, `<button class="btn btn-primary sm" data-act="accept" data-id="${f.id}">수락</button><button class="btn btn-ghost sm" data-act="remove" data-id="${f.id}">거절</button><button class="btn btn-ghost sm danger" data-act="block" data-id="${f.id}">차단</button>`)).join('')}` : ''}
+      <h4>친구 목록</h4>${S.friends.length ? S.friends.map(f => row(f, `<small>${friendStats(f.kid).lv}</small><button class="btn btn-ghost sm" data-act="remove" data-id="${f.id}">삭제</button><button class="btn btn-ghost sm danger" data-act="block" data-id="${f.id}">차단</button>`)).join('') : '<p class="fine">아직 친구가 없어요.</p>'}
+      ${S.outgoing.length ? `<h4>보낸 신청</h4>${S.outgoing.map(f => row(f, `<button class="btn btn-ghost sm" data-act="remove" data-id="${f.id}">취소</button>`)).join('')}` : ''}
+      ${S.blocked.length ? `<h4>차단한 친구</h4>${S.blocked.map(f => row(f, `<button class="btn btn-ghost sm" data-act="unblock" data-id="${f.id}">차단 풀기</button>`)).join('')}` : ''}
+      <p class="fine">친구끼리는 정해진 응원 문구와 스티커만 주고받아요. 직접 쓴 글은 보낼 수 없어요. 차단하면 서로 신청과 쪽지를 보낼 수 없어요.</p></div>`;
+  $('[data-copy-no]', el).onclick = () => copyText(S.memberNo, '회원번호를 복사했어요.');
+  $('[data-invite]', el).onclick = async () => {
+    const text = `새싹스쿨에서 아이랑 영어 공부해요! 가입할 때 추천인 번호 ${S.memberNo}을 넣어 주세요.`, url = inviteUrl(S.memberNo);
+    if (navigator.share) { try { await navigator.share({ title: '새싹스쿨', text, url }); return; } catch (x) { if (x.name === 'AbortError') return; } }
+    copyText(`${text}\n${url}`, '초대 링크를 복사했어요.');
+  };
+  $('[name=approval]', el).onchange = e => { u.settings.friendApproval = e.target.checked; Store.persist(); App.toast(e.target.checked ? '이제 부모가 친구 신청을 수락해요.' : '아이도 친구 신청을 수락할 수 있어요.'); };
+  $$('[data-act]', el).forEach(b => b.onclick = async () => {
+    if (b.dataset.act === 'block' && !confirm('차단하면 서로 친구 신청과 쪽지를 보낼 수 없어요. 차단할까요?')) return;
+    try { await Store.Social.respond(b.dataset.id, b.dataset.act); App.toast('처리했어요.'); ParentTabs.friends(el, u); } catch (x) { App.toast(x.message); }
+  });
 };

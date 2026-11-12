@@ -7,13 +7,21 @@ export const getUser = uid => db.prepare('SELECT * FROM users WHERE id = ?').get
 export const getUserByEmail = email => email ? db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).toLowerCase()) : undefined;
 export const isAdmin = u => !!u && (u.role === 'admin' || (u.email && config.adminEmails.includes(u.email)));
 
+// 회원번호: 무작위 숫자 7자리 (가입 순서가 드러나지 않게). 친구 추가와 추천인 코드로 쓴다
+export function newMemberNo() {
+  for (;;) {
+    const no = String(crypto.randomInt(1000000, 10000000));
+    if (!db.prepare('SELECT 1 FROM users WHERE member_no = ?').get(no)) return no;
+  }
+}
+
 export function createUser({ email, parentName, provider, providerUid, marketing, source }) {
   return tx(() => {
     const uid = id(), t = now();
     const role = email && config.adminEmails.includes(email) ? 'admin' : 'parent';
-    db.prepare(`INSERT INTO users (id, email, parent_name, role, created_at, last_login, marketing, customer_key, settings, source)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, email || null, parentName, role, t, t, marketing ? 1 : 0, 'cus_' + crypto.randomBytes(12).toString('hex'),
-      JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing }), source || null);
+    db.prepare(`INSERT INTO users (id, email, parent_name, role, created_at, last_login, marketing, customer_key, settings, source, member_no)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, email || null, parentName, role, t, t, marketing ? 1 : 0, 'cus_' + crypto.randomBytes(12).toString('hex'),
+      JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing }), source || null, newMemberNo());
     db.prepare('INSERT INTO identities (provider, provider_uid, user_id, created_at) VALUES (?, ?, ?, ?)').run(provider, providerUid || email, uid, t);
     db.prepare('INSERT INTO coupons (id, user_id, name, rate, welcome, expires_at) VALUES (?, ?, ?, ?, 1, ?)').run(id(), uid, '웰컴쿠폰', 0.2, t + 10 * DAY);
     notify(uid, '🎉 가입을 환영해요! 쿠폰함에 웰컴쿠폰이 발급되었어요.', 'coupon');
@@ -52,7 +60,7 @@ export function membershipOf(uid) {
 export function userDoc(u) {
   const state = json(u.state, {});
   return {
-    id: u.id, email: u.email || '', parentName: u.parent_name, role: isAdmin(u) ? 'admin' : u.role,
+    id: u.id, memberNo: u.member_no || '', email: u.email || '', parentName: u.parent_name, role: isAdmin(u) ? 'admin' : u.role,
     providers: db.prepare('SELECT provider FROM identities WHERE user_id = ?').all(u.id).map(r => r.provider),
     createdAt: u.created_at, lastLogin: u.last_login, trialStart: u.trial_start, trialBonus: u.trial_bonus,
     profiles: state.profiles || [], activeProfile: state.activeProfile || null, worksheets: state.worksheets || {},

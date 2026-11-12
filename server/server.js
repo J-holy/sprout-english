@@ -18,6 +18,7 @@ import { PLANS, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
 import { sttProvider, checkWav, recognize } from './lib/stt.js';
 import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
+import { backfillMemberNos, addReferral, userByNo, socialDoc, lookupKids, requestFriend, respondFriend, sendMessage, markRead } from './lib/social.js';
 import { paymentMode, createOrder, completeDemo, completeBillingAuth, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
 
 const app = express();
@@ -83,6 +84,25 @@ app.post('/api/stt', requireUser, express.raw({ type: ['audio/wav', 'application
     console.error('[STT]', err.message); bad(res, '음성을 알아듣지 못했어요.', 502);
   }
 }));
+
+// ---------- 친구·응원 쪽지·추천 ----------
+const social = fn => (req, res) => { try { res.json(fn(req) || socialDoc(req.user.id)); } catch (err) { bad(res, err.message); } };
+app.get('/api/social', requireUser, (req, res) => res.json(socialDoc(req.user.id)));
+// 번호로 친구 찾기: 그 집 아이 이름·캐릭터만 보여 준다. 번호를 차례로 넣어 보는 것을 막으려고 횟수를 제한한다
+app.get('/api/social/lookup', requireUser, (req, res) => {
+  if (!rateLimit('flookup:' + req.user.id, 30, 3600000)) return bad(res, '잠시 후 다시 찾아 주세요.', 429);
+  const kids = lookupKids(String(req.query.no || '').trim(), req.user.id);
+  if (!kids) return bad(res, '그 번호의 회원을 찾을 수 없어요.', 404);
+  if (!kids.length) return bad(res, '그 회원은 아직 아이 프로필이 없어요.', 404);
+  res.json({ kids });
+});
+app.post('/api/social/request', requireUser, social(req => {
+  if (!rateLimit('freq:' + req.user.id, 20, DAY)) throw new Error('오늘은 친구 신청을 많이 보냈어요. 내일 다시 해 주세요.');
+  const { kid, no, toKid } = req.body || {}; requestFriend(req.user.id, String(kid || ''), String(no || '').trim(), String(toKid || ''));
+}));
+app.post('/api/social/respond', requireUser, social(req => { const { id: fid, action } = req.body || {}; respondFriend(req.user.id, String(fid || ''), ['accept', 'remove', 'block', 'unblock'].includes(action) ? action : 'remove'); }));
+app.post('/api/social/message', requireUser, social(req => { const { friendId, kid, code } = req.body || {}; sendMessage(req.user.id, String(friendId || ''), String(kid || ''), String(code || '')); }));
+app.post('/api/social/read', requireUser, social(req => { markRead(req.user.id, String(req.body?.kid || '')); }));
 
 // ---------- 내 정보 / 학습 기록 동기화 ----------
 app.get('/api/me', (req, res) => res.json(req.user ? userDoc(req.user) : { loggedIn: false }));
@@ -233,12 +253,14 @@ app.post('/api/auth/complete', (req, res) => {
   const { parentName, terms, age, marketing } = req.body || {};
   // 가입 경로는 영문·숫자·점·밑줄·하이픈만, 40자까지 (화면이 utm_source나 들어온 사이트 이름을 보낸다)
   const source = /^[\w.-]{1,40}$/.test(String(req.body?.source || '')) ? String(req.body.source).toLowerCase() : null;
+  const referrer = /^\d{7}$/.test(String(req.body?.referrer || '').trim()) ? String(req.body.referrer).trim() : '';
+  if (referrer && !userByNo(referrer)) return bad(res, '추천인 회원번호를 찾을 수 없어요. 번호를 확인하거나 비워 두세요.');
   const name = String(parentName || '').trim().slice(0, 20);
   if (!name) return bad(res, '이름을 입력해 주세요.');
   if (!terms || !age) return bad(res, '필수 항목에 동의해 주세요.');
   let u = p.email ? getUserByEmail(p.email) : null;
   if (u) linkIdentity(u.id, p.provider, p.uid);
-  else u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, source });
+  else { u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, source }); if (referrer) addReferral(u.id, referrer); }
   clearCookie(res, 'pending');
   startSession(req, res, u.id);
   res.json({ ok: true });
@@ -352,7 +374,7 @@ app.delete('/api/reviews/:id', requireUser, (req, res) => {
 // ---------- 관리자 ----------
 app.use('/api/admin', requireUser, requireAdmin);
 app.get('/api/admin/users', (req, res) => {
-  res.json(db.prepare('SELECT * FROM users ORDER BY created_at DESC').all().map(u => ({ ...userDoc(u), source: u.source || '', access: access(u), notifications: undefined })));
+  res.json(db.prepare('SELECT * FROM users ORDER BY created_at DESC').all().map(u => ({ ...userDoc(u), source: u.source || '', referrals: db.prepare('SELECT COUNT(*) n FROM users WHERE referred_by = ?').get(u.id).n, referralRewards: u.referral_rewards || 0, access: access(u), notifications: undefined })));
 });
 app.post('/api/admin/users/:id/action', (req, res) => {
   const u = getUser(req.params.id); if (!u) return bad(res, '회원을 찾을 수 없어요.', 404);
@@ -468,6 +490,8 @@ app.use((err, req, res, next) => {
 });
 
 // ---------- 주기 작업 ----------
+// 회원번호가 없는 예전 회원에게 번호를 준다
+{ const n = backfillMemberNos(); if (n) console.log(`[회원번호] ${n}명에게 번호를 줬어요`); }
 setInterval(cleanupSessions, 3600000).unref();
 setInterval(() => renewalJob().catch(err => console.error('[자동갱신]', err.message)), 3600000).unref();
 setInterval(() => reminderJob().catch(err => console.error('[학습알림]', err.message)), 60000).unref();

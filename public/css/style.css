@@ -1219,3 +1219,35 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .ins .btn.block { display: block; width: 100%; margin: 14px 0 6px; }
 .ins-foot { display: flex; justify-content: center; gap: 18px; margin-top: 12px; }
 .footer-links .link-btn { font: inherit; }
+
+/* 친구·응원 쪽지·추천 */
+.friends-page .card, .tab-body .fr-mine { margin-bottom: 16px; }
+.fr-mine { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.fr-mine > div:first-child { display: grid; gap: 2px; }
+.fr-mine small { color: var(--muted); }
+.fr-no { font-family: var(--title); font-size: 1.9rem; letter-spacing: .12em; }
+.fr-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.fr-ava { display: inline-flex; width: 44px; height: 44px; flex: none; }
+.fr-ava .avatar { width: 44px; height: 44px; font-size: 1.9rem; }
+.fr-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.fr-row b { margin-right: auto; }
+.fr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.fr-card { display: grid; justify-items: center; text-align: center; gap: 4px; padding: 14px 10px; border: var(--bw) solid var(--line); border-radius: 18px; background: var(--soft); }
+.fr-card .fr-ava, .fr-card .fr-ava .avatar { width: 64px; height: 64px; font-size: 2.7rem; }
+.fr-card small { color: var(--muted); font-size: .82rem; }
+.fr-add { display: flex; gap: 8px; }
+.fr-add input { flex: 1; min-width: 0; font-size: 1.15rem; letter-spacing: .08em; }
+.fr-found { margin: 10px 0; }
+.fr-pick { display: flex; gap: 8px; flex-wrap: wrap; }
+.fr-inbox { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.fr-inbox li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 8px; border-radius: 14px; }
+.fr-inbox li.new { background: var(--soft); }
+.fr-inbox .fr-msg { font-size: 1.05rem; }
+.fr-inbox small { margin-left: auto; color: var(--muted); }
+.fr-dialog { border: var(--bw) solid var(--line); border-radius: var(--radius); padding: 18px; max-width: min(520px, calc(100vw - 32px)); background: var(--paper); color: var(--ink); }
+.fr-dialog::backdrop { background: rgb(0 0 0 / .35); }
+.cheer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px 0 14px; }
+.cheer { padding: 10px; border-radius: 14px; border: 2px solid var(--line); background: var(--soft); font: inherit; cursor: pointer; color: var(--ink); }
+.cheer-grid.stickers { grid-template-columns: repeat(4, 1fr); }
+.cheer.sticker { font-size: 1.8rem; padding: 6px; }
+.cheer:hover { background: var(--paper); }
