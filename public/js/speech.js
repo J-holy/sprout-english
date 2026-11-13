@@ -198,13 +198,16 @@ const Speech = (() => {
     // 작게 녹음된 소리는 키운다 (에코 제거를 끄면 아이패드 녹음이 작게 들어온다). 8배까지, 가장 큰 곳이 0.7이 되게
     let peak = 0; for (let i = 0; i < all.length; i++) peak = Math.max(peak, Math.abs(all[i]));
     const gain = peak > 0 && peak < 0.5 ? Math.min(8, 0.7 / peak) : 1;
-    const bytes = sttUlaw ? 1 : 2, ratio = inRate / 16000, n = Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * bytes));
+    // 앞에 0.4초 무음을 붙인다: 말소리가 녹음 맨 앞에서 바로 시작하면 Whisper가 첫 단어를 놓쳤다
+    //   (라즈베리파이 시험 40문장, 읽을 문장 힌트를 줄 때 첫 단어 37 → 39개 맞힘, 2026-11-13)
+    const lead = 6400, bytes = sttUlaw ? 1 : 2, ratio = inRate / 16000, n = lead + Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * bytes));
     const put = (at, t) => [...t].forEach((c, i) => b.setUint8(at + i, c.charCodeAt(0)));
     put(0, 'RIFF'); b.setUint32(4, 36 + n * bytes, true); put(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, sttUlaw ? 7 : 1, true); b.setUint16(22, 1, true);
     b.setUint32(24, 16000, true); b.setUint32(28, 16000 * bytes, true); b.setUint16(32, bytes, true); b.setUint16(34, bytes * 8, true); put(36, 'data'); b.setUint32(40, n * bytes, true);
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < lead; i++) if (sttUlaw) b.setUint8(44 + i, ulaw(0)); else b.setInt16(44 + i * 2, 0, true);
+    for (let i = lead; i < n; i++) {
       // 16kHz로 줄일 때 구간 평균을 내서 거친 소리를 막는다
-      const s0 = Math.floor(i * ratio), s1 = Math.max(s0 + 1, Math.floor((i + 1) * ratio)); let v = 0;
+      const s0 = Math.floor((i - lead) * ratio), s1 = Math.max(s0 + 1, Math.floor((i - lead + 1) * ratio)); let v = 0;
       for (let j = s0; j < s1; j++) v += all[j];
       v = Math.max(-1, Math.min(1, v / (s1 - s0) * gain));
       if (sttUlaw) b.setUint8(44 + i, ulaw(v)); else b.setInt16(44 + i * 2, v * 0x7fff, true);
@@ -257,7 +260,7 @@ const Speech = (() => {
     catch (e) { done(); throw e; }
     if (ctx.state !== 'running') await Promise.race([ctx.resume().catch(() => {}), new Promise(r => setTimeout(r, 800))]);
     const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1);
-    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0, first = -1, last = -1;
+    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0, first = -1, last = -1, live = false;
     // 말소리 기준: 처음 잠깐의 주변 소리로 정한다. 아이패드는 잡음 제거 때문에 소리가 작아서 고정값이면 말해도 못 들은 것이 되었다
     let floor = 1, level = 0.02, peak = 0;
     return new Promise((resolve, reject) => {
@@ -273,9 +276,11 @@ const Speech = (() => {
       recording = { stop: finish };
       proc.onaudioprocess = ev => {
         const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
-        if (chunks.length === 1 && onStart) onStart();
         let e = 0; for (let i = 0; i < d.length; i += 4) e += d[i] * d[i];
         const now = Date.now(), rms = Math.sqrt(e / (d.length / 4));
+        // "지금 말해요"는 마이크 소리가 실제로 들어올 때 띄운다. 아이패드는 꺼 둔 마이크를 다시 켜면 처음 잠깐 빈 소리(0)만 와서,
+        //   그때 말하기 시작하면 첫 소리가 녹음되지 않았다 (2026-11 제보). 0.7초가 지나도 안 오면 그냥 띄운다
+        if (!live && (rms > 1e-5 || now - t0 > 700)) { live = true; if (onStart) onStart(); }
         if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.02, Math.max(0.006, floor * 2.5)); }
         peak = Math.max(peak, rms);
         if (rms > level) { heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
