@@ -56,7 +56,7 @@
 | 10 | 2 | Ben and the Bus | 벤과 톰의 버스 여행 (짧은 e·u) |
 | 19 | 2 | The Red Hen | 암탉이 알을 노리는 여우를 쫓아냄 (짧은 e) |
 | 20 | 2 | Pig in the Mud | 진흙 속 돼지와 오리 (짧은 i·u) |
-| 34 | 2 | Mud Is Fun | 통나무에 동물들이 앉다가 진흙에 빠짐 |
+| 34 | 2 | The Log Boat | 통나무에 동물들이 앉다가 연못으로 미끄러져 통나무 배가 됨 |
 | 46 | 2 | Tim and the Jam | 팀의 잼 빵을 젖은 개가 노림 |
 | 58 | 2 | Dan and the Van | 댄의 밴, 고양이, 뜨거운 빵 |
 | 70 | 2 | Kip the Pup | 강아지 킵이 빨간 컵을 파내고 무당벌레와 놂 |
@@ -297,7 +297,7 @@
 | N | nose, nest, net, night, newt | necklace, nap, nuts |
 | O | owl, ocean, octopus, ostrich, otter | overalls, oak, oatmeal |
 | P | panda, plant, penguin, pillow, pebble | purse, puppy, pancakes |
-| Q | queen bee, quiet, quilt, quail, quack | queen, quick, quiche |
+| Q | queen bee, quiet, quilt, quail, quack, queen | queen(141번은 만들 때 다른 Q 단어로), quick, quiche |
 | R | rabbit, rainbow, rock, raccoon, raft | ring, roller skates, raisins |
 | S | snake, sun, shell, star, swan | scarf, swing, sausage |
 | T | tiger, tree, turtle, teddy bear, tadpole | tutu, tulip, toast |
