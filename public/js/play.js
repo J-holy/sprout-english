@@ -178,8 +178,17 @@ function playKit(el, area, name, { hearts = 0, heartIcon = '❤️' } = {}) {
   return kit;
 }
 
-// 단어를 겹치지 않게 차례로 꺼낸다 (다 쓰면 다시 섞는다)
-const wordQueue = list => { let q = []; return () => { if (!q.length) q = shuffle(list); return q.pop(); }; };
+// 단어를 겹치지 않게 차례로 꺼낸다 (다 쓰면 다시 섞는다). 같은 단어가 목록에 두 번 있어도 한 번만 쓰고,
+// 다시 섞을 때 방금 나온 단어(또는 같은 그림)가 바로 이어 나오지 않게 한다 (2026-11 제보: 같은 단어가 연달아 나왔다)
+const wordQueue = list => {
+  const words = list.filter((w, k, a) => a.findIndex(x => x.en === w.en) === k);
+  let q = [], last = null;
+  const same = (x, y) => x && y && (x.en === y.en || x.emoji === y.emoji);
+  return () => {
+    if (!q.length) { q = shuffle(words); const k = q.findIndex(w => !same(w, last)); if (k >= 0 && same(q[q.length - 1], last)) [q[k], q[q.length - 1]] = [q[q.length - 1], q[k]]; }
+    return (last = q.pop());
+  };
+};
 const uniqueWords = (list, n) => shuffle(list).filter((w, k, a) => a.findIndex(x => x.en === w.en) === k).slice(0, n);
 const lenClass = en => (en.length >= 8 ? 'xlong' : en.length >= 6 ? 'long' : '');
 
@@ -768,7 +777,8 @@ Views.play = (el, game, quick) => {
   const p = Store.profile(), best = name => (p.games || {})[name] || 0;
   // 아이가 이미 배운 범위의 그림 단어만 쓴다 (관리자는 전체)
   const reach = Store.isAdmin() ? 99 : ALL_LEVELS.indexOf(Store.currentLevel()) + 1;
-  const pool = reach <= 2 ? PICTURE_WORDS.filter(w => LETTERS.some(l => l.word === w.en)) : PICTURE_WORDS;
+  // 알파벳 단어와 파닉스 단어에 같은 단어가 겹쳐 있어서 한 번만 넣는다 (겹치면 같은 단어가 연달아 나왔다)
+  const pool = (reach <= 2 ? PICTURE_WORDS.filter(w => LETTERS.some(l => l.word === w.en)) : PICTURE_WORDS).filter((w, k, a) => a.findIndex(x => x.en === w.en) === k);
   if (!game) {
     const got = Object.keys(PLAY_GAMES).reduce((n, g) => n + medalCount(g, best(g)), 0), all = Object.keys(PLAY_GAMES).length * 3;
     el.innerHTML = `<div class="wrap sec">

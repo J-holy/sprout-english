@@ -459,7 +459,7 @@ Views.home = el => {
 
 // 홈 히어로: 가입 없이 바로 푸는 3문제
 UI.miniQuiz = box => {
-  let n = 0, right = 0;
+  let n = 0, right = 0, asked = [];
   // 그림만 보고 헷갈리지 않는 단어만 쓴다
   const CLEAR = ['apple', 'ball', 'cat', 'dog', 'egg', 'fish', 'hat', 'lion', 'moon', 'pig', 'sun', 'bus', 'cup', 'fox', 'bed', 'whale', 'zebra', 'tiger', 'rabbit', 'cheese', 'ship', 'chick'];
   const pool = PICTURE_WORDS.filter(w => CLEAR.includes(w.en));
@@ -468,11 +468,13 @@ UI.miniQuiz = box => {
       box.innerHTML = `<span class="sticker-label">바로 해보기</span><div class="mq-done anim-in"><div class="mq-big">${right === 3 ? '🏆' : '🌟'}</div>
         <h3>${right}개 맞혔어요!</h3><p>이런 문제를 놀이처럼 하루 8개씩 풀어요.</p>
         <a class="btn btn-primary full" href="#/sample/A">▶ 3분 체험 레슨 이어하기</a><button class="link-btn" data-again>다시 풀기</button></div>`;
-      $('[data-again]', box).onclick = () => { n = 0; right = 0; draw(); };
+      $('[data-again]', box).onclick = () => { n = 0; right = 0; asked = []; draw(); };
       if (right >= 2) Lesson.confetti();
       return;
     }
-    const ans = pool[Math.floor(Math.random() * pool.length)];
+    // 방금 문제와 같은 단어는 다시 내지 않는다
+    const left = pool.filter(w => !asked.includes(w.en)), ans = left[Math.floor(Math.random() * left.length)] || pool[0];
+    asked.push(ans.en);
     const opts = shuffle([ans, ...pictureOthers(pool, 2, ans)]);
     box.innerHTML = `<span class="sticker-label">바로 해보기 ${n + 1}/3</span>
       <p class="mq-q">소리를 듣고 그림을 골라요</p>

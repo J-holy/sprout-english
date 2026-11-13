@@ -179,6 +179,19 @@ const Gen = (() => {
         seen.add(best.key); out.push(best); count[best.type] = (count[best.type] || 0) + 1;
       }
     }
+    return spread(out);
+  }
+  // 같은 항목이나 같은 말(질문·단어)을 묻는 문항이 바로 이어지지 않게 뒤쪽 문항과 자리를 바꾼다
+  //   (2026-11 제보: 같은 것이 연달아 나왔다. 'What is your name?'처럼 대답만 다른 항목이 이어지기도 했다)
+  const sayOf = q => String(q.say || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+  const clash = (a, b) => !!a && !!b && (a.item === b.item || (!!sayOf(a) && sayOf(a) === sayOf(b)));
+  function spread(qs) {
+    const out = qs.slice();
+    for (let i = 1; i < out.length; i++) {
+      if (!clash(out[i], out[i - 1])) continue;
+      const j = out.findIndex((q, k) => k > i && !clash(q, out[i - 1]) && !clash(q, out[i + 1] === q ? null : out[i + 1]) && !clash(out[i], out[k - 1] === out[i] ? null : out[k - 1]) && !clash(out[i], out[k + 1]));
+      if (j > 0) [out[i], out[j]] = [out[j], out[i]];
+    }
     return out;
   }
   // 항목(단어·문장)마다의 문항 만들기 — 레슨과 복습이 같이 쓴다
@@ -278,9 +291,20 @@ const Challenge = (() => {
       setTimeout(() => { if (!over && document.body.contains(el)) next(); }, ok ? 350 : 700);
     };
     const pickOne = a => a[Math.floor(Math.random() * a.length)];
+    // 문제는 주머니에서 하나씩 꺼낸다: 다 꺼내기 전에는 같은 것이 다시 나오지 않고, 새로 섞을 때도 방금 것이 바로 이어 나오지 않게
+    //   (2026-11 제보: 매번 아무거나 골라서 같은 단어가 연달아 나왔다)
+    const keyOf = x => (typeof x === 'string' ? x : x.en || x.say);
+    let bag = [], lastKey = null;
+    const draw = () => {
+      if (!bag.length) {
+        bag = shuffle(spec.pool.filter((x, k, a) => a.findIndex(y => keyOf(y) === keyOf(x)) === k));
+        if (bag.length > 1 && keyOf(bag[bag.length - 1]) === lastKey) bag.unshift(bag.pop());
+      }
+      const x = bag.pop(); lastKey = keyOf(x); return x;
+    };
     const next = () => {
       if (spec.kind === 'balloon') {
-        const ans = pickOne(spec.pool);
+        const ans = draw();
         const opts = shuffle([ans, ...letterOthers(ans, 3)]);
         const colors = ['#ff7aa8', '#ffd23f', '#5cc8ff', '#7ed957'];
         stage.innerHTML = `<div class="sky ch-sky">${opts.map((o, k) => `<button class="balloon" style="--c:${colors[k]};--d:${k * 0.2}s;--x:${k * 25 + 2}%" data-v="${o}"><span class="ch-letter">${k % 2 ? o.toLowerCase() : o}</span></button>`).join('')}</div>`;
@@ -292,7 +316,7 @@ const Challenge = (() => {
           stage.querySelectorAll('.balloon').forEach(x => x.disabled = true); hit(ok);
         });
       } else if (spec.kind === 'mole') {
-        const ans = pickOne(spec.pool);
+        const ans = draw();
         const opts = shuffle([ans, ...pictureOthers(spec.pool, 3, ans)]);
         stage.innerHTML = `<div class="moles">${opts.map((o, k) => `<button class="mole" style="--d:${k * 0.08}s" data-v="${esc(o.en)}"><span class="mole-pic">${pic(o.emoji)}</span><small>${esc(o.en)}</small></button>`).join('')}</div>
           <button class="btn btn-ghost sm ch-again" data-again>🔊 다시</button>`;
@@ -304,7 +328,7 @@ const Challenge = (() => {
         });
       } else {
         // 두 개 중 고르기: 질문(또는 빈칸 문장)을 보여주고 읽어준다
-        const item = pickOne(spec.pool);
+        const item = draw();
         const opts = shuffle([item.answer, pickOne(item.wrong)]);
         stage.innerHTML = `<div class="pick2-card"><p class="pick2-prompt">${esc(item.prompt)}</p><button class="btn btn-ghost sm" data-again>🔊 다시 듣기</button></div>
           <div class="pick2-btns">${opts.map(o => `<button class="pick2" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
