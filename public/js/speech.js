@@ -181,7 +181,9 @@ const Speech = (() => {
   let sttOn = false, recording = null;
   const webSpeechOk = () => !!Rec && env.secure && !env.inApp && !env.iosNotSafari && !env.iosApp;
   let webSpeechBroken = false;
-  const useServer = () => sttOn && canRecord() && (!webSpeechOk() || (webSpeechBroken && !!Store.user()));
+  // iPhone·iPad는 로그인했으면 늘 서버로 채점한다: Safari 자체 음성 인식은 마이크를 따로 열어서 허용을 또 묻고 소리도 작아졌다.
+  //   서버 채점은 한 번 열어 둔 마이크를 계속 쓴다
+  const useServer = () => sttOn && canRecord() && (!webSpeechOk() || ((env.ios || webSpeechBroken) && !!Store.user()));
   const canRecord = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!(window.AudioContext || window.webkitAudioContext) && env.secure && !env.inApp;
   // 서버가 받을 수 있으면(sttUlaw) 8비트 µ-law로 보낸다: 크기가 절반이라 휴대폰에서 올리는 시간이 줄고, 인식 결과는 16비트와 같았다
   let sttUlaw = false;
@@ -193,6 +195,9 @@ const Speech = (() => {
   function toWav(chunks, inRate) {
     const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0;
     chunks.forEach(c => { all.set(c, o); o += c.length; });
+    // 작게 녹음된 소리는 키운다 (에코 제거를 끄면 아이패드 녹음이 작게 들어온다). 8배까지, 가장 큰 곳이 0.7이 되게
+    let peak = 0; for (let i = 0; i < all.length; i++) peak = Math.max(peak, Math.abs(all[i]));
+    const gain = peak > 0 && peak < 0.5 ? Math.min(8, 0.7 / peak) : 1;
     const bytes = sttUlaw ? 1 : 2, ratio = inRate / 16000, n = Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * bytes));
     const put = (at, t) => [...t].forEach((c, i) => b.setUint8(at + i, c.charCodeAt(0)));
     put(0, 'RIFF'); b.setUint32(4, 36 + n * bytes, true); put(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, sttUlaw ? 7 : 1, true); b.setUint16(22, 1, true);
@@ -201,36 +206,33 @@ const Speech = (() => {
       // 16kHz로 줄일 때 구간 평균을 내서 거친 소리를 막는다
       const s0 = Math.floor(i * ratio), s1 = Math.max(s0 + 1, Math.floor((i + 1) * ratio)); let v = 0;
       for (let j = s0; j < s1; j++) v += all[j];
-      v = Math.max(-1, Math.min(1, v / (s1 - s0)));
+      v = Math.max(-1, Math.min(1, v / (s1 - s0) * gain));
       if (sttUlaw) b.setUint8(44 + i, ulaw(v)); else b.setInt16(44 + i * 2, v * 0x7fff, true);
     }
     return new Blob([b], { type: 'audio/wav' });
   }
-  // 마이크는 한 번 열면 계속 다시 쓴다. 녹음할 때마다 새로 열고 닫으면 아이패드·아이폰(특히 Chrome·홈 화면 앱)은
-  // 그때마다 "마이크를 허용할까요?"를 다시 물었다 (2026-11 제보). 쉬는 동안에는 트랙만 꺼 두고,
-  // 오래 쓰지 않거나 화면을 떠나면 완전히 닫는다
-  const MIC_KEEP_MS = 180000;
-  let micStream = null, micIdle = null;
+  // 마이크는 한 번 열면 사이트를 쓰는 동안 계속 다시 쓴다. 닫았다가 다시 열면 아이패드·아이폰(Safari·Chrome·홈 화면 앱)은
+  // 그때마다 "마이크를 허용할까요?"를 다시 물었다 (2026-11 제보: 녹음마다 묻다가 고친 뒤에도, 3분 쉬거나 다른 앱에 다녀오면 또 물었다).
+  // 쉬는 동안에는 트랙만 꺼 두고, 페이지를 닫을 때만 완전히 닫는다.
+  // 에코 제거는 끈다: 켜면 iPhone·iPad가 통화용 소리 처리를 켜서, 마이크가 열려 있는 동안 읽어주는 소리가 작아졌다 (2026-11 아이패드 제보).
+  //   녹음하는 동안에는 소리를 내지 않아서 에코 제거가 필요 없다. 작게 녹음된 소리는 toWav에서 키운다
+  let micStream = null;
   async function getMic() {
-    clearTimeout(micIdle);
     const live = micStream && micStream.getAudioTracks().some(t => t.readyState === 'live');
-    if (!live) micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
+    if (!live) micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
     micStream.getAudioTracks().forEach(t => { t.enabled = true; });
     return micStream;
   }
-  function releaseMic(later = 0) {
-    clearTimeout(micIdle);
+  function releaseMic(close = false) {
     if (!micStream) return;
-    const close = () => { if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; } };
-    if (!later) return close();
+    if (close) { micStream.getTracks().forEach(t => t.stop()); micStream = null; return; }
     micStream.getAudioTracks().forEach(t => { t.enabled = false; });
-    micIdle = setTimeout(close, later);
   }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseMic(); });
+  window.addEventListener('pagehide', e => { if (!e.persisted) releaseMic(true); });
   // 처음 한 번 마이크를 허용받는다 (프로필을 만든 뒤 안내 화면에서). 'granted' | 'denied' | 'unsupported'
   async function askMic() {
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || !env.secure || env.inApp) return 'unsupported';
-    try { await getMic(); releaseMic(MIC_KEEP_MS); return 'granted'; }
+    try { await getMic(); releaseMic(); return 'granted'; }
     catch (e) { return e && e.name === 'NotAllowedError' ? 'denied' : 'unsupported'; }
   }
   // 말소리 앞뒤의 조용한 부분은 잘라서 보낸다: 올리는 양이 줄고, 서버 인식도 녹음 길이에 맞춰 빨라진다
@@ -263,7 +265,7 @@ const Speech = (() => {
         if (!recording) return; recording = null;
         clearTimeout(guard); clearTimeout(dead);
         proc.onaudioprocess = null; proc.disconnect(); src.disconnect();
-        releaseMic(MIC_KEEP_MS); done(); // 트랙을 꺼서 소리 크기가 돌아오게 (허용은 다시 묻지 않게 마이크는 잠시 남겨 둔다)
+        releaseMic(); done(); // 트랙만 꺼 둔다 (다음 녹음에서 허용을 다시 묻지 않게)
         if (!chunks.length) reject(Object.assign(new Error('audio-capture'), { detail: 'no-audio-' + ctx.state })); else resolve(heard || peak > 0.006 ? toWav(trimChunks(chunks, first, last, ctx.sampleRate), ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
       };
       // 소리 알림이 아예 오지 않아도 "듣고 있어요"에 멈춰 있지 않게 한다
