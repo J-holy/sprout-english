@@ -255,7 +255,7 @@ const STORIES = [
   { id: 17, stage: 1, title: 'The Toy Shop', cover: '🧸', pages: [
     ['A is for airplane.', '✈️'], ['B is for ball.', '⚽'], ['C is for car.', '🚗'], ['D is for doll.', '🪆'], ['E is for elephant.', '🐘'], ['F is for flag.', '🚩'], ['G is for guitar.', '🎸'], ['H is for hat.', '🎩'], ['I is for iguana.', '🦎'], ['J is for jump rope.', '🪢'], ['K is for kite.', '🪁'], ['L is for lamp.', '💡'], ['M is for mask.', '🎭'], ['We go to the toy shop.', '🏪 🧸'], ['I see many toys.', '🧸 🚗 🪁'], ['I pick a red kite.', '🧒 🪁'], ['Thank you, Dad!', '👨 🧒 💛']] },
   { id: 18, stage: 1, title: 'A Nature Walk', cover: '🌳', pages: [
-    ['N is for nest.', '🪺'], ['O is for ocean.', '🌊'], ['P is for plant.', '🌱'], ['Q is for quiet.', '🤫'], ['R is for rainbow.', '🌈'], ['S is for sun.', '☀️'], ['T is for tree.', '🌳'], ['U is for umbrella.', '☂️'], ['V is for volcano.', '🌋'], ['W is for water.', '💧'], ['Six ends with X.', '6️⃣ 🐦'], ['Y is for yellow.', '💛 🌼'], ['Z is for zoo.', '🦁 🦓'], ['I walk with Grandpa.', '👴 🧒'], ['We see a bird in the tree.', '🐦 🌳'], ['What a fun walk!', '👴 🧒 💚']] },
+    ['N is for nest.', '🪺'], ['O is for ocean.', '🌊'], ['P is for plant.', '🌱'], ['Q is for quiet.', '🤫'], ['R is for rainbow.', '🌈'], ['S is for sun.', '☀️'], ['T is for tree.', '🌳'], ['U is for umbrella.', '☂️'], ['V is for violet.', '🪻'], ['W is for water.', '💧'], ['Six ends with X.', '6️⃣ 🐦'], ['Y is for yellow.', '💛 🌼'], ['Z is for zoo.', '🦁 🦓'], ['I walk with Grandpa.', '👴 🧒'], ['We see a bird in the tree.', '🐦 🌳'], ['What a fun walk!', '👴 🧒 💚']] },
   { id: 2, stage: 2, title: 'The Fat Cat', cover: '🐈', pages: [
     ['A cat sat on a mat.', '🐈 🟫'], ['The cat is fat.', '🐈 🍖'], ['A rat ran to the mat.', '🐀 💨 🟫'], ['The rat has a red hat.', '🐀 🎩'], ['The cat sees the hat.', '🐈 👀 🎩'], ['The cat wants the hat!', '🐈 😺 🎩'], ['The rat ran and hid.', '🐀 💨 🫣'], ['The rat hid in a box.', '🐀 📦'], ['The cat got up.', '🐈 ⬆️'], ['The cat ran to the box.', '🐈 💨 📦'], ['But the cat is so fat!', '🐈 😅'], ['The cat did not fit in the box.', '🐈 📦 ❌'], ['The cat sat back on the mat.', '🐈 🟫'], ['The cat had a nap.', '🐈 😴 💤'], ['The rat got the hat!', '🐀 🎩 🎉'], ['The rat ran off with a grin.', '🐀 💨 😁']] },
   { id: 10, stage: 2, title: 'Ben and the Bus', cover: '🚌', pages: [
@@ -560,7 +560,7 @@ const STORIES = [
     ['Maybe I will find a best friend.', '👫'], ['We will sit together at lunch.', '🍱'], ['After school, I will tell Mom everything.', '🗣️'], ['Tonight, I will put my clothes on the chair.', '🪑'],
     ['I am going to wear my new sneakers.', '👟'], ['I am a little scared, but excited, too.', '😬'], ['Tomorrow will be a big day.', '🌟'], ['Good night! See you tomorrow, school!', '🌙 💛']] },
   { id: 93, stage: 1, plus: true, title: 'ABC Night', cover: '🌙', pages: [
-    ['N is for night.', '🌙'], ['O is for ostrich.', '🪶'], ['P is for pillow.', '🛏️'], ['Q is for quail.', '🐦'],
+    ['N is for night.', '🌙'], ['O is for owl.', '🦉'], ['P is for pillow.', '🛏️'], ['Q is for quail.', '🐦'],
     ['R is for raccoon.', '🦝'], ['S is for star.', '⭐'], ['T is for teddy bear.', '🧸'], ['U is for under.', '⬇️'],
     ['V is for valley.', '🏞️'], ['W is for wolf.', '🐺'], ['Fox ends with X.', '🦊'], ['Y is for yawn.', '🥱'],
     ['Z is for zipper.', '🤐'], ['I look up at the night sky.', '🌌'], ['I count the stars.', '✨'], ['Soon I fall asleep.', '😴']] },
@@ -716,10 +716,10 @@ const STORIES = [
     ['We are going to buy a key ring for Grandma.', '🔑'], ['When it gets dark, the city lights will turn on.', '🌃'], ['They will sparkle like stars.', '✨'], ['Then we will take the subway home.', '🚇'],
     ['My sister will fall asleep on the way.', '😴'], ['I think I will be tired, too.', '🥱'], ['But it is going to be a wonderful day!', '🌟'], ['I will tell Grandma all about it.', '👵']] },
   { id: 117, stage: 1, plus: true, title: 'ABC Pond', cover: '🦢', pages: [
-    ['N is for newt.', '🦎'], ['O is for otter.', '🦦'], ['P is for pebble.', '🪨'], ['Q is for quiet pond.', '🤫'],
-    ['R is for raft.', '🛶'], ['S is for swan.', '🦢'], ['T is for tadpole.', '🐸'], ['U is for upside down.', '🙃'],
+    ['N is for newt.', '🦎'], ['O is for otter.', '🦦'], ['P is for pebble.', '🪨'], ['Q is for quick frog.', '🐸'],
+    ['R is for raft.', '🛶'], ['S is for swan.', '🦢'], ['T is for tadpole.', '🐸'], ['U is for underwater.', '🫧'],
     ['V is for vine.', '🌿'], ['W is for willow.', '🌳'], ['Ox ends with X.', '🐂'], ['Y is for yummy.', '😋'],
-    ['Z is for zebra fish.', '🐟'], ['I sit by the pond.', '🏞️'], ['I see little tadpoles.', '🐸'], ['Soon they will be frogs!', '🐸']] },
+    ['Z is for zebra.', '🦓'], ['I sit by the pond.', '🏞️'], ['I see little tadpoles.', '🐸'], ['Soon they will be frogs!', '🐸']] },
   { id: 118, stage: 2, plus: true, title: 'A Fish Wish', cover: '🐟', pages: [
     ['Pip is a little fish.', '🐟'], ['Pip lives in a little bowl.', '🫧'], ['The bowl is very small.', '🫧'], ['Pip swims in a ring.', '🔄'],
     ['Swish, swish, swish!', '💦'], ['Pip is not happy.', '😢'], ['Pip makes a wish.', '⭐'], ['I wish I could swim in big water!', '🌊'],
