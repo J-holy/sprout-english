@@ -183,18 +183,26 @@ const Speech = (() => {
   let webSpeechBroken = false;
   const useServer = () => sttOn && canRecord() && (!webSpeechOk() || (webSpeechBroken && !!Store.user()));
   const canRecord = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!(window.AudioContext || window.webkitAudioContext) && env.secure && !env.inApp;
+  // 서버가 받을 수 있으면(sttUlaw) 8비트 µ-law로 보낸다: 크기가 절반이라 휴대폰에서 올리는 시간이 줄고, 인식 결과는 16비트와 같았다
+  let sttUlaw = false;
+  const ulaw = v => {
+    let s = Math.round(v * 0x7fff); const sign = s < 0 ? 0x80 : 0; if (sign) s = -s;
+    s = Math.min(s, 32635) + 0x84; let exp = 7; for (let m = 0x4000; (s & m) === 0 && exp > 0; m >>= 1) exp--;
+    return ~(sign | (exp << 4) | ((s >> (exp + 3)) & 0x0f)) & 0xff;
+  };
   function toWav(chunks, inRate) {
     const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0;
     chunks.forEach(c => { all.set(c, o); o += c.length; });
-    const ratio = inRate / 16000, n = Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * 2));
+    const bytes = sttUlaw ? 1 : 2, ratio = inRate / 16000, n = Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * bytes));
     const put = (at, t) => [...t].forEach((c, i) => b.setUint8(at + i, c.charCodeAt(0)));
-    put(0, 'RIFF'); b.setUint32(4, 36 + n * 2, true); put(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, 1, true); b.setUint16(22, 1, true);
-    b.setUint32(24, 16000, true); b.setUint32(28, 32000, true); b.setUint16(32, 2, true); b.setUint16(34, 16, true); put(36, 'data'); b.setUint32(40, n * 2, true);
+    put(0, 'RIFF'); b.setUint32(4, 36 + n * bytes, true); put(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, sttUlaw ? 7 : 1, true); b.setUint16(22, 1, true);
+    b.setUint32(24, 16000, true); b.setUint32(28, 16000 * bytes, true); b.setUint16(32, bytes, true); b.setUint16(34, bytes * 8, true); put(36, 'data'); b.setUint32(40, n * bytes, true);
     for (let i = 0; i < n; i++) {
       // 16kHz로 줄일 때 구간 평균을 내서 거친 소리를 막는다
       const s0 = Math.floor(i * ratio), s1 = Math.max(s0 + 1, Math.floor((i + 1) * ratio)); let v = 0;
       for (let j = s0; j < s1; j++) v += all[j];
-      b.setInt16(44 + i * 2, Math.max(-1, Math.min(1, v / (s1 - s0))) * 0x7fff, true);
+      v = Math.max(-1, Math.min(1, v / (s1 - s0)));
+      if (sttUlaw) b.setUint8(44 + i, ulaw(v)); else b.setInt16(44 + i * 2, v * 0x7fff, true);
     }
     return new Blob([b], { type: 'audio/wav' });
   }
@@ -275,9 +283,13 @@ const Speech = (() => {
     });
   }
   const stopRecording = () => recording && recording.stop();
+  let lastSttAt = 0;
   async function listenServer(hint, onThinking, onStart) {
     if (!Store.user()) throw new Error('login'); // 서버 채점은 로그인한 사용자만 된다. 녹음부터 시키지 않는다
     let wav;
+    // 말하는 동안 서버 연결을 미리 열어 둔다. 한동안 쉬어서 연결이 닫혔으면 녹음을 올릴 때 연결부터 다시 맺느라 늦었다
+    if (Date.now() - lastSttAt > 20000) fetch('api/health', { cache: 'no-store', credentials: 'same-origin' }).catch(() => {});
+    lastSttAt = Date.now();
     // detail: 원인을 화면에 작게 보여서 제보로 알 수 있게 한다 (getUserMedia 오류 이름 또는 소리가 안 들어온 상태)
     try { wav = await record({ onStart }); } catch (e) { throw Object.assign(new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'), { detail: (e && (e.detail || e.name)) || '' }); }
     if (!wav) throw new Error('no-speech');
@@ -455,7 +467,7 @@ const Speech = (() => {
     get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return webSpeechOk() || (sttOn && canRecord()); },
     env, externalUrl, unsupportedReason, micHelp, micPermission, askMic,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
-    configure({ server, manifest, stt }) { neural = { server: !!server, manifest: manifest || null }; sttOn = !!stt; },
+    configure({ server, manifest, stt, ulaw }) { neural = { server: !!server, manifest: manifest || null }; sttOn = !!stt; sttUlaw = !!ulaw; },
     record, stopRecording, get canRecord() { return canRecord(); }, get usesServerStt() { return useServer(); },
     get neuralAvailable() { return !!(neural.server || neural.manifest); },
     get voiceChoice() { return chosen; },

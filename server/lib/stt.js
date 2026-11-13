@@ -20,10 +20,24 @@ export const sttProvider = () => {
   return null;
 };
 
-// 16kHz·16비트·모노 WAV만 받는다 (최대 약 15초)
+// 16kHz·모노 WAV만 받는다: 16비트, 또는 화면이 절반 크기로 줄여 보내는 8비트 µ-law (최대 약 15초)
+const isUlaw = buf => buf.readUInt16LE(20) === 7 && buf.readUInt16LE(34) === 8;
 export function checkWav(buf) {
   if (!Buffer.isBuffer(buf) || buf.length < 44 || buf.length > 600000) return false;
-  return buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WAVE' && buf.readUInt16LE(22) === 1 && buf.readUInt32LE(24) === 16000 && buf.readUInt16LE(34) === 16;
+  if (buf.toString('ascii', 0, 4) !== 'RIFF' || buf.toString('ascii', 8, 12) !== 'WAVE' || buf.toString('ascii', 36, 40) !== 'data') return false;
+  return buf.readUInt16LE(22) === 1 && buf.readUInt32LE(24) === 16000 && (isUlaw(buf) || (buf.readUInt16LE(20) === 1 && buf.readUInt16LE(34) === 16));
+}
+// µ-law 녹음을 인식기들이 읽는 16비트 WAV로 바꾼다. 휴대폰↔서버 왕복이 길어서 올리는 양을 줄이려고 8비트로 받는다.
+//   라즈베리파이 시험 14문장: 16비트와 받아쓴 결과가 13문장 같았고 1문장은 오히려 되풀이가 없었다, 인식 시간도 같았다 (2026-11-13)
+const unlaw = u => { u = ~u & 0xff; const s = ((((u & 0x0f) << 3) + 0x84) << ((u >> 4) & 7)) - 0x84; return u & 0x80 ? -s : s; };
+export function toPcm16(buf) {
+  if (!isUlaw(buf)) return buf;
+  const n = buf.length - 44, out = Buffer.alloc(44 + n * 2);
+  out.write('RIFF', 0, 'ascii'); out.writeUInt32LE(36 + n * 2, 4); out.write('WAVEfmt ', 8, 'ascii'); out.writeUInt32LE(16, 16);
+  out.writeUInt16LE(1, 20); out.writeUInt16LE(1, 22); out.writeUInt32LE(16000, 24); out.writeUInt32LE(32000, 28); out.writeUInt16LE(2, 32); out.writeUInt16LE(16, 34);
+  out.write('data', 36, 'ascii'); out.writeUInt32LE(n * 2, 40);
+  for (let i = 0; i < n; i++) out.writeInt16LE(unlaw(buf[44 + i]), 44 + i * 2);
+  return out;
 }
 
 async function googleSTT(wav, hint) {

@@ -251,7 +251,7 @@ const App = (() => {
     }
     // AI 음성: 미리 만든 audio/manifest.json을 먼저 쓰고, 없는 문장은 서버에 TTS 키가 있을 때 /api/tts로 만든다
     // 음성 목록은 커서(400KB) 첫 화면을 기다리게 하지 않는다. 오기 전에는 서버 음성이나 기기 목소리로 읽는다
-    const voice = m => Speech.configure({ server: API.on && !!API.cfg.tts, manifest: m && m.files, stt: API.on && !!API.cfg.stt });
+    const voice = m => Speech.configure({ server: API.on && !!API.cfg.tts, manifest: m && m.files, stt: API.on && !!API.cfg.stt, ulaw: API.on && !!API.cfg.sttUlaw });
     voice(null); voiceP.then(m => { if (m) voice(m); });
     // 같은 그림체로 그린 문제 그림·스토리북 삽화 (있을 때만). 첫 화면이 이모지로 그려지지 않게 받고 나서 시작한다
     const pics = await picsP; if (pics) setPics(pics);

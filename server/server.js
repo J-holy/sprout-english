@@ -16,7 +16,7 @@ import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, PROMO, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
-import { sttProvider, checkWav, recognize } from './lib/stt.js';
+import { sttProvider, checkWav, toPcm16, recognize } from './lib/stt.js';
 import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
 import { backfillMemberNos, addReferral, userByNo, socialDoc, lookupKids, requestFriend, respondFriend, sendMessage, markRead } from './lib/social.js';
 import { paymentMode, payMethods, createOrder, completeDemo, completeBillingAuth, startKakaoPay, completeKakaoPay, retireBillingKey, failOrder, setAutoRenew, refund, refundable, renewalJob } from './lib/billing.js';
@@ -44,7 +44,7 @@ const PENDING_TTL = 30 * 60000;
 app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), payMethods: payMethods(), tossClientKey: config.toss.clientKey || null,
-  plans: PLANS, promo: PROMO, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(),
+  plans: PLANS, promo: PROMO, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(), sttUlaw: true,
   phone: smsMode() || (config.devShowCode ? 'dev' : null), betaUntil: config.betaUntil > now() ? config.betaUntil : 0,
 }));
 
@@ -74,10 +74,10 @@ app.post('/api/stt', requireUser, express.raw({ type: ['audio/wav', 'application
   if (hint && !validText(hint)) return bad(res, '읽을 수 없는 문장이에요.');
   if (!checkWav(req.body)) return bad(res, '녹음 파일을 읽을 수 없어요.');
   if (!rateLimit('stt:' + req.user.id, 400, 3600000)) return bad(res, '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.', 429);
-  const t0 = now();
+  const t0 = now(), wav = toPcm16(req.body);
   try {
-    const alts = await recognize(req.body, hint);
-    console.log(`[STT] ${((now() - t0) / 1000).toFixed(1)}초, ${(req.body.length / 32000).toFixed(1)}초 녹음, ${alts.length ? '인식함' : '인식 못 함'}`); // 들은 내용은 남기지 않는다
+    const alts = await recognize(wav, hint);
+    console.log(`[STT] ${((now() - t0) / 1000).toFixed(1)}초, ${((wav.length - 44) / 32000).toFixed(1)}초 녹음, ${alts.length ? '인식함' : '인식 못 함'}`); // 들은 내용은 남기지 않는다
     res.json({ alts });
   } catch (err) {
     if (err.message === 'busy') return bad(res, '지금 말하기를 하는 친구가 많아요. 잠시 후 다시 해 주세요.', 429);
