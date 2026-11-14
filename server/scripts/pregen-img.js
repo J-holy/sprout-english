@@ -867,7 +867,7 @@ const COVERS = {
   17: [[0, 1], 'the boy holding up a red kite in a colorful toy shop with shelves of toys, his dad smiling beside him'],
   18: [[0, 1], 'the girl and her grandpa walking hand in hand on a forest trail with flowers, a rainbow in the sky'],
   19: [[0, 3], 'the red hen sitting proudly in a straw nest with fluffy yellow chicks around her on a farm'],
-  20: [[0, 1], 'the pink pig and the white duck sitting happily together in a big brown mud puddle on a hot sunny farm'],
+  20: [[0, 1], 'the pink pig and the white duck together in a big brown mud puddle on a hot sunny farm, seen from the side, the pig stands on its four short legs like a real farm pig with a short curly tail, no legs raised like arms, the duck stands next to it, both smile, only one pig and one duck'],
   21: [[0], 'the boy with his green school bag waving in front of a bright elementary school building'],
   22: [[0, 3], 'the girl petting the black and white cow in front of a big red barn on a green farm'],
   23: [[0, 1], "the kind doctor listening to the boy's chest with a stethoscope in a clean doctor's office"],
