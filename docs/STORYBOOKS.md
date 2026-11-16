@@ -68,7 +68,7 @@
 | 11 | 3 | My Toy Box | 장난감 소개 |
 | 21 | 3 | My School | 학교·선생님·친구 소개 |
 | 22 | 3 | On the Farm | 농장 동물 소개 |
-| 35 | 3 | Kimbap Day | 엄마와 김밥 만들기 |
+| 35 | 3 | Picnic Day | 엄마와 김밥 만들어 소풍 가기 |
 | 36 | 3 | My Little Sister | 세 살 동생 소개 |
 | 47 | 3 | My Hamster | 햄스터 피넛 소개 |
 | 48 | 3 | Clean Up! | 어질러진 방 정리 |
