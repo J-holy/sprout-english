@@ -186,9 +186,9 @@ const BOOKS = {
 
 // 문장만으로는 장면이 애매한 쪽: '책-쪽' → [나올 인물(모습에서 찾을 말), 그릴 장면]
 const SCENES = {
-  '14-1': ["black bob|the dog:", "the small white dog stands on the bed and licks the face of the girl, who is still sleeping in bed with her eyes closed. Only one child, only one dog"],
+  '14-1': ["black bob|the dog:","in her bedroom in the morning, the girl with a black bob and a pink headband lies asleep in her bed under the pink blanket, eyes closed; the small white dog stands on the bed and licks her cheek, wide awake and happy. The girl is the only person in the picture, no boys. Only one dog"],
   '14-2': ["black bob", "in the kitchen, the girl happily eats a tall stack of pancakes with syrup at the round wooden table. Only one child"],
-  '14-3': ["her dad", "her dad stands alone at the stove in a blue apron over his yellow shirt and flips a pancake in the air with a frying pan. No children in the picture"],
+  '14-3': ["her dad","her dad stands alone at the stove in a blue apron over his yellow shirt, holding a black frying pan by its handle; one round golden pancake flips up in the air above the pan. No children in the picture"],
   '14-4': ["black bob|her dad", "the girl and her dad drink orange juice from glasses at the kitchen table, smiling at each other. Only two people"],
   '14-5': ["black bob|her dad|the park:", "the girl and her dad arrive at the sunny park entrance, the girl points ahead excitedly. Only two people"],
   '14-6': ["black bob|her dad|the park:", "the girl on a small pink bike and her dad on a big blue bike ride along the park path, both wearing helmets. Only two people, exactly two bikes"],
@@ -203,7 +203,7 @@ const SCENES = {
   '14-15': ["black bob|the park:", "the girl points at a small brown squirrel with a bushy tail on the grass, her mouth open in delight. Only one child, only one squirrel"],
   '14-16': ["the park:", "a small brown squirrel with a bushy tail climbs up the thick trunk of the big oak tree. Only one squirrel, no people"],
   '14-17': ["black bob|her dad|the park:", "in the warm afternoon light, the girl on her pink bike and her dad on his blue bike ride home out of the park. Only two people"],
-  '14-18': ["black bob", "at home in the evening, the girl sits in a bathtub full of bubbles, only her head and shoulders above the foam, playing with a yellow rubber duck. Only one child"],
+  '14-18': ["black bob","at home in the evening, the girl sits in a white bathtub full of white bubbles, only her head, bare shoulders and arms show above the foam, she wears no clothes in the bath, playing with a yellow rubber duck. Only one child"],
   '14-19': ["black bob", "at home in the evening, the girl in pink pajamas yawns and smiles on a soft sofa, sleepy. Only one child"],
   '14-20': ["black bob|her dad|the dog:", "on the sofa in the evening, the girl in pink pajamas, her dad and the small white dog cuddle together, smiling. Only two people, only one dog"],
   '14-21': ["black bob|the dog:", "the girl sleeps in her bed in moonlight from the window, the small white dog curled up at her feet. Only one child, only one dog"],
