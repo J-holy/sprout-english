@@ -244,8 +244,20 @@ const Speech = (() => {
     const pad = Math.ceil(0.3 * rate / 4096), tail = Math.ceil(0.45 * rate / 4096);
     return chunks.slice(Math.max(0, first - pad), Math.min(chunks.length, last + 1 + tail));
   }
+  // 읽을 문장 길이에 맞춘 듣기 시간. 아이는 단어 사이에 쉬면서 읽어서, 0.7초 조용하면 끝내던 때는 다 읽기 전에 채점했다 (2026-11 제보)
+  //   words: 읽을 단어 수, minMs: 이만큼 말하기 전에는 짧게 쉬어도 끝내지 않는다
+  function pace(hint) {
+    const words = String(hint || '').split(/\s+/).filter(Boolean).length;
+    return {
+      words,
+      maxMs: Math.min(20000, Math.max(8000, 3000 + words * 900)),
+      silenceMs: words >= 4 ? 1400 : 1000,
+      minMs: Math.min(6000, words * 320),
+    };
+  }
   // onStart: 마이크 소리가 실제로 들어오기 시작할 때 (iPhone은 누르고 잠깐 뒤라서, 그 전에 말하면 첫 단어가 잘렸다)
-  async function record({ maxMs = 8000, silenceMs = 700, onStart } = {}) {
+  // minMs: 말하기 시작한 뒤 이 시간이 지나기 전에는 짧게 쉬어도 멈추지 않는다 (2.5초 넘게 조용하면 그때는 멈춘다)
+  async function record({ maxMs = 8000, silenceMs = 1000, minMs = 0, onStart } = {}) {
     stop();
     // iOS는 손가락으로 누른 그 순간에 만든 AudioContext만 소리를 받는다. 마이크 허용 창을 기다린 뒤에 만들면 멈춘 채로 남아 녹음이 끝나지 않았다
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -260,7 +272,7 @@ const Speech = (() => {
     catch (e) { done(); throw e; }
     if (ctx.state !== 'running') await Promise.race([ctx.resume().catch(() => {}), new Promise(r => setTimeout(r, 800))]);
     const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1);
-    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0, first = -1, last = -1, live = false;
+    const chunks = [], t0 = Date.now(); let heard = false, quiet = t0, first = -1, last = -1, live = false, spokeAt = 0;
     // 말소리 기준: 처음 잠깐의 주변 소리로 정한다. 아이패드는 잡음 제거 때문에 소리가 작아서 고정값이면 말해도 못 들은 것이 되었다
     let floor = 1, level = 0.02, peak = 0;
     return new Promise((resolve, reject) => {
@@ -283,8 +295,9 @@ const Speech = (() => {
         if (!live && (rms > 1e-5 || now - t0 > 700)) { live = true; if (onStart) onStart(); }
         if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.02, Math.max(0.006, floor * 2.5)); }
         peak = Math.max(peak, rms);
-        if (rms > level) { heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
-        if ((heard && now - quiet > silenceMs) || now - t0 > maxMs) finish();
+        if (rms > level) { if (!heard) spokeAt = now; heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
+        const hush = now - quiet, enough = now - spokeAt >= minMs;
+        if ((heard && hush > (enough ? silenceMs : 2500)) || now - t0 > maxMs) finish();
       };
       src.connect(proc); proc.connect(ctx.destination);
     });
@@ -298,7 +311,8 @@ const Speech = (() => {
     if (Date.now() - lastSttAt > 20000) fetch('api/health', { cache: 'no-store', credentials: 'same-origin' }).catch(() => {});
     lastSttAt = Date.now();
     // detail: 원인을 화면에 작게 보여서 제보로 알 수 있게 한다 (getUserMedia 오류 이름 또는 소리가 안 들어온 상태)
-    try { wav = await record({ onStart }); } catch (e) { throw Object.assign(new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'), { detail: (e && (e.detail || e.name)) || '' }); }
+    const p = pace(hint);
+    try { wav = await record({ onStart, maxMs: p.maxMs, silenceMs: p.silenceMs, minMs: p.minMs }); } catch (e) { throw Object.assign(new Error(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'), { detail: (e && (e.detail || e.name)) || '' }); }
     if (!wav) throw new Error('no-speech');
     if (onThinking) onThinking(); // 서버 채점은 몇 초 걸린다
     let r;
@@ -316,23 +330,55 @@ const Speech = (() => {
   }
 
   // 한 번 듣고 결과 후보 문장들을 돌려줌 (hint: 아이가 읽으려는 문장 — 서버 인식이 알아듣는 데 쓴다, onStart: 마이크가 소리를 받기 시작함)
-  function listen({ timeout = 8000, hint = '', onThinking, onStart } = {}) {
+  function listen({ timeout, hint = '', onThinking, onStart } = {}) {
     if (useServer()) return listenServer(hint, onThinking, onStart);
+    const p = pace(hint);
+    if (!timeout) timeout = p.maxMs + 2000;
     return new Promise((resolve, reject) => {
       if (!Rec) return reject(new Error('unsupported'));
       stop();
       const r = new Rec();
-      r.lang = 'en-US'; r.interimResults = false; r.maxAlternatives = 5; r.continuous = false;
-      let done = false;
-      const finish = (fn, v) => { if (!done) { done = true; clearTimeout(t); try { r.stop(); } catch (e) { /* noop */ } fn(v); } };
-      const t = setTimeout(() => finish(reject, new Error('timeout')), timeout);
-      r.onresult = e => finish(resolve, [...e.results[0]].map(a => a.transcript));
+      // 한 번 쉬었다고 끝내지 않도록 이어서 듣고(continuous), 들은 조각을 모은다. 문장 단어를 거의 다 들었거나
+      // 한동안 조용하면 그때 채점한다. 읽을 문장이 없으면(마이크 시험) 예전처럼 첫 결과에서 끝낸다
+      const keep = p.words > 0;
+      r.lang = 'en-US'; r.interimResults = keep; r.maxAlternatives = 5; r.continuous = keep;
+      let done = false, quietT = null;
+      const finals = []; // [{ alts, text }] 확정된 조각
+      const finish = (fn, v) => { if (!done) { done = true; clearTimeout(t); clearTimeout(quietT); try { r.stop(); } catch (e) { /* noop */ } fn(v); } };
+      const t = setTimeout(() => finals.length ? finish(resolve, joined()) : finish(reject, new Error('timeout')), timeout);
+      const count = s => s.split(/\s+/).filter(Boolean).length;
+      // 조각을 이은 문장. 첫 번째 후보끼리 이은 것을 먼저, 조각이 하나면 그 후보들을 그대로 쓴다
+      const joined = () => finals.length === 1 ? finals[0].alts : [finals.map(f => f.text).join(' ').trim()];
+      const heardWords = interim => count(finals.map(f => f.text).join(' ') + ' ' + interim);
+      const waitQuiet = interim => {
+        clearTimeout(quietT);
+        const n = heardWords(interim);
+        // 다 읽었으면 바로, 거의 다 읽었으면 짧게, 아직 덜 읽었으면 더 기다린다
+        const wait = n >= p.words ? 300 : n >= Math.ceil(p.words * 0.8) ? p.silenceMs : 2500;
+        quietT = setTimeout(() => { if (finals.length) finish(resolve, joined()); }, wait);
+      };
+      r.onresult = e => {
+        if (!keep) return finish(resolve, [...e.results[0]].map(a => a.transcript));
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const res = e.results[i];
+          if (!res.isFinal) { interim += ' ' + res[0].transcript; continue; }
+          const alts = [...res].map(a => a.transcript.trim()), text = alts[0];
+          // 안드로이드 Chrome은 앞 조각을 포함한 문장을 다시 보내기도 한다: 그때는 앞 조각을 바꾼다
+          const prev = finals.map(f => f.text).join(' ').trim().toLowerCase();
+          if (prev && text.toLowerCase().startsWith(prev)) finals.splice(0, finals.length, { alts, text });
+          else finals.push({ alts, text });
+        }
+        waitQuiet(interim);
+      };
       r.onerror = e => {
         // 아이폰·아이패드 Safari는 받아쓰기 설정 등으로 브라우저 음성 인식이 막힐 때가 있다. 다음 번에는 서버로 채점한다 (녹음은 다시 눌러야 시작할 수 있다)
         if (env.ios && sttOn && canRecord() && Store.user() && ['service-not-allowed', 'not-allowed', 'language-not-supported'].includes(e.error)) { webSpeechBroken = true; return finish(reject, new Error('busy')); }
+        if (finals.length && (e.error === 'no-speech' || e.error === 'aborted')) return finish(resolve, joined());
         finish(reject, new Error(e.error || 'error'));
       };
-      r.onend = () => finish(reject, new Error('no-speech'));
+      // 브라우저가 스스로 듣기를 끝내도(오래 조용함 등) 들은 조각이 있으면 그것으로 채점한다
+      r.onend = () => finals.length ? finish(resolve, joined()) : finish(reject, new Error('no-speech'));
       let started = false;
       if (onStart) r.onstart = r.onaudiostart = () => { if (!done && !started) { started = true; onStart(); } };
       try { r.start(); } catch (e) { finish(reject, new Error('busy')); }
