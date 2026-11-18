@@ -651,7 +651,7 @@ const STORIES = [
     ['This is a mother kangaroo.', '🦘'], ['This is her baby.', '🦘'], ['It is in her pocket.', '👜'], ['This is a mother koala.', '🐨'],
     ['Her baby is on her back.', '🐨'], ['This is a mother penguin.', '🐧'], ['Her baby is on her feet.', '🐧'], ['It is warm there.', '☺️'],
     ['This is a mother elephant.', '🐘'], ['Her baby holds her tail.', '🐘'], ['It holds on with its trunk.', '🐘'], ['This is a mother monkey.', '🐒'],
-    ['Her baby hugs her tummy.', '🐒'], ['This is a mother cat.', '🐈'], ['She has three kittens.', '🐱'], ['They drink her milk.', '🥛'],
+    ['Her baby hugs her.', '🐒'], ['This is a mother cat.', '🐈'], ['She has three kittens.', '🐱'], ['They drink her milk.', '🥛'],
     ['And this is my mom.', '👩'], ['I am her baby!', '👧'], ['I can hug my mom.', '🤗'], ['I love you, Mom!', '❤️']] },
   { id: 108, stage: 4, plus: true, title: 'Can I Borrow It?', cover: '✏️', pages: [
     ['Owen, can I borrow your eraser?', '✏️'], ['Of course. Take it.', '🙂'], ['Thank you, Owen!', '😊'], ['No problem!', '👍'],
