@@ -1,5 +1,7 @@
 // 결제: 토스페이먼츠 자동결제(빌링) — 카드 등록 → 첫 결제 → 기간 만료 시 자동 갱신 결제 → 7일 내 환불
-//       카카오페이 정기결제 — 결제 준비 → 카카오톡에서 결제 → 승인(정기결제 번호 SID 받기) → 기간 만료 시 SID로 자동 갱신 결제
+//       카카오페이 정기결제(1개월) — 결제 준비 → 카카오톡에서 결제 → 승인(정기결제 번호 SID 받기) → 기간 만료 시 SID로 자동 갱신 결제
+//       카카오페이 단건결제(6·12개월) — 한 번만 결제하고 자동갱신하지 않는다. 기간이 끝나기 3일 전에 다시 구매하라고 알린다
+//         (카카오페이 심사 규정: 정기결제는 결제 주기 3개월 이하만 허용. 2026-11 카카오페이 회신, 2안)
 // 결제사 키가 하나도 없고 ALLOW_DEMO_PAYMENT=true면 즉시 완료되는 데모 결제로 동작한다.
 // 멤버십의 billing_key: 토스는 빌링키 그대로, 카카오페이는 'kakao:SID'
 import crypto from 'node:crypto';
@@ -17,6 +19,10 @@ export const paymentMode = () => tossReady() ? 'toss' : kakaoPayReady() ? 'kakao
 const KAKAO_PREFIX = 'kakao:';
 const isKakaoKey = k => typeof k === 'string' && k.startsWith(KAKAO_PREFIX);
 const isKakaoPay = p => /^카카오페이/.test(p.method || '');
+// 카카오페이로 정기결제할 수 있는 가장 긴 결제 주기(개월). 더 긴 상품은 단건결제
+export const KAKAO_SUB_MAX_MONTHS = 3;
+const kakaoOneTime = months => Number(months) > KAKAO_SUB_MAX_MONTHS;
+const kakaoCid = months => kakaoOneTime(months) ? config.kakaopay.onetimeCid : config.kakaopay.cid;
 const won = n => n.toLocaleString('ko-KR') + '원';
 
 async function toss(path, body) {
@@ -30,11 +36,11 @@ async function toss(path, body) {
   return j;
 }
 
-async function kakao(path, body) {
+async function kakao(path, body, cid = config.kakaopay.cid) {
   const r = await fetch(config.kakaopay.api + path, {
     method: 'POST', signal: AbortSignal.timeout(20000),
     headers: { Authorization: `SECRET_KEY ${config.kakaopay.secretKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cid: config.kakaopay.cid, ...body }),
+    body: JSON.stringify({ cid, ...body }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.extras?.method_result_message || j.error_message || `카카오페이 오류 (${r.status})`);
@@ -58,7 +64,8 @@ export function createOrder(u, kids, months, opts) {
 }
 
 // 결제가 끝난 주문을 멤버십에 반영
-function fulfill(order, { paymentKey, method, billingKey, raw }) {
+// oneTime: 자동갱신 없는 단건결제(카카오페이 6·12개월) — 자동갱신을 끄고 예전 결제수단(빌링키)도 지운다
+function fulfill(order, { paymentKey, method, billingKey, raw, oneTime = false }) {
   tx(() => {
     const u = getUser(order.user_id), t = now();
     const cur = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(u.id);
@@ -68,10 +75,10 @@ function fulfill(order, { paymentKey, method, billingKey, raw }) {
     const until = base + order.months * 30 * DAY + bonus;
     const monthly = Math.round(order.amount / order.months);
     db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted, billing_key, renew_fail)
-      VALUES (?, ?, ?, ?, ?, 1, ?, 0, ?, 0) ON CONFLICT(user_id) DO UPDATE SET kids = excluded.kids, months = excluded.months,
-      since = CASE WHEN memberships.until > ? THEN memberships.since ELSE excluded.since END, until = excluded.until, auto_renew = 1,
-      monthly = excluded.monthly, granted = 0, billing_key = COALESCE(excluded.billing_key, memberships.billing_key), renew_fail = 0`)
-      .run(u.id, order.kids, order.months, t, until, monthly, billingKey || null, t);
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 0) ON CONFLICT(user_id) DO UPDATE SET kids = excluded.kids, months = excluded.months,
+      since = CASE WHEN memberships.until > ? THEN memberships.since ELSE excluded.since END, until = excluded.until, auto_renew = excluded.auto_renew,
+      monthly = excluded.monthly, granted = 0, billing_key = CASE WHEN ? THEN NULL ELSE COALESCE(excluded.billing_key, memberships.billing_key) END, renew_fail = 0`)
+      .run(u.id, order.kids, order.months, t, until, oneTime ? 0 : 1, monthly, oneTime ? null : billingKey || null, t, oneTime ? 1 : 0);
     db.prepare('UPDATE payments SET status = ?, payment_key = ?, method = ?, raw = ?, at = ? WHERE id = ?')
       .run('결제완료', paymentKey || null, method || '', raw ? JSON.stringify(raw).slice(0, 4000) : null, t, order.id);
     if (order.coupon_id) db.prepare('UPDATE coupons SET used = 1 WHERE id = ?').run(order.coupon_id);
@@ -108,23 +115,24 @@ export async function startKakaoPay(u, orderId) {
   const r = await kakao('/online/v1/payment/ready', {
     partner_order_id: orderId, partner_user_id: u.customer_key, item_name: order.description, quantity: 1,
     total_amount: order.amount, tax_free_amount: 0, approval_url: back('approve'), cancel_url: back('cancel'), fail_url: back('fail'),
-  });
+  }, kakaoCid(order.months));
   db.prepare('UPDATE payments SET payment_key = ? WHERE id = ?').run(r.tid, order.id);
   return { pcUrl: r.next_redirect_pc_url, mobileUrl: r.next_redirect_mobile_url };
 }
-// 카카오페이 결제 화면에서 인증을 마치면 approval_url로 pg_token과 함께 돌아온다 → 승인하고 SID를 저장
+// 카카오페이 결제 화면에서 인증을 마치면 approval_url로 pg_token과 함께 돌아온다 → 승인하고 SID를 저장 (단건결제는 SID 없음)
 export async function completeKakaoPay(orderId, pgToken) {
   const order = db.prepare("SELECT * FROM payments WHERE order_id = ? AND status = '대기'").get(orderId);
   if (!order || !order.payment_key || !pgToken) throw new Error('주문을 찾을 수 없거나 이미 처리되었어요.');
   const u = getUser(order.user_id);
-  const pay = await kakao('/online/v1/payment/approve', { tid: order.payment_key, partner_order_id: orderId, partner_user_id: u.customer_key, pg_token: pgToken });
+  const pay = await kakao('/online/v1/payment/approve', { tid: order.payment_key, partner_order_id: orderId, partner_user_id: u.customer_key, pg_token: pgToken }, kakaoCid(order.months));
   if (pay.amount && pay.amount.total !== order.amount) throw new Error('결제 금액이 주문과 달라요.');
   const old = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(u.id)?.billing_key;
-  const key = pay.sid ? KAKAO_PREFIX + pay.sid : null;
-  fulfill(order, { paymentKey: pay.tid, method: kakaoMethod(pay), billingKey: key, raw: { tid: pay.tid, aid: pay.aid, approvedAt: pay.approved_at } });
-  if (key) await retireKakao(old, key);
+  const oneTime = kakaoOneTime(order.months), key = !oneTime && pay.sid ? KAKAO_PREFIX + pay.sid : null;
+  fulfill(order, { paymentKey: pay.tid, method: kakaoMethod(pay, false, oneTime), billingKey: key, oneTime, raw: { tid: pay.tid, aid: pay.aid, approvedAt: pay.approved_at } });
+  // 단건결제로 바꾸면 예전 카카오페이 정기결제 번호도 해지한다 (6·12개월 상품을 정기결제로 다시 결제하지 않게)
+  if (key || oneTime) await retireKakao(old, key);
 }
-const kakaoMethod = (pay, renew) => `카카오페이(${pay.payment_method_type === 'MONEY' ? '머니' : pay.card_info?.kakaopay_issuer_corp || '카드'}${renew ? ' · 자동갱신' : ''})`;
+const kakaoMethod = (pay, renew, oneTime) => `카카오페이(${pay.payment_method_type === 'MONEY' ? '머니' : pay.card_info?.kakaopay_issuer_corp || '카드'}${renew ? ' · 자동갱신' : oneTime ? ' · 단건' : ''})`;
 
 export function failOrder(orderId, reason) {
   db.prepare("UPDATE payments SET status = '실패', raw = ? WHERE order_id = ? AND status = '대기'").run(JSON.stringify({ reason }).slice(0, 500), orderId);
@@ -133,6 +141,8 @@ export function failOrder(orderId, reason) {
 export function setAutoRenew(uid, on) {
   const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
   if (!m) throw new Error('이용 중인 멤버십이 없어요.');
+  // 단건결제 이용권(카카오페이 6·12개월)은 결제수단이 저장되어 있지 않아 자동갱신을 켤 수 없다
+  if (on && !m.billing_key && paymentMode() !== 'demo') throw new Error('이 이용권은 한 번만 결제한 상품이라 자동갱신이 없어요. 기간이 끝나기 전에 요금제에서 다시 구매해 주세요.');
   db.prepare('UPDATE memberships SET auto_renew = ?, renew_fail = 0 WHERE user_id = ?').run(on ? 1 : 0, uid);
   notify(uid, on ? '🔁 자동갱신을 다시 켰어요.' : `🛑 자동갱신을 해지했어요. ${new Date(m.until).toLocaleDateString('ko-KR')}까지 이용할 수 있고 이후 결제되지 않아요.`, 'member');
 }
@@ -144,7 +154,7 @@ export function refundable(uid) {
 export async function refund(uid) {
   const p = refundable(uid);
   if (!p) throw new Error('환불 가능 기간(결제 후 7일)이 지났거나 환불할 결제가 없어요.');
-  if (p.payment_key && isKakaoPay(p)) await kakao('/online/v1/payment/cancel', { tid: p.payment_key, cancel_amount: p.amount, cancel_tax_free_amount: 0 });
+  if (p.payment_key && isKakaoPay(p)) await kakao('/online/v1/payment/cancel', { tid: p.payment_key, cancel_amount: p.amount, cancel_tax_free_amount: 0 }, /· 단건/.test(p.method) ? config.kakaopay.onetimeCid : config.kakaopay.cid);
   else if (p.payment_key) await toss(`/v1/payments/${p.payment_key}/cancel`, { cancelReason: '고객 요청 (7일 이내 환불)' });
   const key = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(uid)?.billing_key;
   tx(() => {
@@ -170,6 +180,10 @@ export async function renewalJob() {
   const t = now();
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until BETWEEN ? AND ?').all(t + 3 * DAY - 3600000, t + 3 * DAY)) {
     notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 결제 금액은 ${quote(m.user_id, kidsOf(getUser(m.user_id)), m.months, { renew: true }).total.toLocaleString('ko-KR')}원이에요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
+  }
+  // 단건결제 이용권(자동갱신 없음): 끝나기 3일 전에 다시 구매하라고 알린다
+  for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 0 AND granted = 0 AND billing_key IS NULL AND until BETWEEN ? AND ?').all(t + 3 * DAY - 3600000, t + 3 * DAY)) {
+    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 플러스 이용 기간이 끝나요. 이 이용권은 자동으로 다시 결제되지 않아요. 계속 이용하려면 요금제에서 이용권을 다시 구매해 주세요.`, 'member');
   }
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until <= ? AND renew_fail < 3').all(t)) {
     const u = getUser(m.user_id);

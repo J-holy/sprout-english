@@ -1685,9 +1685,9 @@ const ParentTabs = {
       ${m ? `<div class="card sub-card"><h3>내 구독</h3><dl class="summary">
         <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
-        <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}` : '해지됨 (추가 결제 없음)'}</dd>
+        <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}` : m.oneTime ? `없음 · 한 번만 결제한 이용권이에요. ${fmtDay(m.until)} 3일 전에 알려 드려요` : '해지됨 (추가 결제 없음)'}</dd>
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이 (정기결제)' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
-        <div class="row">${m.granted ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
+        <div class="row">${m.granted || m.oneTime ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
       ${m && !m.granted && m.autoRenew && m.kids !== Store.kidsPlan() ? `<div class="card notice">등록한 아이 수가 바뀌어서 다음 결제부터 월 ${won(planMonthly(Store.kidsPlan(), m.months))}${Store.kidsPlan() === 'two' ? ' (형제·자매 요금)' : ''}으로 바뀌어요. 쿠폰을 쓰면 달라질 수 있어요.</div>` : ''}

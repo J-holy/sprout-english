@@ -62,8 +62,9 @@ export const config = {
   promoFrom: /^\d{4}-\d{2}-\d{2}$/.test(e.PROMO_FROM || '') ? Date.parse(`${e.PROMO_FROM}T00:00:00+09:00`) : 0,
   promoUntil: /^\d{4}-\d{2}-\d{2}$/.test(e.PROMO_UNTIL || '') ? Date.parse(`${e.PROMO_UNTIL}T23:59:59+09:00`) : 0,
   toss: { clientKey: e.TOSS_CLIENT_KEY, secretKey: e.TOSS_SECRET_KEY },
-  // 카카오페이 정기결제: 개발자센터 앱의 Secret key와 정기결제용 가맹점 코드(CID). 시험용 키(dev)에는 시험 CID TCSUBSCRIP를 쓴다
-  kakaopay: { secretKey: e.KAKAOPAY_SECRET_KEY, cid: e.KAKAOPAY_CID || 'TCSUBSCRIP', api: e.KAKAOPAY_API || 'https://open-api.kakaopay.com' },
+  // 카카오페이: 개발자센터 앱의 Secret key, 정기결제용 가맹점 코드(CID, 1개월)와 단건결제용 CID(6·12개월).
+  //   카카오페이 심사 규정상 정기결제는 결제 주기 3개월 이하만 된다. 시험용 키(dev)에는 시험 CID TCSUBSCRIP·TC0ONETIME을 쓴다
+  kakaopay: { secretKey: e.KAKAOPAY_SECRET_KEY, cid: e.KAKAOPAY_CID || 'TCSUBSCRIP', onetimeCid: e.KAKAOPAY_CID_ONETIME || 'TC0ONETIME', api: e.KAKAOPAY_API || 'https://open-api.kakaopay.com' },
   // 토스 키가 없을 때 데모 결제(즉시 완료)를 허용할지
   allowDemoPayment: bool(e.ALLOW_DEMO_PAYMENT, !production),
 };

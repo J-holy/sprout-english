@@ -175,7 +175,10 @@ const App = (() => {
     const preparing = payMode === 'off';
     const methods = payMode === 'demo' ? [] : preparing ? ['card', 'kakao'] : API.cfg.payMethods || (payMode === 'toss' ? ['card'] : []);
     const PAY_BTN = { card: '<button class="btn btn-primary" data-ok="card">💳 카드 등록하고 결제</button>', kakao: '<button class="btn btn-kakaopay" data-ok="kakao">카카오페이로 결제</button>' };
-    const PAY_NOTE = { card: '🔒 카드: 토스페이먼츠 카드 등록 화면으로 이동해요. 등록한 카드로 지금 결제되고, 기간이 끝나면 자동갱신돼요.', kakao: '💛 카카오페이: 카카오톡에서 결제하면 다음부터는 같은 결제수단으로 자동갱신돼요.' };
+    // 카카오페이는 결제 주기 3개월 이하만 정기결제할 수 있어서 6·12개월은 한 번만 결제한다 (카카오페이 심사 규정)
+    const kakaoOnce = months > 3 && methods.includes('kakao');
+    const PAY_NOTE = { card: '🔒 카드: 토스페이먼츠 카드 등록 화면으로 이동해요. 등록한 카드로 지금 결제되고, 기간이 끝나면 자동갱신돼요.',
+      kakao: kakaoOnce ? '💛 카카오페이: 카카오톡에서 한 번만 결제해요. 6·12개월 이용권은 자동으로 다시 결제되지 않고, 기간이 끝나기 3일 전에 알려 드려요.' : '💛 카카오페이: 카카오톡에서 결제하면 다음부터는 같은 결제수단으로 자동갱신돼요.' };
     const m = modal(`<h2>🧾 구매 확인</h2>
       <dl class="summary"><dt>상품</dt><dd>플러스 ${months}개월${kids === 'two' ? ` · 형제·자매 요금 (아이 ${Store.user().profiles.length}명)` : ''}</dd>
       <dt>이용 기간</dt><dd>결제하면 바로 시작 · ${months * 30}일 (${fmtDay(Date.now())} ~ ${fmtDay(Date.now() + months * 30 * 86400000)})</dd>
@@ -184,9 +187,9 @@ const App = (() => {
       ${q.promo ? `<dt>1년 특가</dt><dd class="hot">월 ${won(q.monthly)} × 12개월 (${promoEndText()}까지)</dd>` : ''}
       <dt>쿠폰</dt><dd>${q.promo ? '1년 특가에는 쿠폰을 함께 쓸 수 없어요 (쿠폰은 그대로 남아요)' : q.coupon ? `${esc(q.coupon.name)} −${Math.round(q.rate * 100)}%` : '없음'}</dd>
       <dt>총 결제 금액</dt><dd class="total">${won(q.total)}</dd>
-      <dt>자동갱신</dt><dd>${fmtDay(Date.now() + months * 30 * 86400000)}에 같은 결제수단으로 ${q.promo || q.rate ? `정가 ${won(planMonthly(kids, months) * months)}` : won(q.total)} 결제 · 3일 전 알림 · 언제든 해지</dd></dl>
+      <dt>자동갱신</dt><dd>${methods.length === 1 && kakaoOnce ? '없음 · 한 번만 결제 · 끝나기 3일 전 알림' : `${kakaoOnce ? '카드 결제만 · ' : ''}${fmtDay(Date.now() + months * 30 * 86400000)}에 같은 결제수단으로 ${q.promo || q.rate ? `정가 ${won(planMonthly(kids, months) * months)}` : won(q.total)} 결제 · 3일 전 알림 · 언제든 해지${kakaoOnce ? ' (카카오페이는 자동갱신 없음)' : ''}`}</dd></dl>
       ${methods.length ? methods.map(k => `<p class="fine">${PAY_NOTE[k]}</p>`).join('') : '<p class="fine">⚠️ 데모 결제예요. 실제 카드 결제는 일어나지 않아요.</p>'}
-      <p class="fine">정기결제예요. 이용 기간이 끝나는 날 자동으로 결제되고, 부모페이지 › 멤버십에서 언제든 해지할 수 있어요(남은 기간은 계속 이용). 결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 그 뒤의 환불과 결제 관련 문의·이의신청은 고객센터(010-5117-1247, team.saessakschool@gmail.com)로 해 주세요. 자세한 내용은 <a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5·6조에 있어요.</p>
+      <p class="fine">${kakaoOnce ? '카드로 결제하면 정기결제, 카카오페이로 결제하면 한 번만 결제예요. 정기결제는' : '정기결제예요.'} 이용 기간이 끝나는 날 자동으로 결제되고, 부모페이지 › 멤버십에서 언제든 해지할 수 있어요(남은 기간은 계속 이용). 결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 그 뒤의 환불과 결제 관련 문의·이의신청은 고객센터(010-5117-1247, team.saessakschool@gmail.com)로 해 주세요. 자세한 내용은 <a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5·6조에 있어요.</p>
       <div class="row-center pay-buttons"><button class="btn btn-ghost" data-close>취소</button>${methods.length ? methods.map(k => PAY_BTN[k]).join('') : '<button class="btn btn-primary" data-ok="card">데모 결제하기</button>'}</div>`);
     const btns = [...m.el.querySelectorAll('[data-ok]')];
     btns.forEach(ok => ok.onclick = async () => {
