@@ -239,9 +239,11 @@ const Speech = (() => {
     catch (e) { return e && e.name === 'NotAllowedError' ? 'denied' : 'unsupported'; }
   }
   // 말소리 앞뒤의 조용한 부분은 잘라서 보낸다: 올리는 양이 줄고, 서버 인식도 녹음 길이에 맞춰 빨라진다
+  //   앞뒤 여유를 넉넉히 둔다: 아이의 작은 첫소리·끝소리(s, t 등)가 말소리 기준보다 작아 잘려서, 서버가 문장 일부만 들었다
+  //   (2026-11-20 제보: 녹음이 모두 1.3초 안팎으로 잘려 "인식이 잘 안 된다")
   function trimChunks(chunks, first, last, rate) {
     if (first < 0) return chunks;
-    const pad = Math.ceil(0.3 * rate / 4096), tail = Math.ceil(0.45 * rate / 4096);
+    const pad = Math.ceil(0.6 * rate / 4096), tail = Math.ceil(0.8 * rate / 4096);
     return chunks.slice(Math.max(0, first - pad), Math.min(chunks.length, last + 1 + tail));
   }
   // 읽을 문장 길이에 맞춘 듣기 시간. 아이는 단어 사이에 쉬면서 읽어서, 0.7초 조용하면 끝내던 때는 다 읽기 전에 채점했다 (2026-11 제보)
@@ -293,9 +295,11 @@ const Speech = (() => {
         // "지금 말해요"는 마이크 소리가 실제로 들어올 때 띄운다. 아이패드는 꺼 둔 마이크를 다시 켜면 처음 잠깐 빈 소리(0)만 와서,
         //   그때 말하기 시작하면 첫 소리가 녹음되지 않았다 (2026-11 제보). 0.7초가 지나도 안 오면 그냥 띄운다
         if (!live && (rms > 1e-5 || now - t0 > 700)) { live = true; if (onStart) onStart(); }
-        if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.02, Math.max(0.006, floor * 2.5)); }
+        // 말소리 기준은 주변 소리의 3배(0.004~0.012). 예전 기준(최대 0.02)은 아이의 작은 목소리를 말소리로 보지 않아 앞뒤가 잘렸다
+        if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.012, Math.max(0.004, floor * 3)); }
         peak = Math.max(peak, rms);
-        if (rms > level) { if (!heard) spokeAt = now; heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
+        // 말이 이어지는 동안(조용함 판단)은 기준의 절반만 넘어도 말하는 중으로 본다: 단어 사이 작은 소리에서 끊지 않게
+        if (rms > level || (heard && rms > level * 0.5)) { if (!heard) spokeAt = now; heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
         const hush = now - quiet, enough = now - spokeAt >= minMs;
         if ((heard && hush > (enough ? silenceMs : 2500)) || now - t0 > maxMs) finish();
       };

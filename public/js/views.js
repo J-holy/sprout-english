@@ -1394,9 +1394,10 @@ Views.story = (el, id) => {
         const r = Speech.score(text, await Speech.listen({ hint: text, onStart: () => { mic.textContent = '🎙️ 지금 말해요!'; }, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } }));
         clearHl(); sp.forEach((x, j) => { const w = r.words[j]; if (w) x.classList.add(w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'); });
         const got = Store.profile() ? Store.recordSpeaking(text, r.score) : 0;
-        res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= Lesson.passMark() ? '잘 읽었어요! 🌟' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;
+        res.innerHTML = `<span class="score-pill small ${scoreClass(r.score)}">${r.score}점</span> ${r.score >= 100 ? '완벽해요! 🌟' : r.score >= Lesson.passMark() ? '거의 다 왔어요! 한 번 더 말해서 만점에 도전해 볼까요?' : '한 번 더 들어볼까요?'}${got ? ' ⭐+1' : ''}`;
         if (r.score >= Lesson.passMark()) Speech.sfx.correct();
-        if (auto && r.score >= Lesson.passMark()) later(() => { pg++; draw(); }, 1800);
+        // 자동 넘기기는 만점일 때만 한다. 만점이 아니면 그 쪽에 머물러 다시 말해 보게 한다 (다음 쪽 버튼으로 넘길 수 있다)
+        if (auto && r.score >= 100) later(() => { pg++; draw(); }, 1800);
       } catch (e) {
         res.innerHTML = `<span class="mic-hint">${esc(Speech.micHelp(e.message))}${e.detail ? ` <small class="fine">(${esc(e.detail)})</small>` : ''}</span>`;
       }

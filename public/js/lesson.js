@@ -629,28 +629,44 @@ const Lesson = (() => {
       const skip = el.querySelector('[data-skip]');
       if (skip) skip.onclick = () => { el.querySelectorAll('button').forEach(b => b.disabled = true); done(false, q); };
       const mic = el.querySelector('[data-mic]');
+      let best = null, next = null;
+      const MAX_TRIES = 4;
+      // 가장 잘한 점수로 채점을 끝낸다. 끝나면 마이크를 다시 켜지 않는다
+      const finish = r => {
+        el.querySelectorAll('button').forEach(b => b.disabled = true);
+        mic.classList.remove('rec'); mic.textContent = '✅ 완료';
+        done(r.score >= passMark(), q, `<div class="fb-answer">${coach(r)}</div>`);
+      };
       if (mic) mic.onclick = async () => {
         // 마이크가 실제로 켜진 뒤에 "말해요"를 보여준다 (먼저 말하면 첫 단어가 잘린다)
         mic.disabled = true; mic.classList.add('rec'); mic.textContent = '⏳ 마이크 준비 중…';
+        if (next) next.disabled = true;
         try {
           const alts = await Speech.listen({ hint: q.target, onStart: () => { mic.textContent = '🎙️ 지금 말해요!'; }, onThinking: () => { mic.textContent = '🤔 점수를 매기는 중…'; } });
           const r = Speech.score(q.target, alts); tries++;
+          if (!best || r.score > best.score) best = r;
           const pass = passMark();
           if (R.recordSpeech && Store.profile()) Store.recordSpeaking(q.target, r.score);
           const spans = el.querySelectorAll('.speak-target span');
           r.words.forEach((w, k) => { if (spans[k]) spans[k].className = w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'; });
           res.innerHTML = `<div class="score-pill ${r.score >= 80 ? 'good' : r.score >= 60 ? 'mid' : 'low'}">${r.score}점</div><div class="heard">들은 말: "${esc(r.heard)}"</div>`;
-          if (r.score >= pass || tries >= 3) {
-            el.querySelectorAll('button').forEach(b => b.disabled = true);
-            mic.classList.remove('rec'); mic.textContent = '✅ 완료';
-            return done(r.score >= pass, q, `<div class="fb-answer">${coach(r)}</div>`); // 채점이 끝나면 마이크를 다시 켜지 않는다
+          // 만점이면 바로 넘어간다. 통과는 했지만 만점이 아니면 바로 넘기지 않고 "다시 말하기"와 "다음으로"를 고르게 한다 (2026-11 요청)
+          if (r.score >= 100 || tries >= MAX_TRIES) return finish(best);
+          if (r.score >= pass) {
+            res.innerHTML += `<div class="hint">거의 다 왔어요! ${coach(r)} 한 번 더 말해서 만점에 도전해 볼까요?</div>`;
+            if (!next) {
+              next = document.createElement('button'); next.className = 'btn btn-ghost'; next.textContent = '다음으로 →';
+              next.onclick = () => finish(best);
+              mic.after(next);
+            }
           } else {
-            res.innerHTML += `<div class="hint">${coach(r)} (${3 - tries}번 더 해볼 수 있어요)</div>`;
+            res.innerHTML += `<div class="hint">${coach(r)} (${MAX_TRIES - tries}번 더 해볼 수 있어요)</div>`;
           }
         } catch (e) {
           res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}${e.detail ? ` <small class="fine">(${esc(e.detail)})</small>` : ''}</div>`;
         }
         mic.disabled = false; mic.classList.remove('rec'); mic.textContent = '🎤 다시 말하기';
+        if (next) next.disabled = false;
       };
     },
   };
