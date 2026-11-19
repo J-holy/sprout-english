@@ -89,7 +89,7 @@ const UI = {
       : '👧👦 형제·자매가 함께 배우나요? 아이를 추가하면 <b>형제·자매 할인</b>이 자동으로 적용돼요.';
     const draw = () => {
       const P = PLANS[kids];
-      $('.plan-cards', root).innerHTML = [1, 6, 12].map(months => {
+      $('.plan-cards', root).innerHTML = [1, 3, 6, 12].map(months => {
         const monthly = planMonthly(kids, months);
         // 로그인 전에는 웰컴쿠폰을 받는다고 보고 보여준다
         const promo = promoMonthly(kids, months);
@@ -100,7 +100,7 @@ const UI = {
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
           ${months === 12 ? `<span class="ribbon">${q.promo ? `1년 특가 · ${promoEndText()}까지` : '가장 인기'}</span>` : ''}
           <h4>${months}개월</h4>
-          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 6: `하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: `하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
+          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 3: '한 계절 꾸준히 해보기', 6: `하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: `하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
           <dl>${disc ? `<dt>1개월 요금</dt><dd class="strike">월 ${won(P.list)}</dd>` : ''}
           <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
           ${q.promo ? `<dt>1년 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
@@ -697,8 +697,8 @@ Views.pricing = (el, params) => {
     <h2 class="sec-sub">🎟️ 첫 결제 쿠폰가</h2>
     <p class="sec-desc left">가입하면 바로 받는 웰컴쿠폰으로, 10일 안에 결제하면 <b>${pct(WELCOME_RATE)} 더</b> 할인돼요.</p>
     <div class="table-wrap"><table class="table price-table">
-      <thead><tr><th></th><th>1개월</th><th>6개월</th><th>12개월</th></tr></thead>
-      <tbody>${[Store.kidsPlan()].map(k => `<tr><th>${k === 'two' ? '👧👦 형제·자매' : '플러스'}</th>${[1, 6, 12].map(m => {
+      <thead><tr><th></th><th>1개월</th><th>3개월</th><th>6개월</th><th>12개월</th></tr></thead>
+      <tbody>${[Store.kidsPlan()].map(k => `<tr><th>${k === 'two' ? '👧👦 형제·자매' : '플러스'}</th>${[1, 3, 6, 12].map(m => {
         const promo = promoMonthly(k, m), monthly = promo || round10(planMonthly(k, m) * (1 - WELCOME_RATE));
         return `<td><small class="strike">월 ${won(planMonthly(k, m))}</small><br><b class="hot">${promo ? '1년 특가 ' : ''}월 ${won(monthly)}</b></td>`;
       }).join('')}</tr>`).join('')}</tbody></table></div>
@@ -717,8 +717,8 @@ Views.pricing = (el, params) => {
       <div class="card feat"><span class="feat-ico">🌱</span><h4>끝나도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
     <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
-      <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 6개월 / 12개월</dd>
-      <dt>서비스 제공 기간</dt><dd>결제하면 바로 이용 시작 · 1개월 30일, 6개월 180일, 12개월 360일</dd>
+      <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 3개월 / 6개월 / 12개월</dd>
+      <dt>서비스 제공 기간</dt><dd>결제하면 바로 이용 시작 · 1개월 30일, 3개월 90일, 6개월 180일, 12개월 360일</dd>
       <dt>결제 방식</dt><dd>한 번만 결제(단건결제) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
       <dt>결제 시기</dt><dd>구매할 때 한 번 결제해요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 종료일을 알려 드려요. 계속 이용하려면 이용권을 다시 구매해요.</dd>
       <dt>이용 종료</dt><dd>자동결제가 없어 해지할 필요가 없어요. 이용 기간이 끝나면 무료 이용(1~2단계)으로 돌아가요.</dd>
@@ -1703,7 +1703,7 @@ const ParentTabs = {
   coupons(el, u) {
     el.innerHTML = `<div class="coupon-list">${u.coupons.map(c => { const exp = c.expires < Date.now(); return `
       <div class="coupon ${c.used || exp ? 'off' : ''}"><div class="c-rate">${Math.round((c.welcome ? WELCOME_RATE : c.rate) * 100)}%</div><div class="c-info"><b>${esc(c.name)}</b>
-      <small>${c.welcome ? '플러스 첫 결제 · 1·6·12개월 모든 상품' : '모든 상품'}</small><small>${c.used ? '사용 완료' : exp ? '기간 만료' : `${fmtDay(c.expires)}까지 · D-${Math.ceil((c.expires - Date.now()) / 86400000)}`}</small></div></div>`; }).join('')}</div>
+      <small>${c.welcome ? '플러스 첫 결제 · 1·3·6·12개월 모든 상품' : '모든 상품'}</small><small>${c.used ? '사용 완료' : exp ? '기간 만료' : `${fmtDay(c.expires)}까지 · D-${Math.ceil((c.expires - Date.now()) / 86400000)}`}</small></div></div>`; }).join('')}</div>
       <p class="fine">구매 시 할인율이 가장 높은 쿠폰 1장이 자동 적용돼요.</p><a class="btn btn-primary" href="#/pricing">요금·할인 보기</a>`;
   },
   worksheets(el, u) {

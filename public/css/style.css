@@ -215,7 +215,8 @@ button.chip { cursor: pointer; }
 .seg button.on { background: var(--grape); color: #fff; }
 .plan-kids { margin: 0 0 14px; }
 .sibling-step { display: grid; gap: 10px; }
-.plan-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.plan-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 1100px) { .plan-cards { grid-template-columns: repeat(2, 1fr); } }
 .plan-card { background: var(--paper); border: var(--bw) solid var(--line); border-radius: var(--radius); padding: 22px; position: relative; display: grid; gap: 10px; box-shadow: var(--shadow); }
 .plan-card.best { outline: 4px dashed var(--berry); outline-offset: 4px; }
 .plan-card h4 { font-size: 1.6rem; margin: 0; }

@@ -399,7 +399,7 @@ app.post('/api/admin/users/:id/action', (req, res) => {
   const t = now();
   switch (act) {
     case 'grant': {
-      const months = [1, 6, 12].includes(Number(req.body.months)) ? Number(req.body.months) : 1;
+      const months = [1, 3, 6, 12].includes(Number(req.body.months)) ? Number(req.body.months) : 1;
       const cur = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(u.id);
       const until = (cur && cur.until > t ? cur.until : t) + months * 30 * DAY;
       db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted) VALUES (?, 'two', ?, ?, ?, 0, 0, 1)
