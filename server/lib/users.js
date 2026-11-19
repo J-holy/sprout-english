@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { db, id, now, json, DAY, tx } from './db.js';
 import { config } from './env.js';
 import { quote, kidsOf } from './pricing.js';
+import { refundQuote } from './refund.js';
 
 export const getUser = uid => db.prepare('SELECT * FROM users WHERE id = ?').get(uid);
 export const getUserByEmail = email => email ? db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).toLowerCase()) : undefined;
@@ -58,7 +59,9 @@ export function membershipOf(uid) {
   const u = getUser(uid), next = m.granted || !u ? null : quote(uid, kidsOf(u), m.months, { renew: true }).total;
   return { nextAmount: next, kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key,
     // 한 번만 결제한 이용권(단건결제): 자동갱신이 없다
-    oneTime: !m.granted && !m.billing_key && !m.auto_renew, payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
+    oneTime: !m.granted && !m.billing_key && !m.auto_renew,
+    // 지금 환불하면 돌려받는 금액 (없으면 null)
+    refund: (q => q && { amount: q.amount, full: q.full, usedMonths: q.usedMonths, leftMonths: q.leftMonths, months: q.months })(refundQuote(uid)), payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
 }
 
 // 프론트엔드 Store가 쓰는 모양 그대로 돌려준다

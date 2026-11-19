@@ -713,7 +713,7 @@ Views.pricing = (el, params) => {
     <h2 class="sec-sub">결제 · 환불 안내</h2>
     <div class="grid3">
       <div class="card feat"><span class="feat-ico">🧾</span><h4>한 번만 결제</h4><p>이용권은 구매할 때 한 번만 결제돼요. 자동으로 다시 결제되지 않고, 끝나기 3일 전에 알려 드려요.</p></div>
-      <div class="card feat"><span class="feat-ico">↩️</span><h4>7일 이내 환불</h4><p>결제 후 7일 이내라면 부모페이지에서 바로 환불하고, 사용한 쿠폰도 돌려받아요.</p></div>
+      <div class="card feat"><span class="feat-ico">↩️</span><h4>환불</h4><p>결제 후 7일 이내, 플러스 학습 전이면 부모페이지에서 바로 전액 환불해요. 학습을 시작했다면 남은 달만큼 1개월 단위로 환불해요.</p></div>
       <div class="card feat"><span class="feat-ico">🌱</span><h4>끝나도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
     <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
@@ -722,7 +722,7 @@ Views.pricing = (el, params) => {
       <dt>결제 방식</dt><dd>한 번만 결제(단건결제) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
       <dt>결제 시기</dt><dd>구매할 때 한 번 결제해요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 종료일을 알려 드려요. 계속 이용하려면 이용권을 다시 구매해요.</dd>
       <dt>이용 종료</dt><dd>자동결제가 없어 해지할 필요가 없어요. 이용 기간이 끝나면 무료 이용(1~2단계)으로 돌아가요.</dd>
-      <dt>환불(청약철회)</dt><dd>결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 7일이 지난 뒤의 환불은 고객센터로 문의해 주시면 관련 법령에 따라 처리해요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
+      <dt>환불(청약철회)</dt><dd>결제 후 7일 이내이고 플러스 학습(3단계 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
       <dt>교환·상품 변경</dt><dd>디지털 이용권이라 교환은 없어요. 기간을 바꾸려면 고객센터로 문의해 주세요.</dd>
       <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · team.saessakschool@gmail.com</dd>
       <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(플러스 이용권과 결제)·제6조(청약철회와 환불)</dd></dl></div>
@@ -1688,7 +1688,8 @@ const ParentTabs = {
         ${m.autoRenew ? `<dt>자동갱신</dt><dd>켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}</dd>` : m.granted ? '' : `<dt>결제</dt><dd>한 번만 결제한 이용권 · 자동결제 없음 · ${fmtDay(m.until)} 3일 전에 알려 드려요</dd>`}
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
         <div class="row">${!m.granted && m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : ''}
-        ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
+        ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 전액 환불 (결제 7일 이내 · 플러스 학습 전)</button>' : ''}</div>
+        ${m.refund && !m.refund.full ? `<p class="fine">결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불은 안 돼요. 고객센터(010-5117-1247, team.saessakschool@gmail.com)로 신청하면 이용한 ${m.refund.usedMonths}개월을 빼고 남은 ${m.refund.leftMonths}개월치 ${won(m.refund.amount)}을 환불해 드려요.</p>` : ''}</div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
       ${m && !m.granted && m.autoRenew && m.kids !== Store.kidsPlan() ? `<div class="card notice">등록한 아이 수가 바뀌어서 다음 결제부터 월 ${won(planMonthly(Store.kidsPlan(), m.months))}${Store.kidsPlan() === 'two' ? ' (형제·자매 요금)' : ''}으로 바뀌어요. 쿠폰을 쓰면 달라질 수 있어요.</div>` : ''}
       ${a.kind === 'admin' ? '' : UI.plans()}`;
@@ -1698,7 +1699,7 @@ const ParentTabs = {
       try { await Store.setAutoRenew(b.dataset.renew === '1'); App.toast(b.dataset.renew === '1' ? '자동갱신을 켰어요.' : '자동갱신을 해지했어요.'); App.route(); } catch (x) { App.toast(x.message); }
     });
     const rf = $('[data-refund]', el);
-    if (rf) rf.onclick = async () => { if (confirm('멤버십을 환불할까요? 이번 결제로 늘어난 기간이 바로 줄어들어요.')) { try { await Store.refund(); App.toast('환불이 완료되었어요.'); App.route(); } catch (x) { App.toast(x.message); } } };
+    if (rf) rf.onclick = async () => { if (confirm('결제 금액을 전액 환불할까요? 이번 결제로 늘어난 기간이 바로 없어지고, 쓴 쿠폰은 돌려드려요.')) { try { await Store.refund(); App.toast('환불이 완료되었어요.'); App.route(); } catch (x) { App.toast(x.message); } } };
   },
   coupons(el, u) {
     el.innerHTML = `<div class="coupon-list">${u.coupons.map(c => { const exp = c.expires < Date.now(); return `
@@ -1825,13 +1826,14 @@ const AdminTabs = {
         ${u.payments.length ? `<div class="table-wrap"><table class="table"><tbody>${u.payments.slice(0, 5).map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table></div>` : ''}
         <div class="admin-actions">
           <button class="btn btn-ghost sm" data-act="grant" data-months="1">💎 1개월 지급</button><button class="btn btn-ghost sm" data-act="grant" data-months="12">💎 12개월 지급</button>
-          <button class="btn btn-ghost sm" data-act="revoke">멤버십 회수</button><button class="btn btn-ghost sm" data-act="trial">⏳ 체험 +7일</button>
+          ${u.membership && u.membership.refund ? `<button class="btn btn-ghost sm danger" data-act="refund">↩️ 환불 ${u.membership.refund.full ? '(전액)' : `(${u.membership.refund.usedMonths}개월 빼고)`} ${won(u.membership.refund.amount)}</button>` : ''}<button class="btn btn-ghost sm" data-act="revoke">멤버십 회수</button><button class="btn btn-ghost sm" data-act="trial">⏳ 체험 +7일</button>
           <button class="btn btn-ghost sm" data-act="coupon">🎟️ 50% 쿠폰 발급</button><button class="btn btn-ghost sm" data-act="stars">⭐ 별 +10</button>
           ${self ? '' : `<button class="btn btn-ghost sm" data-act="role">${u.role === 'admin' ? '관리자 해제' : '관리자로 지정'}</button><button class="btn btn-ghost sm danger" data-act="delete">회원 삭제</button>`}
         </div>`;
       $$('[data-act]', box).forEach(b => b.onclick = async () => {
         const act = b.dataset.act, A = Store.Admin;
         try {
+          if (act === 'refund' && !confirm(`${u.email || u.parentName} 회원에게 ${won(u.membership.refund.amount)}을 환불할까요? 결제사로 바로 취소 요청이 가요.`)) return;
           if (act === 'delete') { if (!confirm(`${u.email || u.parentName} 회원과 모든 기록을 삭제할까요? 되돌릴 수 없어요.`)) return; await A.deleteUser(key); }
           else await A.act(key, act, { months: +b.dataset.months || 1, days: 7, rate: 0.5, n: 10, role: u.role === 'admin' ? 'parent' : 'admin' });
           App.toast('처리했어요.'); App.route();

@@ -295,7 +295,9 @@ const Store = (() => {
     u.membership.autoRenew = on; save();
     notify(on ? '🔁 자동갱신을 다시 켰어요.' : `🛑 자동갱신을 해지했어요. ${new Date(u.membership.until).toLocaleDateString('ko-KR')}까지 이용할 수 있고 이후 결제되지 않아요.`, 'member');
   }
+  // 부모페이지에서 바로 할 수 있는 환불(전액)인지. 서버가 계산한 값(membership.refund)을 쓴다
   function canRefund(u = user()) {
+    if (API.on) return !!(u && u.membership && u.membership.refund && u.membership.refund.full);
     const pay = u && u.payments.find(p => p.status === '결제완료' && p.amount > 0);
     return !!(pay && u.membership && Date.now() - pay.at < 7 * DAY);
   }
@@ -345,6 +347,7 @@ const Store = (() => {
     const score = Math.min(100, Math.round(correct / total * 100));
     const prev = lp.lessons[index];
     lp.lessons[index] = { score: Math.max(score, prev ? prev.score : 0), date: d };
+    if (!isFreeLevel(level)) p.plusUsed = d; // 플러스 학습을 한 날 (환불 규칙에 쓴다)
     p.stats.answered += total; p.stats.correct += correct;
     p.stamps[d] = (p.stamps[d] || 0) + 1;
     p.minutes[d] = (p.minutes[d] || 0) + Math.max(1, Math.round(seconds / 60));
@@ -414,6 +417,7 @@ const Store = (() => {
   function readStory(id) {
     const p = profile(); const first = !p.stories[id];
     p.stories[id] = (p.stories[id] || 0) + 1;
+    const s = STORIES.find(x => x.id === id); if (s && (s.plus || s.stage > 2)) p.plusUsed = today(); // 플러스 스토리북을 읽은 날
     bumpDaily('story');
     if (first) { const d = today(); p.stamps[d] = (p.stamps[d] || 0) + 1; addStars(2, 'story'); addXp(15); }
     save(); return first;

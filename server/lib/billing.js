@@ -11,6 +11,7 @@ import { config } from './env.js';
 import { quote, kidsOf } from './pricing.js';
 import { notify, getUser } from './users.js';
 import { applyReferralRewards } from './social.js';
+import { refundQuote } from './refund.js';
 
 export const tossReady = () => !!(config.toss.clientKey && config.toss.secretKey);
 export const kakaoPayReady = () => !!config.kakaopay.secretKey;
@@ -148,29 +149,30 @@ export function setAutoRenew(uid, on) {
   notify(uid, on ? '🔁 자동갱신을 다시 켰어요.' : `🛑 자동갱신을 해지했어요. ${new Date(m.until).toLocaleDateString('ko-KR')}까지 이용할 수 있고 이후 결제되지 않아요.`, 'member');
 }
 
-export function refundable(uid) {
-  const p = db.prepare("SELECT * FROM payments WHERE user_id = ? AND status = '결제완료' AND amount > 0 ORDER BY at DESC LIMIT 1").get(uid);
-  return p && now() - p.at < 7 * DAY ? p : null;
-}
-export async function refund(uid) {
-  const p = refundable(uid);
-  if (!p) throw new Error('환불 가능 기간(결제 후 7일)이 지났거나 환불할 결제가 없어요.');
-  if (p.payment_key && isKakaoPay(p)) await kakao('/online/v1/payment/cancel', { tid: p.payment_key, cancel_amount: p.amount, cancel_tax_free_amount: 0 }, /· 단건/.test(p.method) ? config.kakaopay.onetimeCid : config.kakaopay.cid);
-  else if (p.payment_key) await toss(`/v1/payments/${p.payment_key}/cancel`, { cancelReason: '고객 요청 (7일 이내 환불)' });
+// 환불 규칙은 refund.js (7일 이내·플러스 학습 전이면 전액, 아니면 1개월 단위로 남은 달만큼)
+export const refundable = uid => refundQuote(uid);
+// admin: 관리자 화면에서 처리하는 1개월 단위 환불. 회원이 직접 할 수 있는 것은 전액 환불뿐이다
+export async function refund(uid, { admin = false } = {}) {
+  const q = refundQuote(uid), p = q?.payment;
+  if (!q) throw new Error('환불할 수 있는 결제가 없어요. 1개월 이용권은 이용을 시작하면 환불되지 않아요.');
+  if (!admin && !q.full) throw new Error('결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불할 수 없어요. 고객센터로 신청하면 이용한 달을 빼고 남은 달만큼 환불해 드려요.');
+  if (p.payment_key && isKakaoPay(p)) await kakao('/online/v1/payment/cancel', { tid: p.payment_key, cancel_amount: q.amount, cancel_tax_free_amount: 0 }, /· 단건/.test(p.method) ? config.kakaopay.onetimeCid : config.kakaopay.cid);
+  else if (p.payment_key) await toss(`/v1/payments/${p.payment_key}/cancel`, q.full ? { cancelReason: '고객 요청 (전액 환불)' } : { cancelReason: `고객 요청 (남은 ${q.leftMonths}개월 환불)`, cancelAmount: q.amount });
   const key = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(uid)?.billing_key;
   tx(() => {
-    db.prepare("UPDATE payments SET status = '환불완료' WHERE id = ?").run(p.id);
-    // 이번 결제로 늘어난 기간만큼 줄이고, 남은 기간이 없으면 멤버십을 끝낸다
+    const raw = (() => { try { return JSON.parse(p.raw || '{}') || {}; } catch { return {}; } })();
+    db.prepare('UPDATE payments SET status = ?, raw = ? WHERE id = ?').run(q.full ? '환불완료' : `부분환불 ${won(q.amount)}`, JSON.stringify({ ...raw, refund: { amount: q.amount, usedMonths: q.usedMonths, at: now() } }).slice(0, 4000), p.id);
+    // 환불한 달만큼 기간을 줄이고, 남은 기간이 없으면 멤버십을 끝낸다
     const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
     const paidLeft = db.prepare("SELECT COUNT(*) n FROM payments WHERE user_id = ? AND status = '결제완료' AND amount > 0").get(uid).n;
     if (m) {
-      const until = m.until - p.months * 30 * DAY;
+      const until = m.until - q.leftMonths * 30 * DAY;
       // 남은 유료 결제가 없으면 멤버십을 지운다 (체험 기간이 남았다면 체험으로 돌아간다)
-      if (until <= now() || (!paidLeft && !m.granted)) db.prepare('DELETE FROM memberships WHERE user_id = ?').run(uid);
+      if (until <= now() || (q.full && !paidLeft && !m.granted)) db.prepare('DELETE FROM memberships WHERE user_id = ?').run(uid);
       else db.prepare('UPDATE memberships SET until = ? WHERE user_id = ?').run(until, uid);
     }
-    if (p.coupon_id) db.prepare('UPDATE coupons SET used = 0 WHERE id = ?').run(p.coupon_id); // 쓴 쿠폰을 돌려준다
-    notify(uid, `↩️ ${won(p.amount)} 환불이 완료되었어요.`, 'member');
+    if (q.full && p.coupon_id) db.prepare('UPDATE coupons SET used = 0 WHERE id = ?').run(p.coupon_id); // 전액 환불이면 쓴 쿠폰을 돌려준다
+    notify(uid, q.full ? `↩️ ${won(q.amount)} 환불이 완료되었어요.` : `↩️ 이용한 ${q.usedMonths}개월을 빼고 남은 ${q.leftMonths}개월치 ${won(q.amount)} 환불이 완료되었어요.`, 'member');
   });
   // 환불로 멤버십이 끝났으면 카카오페이 정기결제 번호도 해지한다
   if (!db.prepare('SELECT 1 FROM memberships WHERE user_id = ?').get(uid)) await retireKakao(key, null);

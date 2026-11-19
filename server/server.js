@@ -359,7 +359,7 @@ app.post('/api/billing/auto-renew', requireUser, (req, res) => {
 app.post('/api/billing/refund', requireUser, wrap(async (req, res) => {
   try { await refund(req.user.id); res.json({ ok: true }); } catch (err) { bad(res, err.message); }
 }));
-app.get('/api/billing/refundable', requireUser, (req, res) => res.json({ refundable: !!refundable(req.user.id) }));
+app.get('/api/billing/refundable', requireUser, (req, res) => { const q = refundable(req.user.id); res.json({ refundable: !!q, amount: q?.amount || 0, full: !!q?.full }); });
 
 // ---------- 후기 ----------
 app.get('/api/reviews', (req, res) => {
@@ -393,7 +393,7 @@ app.use('/api/admin', requireUser, requireAdmin);
 app.get('/api/admin/users', (req, res) => {
   res.json(db.prepare('SELECT * FROM users ORDER BY created_at DESC').all().map(u => ({ ...userDoc(u), source: u.source || '', referrals: db.prepare('SELECT COUNT(*) n FROM users WHERE referred_by = ?').get(u.id).n, referralRewards: u.referral_rewards || 0, access: access(u), notifications: undefined })));
 });
-app.post('/api/admin/users/:id/action', (req, res) => {
+app.post('/api/admin/users/:id/action', wrap(async (req, res) => {
   const u = getUser(req.params.id); if (!u) return bad(res, '회원을 찾을 수 없어요.', 404);
   const { act } = req.body || {};
   const t = now();
@@ -408,6 +408,8 @@ app.post('/api/admin/users/:id/action', (req, res) => {
       notify(u.id, `🎁 관리자가 멤버십 ${months}개월을 지급했어요.`, 'member'); break;
     }
     case 'revoke': db.prepare('DELETE FROM memberships WHERE user_id = ?').run(u.id); break;
+    // 고객센터로 받은 환불 신청: 1개월 단위로 남은 달만큼 환불 (refund.js)
+    case 'refund': try { await refund(u.id, { admin: true }); } catch (err) { return bad(res, err.message); } break;
     case 'trial': {
       const days = Math.min(90, Math.max(1, Number(req.body.days) || 7));
       db.prepare('UPDATE users SET trial_start = COALESCE(trial_start, ?), trial_bonus = trial_bonus + ? WHERE id = ?').run(t, days * DAY, u.id);
@@ -430,7 +432,7 @@ app.post('/api/admin/users/:id/action', (req, res) => {
     default: return bad(res, '알 수 없는 작업이에요.');
   }
   res.json({ ok: true });
-});
+}));
 app.delete('/api/admin/users/:id', (req, res) => {
   if (req.params.id === req.user.id) return bad(res, '내 계정은 여기서 지울 수 없어요.');
   const bk = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(req.params.id)?.billing_key;

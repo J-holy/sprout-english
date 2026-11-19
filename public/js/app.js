@@ -188,7 +188,7 @@ const App = (() => {
       <dt>총 결제 금액</dt><dd class="total">${won(q.total)}</dd>
       <dt>결제 방식</dt><dd>한 번만 결제 · 자동결제 없음 · 끝나기 3일 전 알림</dd></dl>
       ${methods.length ? methods.map(k => `<p class="fine">${PAY_NOTE[k]}</p>`).join('') : '<p class="fine">⚠️ 데모 결제예요. 실제 카드 결제는 일어나지 않아요.</p>'}
-      <p class="fine">한 번만 결제하는 이용권이에요. 이용 기간이 끝나도 자동으로 다시 결제되지 않고, 계속 이용하려면 이용권을 다시 구매하면 돼요. 결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 그 뒤의 환불과 결제 관련 문의·이의신청은 고객센터(010-5117-1247, team.saessakschool@gmail.com)로 해 주세요. 자세한 내용은 <a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5·6조에 있어요.</p>
+      <p class="fine">한 번만 결제하는 이용권이에요. 이용 기간이 끝나도 자동으로 다시 결제되지 않고, 계속 이용하려면 이용권을 다시 구매하면 돼요. 결제 후 7일 이내이고 플러스 학습(3단계 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 결제 관련 문의·이의신청은 고객센터(010-5117-1247, team.saessakschool@gmail.com)로 해 주세요. 자세한 내용은 <a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5·6조에 있어요.</p>
       <div class="row-center pay-buttons"><button class="btn btn-ghost" data-close>취소</button>${methods.length ? methods.map(k => PAY_BTN[k]).join('') : '<button class="btn btn-primary" data-ok="card">데모 결제하기</button>'}</div>`);
     const btns = [...m.el.querySelectorAll('[data-ok]')];
     btns.forEach(ok => ok.onclick = async () => {
