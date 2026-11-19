@@ -79,7 +79,7 @@ const UI = {
     return `<div class="plans">
       <p class="plan-kids center"></p>
       <div class="plan-cards"></div>
-      <p class="fine center">모든 상품은 정기결제(자동갱신)이고, 부모페이지에서 언제든 해지할 수 있어요.${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
+      <p class="fine center">💳 카드로 결제하면 이용 기간이 끝나는 날 같은 카드로 자동결제(자동갱신)되고, 부모페이지에서 언제든 해지할 수 있어요. 💛 카카오페이는 한 번만 결제하는 이용권이에요(자동결제 없음).${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
     </div>`;
   },
   wirePlans(root) {
@@ -712,20 +712,20 @@ Views.pricing = (el, params) => {
 
     <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
     <div class="grid3">
-      <div class="card feat"><span class="feat-ico">🔁</span><h4>자동갱신</h4><p>기간이 끝나는 날 같은 상품으로 갱신돼요. 부모페이지 › 멤버십에서 버튼 하나로 해지해요.</p></div>
+      <div class="card feat"><span class="feat-ico">🔁</span><h4>카드는 자동결제</h4><p>카드로 결제하면 기간이 끝나는 날 같은 상품을 같은 카드로 자동결제해요. 부모페이지 › 멤버십에서 버튼 하나로 해지해요. 카카오페이는 한 번만 결제돼요.</p></div>
       <div class="card feat"><span class="feat-ico">↩️</span><h4>7일 이내 환불</h4><p>결제 후 7일 이내라면 부모페이지에서 바로 환불하고, 사용한 쿠폰도 돌려받아요.</p></div>
       <div class="card feat"><span class="feat-ico">🌱</span><h4>해지해도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
     <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
       <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 6개월 / 12개월</dd>
       <dt>서비스 제공 기간</dt><dd>결제하면 바로 이용 시작 · 1개월 30일, 6개월 180일, 12개월 360일</dd>
-      <dt>결제 방식</dt><dd>정기결제(자동갱신) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
-      <dt>결제 시기</dt><dd>처음에는 구매할 때 결제하고, 그 뒤에는 이용 기간이 끝나는 날 같은 기간 상품을 같은 결제수단으로 결제해요. 3일 전에 결제일과 금액을 알려 드려요.</dd>
-      <dt>해지</dt><dd>부모페이지 › 멤버십 › 자동갱신 해지 (언제든, 남은 기간은 계속 이용하고 그 뒤로는 결제되지 않아요)</dd>
+      <dt>결제 방식</dt><dd>신용·체크카드(토스페이먼츠): 자동결제(자동갱신) · 카카오페이: 한 번만 결제(자동결제 없음)</dd>
+      <dt>결제 시기</dt><dd>구매할 때 결제해요. 카드로 결제하면 그 뒤 이용 기간이 끝나는 날 같은 기간 상품을 같은 카드로 자동결제하고, 3일 전에 결제일과 금액을 알려 드려요. 카카오페이로 결제하면 다시 결제되지 않고, 끝나기 3일 전에 종료일을 알려 드려요.</dd>
+      <dt>해지</dt><dd>카드 자동결제: 부모페이지 › 멤버십 › 자동갱신 해지 (언제든, 남은 기간은 계속 이용하고 그 뒤로는 결제되지 않아요) · 카카오페이: 자동결제가 없어 해지할 필요가 없어요</dd>
       <dt>환불(청약철회)</dt><dd>결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 7일이 지난 뒤의 환불은 고객센터로 문의해 주시면 관련 법령에 따라 처리해요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
       <dt>교환·상품 변경</dt><dd>디지털 이용권이라 교환은 없어요. 기간을 바꾸려면 고객센터로 문의해 주세요.</dd>
       <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · team.saessakschool@gmail.com</dd>
-      <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(자동갱신)·제6조(청약철회와 환불)</dd></dl></div>
+      <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(카드 자동결제와 카카오페이 결제)·제6조(청약철회와 환불)</dd></dl></div>
     ${UI.faq(FAQ.filter(f => f.cat === '요금' || f.cat === '멤버십'))}
     ${!API.on || API.cfg.payments === 'demo' ? '<p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>' : ''}
   </div>`;
@@ -1686,7 +1686,7 @@ const ParentTabs = {
         <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
         <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}` : m.oneTime ? `없음 · 한 번만 결제한 이용권이에요. ${fmtDay(m.until)} 3일 전에 알려 드려요` : '해지됨 (추가 결제 없음)'}</dd>
-        ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이 (정기결제)' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
+        ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
         <div class="row">${m.granted || m.oneTime ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>

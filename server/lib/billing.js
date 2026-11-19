@@ -1,7 +1,6 @@
 // 결제: 토스페이먼츠 자동결제(빌링) — 카드 등록 → 첫 결제 → 기간 만료 시 자동 갱신 결제 → 7일 내 환불
-//       카카오페이 정기결제(1개월) — 결제 준비 → 카카오톡에서 결제 → 승인(정기결제 번호 SID 받기) → 기간 만료 시 SID로 자동 갱신 결제
-//       카카오페이 단건결제(6·12개월) — 한 번만 결제하고 자동갱신하지 않는다. 기간이 끝나기 3일 전에 다시 구매하라고 알린다
-//         (카카오페이 심사 규정: 정기결제는 결제 주기 3개월 이하만 허용. 2026-11 카카오페이 회신, 2안)
+//       카카오페이 단건결제(1·6·12개월 모두) — 한 번만 결제하고 자동갱신하지 않는다. 기간이 끝나기 3일 전에 다시 구매하라고 알린다
+//         (2026-11-19 카카오페이 입점 심사 회신: 단건결제만, 정기결제·구독 안내 삭제. 예전 정기결제 번호(SID) 처리 코드는 남겨 둔다)
 // 결제사 키가 하나도 없고 ALLOW_DEMO_PAYMENT=true면 즉시 완료되는 데모 결제로 동작한다.
 // 멤버십의 billing_key: 토스는 빌링키 그대로, 카카오페이는 'kakao:SID'
 import crypto from 'node:crypto';
@@ -19,10 +18,9 @@ export const paymentMode = () => tossReady() ? 'toss' : kakaoPayReady() ? 'kakao
 const KAKAO_PREFIX = 'kakao:';
 const isKakaoKey = k => typeof k === 'string' && k.startsWith(KAKAO_PREFIX);
 const isKakaoPay = p => /^카카오페이/.test(p.method || '');
-// 카카오페이로 정기결제할 수 있는 가장 긴 결제 주기(개월). 더 긴 상품은 단건결제
-export const KAKAO_SUB_MAX_MONTHS = 3;
-const kakaoOneTime = months => Number(months) > KAKAO_SUB_MAX_MONTHS;
-const kakaoCid = months => kakaoOneTime(months) ? config.kakaopay.onetimeCid : config.kakaopay.cid;
+// 카카오페이는 모든 상품을 단건결제로 판다 (정기결제 없음)
+const kakaoOneTime = () => true;
+const kakaoCid = () => config.kakaopay.onetimeCid;
 const won = n => n.toLocaleString('ko-KR') + '원';
 
 async function toss(path, body) {
@@ -64,7 +62,7 @@ export function createOrder(u, kids, months, opts) {
 }
 
 // 결제가 끝난 주문을 멤버십에 반영
-// oneTime: 자동갱신 없는 단건결제(카카오페이 6·12개월) — 자동갱신을 끄고 예전 결제수단(빌링키)도 지운다
+// oneTime: 자동갱신 없는 단건결제(카카오페이) — 자동갱신을 끄고 예전 결제수단(빌링키)도 지운다
 function fulfill(order, { paymentKey, method, billingKey, raw, oneTime = false }) {
   tx(() => {
     const u = getUser(order.user_id), t = now();
@@ -129,7 +127,7 @@ export async function completeKakaoPay(orderId, pgToken) {
   const old = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(u.id)?.billing_key;
   const oneTime = kakaoOneTime(order.months), key = !oneTime && pay.sid ? KAKAO_PREFIX + pay.sid : null;
   fulfill(order, { paymentKey: pay.tid, method: kakaoMethod(pay, false, oneTime), billingKey: key, oneTime, raw: { tid: pay.tid, aid: pay.aid, approvedAt: pay.approved_at } });
-  // 단건결제로 바꾸면 예전 카카오페이 정기결제 번호도 해지한다 (6·12개월 상품을 정기결제로 다시 결제하지 않게)
+  // 단건결제로 바꾸면 예전 카카오페이 정기결제 번호도 해지한다 (다시 자동 결제하지 않게)
   if (key || oneTime) await retireKakao(old, key);
 }
 const kakaoMethod = (pay, renew, oneTime) => `카카오페이(${pay.payment_method_type === 'MONEY' ? '머니' : pay.card_info?.kakaopay_issuer_corp || '카드'}${renew ? ' · 자동갱신' : oneTime ? ' · 단건' : ''})`;
@@ -141,7 +139,7 @@ export function failOrder(orderId, reason) {
 export function setAutoRenew(uid, on) {
   const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
   if (!m) throw new Error('이용 중인 멤버십이 없어요.');
-  // 단건결제 이용권(카카오페이 6·12개월)은 결제수단이 저장되어 있지 않아 자동갱신을 켤 수 없다
+  // 단건결제 이용권(카카오페이)은 결제수단이 저장되어 있지 않아 자동갱신을 켤 수 없다
   if (on && !m.billing_key && paymentMode() !== 'demo') throw new Error('이 이용권은 한 번만 결제한 상품이라 자동갱신이 없어요. 기간이 끝나기 전에 요금제에서 다시 구매해 주세요.');
   db.prepare('UPDATE memberships SET auto_renew = ?, renew_fail = 0 WHERE user_id = ?').run(on ? 1 : 0, uid);
   notify(uid, on ? '🔁 자동갱신을 다시 켰어요.' : `🛑 자동갱신을 해지했어요. ${new Date(m.until).toLocaleDateString('ko-KR')}까지 이용할 수 있고 이후 결제되지 않아요.`, 'member');
