@@ -8,7 +8,7 @@ export const PLANS = {
   one: { list: 19900, m1: 19900, m6: 17900, m12: 15900 },
   two: { list: 29900, m1: 29900, m6: 26900, m12: 23900 },
 };
-// 기간 한정 1년 특가: 이 기간에 12개월을 결제하면 월 9,900원(두 자녀 14,900원). 쿠폰과 함께 쓰지 않고, 1년 뒤 자동갱신은 정가.
+// 기간 한정 1년 특가: 이 기간에 12개월을 결제하면 월 9,900원(두 자녀 14,900원). 쿠폰과 함께 쓰지 않는다.
 // 화면(public/js/data.js의 PROMO)은 /api/config로 이 값을 받아 쓴다
 export const PROMO = {
   from: config.promoFrom || Date.parse('2026-11-20T00:00:00+09:00'), until: config.promoUntil || Date.parse('2026-12-03T23:59:59+09:00'),

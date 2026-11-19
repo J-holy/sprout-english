@@ -279,7 +279,7 @@ const Store = (() => {
     let bonus = 0;
     if (u.trialStart && !u.membership) bonus = Math.max(0, u.trialStart + 7 * DAY - now);
     const base = u.membership && u.membership.until > now ? u.membership.until : now;
-    u.membership = { kids, months, since: now, until: base + months * 30 * DAY + bonus, autoRenew: true, monthly: q.monthly };
+    u.membership = { kids, months, since: now, until: base + months * 30 * DAY + bonus, autoRenew: false, oneTime: true, monthly: q.monthly };
     u.payments.unshift({ id: uid(), at: now, amount: q.total, desc: `플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`, coupon: q.coupon ? `${q.coupon.name} ${Math.round(q.rate * 100)}%` : '', couponId: q.coupon ? q.coupon.id : null, status: '결제완료' });
     if (q.coupon) q.coupon.used = true;
     save(); notify(`💳 멤버십(${kids === 'two' ? '형제·자매 · ' : ''}${months}개월)이 시작되었어요. 결제 금액 ${q.total.toLocaleString()}원`, 'member');

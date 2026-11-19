@@ -57,8 +57,8 @@ export function membershipOf(uid) {
   // 다음 자동갱신 금액: 지금 아이 수·쿠폰으로 계산한 정가 (첫 결제 쿠폰·1년 특가는 갱신에 쓰지 않는다)
   const u = getUser(uid), next = m.granted || !u ? null : quote(uid, kidsOf(u), m.months, { renew: true }).total;
   return { nextAmount: next, kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key,
-    // 한 번만 결제한 이용권(카카오페이 단건결제): 자동갱신을 켤 수 없다
-    oneTime: !m.granted && !m.billing_key && /· 단건/.test(db.prepare("SELECT method FROM payments WHERE user_id = ? AND status = '결제완료' ORDER BY at DESC LIMIT 1").get(uid)?.method || ''), payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
+    // 한 번만 결제한 이용권(단건결제): 자동갱신이 없다
+    oneTime: !m.granted && !m.billing_key && !m.auto_renew, payWith: !m.billing_key ? null : m.billing_key.startsWith('kakao:') ? 'kakao' : 'card' };
 }
 
 // 프론트엔드 Store가 쓰는 모양 그대로 돌려준다

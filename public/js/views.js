@@ -79,7 +79,7 @@ const UI = {
     return `<div class="plans">
       <p class="plan-kids center"></p>
       <div class="plan-cards"></div>
-      <p class="fine center">💳 카드로 결제하면 이용 기간이 끝나는 날 같은 카드로 자동결제(자동갱신)되고, 부모페이지에서 언제든 해지할 수 있어요. 💛 카카오페이는 한 번만 결제하는 이용권이에요(자동결제 없음).${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
+      <p class="fine center">모든 상품은 한 번만 결제하는 이용권이에요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 알려 드려요.${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
     </div>`;
   },
   wirePlans(root) {
@@ -105,7 +105,7 @@ const UI = {
           <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
           ${q.promo ? `<dt>1년 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
           ${q.rate ? `<dt>첫 결제 쿠폰</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
-          <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}${months === 1 ? ' / 매월' : ''}</div>
+          <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}</div>
           <button class="btn btn-primary full" data-buy="${months}">선택하기</button></div>`;
       }).join('');
       $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(+b.dataset.buy));
@@ -665,7 +665,7 @@ Views.pricing = (el, params) => {
   const pct = r => Math.round(r * 100) + '%';
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">💰 요금·할인</h1>
-    ${u ? `<div class="card status-card">${statusText(a, u)} ${a.kind === 'member' ? '<a href="#/parent/member">구독 관리 →</a>' : ''}</div>` : ''}
+    ${u ? `<div class="card status-card">${statusText(a, u)} ${a.kind === 'member' ? '<a href="#/parent/member">멤버십 보기 →</a>' : ''}</div>` : ''}
     ${params && params.get('error') ? `<div class="card notice error-card">⚠️ 결제를 완료하지 못했어요: ${esc(params.get('error'))}</div>` : ''}
 
     <div class="free-plan card">
@@ -677,7 +677,7 @@ Views.pricing = (el, params) => {
 
     ${promoOn() ? `<div class="card promo-card"><span class="chip">기간 한정</span><h2>🎉 1년 특가 · 월 ${won(PROMO.one)}</h2>
       <p><b>${promoEndText()}까지</b> 플러스 12개월을 결제하면 월 ${won(PROMO.one)}(형제·자매 월 ${won(PROMO.two)})이에요. 1년 ${won(PROMO.one * 12)}을 한 번에 결제해요.
-      첫 결제 쿠폰과는 함께 쓸 수 없고, 1년 뒤 자동갱신은 정가(월 ${won(PLANS.one.m12)})로 결제돼요.</p></div>` : ''}
+      첫 결제 쿠폰과는 함께 쓸 수 없어요.</p></div>` : ''}
 
     <h2 class="sec-sub">💎 플러스에 들어 있는 것 <small>하루 약 ${won(Math.round(lowestMonthly() / 30 / 10) * 10)} (12개월 기준)</small></h2>
     <div class="value-grid">${[
@@ -707,25 +707,25 @@ Views.pricing = (el, params) => {
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
       <tbody>${[['1~2단계 알파벳·파닉스 (50레슨)', '✅', '✅'], ['3~8단계 문장·대화·과거·미래 (210레슨)', '가입 후 7일 체험', '✅'], ['스토리북', `${FREE_BOOKS}권`, `${STORIES.length}권 전체`],
-        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(lowestMonthly())}부터 · 언제든 해지`]]
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(lowestMonthly())}부터 · 한 번만 결제`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
-    <h2 class="sec-sub">결제 · 해지 · 환불 안내</h2>
+    <h2 class="sec-sub">결제 · 환불 안내</h2>
     <div class="grid3">
-      <div class="card feat"><span class="feat-ico">🔁</span><h4>카드는 자동결제</h4><p>카드로 결제하면 기간이 끝나는 날 같은 상품을 같은 카드로 자동결제해요. 부모페이지 › 멤버십에서 버튼 하나로 해지해요. 카카오페이는 한 번만 결제돼요.</p></div>
+      <div class="card feat"><span class="feat-ico">🧾</span><h4>한 번만 결제</h4><p>이용권은 구매할 때 한 번만 결제돼요. 자동으로 다시 결제되지 않고, 끝나기 3일 전에 알려 드려요.</p></div>
       <div class="card feat"><span class="feat-ico">↩️</span><h4>7일 이내 환불</h4><p>결제 후 7일 이내라면 부모페이지에서 바로 환불하고, 사용한 쿠폰도 돌려받아요.</p></div>
-      <div class="card feat"><span class="feat-ico">🌱</span><h4>해지해도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
+      <div class="card feat"><span class="feat-ico">🌱</span><h4>끝나도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, 1~2단계는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
     <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
       <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 6개월 / 12개월</dd>
       <dt>서비스 제공 기간</dt><dd>결제하면 바로 이용 시작 · 1개월 30일, 6개월 180일, 12개월 360일</dd>
-      <dt>결제 방식</dt><dd>신용·체크카드(토스페이먼츠): 자동결제(자동갱신) · 카카오페이: 한 번만 결제(자동결제 없음)</dd>
-      <dt>결제 시기</dt><dd>구매할 때 결제해요. 카드로 결제하면 그 뒤 이용 기간이 끝나는 날 같은 기간 상품을 같은 카드로 자동결제하고, 3일 전에 결제일과 금액을 알려 드려요. 카카오페이로 결제하면 다시 결제되지 않고, 끝나기 3일 전에 종료일을 알려 드려요.</dd>
-      <dt>해지</dt><dd>카드 자동결제: 부모페이지 › 멤버십 › 자동갱신 해지 (언제든, 남은 기간은 계속 이용하고 그 뒤로는 결제되지 않아요) · 카카오페이: 자동결제가 없어 해지할 필요가 없어요</dd>
+      <dt>결제 방식</dt><dd>한 번만 결제(단건결제) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
+      <dt>결제 시기</dt><dd>구매할 때 한 번 결제해요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 종료일을 알려 드려요. 계속 이용하려면 이용권을 다시 구매해요.</dd>
+      <dt>이용 종료</dt><dd>자동결제가 없어 해지할 필요가 없어요. 이용 기간이 끝나면 무료 이용(1~2단계)으로 돌아가요.</dd>
       <dt>환불(청약철회)</dt><dd>결제 후 7일 이내에는 부모페이지에서 바로 전액 환불돼요. 7일이 지난 뒤의 환불은 고객센터로 문의해 주시면 관련 법령에 따라 처리해요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
       <dt>교환·상품 변경</dt><dd>디지털 이용권이라 교환은 없어요. 기간을 바꾸려면 고객센터로 문의해 주세요.</dd>
       <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · team.saessakschool@gmail.com</dd>
-      <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(카드 자동결제와 카카오페이 결제)·제6조(청약철회와 환불)</dd></dl></div>
+      <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(플러스 이용권과 결제)·제6조(청약철회와 환불)</dd></dl></div>
     ${UI.faq(FAQ.filter(f => f.cat === '요금' || f.cat === '멤버십'))}
     ${!API.on || API.cfg.payments === 'demo' ? '<p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>' : ''}
   </div>`;
@@ -733,7 +733,7 @@ Views.pricing = (el, params) => {
 };
 function statusText(a, u) {
   if (a.kind === 'admin') return '🛠️ 관리자 계정 · 모든 기능을 제한 없이 이용 중';
-  if (a.kind === 'member') return `💎 멤버십 이용 중 · <b>${a.daysLeft}일</b> 남음 · ${u.membership.autoRenew ? `다음 결제일 ${fmtDay(u.membership.until)}` : '자동갱신 해지됨'}`;
+  if (a.kind === 'member') return `💎 멤버십 이용 중 · <b>${a.daysLeft}일</b> 남음 · ${u.membership.autoRenew ? `다음 결제일 ${fmtDay(u.membership.until)}` : `${fmtDay(u.membership.until)}까지`}`;
   if (a.kind === 'free') return '🌱 무료 이용 중 · 1~2단계(알파벳·파닉스)는 평생 무료예요. 💎 플러스로 3단계부터 이어갈 수 있어요.';
   if (a.beta) return `🧪 베타 테스트 기간 · <b>${fmtDay(API.cfg.betaUntil)}</b>까지 전체 단계 무료 · 끝나도 1~2단계는 계속 무료 (자동결제 없음)`;
   return `🎁 전체 단계 체험 중 · <b>${a.daysLeft}일</b> 남음 · 끝나도 1~2단계는 계속 무료 (자동결제 없음)`;
@@ -1682,12 +1682,12 @@ const ParentTabs = {
   member(el, u) {
     const a = Store.access(), m = u.membership;
     el.innerHTML = `<div class="card status-card">${statusText(a, u)}</div>
-      ${m ? `<div class="card sub-card"><h3>내 구독</h3><dl class="summary">
+      ${m ? `<div class="card sub-card"><h3>내 멤버십</h3><dl class="summary">
         <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
-        <dt>자동갱신</dt><dd>${m.autoRenew ? `켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}` : m.oneTime ? `없음 · 한 번만 결제한 이용권이에요. ${fmtDay(m.until)} 3일 전에 알려 드려요` : '해지됨 (추가 결제 없음)'}</dd>
+        ${m.autoRenew ? `<dt>자동갱신</dt><dd>켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}</dd>` : m.granted ? '' : `<dt>결제</dt><dd>한 번만 결제한 이용권 · 자동결제 없음 · ${fmtDay(m.until)} 3일 전에 알려 드려요</dd>`}
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
-        <div class="row">${m.granted || m.oneTime ? '' : m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : '<button class="btn btn-ghost" data-renew="1">🔁 자동갱신 다시 켜기</button>'}
+        <div class="row">${!m.granted && m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : ''}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 환불 신청 (결제 7일 이내)</button>' : ''}</div></div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
       ${m && !m.granted && m.autoRenew && m.kids !== Store.kidsPlan() ? `<div class="card notice">등록한 아이 수가 바뀌어서 다음 결제부터 월 ${won(planMonthly(Store.kidsPlan(), m.months))}${Store.kidsPlan() === 'two' ? ' (형제·자매 요금)' : ''}으로 바뀌어요. 쿠폰을 쓰면 달라질 수 있어요.</div>` : ''}

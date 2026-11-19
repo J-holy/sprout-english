@@ -1,6 +1,8 @@
-// 결제: 토스페이먼츠 자동결제(빌링) — 카드 등록 → 첫 결제 → 기간 만료 시 자동 갱신 결제 → 7일 내 환불
-//       카카오페이 단건결제(1·6·12개월 모두) — 한 번만 결제하고 자동갱신하지 않는다. 기간이 끝나기 3일 전에 다시 구매하라고 알린다
-//         (2026-11-19 카카오페이 입점 심사 회신: 단건결제만, 정기결제·구독 안내 삭제. 예전 정기결제 번호(SID) 처리 코드는 남겨 둔다)
+// 결제: 모든 상품은 한 번만 결제하는 이용권(단건결제)이다. 자동갱신·정기결제는 없고, 기간이 끝나기 3일 전에 다시 구매하라고 알린다
+//       (2026-11-19 카카오페이 입점 심사 회신에 따라 카드·카카오페이 모두 단건결제로 바꿈)
+//   토스페이먼츠 카드 — 지금은 카드 인증(빌링) 화면으로 한 번 결제하고 빌링키는 저장하지 않는다 (토스 연동 때 일반 결제창으로 바꿀 예정) → 7일 내 환불
+//   카카오페이 단건결제 — 결제 준비 → 카카오톡에서 결제 → 승인
+//   예전 자동갱신 멤버십(빌링키·카카오페이 SID)을 처리하는 코드(renewalJob, retireKakao)는 남겨 둔다
 // 결제사 키가 하나도 없고 ALLOW_DEMO_PAYMENT=true면 즉시 완료되는 데모 결제로 동작한다.
 // 멤버십의 billing_key: 토스는 빌링키 그대로, 카카오페이는 'kakao:SID'
 import crypto from 'node:crypto';
@@ -62,7 +64,7 @@ export function createOrder(u, kids, months, opts) {
 }
 
 // 결제가 끝난 주문을 멤버십에 반영
-// oneTime: 자동갱신 없는 단건결제(카카오페이) — 자동갱신을 끄고 예전 결제수단(빌링키)도 지운다
+// oneTime: 자동갱신 없는 단건결제 (지금은 모든 결제) — 자동갱신을 끄고 예전 결제수단(빌링키)도 지운다
 function fulfill(order, { paymentKey, method, billingKey, raw, oneTime = false }) {
   tx(() => {
     const u = getUser(order.user_id), t = now();
@@ -89,10 +91,10 @@ function fulfill(order, { paymentKey, method, billingKey, raw, oneTime = false }
 export function completeDemo(orderId) {
   const order = db.prepare("SELECT * FROM payments WHERE order_id = ? AND status = '대기'").get(orderId);
   if (!order) throw new Error('주문을 찾을 수 없어요.');
-  fulfill(order, { method: '데모' });
+  fulfill(order, { method: '데모 · 단건', oneTime: true });
 }
 
-// 카드 등록(빌링 인증) 성공 콜백 → 빌링키 발급 → 첫 결제
+// 카드 인증(빌링 인증) 성공 콜백 → 빌링키 발급 → 한 번 결제 (빌링키는 저장하지 않는다)
 export async function completeBillingAuth({ orderId, customerKey, authKey }) {
   const order = db.prepare("SELECT * FROM payments WHERE order_id = ? AND status = '대기'").get(orderId);
   if (!order) throw new Error('주문을 찾을 수 없거나 이미 처리되었어요.');
@@ -102,8 +104,9 @@ export async function completeBillingAuth({ orderId, customerKey, authKey }) {
   const pay = await toss(`/v1/billing/${issued.billingKey}`, { customerKey, amount: order.amount, orderId: order.order_id, orderName: order.description, customerEmail: u.email || undefined });
   if (pay.status !== 'DONE') throw new Error('결제가 완료되지 않았어요.');
   const old = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(order.user_id)?.billing_key;
-  fulfill(order, { paymentKey: pay.paymentKey, method: pay.card?.company ? `카드(${pay.card.company})` : '카드', billingKey: issued.billingKey, raw: { paymentKey: pay.paymentKey, approvedAt: pay.approvedAt } });
-  await retireKakao(old, issued.billingKey);
+  // 단건결제: 빌링키를 저장하지 않아 다시 결제되지 않는다
+  fulfill(order, { paymentKey: pay.paymentKey, method: `카드(${pay.card?.company ? pay.card.company + ' · ' : ''}단건)`, oneTime: true, raw: { paymentKey: pay.paymentKey, approvedAt: pay.approvedAt } });
+  await retireKakao(old, null);
 }
 
 // 카카오페이 1회차: 결제 준비 → 화면은 카카오페이 결제 화면으로 이동 (tid는 승인 때 쓰려고 주문에 적어 둔다)
@@ -139,7 +142,7 @@ export function failOrder(orderId, reason) {
 export function setAutoRenew(uid, on) {
   const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
   if (!m) throw new Error('이용 중인 멤버십이 없어요.');
-  // 단건결제 이용권(카카오페이)은 결제수단이 저장되어 있지 않아 자동갱신을 켤 수 없다
+  // 단건결제 이용권은 결제수단이 저장되어 있지 않아 자동갱신을 켤 수 없다
   if (on && !m.billing_key && paymentMode() !== 'demo') throw new Error('이 이용권은 한 번만 결제한 상품이라 자동갱신이 없어요. 기간이 끝나기 전에 요금제에서 다시 구매해 주세요.');
   db.prepare('UPDATE memberships SET auto_renew = ?, renew_fail = 0 WHERE user_id = ?').run(on ? 1 : 0, uid);
   notify(uid, on ? '🔁 자동갱신을 다시 켰어요.' : `🛑 자동갱신을 해지했어요. ${new Date(m.until).toLocaleDateString('ko-KR')}까지 이용할 수 있고 이후 결제되지 않아요.`, 'member');
