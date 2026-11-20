@@ -195,10 +195,10 @@ const Speech = (() => {
   function toWav(chunks, inRate) {
     const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0;
     chunks.forEach(c => { all.set(c, o); o += c.length; });
-    // 작게 녹음된 소리는 키운다 (에코 제거를 끄면 아이패드 녹음이 작게 들어온다). 가장 큰 곳이 0.7이 되게, 30배까지.
-    //   8배까지만 키우던 때는 아이패드에서 조금 떨어져 말하면 소리가 작아 알아듣지 못했다 (2026-11-20 제보)
+    // 작게 녹음된 소리는 키운다 (에코 제거를 끄면 아이패드 녹음이 작게 들어온다). 가장 큰 곳이 0.8이 되게, 60배까지.
+    //   8배까지만 키우던 때는 아이패드에서 조금 떨어져 말하면 소리가 작아 알아듣지 못했다 (2026-11-20 제보, 30배 → 60배로 더 키움)
     let peak = 0; for (let i = 0; i < all.length; i++) peak = Math.max(peak, Math.abs(all[i]));
-    const gain = peak > 0 && peak < 0.5 ? Math.min(30, 0.7 / peak) : 1;
+    const gain = peak > 0 && peak < 0.6 ? Math.min(60, 0.8 / peak) : 1;
     // 앞에 0.4초 무음을 붙인다: 말소리가 녹음 맨 앞에서 바로 시작하면 Whisper가 첫 단어를 놓쳤다
     //   (라즈베리파이 시험 40문장, 읽을 문장 힌트를 줄 때 첫 단어 37 → 39개 맞힘, 2026-11-13)
     const lead = 6400, bytes = sttUlaw ? 1 : 2, ratio = inRate / 16000, n = lead + Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * bytes));
