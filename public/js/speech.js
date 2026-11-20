@@ -253,7 +253,8 @@ const Speech = (() => {
     return {
       words,
       maxMs: Math.min(20000, Math.max(8000, 3000 + words * 900)),
-      silenceMs: words >= 4 ? 1400 : 1000,
+      // 아이는 단어 사이에서 길게 쉬어서 1~1.4초 조용하면 끝내던 때는 문장 중간에 녹음이 끝났다 (2026-11-20 제보: 녹음이 2초 안팎)
+      silenceMs: words >= 4 ? 1800 : 1300,
       minMs: Math.min(6000, words * 320),
     };
   }

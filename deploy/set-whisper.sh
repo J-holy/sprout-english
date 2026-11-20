@@ -1,22 +1,26 @@
 #!/usr/bin/env bash
 # 말하기 채점용 음성 인식을 서버 안의 Whisper로 켠다: 실행 파일과 모델을 /opt/whisper에 넣고, 시험한 뒤 서버를 다시 시작한다
-# 사용법: sudo bash deploy/set-whisper.sh   (먼저 ~/whisper-test/whisper.cpp에 build-static과 모델이 있어야 해요)
+# 사용법: sudo bash deploy/set-whisper.sh [base]   (먼저 ~/whisper-test/whisper.cpp에 build-static과 모델이 있어야 해요)
+#   base: 더 정확한 base.en 모델 (라즈베리파이 4에서 문장당 약 2초, tiny는 약 0.7초). 2026-11-20: 아이 말소리를 tiny가 자주 못 알아들어 base로 바꿈
+#         ("Dad is sad"를 tiny는 "Shadda", base는 "Dad is sad"로 적었다)
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "sudo로 실행해 주세요."; exit 1; }
 APP=/opt/sprout-english; ENV_FILE="$APP/server/.env"; DEST=/opt/whisper
 SRC="/home/${SUDO_USER:-nextcode}/whisper-test/whisper.cpp"
-BIN="$SRC/build-static/bin/whisper-cli"; MODEL="$SRC/models/ggml-tiny.en-q5_1.bin"
+BIN="$SRC/build-static/bin/whisper-cli"
+if [[ "${1:-}" == "base" ]]; then NAME=ggml-base.en.bin; THREADS=4; else NAME=ggml-tiny.en-q5_1.bin; THREADS=2; fi
+MODEL="$SRC/models/$NAME"
 [[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE 이 없어요. 먼저 install-pi.sh를 실행해 주세요."; exit 1; }
-[[ -x "$BIN" && -s "$MODEL" ]] || { echo "$BIN 또는 $MODEL 이 없어요. deploy/DEPLOY.md의 Whisper 안내를 봐 주세요."; exit 1; }
+[[ -s "$MODEL" ]] && { [[ -x "$BIN" ]] || [[ -x "$DEST/whisper-cli" ]]; } || { echo "$BIN 또는 $MODEL 이 없어요. deploy/DEPLOY.md의 Whisper 안내를 봐 주세요."; exit 1; }
 
 install -d -m 755 "$DEST"
-install -m 755 "$BIN" "$DEST/whisper-cli"
-install -m 644 "$MODEL" "$DEST/ggml-tiny.en-q5_1.bin"
+[[ -x "$BIN" ]] && install -m 755 "$BIN" "$DEST/whisper-cli"
+install -m 644 "$MODEL" "$DEST/$NAME"
 
-ENV_FILE="$ENV_FILE" DEST="$DEST" node -e '
-const fs = require("fs"), f = process.env.ENV_FILE, d = process.env.DEST;
+ENV_FILE="$ENV_FILE" DEST="$DEST" NAME="$NAME" THREADS="$THREADS" node -e '
+const fs = require("fs"), f = process.env.ENV_FILE, d = process.env.DEST, n = process.env.NAME, t = process.env.THREADS;
 const lines = fs.readFileSync(f, "utf8").split("\n");
-for (const [k, v] of [["STT_PROVIDER", "whisper"], ["WHISPER_BIN", d + "/whisper-cli"], ["WHISPER_MODEL", d + "/ggml-tiny.en-q5_1.bin"], ["WHISPER_THREADS", "2"], ["WHISPER_AUDIO_CTX", "512"]]) {
+for (const [k, v] of [["STT_PROVIDER", "whisper"], ["WHISPER_BIN", d + "/whisper-cli"], ["WHISPER_MODEL", d + "/" + n], ["WHISPER_THREADS", t], ["WHISPER_AUDIO_CTX", "512"]]) {
   const i = lines.findIndex(l => l.startsWith(k + "="));
   if (i >= 0) lines[i] = k + "=" + v; else lines.push(k + "=" + v);
 }
