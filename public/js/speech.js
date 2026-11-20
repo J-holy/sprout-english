@@ -195,9 +195,10 @@ const Speech = (() => {
   function toWav(chunks, inRate) {
     const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0;
     chunks.forEach(c => { all.set(c, o); o += c.length; });
-    // 작게 녹음된 소리는 키운다 (에코 제거를 끄면 아이패드 녹음이 작게 들어온다). 8배까지, 가장 큰 곳이 0.7이 되게
+    // 작게 녹음된 소리는 키운다 (에코 제거를 끄면 아이패드 녹음이 작게 들어온다). 가장 큰 곳이 0.7이 되게, 30배까지.
+    //   8배까지만 키우던 때는 아이패드에서 조금 떨어져 말하면 소리가 작아 알아듣지 못했다 (2026-11-20 제보)
     let peak = 0; for (let i = 0; i < all.length; i++) peak = Math.max(peak, Math.abs(all[i]));
-    const gain = peak > 0 && peak < 0.5 ? Math.min(8, 0.7 / peak) : 1;
+    const gain = peak > 0 && peak < 0.5 ? Math.min(30, 0.7 / peak) : 1;
     // 앞에 0.4초 무음을 붙인다: 말소리가 녹음 맨 앞에서 바로 시작하면 Whisper가 첫 단어를 놓쳤다
     //   (라즈베리파이 시험 40문장, 읽을 문장 힌트를 줄 때 첫 단어 37 → 39개 맞힘, 2026-11-13)
     const lead = 6400, bytes = sttUlaw ? 1 : 2, ratio = inRate / 16000, n = lead + Math.floor(all.length / ratio), b = new DataView(new ArrayBuffer(44 + n * bytes));
@@ -217,12 +218,13 @@ const Speech = (() => {
   // 마이크는 한 번 열면 사이트를 쓰는 동안 계속 다시 쓴다. 닫았다가 다시 열면 아이패드·아이폰(Safari·Chrome·홈 화면 앱)은
   // 그때마다 "마이크를 허용할까요?"를 다시 물었다 (2026-11 제보: 녹음마다 묻다가 고친 뒤에도, 3분 쉬거나 다른 앱에 다녀오면 또 물었다).
   // 쉬는 동안에는 트랙만 꺼 두고, 페이지를 닫을 때만 완전히 닫는다.
+  // 잡음 제거도 끈다: 켜면 아이패드가 조금 떨어진 목소리를 잡음으로 보고 지웠다 (2026-11-20 제보). 작은 소리는 toWav에서 키운다
   // 에코 제거는 끈다: 켜면 iPhone·iPad가 통화용 소리 처리를 켜서, 마이크가 열려 있는 동안 읽어주는 소리가 작아졌다 (2026-11 아이패드 제보).
   //   녹음하는 동안에는 소리를 내지 않아서 에코 제거가 필요 없다. 작게 녹음된 소리는 toWav에서 키운다
   let micStream = null;
   async function getMic() {
     const live = micStream && micStream.getAudioTracks().some(t => t.readyState === 'live');
-    if (!live) micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+    if (!live) micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 } });
     micStream.getAudioTracks().forEach(t => { t.enabled = true; });
     return micStream;
   }
@@ -284,7 +286,7 @@ const Speech = (() => {
         clearTimeout(guard); clearTimeout(dead);
         proc.onaudioprocess = null; proc.disconnect(); src.disconnect();
         releaseMic(); done(); // 트랙만 꺼 둔다 (다음 녹음에서 허용을 다시 묻지 않게)
-        if (!chunks.length) reject(Object.assign(new Error('audio-capture'), { detail: 'no-audio-' + ctx.state })); else resolve(heard || peak > 0.006 ? toWav(trimChunks(chunks, first, last, ctx.sampleRate), ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
+        if (!chunks.length) reject(Object.assign(new Error('audio-capture'), { detail: 'no-audio-' + ctx.state })); else resolve(heard || peak > 0.002 ? toWav(trimChunks(chunks, first, last, ctx.sampleRate), ctx.sampleRate) : null); // 작은 소리도 보내서 인식기가 판단하게 한다
       };
       // 소리 알림이 아예 오지 않아도 "듣고 있어요"에 멈춰 있지 않게 한다
       const guard = setTimeout(finish, maxMs + 1000), dead = setTimeout(() => { if (!chunks.length) finish(); }, 3000);
@@ -297,7 +299,8 @@ const Speech = (() => {
         //   그때 말하기 시작하면 첫 소리가 녹음되지 않았다 (2026-11 제보). 0.7초가 지나도 안 오면 그냥 띄운다
         if (!live && (rms > 1e-5 || now - t0 > 700)) { live = true; if (onStart) onStart(); }
         // 말소리 기준은 주변 소리의 3배(0.004~0.012). 예전 기준(최대 0.02)은 아이의 작은 목소리를 말소리로 보지 않아 앞뒤가 잘렸다
-        if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.012, Math.max(0.004, floor * 3)); }
+        // 떨어져서 말한 작은 목소리도 말소리로 보도록 아래쪽 한계를 0.0015로 낮춘다 (예전 0.004·0.006은 마이크에 바짝 대야만 넘었다)
+        if (chunks.length <= 3) { floor = Math.min(floor, rms); level = Math.min(0.012, Math.max(0.0015, floor * 3)); }
         peak = Math.max(peak, rms);
         // 말이 이어지는 동안(조용함 판단)은 기준의 절반만 넘어도 말하는 중으로 본다: 단어 사이 작은 소리에서 끊지 않게
         if (rms > level || (heard && rms > level * 0.5)) { if (!heard) spokeAt = now; heard = true; quiet = now; if (first < 0) first = chunks.length - 1; last = chunks.length - 1; }
