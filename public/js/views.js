@@ -458,7 +458,7 @@ Views.home = el => {
         <li>🧾 카드 등록·자동결제 없이 <b>한 번만 결제</b>하는 이용권이에요</li>
         <li>↩️ 결제 후 7일 이내·플러스 학습 전이면 부모페이지에서 바로 <b>전액 환불</b></li>
         <li>🏢 사업자등록·통신판매업 신고를 마친 사업자예요 (맨 아래 사업자 정보)</li>
-        <li>📞 고객센터 010-5117-1247 · team.saessakschool@gmail.com · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">💬 카카오톡 채널 문의</a></li></ul>`}
+        <li>📞 고객센터 010-5117-1247 · support@saessakschool.co.kr · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">💬 카카오톡 채널 문의</a></li></ul>`}
       <div class="row"><a class="btn btn-ghost" href="#/reviews">후기 전체 보기</a>${u ? '<a class="btn btn-ghost" href="#/reviews">✍️ 후기 남기기</a>' : ''}</div>
     </div>
     <div class="review-stack">${bestReviews.length ? bestReviews.map(r => UI.reviewCard(r)).join('')
@@ -735,7 +735,7 @@ Views.pricing = (el, params) => {
       <dt>이용 종료</dt><dd>자동결제가 없어 해지할 필요가 없어요. 이용 기간이 끝나면 무료 이용(1~2단계)으로 돌아가요.</dd>
       <dt>환불(청약철회)</dt><dd>결제 후 7일 이내이고 플러스 학습(3단계 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
       <dt>교환·상품 변경</dt><dd>디지털 이용권이라 교환은 없어요. 기간을 바꾸려면 고객센터로 문의해 주세요.</dd>
-      <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · team.saessakschool@gmail.com · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널 '새싹스쿨'</a></dd>
+      <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · support@saessakschool.co.kr · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널 '새싹스쿨'</a></dd>
       <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(플러스 이용권과 결제)·제6조(청약철회와 환불)</dd></dl></div>
     ${UI.faq(FAQ.filter(f => f.cat === '요금' || f.cat === '멤버십'))}
     ${!API.on || API.cfg.payments === 'demo' ? '<p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>' : ''}
@@ -761,7 +761,7 @@ Views.help = el => {
     <div id="faqList"></div>
     <div class="card contact-card"><h3>💬 찾는 답이 없으면 문의해 주세요</h3>
       <p>결제·환불·학습·소리 문제 모두 도와드려요. 카카오톡 채널로 물어보시면 가장 빨리 답해 드려요.</p>
-      <div class="row"><a class="btn btn-primary sm btn-kakao" href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">💬 카카오톡으로 문의</a><a class="btn btn-ghost sm" href="tel:010-5117-1247">📞 010-5117-1247</a><a class="btn btn-ghost sm" data-mail href="mailto:team.saessakschool@gmail.com">✉️ 이메일 문의</a></div>
+      <div class="row"><a class="btn btn-primary sm btn-kakao" href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">💬 카카오톡으로 문의</a><a class="btn btn-ghost sm" href="tel:010-5117-1247">📞 010-5117-1247</a><a class="btn btn-ghost sm" data-mail href="mailto:support@saessakschool.co.kr">✉️ 이메일 문의</a></div>
       <p class="fine">이메일 문의를 누르면 사용 중인 기기·브라우저 정보가 미리 적혀 있어서 더 빨리 확인할 수 있어요.</p></div>
     <div class="card notice"><b>🔧 이 기기 진단</b>
       <p>음성 합성 ${Speech.canSpeak ? '✅' : '❌'} · 음성 인식 ${Speech.canListen ? '✅' : '❌'} · 알림 ${'Notification' in window ? '✅' : '❌'}</p>
@@ -779,7 +779,7 @@ Views.help = el => {
   $$('[data-c]', el).forEach(b => b.onclick = () => { cat = b.dataset.c; $$('[data-c]', el).forEach(x => x.classList.toggle('on', x === b)); draw(); });
   // 이메일 문의: 제목과 기기 정보를 미리 넣는다 (사용자가 직접 보내는 메일)
   const E = Speech.env, dev = `${E.ipad ? 'iPad' : E.ios ? 'iPhone' : E.android ? 'Android' : 'PC'} · ${(navigator.userAgent.match(/(CriOS|Chrome|Firefox|Edg|Whale|SamsungBrowser|Version)\/[\d.]+/) || ['브라우저'])[0].replace('Version', 'Safari')} · 음성 인식 ${Speech.canListen ? '가능' : '불가'}`;
-  $('[data-mail]', el).href = 'mailto:team.saessakschool@gmail.com?subject=' + encodeURIComponent('[새싹스쿨 문의] ') + '&body=' + encodeURIComponent(`문의 내용:\n\n\n---\n(확인용) 기기: ${dev}`);
+  $('[data-mail]', el).href = 'mailto:support@saessakschool.co.kr?subject=' + encodeURIComponent('[새싹스쿨 문의] ') + '&body=' + encodeURIComponent(`문의 내용:\n\n\n---\n(확인용) 기기: ${dev}`);
   $('[data-test-voice]', el).onclick = () => Speech.speak('Hello! Can you hear me?');
   $('[data-test-sfx]', el).onclick = () => Speech.sfx.cheer();
   // 마이크 테스트: "Hello"라고 말하면 들은 말을 보여주고, 안 되면 원인과 해결 방법을 알려준다
@@ -1724,7 +1724,7 @@ const ParentTabs = {
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
         <div class="row">${!m.granted && m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : ''}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 전액 환불 (결제 7일 이내 · 플러스 학습 전)</button>' : ''}</div>
-        ${m.refund && !m.refund.full ? `<p class="fine">결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불은 안 돼요. 고객센터(010-5117-1247, team.saessakschool@gmail.com, <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널</a>)로 신청하면 이용한 ${m.refund.usedMonths}개월을 빼고 남은 ${m.refund.leftMonths}개월치 ${won(m.refund.amount)}을 환불해 드려요.</p>` : ''}</div>` : ''}
+        ${m.refund && !m.refund.full ? `<p class="fine">결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불은 안 돼요. 고객센터(010-5117-1247, support@saessakschool.co.kr, <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널</a>)로 신청하면 이용한 ${m.refund.usedMonths}개월을 빼고 남은 ${m.refund.leftMonths}개월치 ${won(m.refund.amount)}을 환불해 드려요.</p>` : ''}</div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
       ${m && !m.granted && m.autoRenew && m.kids !== Store.kidsPlan() ? `<div class="card notice">등록한 아이 수가 바뀌어서 다음 결제부터 월 ${won(planMonthly(Store.kidsPlan(), m.months))}${Store.kidsPlan() === 'two' ? ' (형제·자매 요금)' : ''}으로 바뀌어요. 쿠폰을 쓰면 달라질 수 있어요.</div>` : ''}
       ${a.kind === 'admin' ? '' : UI.plans()}`;
