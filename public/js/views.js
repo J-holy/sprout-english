@@ -112,6 +112,23 @@ const UI = {
     };
     draw();
   },
+  // 요금·할인 기준을 한곳에: 기간 할인 → 형제·자매 → 첫 결제 쿠폰 → 1년 특가. 한 결제에는 할인 하나만 (서버 pricing.js와 같은 규칙)
+  discountRules() {
+    const pct = Math.round(WELCOME_RATE * 100), on = promoOn();
+    const rows = [
+      ['📅', '기간 할인', `기간이 길수록 월 요금이 내려가요. 1개월 ${won(PLANS.one.m1)} → 3개월 월 ${won(PLANS.one.m3)} → 6개월 월 ${won(PLANS.one.m6)} → 12개월 월 ${won(PLANS.one.m12)}`],
+      ['👫', '형제·자매 요금', `아이를 2명 이상 등록하면 자동으로 적용돼요. 1개월 ${won(PLANS.two.m1)} ~ 12개월 월 ${won(PLANS.two.m12)} (아이 모두 함께)`],
+      ['🎟️', `첫 결제 쿠폰 ${pct}%`, `가입하면 받는 웰컴쿠폰이에요. 가입 후 10일 안에 하는 첫 결제에서 위 요금의 ${pct}%를 더 할인해요.${on ? ' (1년 특가가 적용되는 12개월은 제외)' : ''}`],
+      ...(on ? [['🎉', `1년 특가 · ${promoEndText()}까지`, `이 기간에 12개월을 고르면 월 ${won(PROMO.one)}(형제·자매 월 ${won(PROMO.two)})예요. 쿠폰을 쓸 때보다 싸서 특가가 적용되고, 쿠폰은 쓰지 않고 남아요.`]] : []),
+    ];
+    return `<div class="card discount-rules"><h2>🧾 할인은 이렇게 적용돼요</h2>
+      <ol>${rows.map(([i, t, d]) => `<li><span class="dr-ico">${i}</span><div><b>${t}</b><small>${d}</small></div></li>`).join('')}</ol>
+      <p class="fine">한 번 결제할 때 쿠폰과 특가는 함께 쓰지 않아요. 아래 상품 카드에 적힌 금액이 실제로 결제되는 금액이에요.</p></div>`;
+  },
+  // 후기 부탁을 이미 했는지 (이 기기 기준, 쓰거나 '다음에'를 누르면 30일 동안 다시 묻지 않음)
+  reviewAsked(set) {
+    try { if (set) { localStorage.setItem('rvAsked', String(Date.now())); return true; } return Date.now() - Number(localStorage.getItem('rvAsked') || 0) < 30 * 864e5; } catch (e) { return false; }
+  },
   faq(list) {
     return `<div class="faq">${list.map(f => `<details class="faq-item"><summary><span class="q">Q</span>${esc(f.q)}</summary><div class="faq-a">${esc(f.a)}</div></details>`).join('')}</div>`;
   },
@@ -436,7 +453,12 @@ Views.home = el => {
   <section class="wrap sec two-col">
     <div>
       <h2 class="sec-title left">부모님들의 ‘매우 좋아요’ 후기</h2>
-      ${realReviews.length ? UI.ratingBars(realReviews) : '<p class="sec-desc left">아직 등록된 후기가 없어요.</p>'}
+      ${realReviews.length ? UI.ratingBars(realReviews) : `<p class="sec-desc left">새싹스쿨은 막 문을 연 서비스라 후기를 모으고 있어요. 대신 결제 전에 직접 확인해 보실 수 있게 해 두었어요.</p>
+      <ul class="trust-list"><li>🌱 알파벳·파닉스(1~2단계)는 <b>평생 무료</b>, 가입하면 <b>7일 동안 전체 단계</b>를 써 봐요</li>
+        <li>🧾 카드 등록·자동결제 없이 <b>한 번만 결제</b>하는 이용권이에요</li>
+        <li>↩️ 결제 후 7일 이내·플러스 학습 전이면 부모페이지에서 바로 <b>전액 환불</b></li>
+        <li>🏢 사업자등록·통신판매업 신고를 마친 사업자예요 (맨 아래 사업자 정보)</li>
+        <li>📞 고객센터 010-5117-1247 · team.saessakschool@gmail.com</li></ul>`}
       <div class="row"><a class="btn btn-ghost" href="#/reviews">후기 전체 보기</a>${u ? '<a class="btn btn-ghost" href="#/reviews">✍️ 후기 남기기</a>' : ''}</div>
     </div>
     <div class="review-stack">${bestReviews.length ? bestReviews.map(r => UI.reviewCard(r)).join('')
@@ -654,7 +676,7 @@ Views.reviews = el => {
     const d = new FormData(f);
     try { await Store.addReview({ rating: +d.get('rating'), name: d.get('name').trim(), text: d.get('text').trim() }); }
     catch (x) { return App.toast(x.message); }
-    f.reset(); App.toast('후기가 등록되었어요. 고마워요! 💚'); draw();
+    f.reset(); UI.reviewAsked(true); App.toast('후기가 등록되었어요. 고마워요! 💚'); draw();
   };
   draw();
 };
@@ -675,9 +697,7 @@ Views.pricing = (el, params) => {
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
 
-    ${promoOn() ? `<div class="card promo-card"><span class="chip">기간 한정</span><h2>🎉 1년 특가 · 월 ${won(PROMO.one)}</h2>
-      <p><b>${promoEndText()}까지</b> 플러스 12개월을 결제하면 월 ${won(PROMO.one)}(형제·자매 월 ${won(PROMO.two)})이에요. 1년 ${won(PROMO.one * 12)}을 한 번에 결제해요.
-      첫 결제 쿠폰과는 함께 쓸 수 없어요.</p></div>` : ''}
+    ${UI.discountRules()}
 
     <h2 class="sec-sub">💎 플러스에 들어 있는 것 <small>하루 약 ${won(Math.round(lowestMonthly() / 30 / 10) * 10)} (12개월 기준)</small></h2>
     <div class="value-grid">${[
@@ -693,15 +713,6 @@ Views.pricing = (el, params) => {
 
     <h2 class="sec-sub">💎 플러스 요금 <small>3~8단계 문장·대화·시제까지 · 스토리북 ${STORIES.length}권 전체</small></h2>
     ${UI.plans()}
-
-    <h2 class="sec-sub">🎟️ 첫 결제 쿠폰가</h2>
-    <p class="sec-desc left">가입하면 바로 받는 웰컴쿠폰으로, 10일 안에 결제하면 <b>${pct(WELCOME_RATE)} 더</b> 할인돼요.</p>
-    <div class="table-wrap"><table class="table price-table">
-      <thead><tr><th></th><th>1개월</th><th>3개월</th><th>6개월</th><th>12개월</th></tr></thead>
-      <tbody>${[Store.kidsPlan()].map(k => `<tr><th>${k === 'two' ? '👧👦 형제·자매' : '플러스'}</th>${[1, 3, 6, 12].map(m => {
-        const promo = promoMonthly(k, m), monthly = promo || round10(planMonthly(k, m) * (1 - WELCOME_RATE));
-        return `<td><small class="strike">월 ${won(planMonthly(k, m))}</small><br><b class="hot">${promo ? '1년 특가 ' : ''}월 ${won(monthly)}</b></td>`;
-      }).join('')}</tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">무료 vs 플러스</h2>
     <div class="table-wrap"><table class="table compare">
@@ -748,6 +759,10 @@ Views.help = el => {
     <input class="search" type="search" placeholder="궁금한 내용을 검색해 보세요 (예: 해지, 소리, 별)" aria-label="도움말 검색">
     <div class="chips filter">${cats.map(c => `<button class="chip ${c === '전체' ? 'on' : ''}" data-c="${c}">${c}</button>`).join('')}</div>
     <div id="faqList"></div>
+    <div class="card contact-card"><h3>💬 찾는 답이 없으면 문의해 주세요</h3>
+      <p>결제·환불·학습·소리 문제 모두 도와드려요. 이메일은 보통 하루 안에 답장해요.</p>
+      <div class="row"><a class="btn btn-primary sm" href="tel:010-5117-1247">📞 010-5117-1247</a><a class="btn btn-ghost sm" data-mail href="mailto:team.saessakschool@gmail.com">✉️ 이메일 문의</a></div>
+      <p class="fine">이메일 문의를 누르면 사용 중인 기기·브라우저 정보가 미리 적혀 있어서 더 빨리 확인할 수 있어요.</p></div>
     <div class="card notice"><b>🔧 이 기기 진단</b>
       <p>음성 합성 ${Speech.canSpeak ? '✅' : '❌'} · 음성 인식 ${Speech.canListen ? '✅' : '❌'} · 알림 ${'Notification' in window ? '✅' : '❌'}</p>
       ${Speech.canListen ? '' : `<p class="mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}
@@ -762,6 +777,9 @@ Views.help = el => {
   };
   $('.search', el).oninput = e => { q = e.target.value.trim(); draw(); };
   $$('[data-c]', el).forEach(b => b.onclick = () => { cat = b.dataset.c; $$('[data-c]', el).forEach(x => x.classList.toggle('on', x === b)); draw(); });
+  // 이메일 문의: 제목과 기기 정보를 미리 넣는다 (사용자가 직접 보내는 메일)
+  const E = Speech.env, dev = `${E.ipad ? 'iPad' : E.ios ? 'iPhone' : E.android ? 'Android' : 'PC'} · ${(navigator.userAgent.match(/(CriOS|Chrome|Firefox|Edg|Whale|SamsungBrowser|Version)\/[\d.]+/) || ['브라우저'])[0].replace('Version', 'Safari')} · 음성 인식 ${Speech.canListen ? '가능' : '불가'}`;
+  $('[data-mail]', el).href = 'mailto:team.saessakschool@gmail.com?subject=' + encodeURIComponent('[새싹스쿨 문의] ') + '&body=' + encodeURIComponent(`문의 내용:\n\n\n---\n(확인용) 기기: ${dev}`);
   $('[data-test-voice]', el).onclick = () => Speech.speak('Hello! Can you hear me?');
   $('[data-test-sfx]', el).onclick = () => Speech.sfx.cheer();
   // 마이크 테스트: "Hello"라고 말하면 들은 말을 보여주고, 안 되면 원인과 해결 방법을 알려준다
@@ -1058,6 +1076,7 @@ Views.learn = el => {
       </div>
     </div>
     ${UI.mascot(greet, todayN >= p.dailyGoal ? '🌻' : '🌱')}
+    <div class="card notice mic-banner" hidden></div>
     ${UI.todayCard()}
     ${UI.treeCard()}
     <div class="continue card">
@@ -1077,16 +1096,24 @@ Views.learn = el => {
       ${API.on ? `<a class="quick-card" href="#/friends" style="--r:-1deg"><span>${ico('👫')}</span><b>친구</b><small>친구 공부 보기 · 응원 쪽지</small></a>` : ''}
     </div>
     <div class="sw-head"><h2 class="sec-sub">🗺️ 모험 지도</h2><a class="link-btn" href="#/study?view=all">📚 전체 학습 내용 보기 →</a></div>
-    <div class="path">${STAGES.map(s => `
-      <section class="path-island" style="--c:${s.color}">
-        <header><em class="stage-tag">섬 ${s.id}</em><b>${s.title}</b><span class="island-stories">${STORIES.filter(x => x.stage === s.id).map(x => `<a class="link-btn" href="#/story/${x.id}">📖 ${esc(x.title)}</a>`).join('')}</span></header>
+    <div class="path">${STAGES.map(s => {
+      // 지금 공부하는 섬만 펼치고, 나머지 섬은 한 줄로 접어 둔다 (누르면 펼쳐짐)
+      const isCur = s.id === stageOf(cur).id, done = s.levels.reduce((n, lv) => n + Store.lessonsDone(lv), 0), tot = s.levels.length * LESSONS_PER_LEVEL;
+      const books = STORIES.filter(x => x.stage === s.id);
+      const island = `
+      <section class="path-island ${isCur ? 'cur-island' : ''}" style="--c:${s.color}">
+        <header><em class="stage-tag">섬 ${s.id}</em><b>${s.title}</b>${isCur ? '<span class="chip">📍 지금 여기</span>' : ''}<details class="island-books"><summary>📖 스토리북 ${books.length}권</summary><span class="island-stories">${books.map(x => `<a class="link-btn" href="#/story/${x.id}">📖 ${esc(x.title)}</a>`).join('')}</span></details></header>
         <div class="nodes">${s.levels.map((lv, k) => {
           const open = Store.isUnlocked(lv), done = Store.lessonsDone(lv);
           const pct = Math.round(done / LESSONS_PER_LEVEL * 100); // 레벨 진도 (점수가 아니라 끝낸 날 수)
           return `<button class="node ${open ? '' : 'locked'} ${lv === cur ? 'current' : ''} ${done >= LESSONS_PER_LEVEL ? 'cleared' : ''}" data-lv="${lv}" style="--k:${k}" ${open ? '' : 'aria-disabled="true"'}>
             <span class="node-ball">${open ? lv : Store.needsPlus(lv) ? '💎' : '🔒'}${p.badges && p.badges[lv] ? '<i class="node-medal" title="레벨 배지">🏅</i>' : ''}</span><span class="node-prog" title="레벨 진도 ${pct}%">${done}/${LESSONS_PER_LEVEL}일</span><span class="node-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${lv === cur ? `<span class="node-me">${p.avatar}</span>` : ''}</button>`;
         }).join('')}</div>
-      </section>`).join('')}</div>
+      </section>`;
+      if (isCur) return island;
+      const state = done >= tot ? '✅ 다 마침' : done ? `${done}/${tot}일` : s.levels.every(lv => !Store.isUnlocked(lv)) ? (Store.needsPlus(s.levels[0]) ? '💎 플러스' : '🔒 아직 잠김') : '시작 전';
+      return `<details class="path-fold" style="--c:${s.color}"><summary><em class="stage-tag">섬 ${s.id}</em><b>${s.title}</b><small>${state}</small></summary>${island}</details>`;
+    }).join('')}</div>
   </div>`;
   const wbtn = $('[data-water]', el); if (wbtn) wbtn.onclick = () => App.waterTree(wbtn);
   const claim = $('[data-claim]', el);
@@ -1110,8 +1137,11 @@ Views.learn = el => {
       }).join('')}</div>
       <div class="row-center"><a class="btn btn-ghost" href="#/worksheet/${lv}" data-close>🖨️ 워크시트</a><button class="btn btn-ghost" data-close>닫기</button></div>`);
   });
-  const curEl = $('.node.current', el);
-  if (curEl && stageOf(cur).id > 2) curEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  // 말하기가 안 되는 브라우저이거나 마이크가 꺼져 있으면 레슨 전에 미리 알려 준다 (말하기 없이도 레슨은 할 수 있다)
+  const micBox = $('.mic-banner', el);
+  const showMic = (title, msg) => { micBox.innerHTML = `🎤 <b>${title}</b> ${esc(msg)} <a href="#/help">마이크 점검하기 →</a><br><small class="fine">말하기 없이도 레슨은 계속할 수 있어요.</small>`; micBox.hidden = false; };
+  if (!Speech.canListen) showMic('이 브라우저에서는 말하기 점수를 받을 수 없어요.', Speech.unsupportedReason());
+  else Speech.micPermission().then(st => { if (st === 'denied') showMic('마이크가 꺼져 있어요.', Speech.micHelp('not-allowed').replace(/^🎤 마이크가 꺼져 있어요\.\s*/, '')); });
 };
 
 /* ---------- 레슨 ---------- */
@@ -1660,6 +1690,9 @@ const ParentTabs = {
           <div class="kpi"><small>평균 발음</small><b>${spAvg}${sp.length ? '점' : ''}</b></div>
           <div class="kpi"><small>모은 별 · 배지</small><b>⭐${p.stars || 0} · 🏅${Object.keys(p.badges || {}).length}</b></div>
         </div>
+        ${lessons >= 5 && !UI.reviewAsked() ? `<div class="card notice review-ask"><b>💌 ${esc(p.name)}의 레슨 ${lessons}개, 써 보니 어떠셨나요?</b>
+          <p>새싹스쿨은 막 시작한 서비스라 부모님의 솔직한 후기가 다른 부모님께 큰 도움이 돼요. 아쉬운 점도 좋아요. 받은 의견은 개선에 반영할게요.</p>
+          <div class="row"><a class="btn btn-primary sm" href="#/reviews">✍️ 후기 남기기</a><button class="btn btn-ghost sm" data-rv-later>다음에</button></div></div>` : ''}
         ${UI.skillReport(p)}
         <div class="two-col top">
           <div class="card"><h3>최근 7일 학습 시간</h3><div class="bars">${days.map((d, k) => `<div class="bar-col"><span class="bv">${mins[k] || ''}</span><i style="height:${mins[k] / maxM * 100}%"></i><small>${['일', '월', '화', '수', '목', '금', '토'][new Date(d).getDay()]}</small></div>`).join('')}</div></div>
@@ -1671,6 +1704,7 @@ const ParentTabs = {
           <div class="card"><h3>최근 말하기</h3>${sp.length ? `<ul class="hist">${sp.slice(0, 6).map(r => `<li><span>${esc(r.text)}</span><b class="score-pill small ${scoreClass(r.score)}">${r.score}</b></li>`).join('')}</ul>` : '<p>아직 기록이 없어요.</p>'}</div>
         </div>`;
       $$('[data-pid]', el).forEach(b => b.onclick = () => { p = u.profiles.find(x => x.id === b.dataset.pid); draw(); });
+      const later = $('[data-rv-later]', el); if (later) later.onclick = () => { UI.reviewAsked(true); draw(); };
     };
     draw();
   },
