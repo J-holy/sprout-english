@@ -36,6 +36,8 @@ const promoEndText = () => { const d = new Date(PROMO.until); return `${d.getMon
 // '월 ○원부터' 안내에 쓰는 가장 싼 월 요금
 const lowestMonthly = (kids = 'one') => promoMonthly(kids, PROMO.months) || PLANS[kids].m12;
 const wonText = n => n.toLocaleString('ko-KR') + '원';
+// 카카오톡 채널 '새싹스쿨' (11-24 개설): 채널 추가·1:1 채팅 문의
+const KAKAO_CHANNEL = { home: 'https://pf.kakao.com/_RxjmvX', chat: 'https://pf.kakao.com/_RxjmvX/chat' };
 const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인 (모든 기간)
 const round10 = n => Math.round(n / 10) * 10;
 const planMonthly = (kids, months) => PLANS[kids]['m' + months];
