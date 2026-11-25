@@ -1535,3 +1535,12 @@ a.shop-ava { display: block; }
   .mr-stage { width: min(100%, calc((100dvh - 125px) * 1.6)); margin: 0 auto; }
   .mr-tip { margin: 4px 0; font-size: .85rem; }
 }
+/* 친구: 그림 높이를 맞추고(가로는 그림 비율대로), 걸음은 그림이 바뀌므로 기울이는 흔들림은 작게 */
+.mr-pet { width: calc(4.6% * var(--ar, 1)); }
+.mr-pet-img { display: block; width: 100%; height: auto; }
+.mr-pet.walking .mr-bob { animation-name: mr-pet-step2; animation-duration: .26s; }
+@keyframes mr-pet-step2 { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5%; } }
+.mr-pet .mr-flip { transition: none; }
+/* 옆모습 안경: 눈 앞쪽에 옆에서 본 안경 (얼굴이 오른쪽을 본다) */
+.avatar.drawn.mr-ava[data-view="side"] .acc-face { display: block; left: calc((var(--hx) + var(--hw) * .2) * 100%); width: calc(var(--hw) * .5 * 100%); }
+.avatar.drawn.mr-ava[data-view="back"] .acc-face { display: none; }

@@ -61,7 +61,7 @@ const MR_FRAMES = {
 // 귀(뿔·눈) 사이 머리 꼭대기 폭 (머리 폭에 대한 비율): 머리에 쓰는 것은 이 폭에 맞춰 귀 사이에 쓴다
 const MR_GAP = { '🐰': .5, '🐻': .6, '🦊': .5, '🐼': .58, '🐯': .58, '🐨': .55, '🐸': .45, '🦁': .58, '🐧': .62, '🦄': .55 };
 // 머리·목 꾸미기의 옆모습·뒷모습 그림 (있는 것만, 없으면 앞모습 그림을 쓴다)
-const MR_ACC_VIEW = {"🧢": {"side": "img/room/acc/side-1f9e2.png", "back": "img/room/acc/back-1f9e2.png"}, "👒": {"side": "img/room/acc/side-1f452.png", "back": "img/room/acc/back-1f452.png"}, "🎩": {"side": "img/room/acc/side-1f3a9.png", "back": "img/room/acc/back-1f3a9.png"}, "🎓": {"side": "img/room/acc/side-1f393.png", "back": "img/room/acc/back-1f393.png"}, "👑": {"side": "img/room/acc/side-1f451.png", "back": "img/room/acc/back-1f451.png"}, "🎉": {"side": "img/room/acc/side-1f389.png", "back": "img/room/acc/back-1f389.png"}, "🐱": {"side": "img/room/acc/side-1f431.png", "back": "img/room/acc/back-1f431.png"}, "🍄": {"side": "img/room/acc/side-1f344.png", "back": "img/room/acc/back-1f344.png"}, "🧣": {"back": "img/room/acc/back-1f9e3.png"}, "📿": {"side": "img/room/acc/side-1f4ff.png"}, "🏅": {"side": "img/room/acc/side-1f3c5.png"}, "🎗️": {"side": "img/room/acc/side-1f397.png"}, "🔔": {"side": "img/room/acc/side-1f514.png"}};
+const MR_ACC_VIEW = {"🧢": {"side": "img/room/acc/side-1f9e2.png", "back": "img/room/acc/back-1f9e2.png"}, "👒": {"side": "img/room/acc/side-1f452.png", "back": "img/room/acc/back-1f452.png"}, "🎩": {"side": "img/room/acc/side-1f3a9.png", "back": "img/room/acc/back-1f3a9.png"}, "🎓": {"side": "img/room/acc/side-1f393.png", "back": "img/room/acc/back-1f393.png"}, "👑": {"side": "img/room/acc/side-1f451.png", "back": "img/room/acc/back-1f451.png"}, "🎉": {"side": "img/room/acc/side-1f389.png", "back": "img/room/acc/back-1f389.png"}, "🐱": {"side": "img/room/acc/side-1f431.png", "back": "img/room/acc/back-1f431.png"}, "🍄": {"side": "img/room/acc/side-1f344.png", "back": "img/room/acc/back-1f344.png"}, "🧣": {"back": "img/room/acc/back-1f9e3.png"}, "📿": {"side": "img/room/acc/side-1f4ff.png"}, "🏅": {"side": "img/room/acc/side-1f3c5.png"}, "🎗️": {"side": "img/room/acc/side-1f397.png"}, "🔔": {"side": "img/room/acc/side-1f514.png"}, "🕶️": {"side": "img/room/acc/side-1f576.png"}, "👓": {"side": "img/room/acc/side-1f453.png"}, "🩷": {"side": "img/room/acc/side-1fa77.png"}, "🤿": {"side": "img/room/acc/side-1f93f.png"}};
 const accViewArt = (emoji, view) => (view !== 'front' && MR_ACC_VIEW[emoji]?.[view]) || (PICS.x[emoji] ? 'img/' + PICS.x[emoji] : '');
 // 전신 캐릭터 (미니룸·별 상점). key: f0 fa fb s0 sa sb b0 ba bb (보기 앞·옆·뒤 × 서 있기·걷기 두 장)
 // 걷는 그림마다 머리 자리가 조금씩 달라서, 그 보기의 서 있는 그림에 머리가 맞도록 몸 전체를 옮긴다 (머리가 흔들리지 않고 다리만 움직이게)
@@ -2104,6 +2104,9 @@ const mrBase = x => .47 + Math.abs(x - .5) * .76; // 그 x에서 벽과 바닥�
 const MR_SPOT = { bed: [.76, .83], shelf: [.42, .62], rug: [.5, .84], plant: [.14, .84], toybox: [.3, .92], desk: [.62, .64], sofa: [.24, .74], lamp: [.88, .84], tent: [.72, .93],
   window: [.25, .36], frame: [.74, .38], clock: [.62, .2], bunting: [.38, .14] };
 const mrItem = id => SHOP.find(x => x.id === id);
+// 따라다니는 친구 그림: 앞(f)·옆(s, 오른쪽을 봄)·뒤(b) × 서 있기(0)·걷기 두 장(a, b). ar = 그림 가로/세로 (모두 같은 캔버스)
+const MR_PET = { '🐥': ['1f425', .89], '🐢': ['1f422', 1.76], '🐶': ['1f436', 1.445], '🐹': ['1f439', 1.575], '🐙': ['1f419', 1.055], '🦔': ['1f994', 1.245], '🦋': ['1f98b', 1.325] };
+const mrPetImg = (emoji, key) => `img/room/pet/${MR_PET[emoji][0]}-${key}.webp?v=1126`;
 const mrRoom = p => { const r = p.room || {}; return { paper: r.paper || null, items: (r.items || []).filter(o => mrItem(o.id) && p.owned.includes(o.id)) }; };
 
 Views.room = el => {
@@ -2120,7 +2123,7 @@ Views.room = el => {
       <img class="mr-bg" src="${paperImg()}" alt="" draggable="false">
       <div class="mr-furn"></div>
       <div class="mr-actor mr-char"><div class="mr-say" hidden></div><div class="mr-flip"><div class="mr-bob">${roomAvatar(p)}</div></div><i class="mr-shadow"></i></div>
-      ${pet ? `<div class="mr-actor mr-pet"><div class="mr-flip"><div class="mr-bob">${accArt(pet)}</div></div><i class="mr-shadow"></i></div>` : ''}
+      ${pet ? `<div class="mr-actor mr-pet" style="--ar:${MR_PET[pet.emoji]?.[1] || 1}"><div class="mr-flip"><div class="mr-bob">${MR_PET[pet.emoji] ? `<img class="mr-pet-img" src="${mrPetImg(pet.emoji, 'f0')}" alt="" draggable="false">` : accArt(pet)}</div></div><i class="mr-shadow"></i></div>` : ''}
     </div>
     <p class="mr-tip">👆 바닥을 누르면 그쪽으로 걸어가요 · 캐릭터를 누르면 인사해요</p>
     <div class="mr-tray card" hidden></div>
@@ -2216,7 +2219,7 @@ Views.room = el => {
   const fr = pEl && { el: pEl, x: sx - .05, y: Math.min(Y1, sy + .01), dir: 1, walk: false, speed: .16 };
   const place = a => {
     a.el.style.left = `${a.x * 100}%`; a.el.style.top = `${a.y * 100}%`; a.el.style.zIndex = Math.round(a.y * 1000) + 1;
-    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a === me && me.view !== 's' ? 1 : a.dir);
+    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); const v = a === me ? me.view : a.view; a.el.style.setProperty('--dir', v === 's' || (a !== me && !v) ? a.dir : 1); // 옆모습 그림만 가는 쪽으로 뒤집는다
     a.el.classList.toggle('walking', a.walk);
     if (a === me) cEl.classList.toggle('near', me.view === 's' && me.dir < 0); // 왼쪽을 보고 걸으면 아이템을 든 손이 앞쪽에 온다
   };
@@ -2229,6 +2232,15 @@ Views.room = el => {
       key = v + f; up = (f === '0' || (v === 's' && f === 'b')) ? .018 : 0;
     }
     if (key !== me.frame || up !== me.up) { me.frame = key; me.up = up; me.view = key[0]; mrFrame(cEl, p.avatar, key, up); }
+  };
+  // 친구도 걷는 쪽에 따라 앞·옆·뒷모습과 걸음 그림을 바꾼다. 멈추면 앞을 본다
+  const petImg = pEl && MR_PET[pet.emoji] && pEl.querySelector('.mr-pet-img');
+  if (petImg) Object.keys({ f0: 1, fa: 1, fb: 1, s0: 1, sa: 1, sb: 1, b0: 1, ba: 1, bb: 1 }).forEach(k => { const im = new Image(); im.src = mrPetImg(pet.emoji, k); });
+  const petPose = now => {
+    if (!petImg) return;
+    let key = 'f0';
+    if (fr.walk && fr.mvx !== undefined) { const v = Math.abs(fr.mvy) > Math.abs(fr.mvx) * 1.1 ? (fr.mvy < 0 ? 'b' : 'f') : 's', c = CYCLE[v]; key = v + c[Math.floor(now / (v === 's' ? 160 : 130)) % c.length]; }
+    fr.view = key[0]; if (key !== fr.frame) { fr.frame = key; petImg.src = mrPetImg(pet.emoji, key); }
   };
   let sayT = null;
   const speak = (text, voice) => {
@@ -2265,7 +2277,7 @@ Views.room = el => {
       const [gx, gy] = toFloor(me.x - me.dir * .05, Math.min(Y1, me.y + .01)), far = Math.hypot(gx - fr.x, (gy - fr.y) * 1.6);
       fr.walk = far > .02 && (fr.walk || far > .05); if (fr.walk) { const px = fr.x, py = fr.y; if (step(fr, gx, gy, dt)) fr.walk = false; if (!free(fr.x, fr.y) && free(px, py)) { fr.x = px; fr.y = py; fr.walk = false; } } // 친구도 가구 안으로는 들어가지 않는다
       if (!fr.walk) fr.dir = me.x > fr.x ? 1 : -1;
-      place(fr);
+      petPose(now); place(fr);
     }
     requestAnimationFrame(tick);
   };
