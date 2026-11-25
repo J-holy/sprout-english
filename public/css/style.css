@@ -1400,8 +1400,8 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .mr-stage.editing .mr-f.sel { outline: 3px dashed #ff8a3d; outline-offset: 3px; border-radius: 10px; }
 .mr-x { position: absolute; top: -12px; right: -12px; width: 28px; height: 28px; border-radius: 50%; background: #ff6b6b; color: #fff; font-weight: 700; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0, 0, 0, .25); cursor: pointer; font-size: 15px; }
 .mr-f.flat .mr-x { transform: scaleY(2.17); }
-.mr-actor { position: absolute; width: 12%; transform: translate(-50%, -100%) scale(var(--s, 1)); transform-origin: 50% 100%; pointer-events: none; }
-.mr-pet { width: 6.5%; }
+.mr-actor { position: absolute; width: 7.5%; transform: translate(-50%, -100%) scale(var(--s, 1)); transform-origin: 50% 100%; pointer-events: none; }
+.mr-pet { width: 4.2%; }
 .mr-flip { transform: scaleX(var(--dir, 1)); transition: transform .18s; }
 .mr-char .mr-bob { pointer-events: auto; cursor: pointer; }
 .mr-actor.walking .mr-bob { animation: mr-step .4s ease-in-out infinite; transform-origin: 50% 100%; }
@@ -1519,3 +1519,5 @@ a.shop-ava { display: block; }
 .avatar.drawn.mr-ava .acc-pearls { top: calc((var(--ny) - .01) * 100%); transform: translate(-50%, 0); }
 .avatar.drawn.mr-ava[data-view="side"] :is(.acc-medal, .acc-bell, .acc-bowtie, .acc-pearls) { left: calc((var(--hx) * .45 + var(--chest) * .55 - .03) * 100%); scale: .6 1; }
 .avatar.drawn.mr-ava .acc-pearls { width: calc(var(--hw) * .36 * 100%); top: calc((var(--ny) - .025) * 100%); }
+/* 작은 캐릭터: 말풍선은 조금 작게, 걸을 때 오르는 폭은 그대로 */
+.mr-say { font-size: clamp(.7rem, 2vw, .95rem); padding: 3px 8px; }

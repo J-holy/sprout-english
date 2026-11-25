@@ -2209,7 +2209,7 @@ Views.room = el => {
   // 캐릭터
   blocks(); const [sx, sy] = randPt();
   const me = { el: cEl, x: sx, y: sy, path: [], dir: 1, walk: false, wait: 1.2, speed: .11 };
-  const fr = pEl && { el: pEl, x: sx - .07, y: Math.min(Y1, sy + .01), dir: 1, walk: false, speed: .16 };
+  const fr = pEl && { el: pEl, x: sx - .05, y: Math.min(Y1, sy + .01), dir: 1, walk: false, speed: .16 };
   const place = a => {
     a.el.style.left = `${a.x * 100}%`; a.el.style.top = `${a.y * 100}%`; a.el.style.zIndex = Math.round(a.y * 1000) + 1;
     a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a === me && me.view !== 's' ? 1 : a.dir);
@@ -2258,7 +2258,7 @@ Views.room = el => {
     } else if ((me.wait -= dt) <= 0) { if (Math.random() < .25) { me.dir *= -1; me.wait = 1 + Math.random() * 1.5; } else { walkTo(...randPt()); me.wait = .5; } }
     pose(now); place(me);
     if (fr) { // 친구는 캐릭터 뒤쪽을 졸졸 따라온다
-      const [gx, gy] = toFloor(me.x - me.dir * .075, Math.min(Y1, me.y + .012)), far = Math.hypot(gx - fr.x, (gy - fr.y) * 1.6);
+      const [gx, gy] = toFloor(me.x - me.dir * .05, Math.min(Y1, me.y + .01)), far = Math.hypot(gx - fr.x, (gy - fr.y) * 1.6);
       fr.walk = far > .02 && (fr.walk || far > .05); if (fr.walk) { const px = fr.x, py = fr.y; if (step(fr, gx, gy, dt)) fr.walk = false; if (!free(fr.x, fr.y) && free(px, py)) { fr.x = px; fr.y = py; fr.walk = false; } } // 친구도 가구 안으로는 들어가지 않는다
       if (!fr.walk) fr.dir = me.x > fr.x ? 1 : -1;
       place(fr);
