@@ -61,7 +61,7 @@ const MR_FRAMES = {
 // 귀(뿔·눈) 사이 머리 꼭대기 폭 (머리 폭에 대한 비율): 머리에 쓰는 것은 이 폭에 맞춰 귀 사이에 쓴다
 const MR_GAP = { '🐰': .5, '🐻': .6, '🦊': .5, '🐼': .58, '🐯': .58, '🐨': .55, '🐸': .45, '🦁': .58, '🐧': .62, '🦄': .55 };
 // 머리·목 꾸미기의 옆모습·뒷모습 그림 (있는 것만, 없으면 앞모습 그림을 쓴다)
-const MR_ACC_VIEW = {};
+const MR_ACC_VIEW = {"🧢": {"side": "img/room/acc/side-1f9e2.png", "back": "img/room/acc/back-1f9e2.png"}, "👒": {"side": "img/room/acc/side-1f452.png", "back": "img/room/acc/back-1f452.png"}, "🎩": {"side": "img/room/acc/side-1f3a9.png", "back": "img/room/acc/back-1f3a9.png"}, "🎓": {"side": "img/room/acc/side-1f393.png", "back": "img/room/acc/back-1f393.png"}, "👑": {"side": "img/room/acc/side-1f451.png", "back": "img/room/acc/back-1f451.png"}, "🎉": {"side": "img/room/acc/side-1f389.png", "back": "img/room/acc/back-1f389.png"}, "🐱": {"side": "img/room/acc/side-1f431.png", "back": "img/room/acc/back-1f431.png"}, "🍄": {"side": "img/room/acc/side-1f344.png", "back": "img/room/acc/back-1f344.png"}, "🧣": {"back": "img/room/acc/back-1f9e3.png"}, "📿": {"side": "img/room/acc/side-1f4ff.png"}, "🏅": {"side": "img/room/acc/side-1f3c5.png"}, "🎗️": {"side": "img/room/acc/side-1f397.png"}, "🔔": {"side": "img/room/acc/side-1f514.png"}};
 const accViewArt = (emoji, view) => (view !== 'front' && MR_ACC_VIEW[emoji]?.[view]) || (PICS.x[emoji] ? 'img/' + PICS.x[emoji] : '');
 // 전신 캐릭터 (미니룸·별 상점). key: f0 fa fb s0 sa sb b0 ba bb (보기 앞·옆·뒤 × 서 있기·걷기 두 장)
 // 걷는 그림마다 머리 자리가 조금씩 달라서, 그 보기의 서 있는 그림에 머리가 맞도록 몸 전체를 옮긴다 (머리가 흔들리지 않고 다리만 움직이게)
