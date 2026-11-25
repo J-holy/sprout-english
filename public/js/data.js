@@ -77,7 +77,6 @@ const SHOP = [
   // 11-25 더한 꾸미기
   { id: 'acc-party', kind: 'acc', slot: 'head', emoji: '🎉', name: '파티 모자', cost: 9 },
   { id: 'acc-wreath', kind: 'acc', slot: 'head', emoji: '🌸', name: '꽃 화관', cost: 9 },
-  { id: 'acc-catears', kind: 'acc', slot: 'head', emoji: '🐱', name: '고양이 귀 머리띠', cost: 9 },
   { id: 'acc-mushroom', kind: 'acc', slot: 'head', emoji: '🍄', name: '버섯 모자', cost: 8 },
   { id: 'acc-starpin', kind: 'acc', slot: 'head', emoji: '⭐', name: '별 머리핀', cost: 5 },
   { id: 'acc-heartglasses', kind: 'acc', slot: 'face', emoji: '🩷', name: '하트 선글라스', cost: 9 },
