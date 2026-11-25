@@ -1525,3 +1525,13 @@ a.shop-ava { display: block; }
 .mr-f.floor img { transform: scaleX(var(--fx, 1)) skewY(var(--lean, 0deg)); transition: transform .2s; }
 /* 정면에서는 손에 든 아이템이 몸 앞에 보이게 (뒷모습·오른쪽을 볼 때만 몸 뒤로) */
 .avatar.drawn.mr-ava[data-view="front"] .acc-hand { z-index: 3; }
+/* 미니룸: 캐릭터·가구의 z-index가 방 밖(위쪽 메뉴)과 겹치지 않게 방을 따로 쌓는다 */
+.mr-stage { isolation: isolate; }
+/* 휴대폰을 가로로 들면 방 높이를 화면 높이에 맞추고 양옆을 줄인다 (방 그림은 가로:세로 = 1.6:1) */
+@media (orientation: landscape) and (max-height: 560px) {
+  .mr-page { padding-top: 6px; }
+  .mr-head { margin-bottom: 6px; }
+  .mr-head h1 { font-size: 1.2rem; }
+  .mr-stage { width: min(100%, calc((100dvh - 70px) * 1.6)); margin: 0 auto; }
+  .mr-tip { margin: 4px 0; font-size: .85rem; }
+}
