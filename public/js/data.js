@@ -95,6 +95,23 @@ const SHOP = [
   { id: 'acc-snow', kind: 'acc', slot: 'fx', emoji: '❄️', name: '눈송이', cost: 7 },
   { id: 'acc-clover', kind: 'acc', slot: 'fx', emoji: '🍀', name: '네잎클로버', cost: 7 },
   { id: 'acc-moon', kind: 'acc', slot: 'fx', emoji: '🌙', name: '달님', cost: 8 },
+  // 미니룸 꾸미기 (시험): slot paper 벽지 · floor 바닥 가구 · wall 벽에 거는 것. w는 방 너비에 대한 크기
+  { id: 'room-star', kind: 'room', slot: 'paper', emoji: '🌟', name: '별 벽지', cost: 10, img: 'img/room/paper-star.jpg' },
+  { id: 'room-heart', kind: 'room', slot: 'paper', emoji: '💗', name: '하트 벽지', cost: 10, img: 'img/room/paper-heart.jpg' },
+  { id: 'room-stripe', kind: 'room', slot: 'paper', emoji: '💚', name: '줄무늬 벽지', cost: 10, img: 'img/room/paper-stripe.jpg' },
+  { id: 'room-bed', kind: 'room', slot: 'floor', emoji: '🛏️', name: '침대', cost: 14, w: .3, img: 'img/room/f-bed.png' },
+  { id: 'room-rug', kind: 'room', slot: 'floor', emoji: '🩷', name: '동그란 러그', cost: 6, w: .3, img: 'img/room/f-rug.png' },
+  { id: 'room-shelf', kind: 'room', slot: 'floor', emoji: '📚', name: '책장', cost: 10, w: .2, img: 'img/room/f-shelf.png' },
+  { id: 'room-desk', kind: 'room', slot: 'floor', emoji: '✏️', name: '책상', cost: 12, w: .19, img: 'img/room/f-desk.png' },
+  { id: 'room-sofa', kind: 'room', slot: 'floor', emoji: '🛋️', name: '소파', cost: 12, w: .2, img: 'img/room/f-sofa.png' },
+  { id: 'room-toybox', kind: 'room', slot: 'floor', emoji: '🧸', name: '장난감 상자', cost: 8, w: .15, img: 'img/room/f-toybox.png' },
+  { id: 'room-tent', kind: 'room', slot: 'floor', emoji: '⛺', name: '놀이 텐트', cost: 14, w: .2, img: 'img/room/f-tent.png' },
+  { id: 'room-plant', kind: 'room', slot: 'floor', emoji: '🪴', name: '화분', cost: 5, w: .09, img: 'img/room/f-plant.png' },
+  { id: 'room-lamp', kind: 'room', slot: 'floor', emoji: '💡', name: '스탠드', cost: 7, w: .08, img: 'img/room/f-lamp.png' },
+  { id: 'room-window', kind: 'room', slot: 'wall', emoji: '🪟', name: '창문', cost: 9, w: .18, img: 'img/room/f-window.png' },
+  { id: 'room-frame', kind: 'room', slot: 'wall', emoji: '🖼️', name: '그림 액자', cost: 6, w: .1, img: 'img/room/f-frame.png' },
+  { id: 'room-clock', kind: 'room', slot: 'wall', emoji: '🕰️', name: '벽시계', cost: 6, w: .08, img: 'img/room/f-clock.png' },
+  { id: 'room-bunting', kind: 'room', slot: 'wall', emoji: '🎏', name: '깃발 장식', cost: 5, w: .22, img: 'img/room/f-bunting.png' },
 ];
 const ACC_SLOTS = [['head', '머리'], ['face', '얼굴'], ['neck', '목'], ['hand', '손'], ['pet', '친구'], ['fx', '효과']];
 

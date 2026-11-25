@@ -42,6 +42,7 @@ const App = (() => {
     [/^\/free$/, learner(el => Views.free(el))],
     [/^\/certificate\/(\d)$/, learner((el, m) => Views.certificate(el, +m[1]))],
     [/^\/shop$/, learner(el => Views.shop(el))],
+    [/^\/room$/, learner(el => Views.room(el))],
     [/^\/friends$/, learner(el => Views.friends(el))],
     [/^\/play(?:\/(balloon|match|frog|fish|ox|basket))?$/, learner((el, m) => Views.play(el, m[1]))],
     [/^\/worksheet\/([A-Z])$/, authed((el, m) => Views.worksheet(el, m[1]))],

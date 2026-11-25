@@ -29,6 +29,36 @@ const DRAWN_EYES = {
   '🐸': [.298, .331, .707, .317, .105, '#a6d384', '#8cc46c'], '🦁': [.4, .534, .601, .533, .033, '#f4dba0', '#efc46c'], '🐧': [.357, .463, .645, .463, .034, '#f7f8f2', '#6f7a8a'],
   '🦄': [.375, .575, .616, .579, .023, '#fbfdfa', '#fbf8f4'],
 };
+// 미니룸 (시험): 방 그림 세 가지와 걸어 다닐 수 있는 바닥(방 그림에 대한 비율로 그린 다각형)
+const MR_ROOMS = [
+  { img: 'img/room/room-22.jpg', floor: [[.06, .88], [.40, .57], [.58, .57], [.58, .80], [.80, .86], [.90, .92], [.50, .95], [.15, .95]] },
+  { img: 'img/room/room-33.jpg', floor: [[.08, .85], [.40, .53], [.55, .55], [.55, .76], [.78, .84], [.88, .92], [.50, .96], [.15, .95]] },
+  { img: 'img/room/room-11.jpg', floor: [[.08, .84], [.38, .52], [.56, .52], [.56, .70], [.78, .80], [.88, .90], [.50, .96], [.15, .95]] },
+];
+// 미니룸 전신 캐릭터: 꾸미기 자리(fit, 얼굴 그림과 같은 순서), 눈, 손 끝 (그림 너비·높이에 대한 비율)
+const MR_BODY = {
+  '🐰': { img: 'img/room/b-1f430.png', w: 263, h: 487, fit: [0.503, 0.319, 0.993, 0.515, 0.67], eyes: [0.27, 0.511, 0.715, 0.51, 0.042], hand: [0.996, 0.821] },
+  '🐻': { img: 'img/room/b-1f43b.png', w: 308, h: 407, fit: [0.48, -0.038, 0.937, 0.353, 0.647], eyes: [0.307, 0.362, 0.701, 0.358, 0.049], hand: [0.932, 0.767] },
+  '🦊': { img: 'img/room/b-1f98a.png', w: 307, h: 441, fit: [0.495, 0.138, 0.962, 0.45, 0.685], eyes: [0.328, 0.446, 0.676, 0.44, 0.034], hand: [0.896, 0.787] },
+  '🐼': { img: 'img/room/b-1f43c.png', w: 317, h: 432, fit: [0.501, 0.007, 0.97, 0.362, 0.623], eyes: [0.315, 0.363, 0.669, 0.363, 0.044], hand: [0.956, 0.769] },
+  '🐯': { img: 'img/room/b-1f42f.png', w: 314, h: 416, fit: [0.494, 0.015, 0.992, 0.354, 0.658], eyes: [0.323, 0.361, 0.678, 0.354, 0.056], hand: [0.892, 0.786] },
+  '🐨': { img: 'img/room/b-1f428.png', w: 387, h: 417, fit: [0.495, 0.062, 0.632, 0.393, 0.628], eyes: [0.348, 0.396, 0.64, 0.394, 0.028], hand: [0.78, 0.796] },
+  '🐸': { img: 'img/room/b-1f438.png', w: 288, h: 344, fit: [0.503, -0.132, 0.877, 0.125, 0.688], eyes: [0.208, 0.105, 0.806, 0.105, 0.083], hand: [0.979, 0.808] },
+  '🦁': { img: 'img/room/b-1f981.png', w: 340, h: 466, fit: [0.495, 0.04, 0.839, 0.395, 0.701], eyes: [0.36, 0.399, 0.632, 0.398, 0.037], hand: [0.891, 0.597] },
+  '🐧': { img: 'img/room/b-1f427.png', w: 353, h: 440, fit: [0.482, 0.005, 0.852, 0.347, 0.63], eyes: [0.287, 0.353, 0.71, 0.348, 0.033], hand: [0.997, 0.734] },
+  '🦄': { img: 'img/room/b-1f984.png', w: 335, h: 441, fit: [0.437, 0.215, 0.85, 0.504, 0.794], eyes: [0.269, 0.552, 0.622, 0.539, 0.036], hand: [0.842, 0.834] },
+};
+// 손 아이템을 쥐는 자리 (아이템 그림에 대한 비율, style.css 의 .paw 자리와 같다)
+const MR_GRIP = { 'acc-lollipop': [50, 70], 'acc-wand': [62, 66], 'acc-balloon': [50, 92], 'acc-teddy': [18, 58], 'acc-icecream': [50, 80], 'acc-sunflower': [50, 74], 'acc-bubbles': [14, 88] };
+const roomAvatar = p => {
+  const b = MR_BODY[p.avatar] || MR_BODY['🐰'], de = DRAWN_EYES[p.avatar] || DRAWN_EYES['🐰'], [hx, hy, hw, ey, ny] = b.fit;
+  const acc = Store.worn(p).filter(w => w.slot !== 'pet').map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => {
+    const g = MR_GRIP[w.id] || [50, 75];
+    return `<i class="acc acc-${w.slot} ${w.id} ${x}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w)}${w.slot === 'hand' ? '<b class="paw"></b>' : ''}</i>`;
+  }).join('')).join('');
+  const lids = [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${b.eyes[i] * 100}%;top:${b.eyes[i + 1] * 100}%;--r:${b.eyes[4] * 100}%;background:${de[5]}"></i>`).join('');
+  return `<span class="avatar drawn huge mr-ava"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny};--paw:${de[6]};--handx:${b.hand[0]};--handy:${b.hand[1]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img}" alt="" draggable="false">${lids}${acc}</span></span>`;
+};
 const accArt = w => PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
 const avatarHtml = (p, cls = '') => {
   const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w) + (w.slot === 'hand' ? '<b class="paw"></b>' : '') : w.emoji}</i>`).join('')).join('');
@@ -1611,11 +1641,13 @@ Views.shop = el => {
     el.innerHTML = `<div class="wrap sec">
       <h1 class="page-title">🛍️ 별 상점</h1>
       <div class="two-col top">
-        <div class="card star-bank"><div class="avatar-show">${avatarHtml(p, 'huge')}</div><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p></div>
+        <div class="card star-bank"><div class="avatar-show">${avatarHtml(p, 'huge')}</div><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p><a class="btn btn-primary sm" href="#/room">🏠 내 미니룸 가기</a></div>
         <div class="card"><h3>별은 이렇게 모아요</h3>${UI.starsInfo()}</div>
       </div>
       <h2 class="sec-sub">아바타 꾸미기 <small>부위마다 하나씩, 여러 개를 함께 입을 수 있어요</small></h2>
       ${ACC_SLOTS.map(([slot, label]) => `<h3 class="acc-slot-title">${label}</h3><div class="shop-grid">${SHOP.filter(i => i.kind === 'acc' && i.slot === slot).map(item).join('')}</div>`).join('')}
+      <h2 class="sec-sub">🏠 미니룸 꾸미기 <small>산 가구는 미니룸의 '방 꾸미기'에서 놓고 옮길 수 있어요</small></h2>
+      ${[['paper', '벽지'], ['floor', '가구·소품'], ['wall', '벽 장식']].map(([slot, label]) => `<h3 class="acc-slot-title">${label}</h3><div class="shop-grid">${SHOP.filter(i => i.kind === 'room' && i.slot === slot).map(item).join('')}</div>`).join('')}
       <h2 class="sec-sub">스티커</h2>
       <div class="shop-grid">${SHOP.filter(i => i.kind === 'sticker').map(item).join('')}</div>
       <h2 class="sec-sub">🏅 레벨 배지 <small>${Object.keys(p.badges || {}).length}/${ALL_LEVELS.length} · 레벨 마지막 날(복습)을 70% 이상으로 통과하면 받아요</small></h2>
@@ -1631,8 +1663,8 @@ Views.shop = el => {
   };
   const item = i => {
     const own = p.owned.includes(i.id), on = Store.isWorn(i.id, p);
-    return `<div class="shop-item ${own ? 'own' : ''} ${on ? 'worn' : ''}"><span class="si-emoji">${i.kind === 'acc' && PICS.x[i.emoji] ? accArt(i) : i.emoji}</span><b>${i.name}</b>
-      ${own ? (i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}" aria-pressed="${on}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>`}</div>`;
+    return `<div class="shop-item ${own ? 'own' : ''} ${on ? 'worn' : ''}"><span class="si-emoji ${i.kind === 'room' ? 'si-room ' + i.slot : ''}">${i.kind === 'room' ? `<img src="${i.img}" alt="" draggable="false">` : i.kind === 'acc' && PICS.x[i.emoji] ? accArt(i) : i.emoji}</span><b>${i.name}</b>
+      ${own ? (i.kind === 'room' ? '<a class="btn btn-ghost sm" href="#/room">방에 놓기</a>' : i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}" aria-pressed="${on}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>`}</div>`;
   };
   draw();
 };
@@ -2038,4 +2070,128 @@ ParentTabs.friends = async (el, u) => {
     if (b.dataset.act === 'block' && !confirm('차단하면 서로 친구 신청과 쪽지를 보낼 수 없어요. 차단할까요?')) return;
     try { await Store.Social.respond(b.dataset.id, b.dataset.act); App.toast('처리했어요.'); ParentTabs.friends(el, u); } catch (x) { App.toast(x.message); }
   });
+};
+
+/* ---------- 미니룸 (시험): 빈 방을 별 상점 아이템으로 꾸미고, 꾸민 캐릭터가 방 안을 돌아다닌다 ---------- */
+// 방 그림(벽지마다 한 장, 모두 같은 구도)의 걸어 다닐 바닥과 벽 아래 선 (방 그림에 대한 비율)
+const MR_FLOOR = [[.5, .53], [.08, .86], [.1, .96], [.9, .96], [.92, .87]];
+const mrBase = x => .47 + Math.abs(x - .5) * .76; // 그 x에서 벽과 바닥이 만나는 높이
+// 처음 놓는 자리 (바닥 아이템은 아래 가운데, 벽 아이템은 가운데)
+const MR_SPOT = { bed: [.76, .83], shelf: [.42, .62], rug: [.5, .84], plant: [.14, .84], toybox: [.3, .92], desk: [.62, .64], sofa: [.24, .74], lamp: [.88, .84], tent: [.72, .93],
+  window: [.25, .36], frame: [.74, .38], clock: [.62, .2], bunting: [.38, .14] };
+const mrItem = id => SHOP.find(x => x.id === id);
+const mrRoom = p => { const r = p.room || {}; return { paper: r.paper || null, items: (r.items || []).filter(o => mrItem(o.id) && p.owned.includes(o.id)) }; };
+
+Views.room = el => {
+  const p = Store.profile(); if (!p) return App.go('/profiles');
+  const pet = Store.worn(p).find(w => w.slot === 'pet');
+  let room = mrRoom(p), edit = false, sel = null;
+  const SAY = ['Hello!', 'Hi!', "I'm happy!", "Let's play!", 'I love my room!', 'Look at me!', 'Yay!'];
+  const EMOTE = ['💖', '🎵', '✨', '😊', '⭐'];
+  const paperImg = () => (room.paper && mrItem(room.paper)?.img) || 'img/room/paper-base.jpg';
+  el.innerHTML = `<section class="wrap mr-page">
+    <div class="mr-head"><h1>🏠 ${esc(p.name)}의 미니룸</h1>
+      <div class="row"><button class="btn btn-primary sm" data-mr-edit>🛋️ 방 꾸미기</button><a class="btn btn-ghost sm" href="#/shop">🛍️ 별 상점</a></div></div>
+    <div class="mr-stage" aria-label="${esc(p.name)}의 방. 바닥을 누르면 캐릭터가 그쪽으로 걸어가요">
+      <img class="mr-bg" src="${paperImg()}" alt="" draggable="false">
+      <div class="mr-furn"></div>
+      <div class="mr-actor mr-char"><div class="mr-say" hidden></div><div class="mr-flip"><div class="mr-bob">${roomAvatar(p)}</div></div><i class="mr-shadow"></i></div>
+      ${pet ? `<div class="mr-actor mr-pet"><div class="mr-flip"><div class="mr-bob">${accArt(pet)}</div></div><i class="mr-shadow"></i></div>` : ''}
+    </div>
+    <p class="mr-tip">👆 바닥을 누르면 그쪽으로 걸어가요 · 캐릭터를 누르면 인사해요</p>
+    <div class="mr-tray card" hidden></div>
+  </section>`;
+  const stage = $('.mr-stage', el), bg = $('.mr-bg', el), furn = $('.mr-furn', el), tray = $('.mr-tray', el), cEl = $('.mr-char', el), pEl = $('.mr-pet', el), say = $('.mr-say', el);
+  const inside = (x, y) => { let c = false; for (let i = 0, j = MR_FLOOR.length - 1; i < MR_FLOOR.length; j = i++) { const [xi, yi] = MR_FLOOR[i], [xj, yj] = MR_FLOOR[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+  const Y0 = .53, Y1 = .96;
+  const randPt = () => { for (let k = 0; k < 200; k++) { const x = .08 + Math.random() * .84, y = Y0 + Math.random() * (Y1 - Y0); if (inside(x, y)) return [x, y]; } return [.5, .85]; };
+  const depth = y => .6 + .4 * Math.max(0, Math.min(1, (y - Y0) / (Y1 - Y0))); // 멀리 있을수록 작게
+  const toFloor = (x, y) => { for (let k = 0; k < 40 && !inside(x, y); k++) { x += (.5 - x) * .12; y += (.82 - y) * .12; } return [x, y]; };
+  // 가구: 바닥 것은 아래 가운데가 자리, 벽 것은 가운데가 자리이고 벽 기울기에 맞춰 비튼다
+  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3) })) } });
+  const drawFurn = () => {
+    furn.innerHTML = room.items.map((o, i) => {
+      const it = mrItem(o.id), wall = it.slot === 'wall', flat = it.id === 'room-rug';
+      const z = flat ? 1 : wall ? 2 : Math.round(o.y * 1000), s = wall ? 1 : depth(o.y), skew = wall ? (o.x < .5 ? -24 : 24) : 0;
+      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * 100}%;z-index:${z};--s:${s};--skew:${skew}deg" aria-label="${it.name}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${edit && sel === i ? '<span class="mr-x" data-del>✕</span>' : ''}</button>`;
+    }).join('');
+  };
+  const drawTray = () => {
+    const mine = SHOP.filter(i => i.kind === 'room' && p.owned.includes(i.id)), papers = mine.filter(i => i.slot === 'paper'), things = mine.filter(i => i.slot !== 'paper');
+    tray.innerHTML = `<div class="mr-tray-head"><b>🛋️ 방 꾸미기</b><small>아이템을 누르면 방에 놓이고, 방 안에서 끌어서 옮겨요</small><button class="btn btn-primary sm" data-mr-done>다 했어요</button></div>
+      <h4>벽지</h4><div class="mr-row"><button class="mr-pick ${!room.paper ? 'on' : ''}" data-paper=""><img src="img/room/paper-base.jpg" alt=""><span>기본 방</span></button>${papers.map(i => `<button class="mr-pick ${room.paper === i.id ? 'on' : ''}" data-paper="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('')}</div>
+      <h4>가구·소품</h4><div class="mr-row">${things.length ? things.map(i => `<button class="mr-pick ${room.items.some(o => o.id === i.id) ? 'on' : ''}" data-put="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('') : '<p class="fine">아직 가진 가구가 없어요.</p>'}</div>
+      <p class="fine"><a href="#/shop">🛍️ 별 상점에서 더 사기</a></p>`;
+    $$('[data-paper]', tray).forEach(b => b.onclick = () => { room.paper = b.dataset.paper || null; bg.src = paperImg(); save(); drawTray(); Speech.sfx.tap(); });
+    $$('[data-put]', tray).forEach(b => b.onclick = () => {
+      const id = b.dataset.put, k = room.items.findIndex(o => o.id === id);
+      if (k >= 0) { room.items.splice(k, 1); sel = null; } else { const [x, y] = MR_SPOT[id.slice(5)] || [.5, .8]; room.items.push({ id, x, y }); sel = room.items.length - 1; }
+      save(); drawFurn(); drawTray(); Speech.sfx.tap();
+    });
+    $('[data-mr-done]', tray).onclick = () => setEdit(false);
+  };
+  const setEdit = on => { edit = on; sel = null; stage.classList.toggle('editing', on); tray.hidden = !on; if (on) drawTray(); drawFurn(); $('[data-mr-edit]', el).hidden = on; if (on) tray.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+  $('[data-mr-edit]', el).onclick = () => setEdit(true);
+  // 꾸미기 중: 가구를 끌어서 옮긴다 (바닥 것은 바닥 안, 벽 것은 벽 안)
+  let drag = null;
+  furn.addEventListener('pointerdown', ev => {
+    if (!edit) return; const b = ev.target.closest('.mr-f'); if (!b) return;
+    if (ev.target.closest('[data-del]')) { room.items.splice(+b.dataset.i, 1); sel = null; save(); drawFurn(); drawTray(); return; }
+    sel = +b.dataset.i; drawFurn(); drag = { i: sel, moved: false }; ev.preventDefault();
+  });
+  window.addEventListener('pointermove', ev => {
+    if (!drag || !document.body.contains(stage)) return; const o = room.items[drag.i], it = mrItem(o.id), r = bg.getBoundingClientRect();
+    let x = Math.max(.04, Math.min(.96, (ev.clientX - r.left) / r.width)), y = (ev.clientY - r.top) / r.height;
+    if (it.slot === 'wall') y = Math.max(.08, Math.min(mrBase(x) - .14, y)); else [x, y] = toFloor(x, Math.max(Y0, Math.min(Y1 + .02, y)));
+    o.x = x; o.y = y; drag.moved = true;
+    const b = furn.querySelector(`[data-i="${drag.i}"]`); if (b) { b.style.left = `${x * 100}%`; b.style.top = `${y * 100}%`; if (it.slot !== 'wall') { b.style.setProperty('--s', depth(y)); if (it.id !== 'room-rug') b.style.zIndex = Math.round(y * 1000); } else b.style.setProperty('--skew', `${x < .5 ? -24 : 24}deg`); }
+  });
+  window.addEventListener('pointerup', () => { if (drag) { drag = null; save(); drawFurn(); } });
+  // 캐릭터
+  const [sx, sy] = randPt();
+  const me = { el: cEl, x: sx, y: sy, tx: sx, ty: sy, dir: 1, walk: false, wait: 1.2, speed: .11 };
+  const fr = pEl && { el: pEl, x: sx - .07, y: Math.min(Y1, sy + .01), dir: 1, walk: false, speed: .16 };
+  const place = a => {
+    a.el.style.left = `${a.x * 100}%`; a.el.style.top = `${a.y * 100}%`; a.el.style.zIndex = Math.round(a.y * 1000) + 1;
+    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a.dir);
+    a.el.classList.toggle('walking', a.walk);
+  };
+  let sayT = null;
+  const speak = (text, voice) => {
+    say.textContent = text; say.hidden = false; say.classList.remove('pop'); void say.offsetWidth; say.classList.add('pop');
+    clearTimeout(sayT); sayT = setTimeout(() => { say.hidden = true; }, 1800);
+    if (voice && window.Speech) Speech.speak(text);
+  };
+  const hop = () => { cEl.classList.remove('hop'); void cEl.offsetWidth; cEl.classList.add('hop'); };
+  stage.addEventListener('click', ev => {
+    if (edit) { if (!ev.target.closest('.mr-f')) { sel = null; drawFurn(); } return; }
+    if (ev.target.closest('.mr-char')) { me.walk = false; me.wait = 2.2; hop(); speak(SAY[Math.floor(Math.random() * SAY.length)], true); return; }
+    const r = bg.getBoundingClientRect(), [x, y] = toFloor((ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height);
+    if (inside(x, y)) { me.tx = x; me.ty = y; me.walk = true; }
+  });
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const step = (a, tx, ty, dt) => {
+    const dx = tx - a.x, dy = (ty - a.y) * 1.6, d = Math.hypot(dx, dy); // 세로는 원근 때문에 조금 더 멀게 친다
+    if (d < .006) return true;
+    const v = a.speed * depth(a.y) * (reduced ? .7 : 1) * dt, k = Math.min(1, v / d);
+    a.x += dx * k; a.y += (ty - a.y) * k; if (Math.abs(dx) > .002) a.dir = dx > 0 ? 1 : -1;
+    return false;
+  };
+  let last = performance.now();
+  const tick = now => {
+    if (!document.body.contains(stage)) return; // 다른 화면으로 가면 멈춘다
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (me.walk) { if (step(me, me.tx, me.ty, dt)) { me.walk = false; me.wait = 1.5 + Math.random() * 3; if (Math.random() < .45) { if (Math.random() < .5) hop(); speak(EMOTE[Math.floor(Math.random() * EMOTE.length)]); } } }
+    else if ((me.wait -= dt) <= 0) { if (Math.random() < .25) { me.dir *= -1; me.wait = 1 + Math.random() * 1.5; } else { const [x, y] = randPt(); me.tx = x; me.ty = y; me.walk = true; } }
+    place(me);
+    if (fr) { // 친구는 캐릭터 뒤쪽을 졸졸 따라온다
+      const [gx, gy] = toFloor(me.x - me.dir * .075, Math.min(Y1, me.y + .012)), far = Math.hypot(gx - fr.x, (gy - fr.y) * 1.6);
+      fr.walk = far > .02 && (fr.walk || far > .05); if (fr.walk && step(fr, gx, gy, dt)) fr.walk = false;
+      if (!fr.walk) fr.dir = me.x > fr.x ? 1 : -1;
+      place(fr);
+    }
+    requestAnimationFrame(tick);
+  };
+  drawFurn(); place(me); if (fr) place(fr); requestAnimationFrame(tick);
+  setTimeout(() => speak(`Hi, ${p.name}!`), 600);
 };
