@@ -1361,7 +1361,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 /* 11-25 더한 꾸미기: 자리·크기 */
 .avatar.drawn .acc-party { width: calc(var(--hw) * 44%); transform: translate(-50%, -92%) rotate(-8deg); }
 .avatar.drawn .acc-wreath { width: calc(var(--hw) * 82%); transform: translate(-50%, -38%); }
-.avatar.drawn .acc-catears { width: calc(var(--hw) * 66%); transform: translate(-50%, -56%); }
+.avatar.drawn .acc-catears { width: calc(var(--hw) * 52%); transform: translate(-50%, -84%); }
 .avatar.drawn .acc-mushroom { width: calc(var(--hw) * 74%); transform: translate(-50%, -84%) rotate(-6deg); }
 .avatar.drawn .acc-starpin { left: calc((var(--hx) + var(--hw) * .34) * 100%); width: calc(var(--hw) * 36%); transform: translate(-50%, -40%) rotate(-12deg); }
 .avatar.drawn .acc-bowtie { width: calc(var(--hw) * 56%); }
@@ -1496,7 +1496,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .avatar.drawn.mr-ava .acc-crown { --k: .82; --sit: 84%; }
 .avatar.drawn.mr-ava .acc-party { --k: .56; --sit: 92%; }
 .avatar.drawn.mr-ava .acc-wreath { --k: 1.45; --sit: 32%; }
-.avatar.drawn.mr-ava .acc-catears { width: calc(var(--hw) * var(--gap, .58) * 1.25 * 100%); --sit: 52%; }
+.avatar.drawn.mr-ava .acc-catears { width: calc(var(--hw) * var(--gap, .58) * .95 * 100%); --sit: 70%; }
 .avatar.drawn.mr-ava .acc-mushroom { --k: 1.1; --sit: 66%; }
 /* 걷기: 몸을 기울이는 흔들림 대신 그림 순서와 발 모을 때 살짝 오르기로 움직인다. 방향을 바꿀 때 바로 돈다 */
 .mr-char.walking .mr-bob { animation: none; }
