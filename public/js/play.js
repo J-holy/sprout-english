@@ -11,7 +11,7 @@ const PLAY_GAMES = {
   frog: { title: '개구리 징검다리', icon: '🐸', c: '#3fae6a', hub: '악어가 오기 전에 글자 연잎을 밟아 단어를 만들어요', medals: [40, 200, 450],
     how: ['단어를 듣고 글자 연잎을 차례로 콕!', '🐊 악어가 오기 전에 단어를 끝내요', '🐞 무당벌레를 잡으면 악어가 뒤로 가요'] },
   fish: { title: '빈칸 낚시', icon: '🐟', c: '#2f9fd8', hub: '빠진 글자를 가진 물고기를 낚아 올려요', medals: [50, 220, 520],
-    how: ['빠진 글자를 끌고 가는 물고기를 콕!', '틀리거나 🦈 상어를 누르면 🪱 미끼가 줄어요', '반짝이는 금빛 물고기는 점수가 2배예요'] },
+    how: ['빠진 글자를 끌고 가는 물고기를 콕!', '틀리거나 🦈 상어를 누르면 ❤️ 하트가 하나씩 줄어요', '반짝이는 금빛 물고기는 점수가 2배예요'] },
   ox: { title: 'OX 스피드', icon: '⏱️', c: '#ff9f43', hub: '그림과 단어가 맞는지 빨리 골라요. 불꽃 타임을 노려요', medals: [60, 200, 450],
     how: ['그림과 단어가 맞으면 O, 다르면 X!', '맞히면 시간이 늘고, 틀리면 줄어요', '5번 연속 맞히면 🔥 불꽃 타임! 점수가 2배예요'] },
   basket: { title: '첫소리 바구니', icon: '🧺', c: '#c06ad8', hub: '떨어지는 그림의 첫소리 바구니를 빨리 눌러요', medals: [40, 200, 450],
@@ -795,7 +795,7 @@ Views.play = (el, game, quick) => {
   const area = $('.game-area', el);
   // 철자 게임용: 짧고 글자만 있는 단어
   const spell = (min, max) => pool.filter(w => new RegExp(`^[a-z]{${min},${max}}$`).test(w.en));
-  const lives = { balloon: { hearts: 3 }, frog: { hearts: 3 }, fish: { hearts: 5, heartIcon: '🪱' }, basket: { hearts: 4 } }[game];
+  const lives = { balloon: { hearts: 3 }, frog: { hearts: 3 }, fish: { hearts: 5 }, basket: { hearts: 4 } }[game];
   const begin = () => {
     const kit = playKit(el, area, game, lives);
     // 게임판이 한 화면에 들어오게 (위에 붙어 있는 머리글 아래로)
