@@ -45,20 +45,39 @@ const MR_BODY = {
 };
 // 손 아이템을 쥐는 자리 (아이템 그림에 대한 비율, style.css 의 .paw 자리와 같다)
 const MR_GRIP = { 'acc-lollipop': [50, 70], 'acc-wand': [62, 66], 'acc-balloon': [50, 92], 'acc-teddy': [18, 58], 'acc-icecream': [50, 80], 'acc-sunflower': [50, 74], 'acc-bubbles': [14, 88] };
-// 전신 캐릭터 (미니룸·별 상점). view: front | side | back
-const mrView = (el, b, view) => {
-  const body = el.querySelector('.ava-body'), [hx, hw] = b.head[view], [x, y] = b.hand[view];
-  body.style.setProperty('--hx', hx); body.style.setProperty('--hw', hw); body.style.setProperty('--handx', x); body.style.setProperty('--handy', y);
-  el.querySelector('.mr-ava').dataset.view = view;
+// 걷기 그림마다: 머리 가운데 x · 머리 꼭대기 y · 머리 폭 · 목 y · 손 끝 x · 손 끝 y (그림 비율). 꾸미기가 그림마다 머리와 손을 따라간다
+const MR_FRAMES = {
+  '🐰': {"f0": [0.508, 0.313, 0.734, 0.664, 0.904, 0.8], "fa": [0.505, 0.313, 0.739, 0.664, 0.893, 0.743], "fb": [0.514, 0.307, 0.734, 0.657, 0.877, 0.723], "s0": [0.541, 0.313, 0.647, 0.664, 0.807, 0.683], "sa": [0.56, 0.313, 0.652, 0.664, 0.861, 0.723], "sb": [0.541, 0.313, 0.647, 0.664, 0.899, 0.683], "b0": [0.511, 0.32, 0.739, 0.671, 0.904, 0.8], "ba": [0.514, 0.317, 0.734, 0.667, 0.893, 0.76], "bb": [0.527, 0.297, 0.696, 0.647, 0.839, 0.757]},
+  '🐻': {"f0": [0.502, 0.037, 0.825, 0.654, 0.89, 0.747], "fa": [0.502, 0.037, 0.816, 0.654, 0.876, 0.72], "fb": [0.502, 0.027, 0.798, 0.644, 0.867, 0.663], "s0": [0.489, 0.027, 0.735, 0.644, 0.733, 0.747], "sa": [0.489, 0.03, 0.735, 0.647, 0.858, 0.81], "sb": [0.489, 0.027, 0.735, 0.644, 0.751, 0.673], "b0": [0.509, 0.037, 0.812, 0.654, 0.89, 0.747], "ba": [0.52, 0.04, 0.78, 0.657, 0.845, 0.703], "bb": [0.498, 0.03, 0.798, 0.647, 0.84, 0.703]},
+  '🦊': {"f0": [0.536, 0.137, 0.803, 0.68, 0.849, 0.767], "fa": [0.536, 0.137, 0.803, 0.68, 0.828, 0.71], "fb": [0.534, 0.133, 0.798, 0.677, 0.887, 0.697], "s0": [0.561, 0.137, 0.592, 0.68, 0.731, 0.93], "sa": [0.586, 0.137, 0.55, 0.68, 0.828, 0.7], "sb": [0.563, 0.137, 0.588, 0.68, 0.794, 0.7], "b0": [0.536, 0.137, 0.803, 0.68, 0.849, 0.767], "ba": [0.538, 0.137, 0.798, 0.68, 0.824, 0.713], "bb": [0.534, 0.137, 0.798, 0.68, 0.807, 0.7]},
+  '🐼': {"f0": [0.517, 0.047, 0.808, 0.621, 0.905, 0.75], "fa": [0.517, 0.047, 0.808, 0.621, 0.927, 0.703], "fb": [0.52, 0.047, 0.812, 0.621, 0.958, 0.657], "s0": [0.515, 0.01, 0.69, 0.584, 0.765, 0.837], "sa": [0.515, 0.01, 0.69, 0.584, 0.835, 0.8], "sb": [0.515, 0.01, 0.69, 0.584, 0.866, 0.603], "b0": [0.52, 0.047, 0.803, 0.621, 0.901, 0.74], "ba": [0.52, 0.047, 0.803, 0.621, 0.923, 0.753], "bb": [0.522, 0.047, 0.808, 0.621, 0.853, 0.817]},
+  '🐯': {"f0": [0.521, 0.03, 0.814, 0.657, 0.857, 0.767], "fa": [0.521, 0.03, 0.814, 0.657, 0.882, 0.68], "fb": [0.523, 0.023, 0.793, 0.65, 0.844, 0.67], "s0": [0.492, 0.037, 0.688, 0.664, 0.726, 0.75], "sa": [0.492, 0.037, 0.688, 0.664, 0.861, 0.843], "sb": [0.492, 0.037, 0.688, 0.664, 0.806, 0.683], "b0": [0.525, 0.027, 0.814, 0.654, 0.857, 0.76], "ba": [0.536, 0.027, 0.793, 0.654, 0.832, 0.723], "bb": [0.525, 0.027, 0.814, 0.654, 0.823, 0.673]},
+  '🐨': {"f0": [0.491, 0.093, 0.699, 0.628, 0.75, 0.763], "fa": [0.489, 0.093, 0.696, 0.628, 0.776, 0.67], "fb": [0.489, 0.093, 0.703, 0.628, 0.808, 0.647], "s0": [0.5, 0.057, 0.681, 0.591, 0.685, 0.61], "sa": [0.5, 0.057, 0.674, 0.591, 0.932, 0.61], "sb": [0.504, 0.057, 0.681, 0.591, 0.747, 0.69], "b0": [0.489, 0.093, 0.696, 0.628, 0.747, 0.76], "ba": [0.491, 0.09, 0.699, 0.625, 0.863, 0.643], "bb": [0.491, 0.093, 0.699, 0.628, 0.761, 0.663]},
+  '🐸': {"f0": [0.489, 0.11, 0.611, 0.645, 0.814, 0.747], "fa": [0.486, 0.1, 0.611, 0.635, 0.738, 0.867], "fb": [0.489, 0.107, 0.611, 0.642, 0.867, 0.66], "s0": [0.525, 0.11, 0.253, 0.645, 0.668, 0.69], "sa": [0.527, 0.11, 0.25, 0.645, 0.893, 0.8], "sb": [0.527, 0.11, 0.256, 0.645, 0.722, 0.67], "b0": [0.475, 0.1, 0.639, 0.635, 0.798, 0.727], "ba": [0.475, 0.1, 0.639, 0.635, 0.852, 0.653], "bb": [0.476, 0.1, 0.636, 0.635, 0.798, 0.727]},
+  '🦁': {"f0": [0.498, 0.013, 0.968, 0.699, 0.852, 0.783], "fa": [0.5, 0.013, 0.963, 0.699, 0.852, 0.717], "fb": [0.509, 0.01, 0.9, 0.696, 0.87, 0.713], "s0": [0.457, 0.027, 0.703, 0.712, 0.696, 0.757], "sa": [0.457, 0.03, 0.703, 0.716, 0.843, 0.867], "sb": [0.457, 0.027, 0.703, 0.712, 0.76, 0.73], "b0": [0.507, 0.017, 0.95, 0.702, 0.847, 0.78], "ba": [0.507, 0.017, 0.95, 0.702, 0.843, 0.72], "bb": [0.507, 0.017, 0.95, 0.702, 0.879, 0.72]},
+  '🐧': {"f0": [0.496, 0.01, 0.732, 0.619, 0.928, 0.69], "fa": [0.496, 0.01, 0.732, 0.619, 0.818, 0.703], "fb": [0.496, 0.01, 0.732, 0.619, 0.873, 0.637], "s0": [0.484, 0.01, 0.669, 0.619, 0.739, 0.66], "sa": [0.486, 0.01, 0.665, 0.619, 0.739, 0.663], "sb": [0.486, 0.01, 0.665, 0.619, 0.786, 0.637], "b0": [0.496, 0.01, 0.732, 0.619, 0.928, 0.693], "ba": [0.498, 0.01, 0.728, 0.619, 0.928, 0.697], "bb": [0.498, 0.01, 0.728, 0.619, 0.904, 0.653]},
+  '🦄': {"f0": [0.469, 0.01, 0.804, 0.761, 0.788, 0.793], "fa": [0.469, 0.01, 0.804, 0.761, 0.746, 0.78], "fb": [0.471, 0.01, 0.8, 0.761, 0.7, 0.843], "s0": [0.465, 0.01, 0.638, 0.761, 0.65, 0.79], "sa": [0.477, 0.01, 0.621, 0.761, 0.788, 0.85], "sb": [0.465, 0.01, 0.638, 0.761, 0.662, 0.827], "b0": [0.49, 0.013, 0.729, 0.764, 0.771, 0.787], "ba": [0.483, 0.013, 0.8, 0.764, 0.625, 0.92], "bb": [0.492, 0.013, 0.75, 0.764, 0.771, 0.833]},
+};
+// 머리·목 꾸미기의 옆모습·뒷모습 그림 (있는 것만, 없으면 앞모습 그림을 쓴다)
+const MR_ACC_VIEW = {};
+const accViewArt = (emoji, view) => (view !== 'front' && MR_ACC_VIEW[emoji]?.[view]) || (PICS.x[emoji] ? 'img/' + PICS.x[emoji] : '');
+// 전신 캐릭터 (미니룸·별 상점). key: f0 fa fb s0 sa sb b0 ba bb (보기 앞·옆·뒤 × 서 있기·걷기 두 장)
+const mrFrame = (el, avatar, key) => {
+  const b = MR_BODY[avatar] || MR_BODY['🐰'], F = MR_FRAMES[avatar] || MR_FRAMES['🐰'], f = F[key], body = el.querySelector('.ava-body'), ava = el.querySelector('.mr-ava');
+  const eye = (b.eyes[1] + b.eyes[3]) / 2 + (f[1] - F.f0[1]);
+  [['--hx', f[0]], ['--top', f[1]], ['--hw', f[2]], ['--ny', f[3]], ['--handx', f[4]], ['--handy', f[5]], ['--eye', eye]].forEach(([k, v]) => body.style.setProperty(k, v));
+  const view = { f: 'front', s: 'side', b: 'back' }[key[0]];
+  if (ava.dataset.view !== view) { ava.dataset.view = view; ava.querySelectorAll('.acc[data-emoji]').forEach(a => { const src = accViewArt(a.dataset.emoji, view), im = a.querySelector('img'); if (im && src && !im.src.endsWith(src)) im.src = src; }); }
+  const im = body.querySelector('.mr-img'); if (!im.src.endsWith(b.img[key])) im.src = b.img[key];
 };
 const roomAvatar = (p, cls = '') => {
-  const b = MR_BODY[p.avatar] || MR_BODY['🐰'], de = DRAWN_EYES[p.avatar] || DRAWN_EYES['🐰'], [hx, hy, hw, ey, ny] = b.fit;
+  const b = MR_BODY[p.avatar] || MR_BODY['🐰'], de = DRAWN_EYES[p.avatar] || DRAWN_EYES['🐰'], f = (MR_FRAMES[p.avatar] || MR_FRAMES['🐰']).f0;
   const acc = Store.worn(p).filter(w => w.slot !== 'pet').map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => {
     const g = MR_GRIP[w.id] || [50, 75];
-    return `<i class="acc acc-${w.slot} ${w.id} ${x}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w)}</i>`;
+    return `<i class="acc acc-${w.slot} ${w.id} ${x}" data-emoji="${w.emoji}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w)}</i>`;
   }).join('')).join('');
   const lids = [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${b.eyes[i] * 100}%;top:${b.eyes[i + 1] * 100}%;--r:${b.eyes[4] * 100}%;background:${de[5]}"></i>`).join('');
-  return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny};--paw:${de[6]};--handx:${b.hand.front[0]};--handy:${b.hand.front[1]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
+  return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${f[0]};--top:${f[1]};--hw:${f[2]};--ny:${f[3]};--handx:${f[4]};--handy:${f[5]};--eye:${(b.eyes[1] + b.eyes[3]) / 2};--paw:${de[6]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
 };
 const accArt = w => PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
 const avatarHtml = (p, cls = '') => {
@@ -2110,16 +2129,43 @@ Views.room = el => {
   cImg.addEventListener('load', lift, { once: true }); setTimeout(lift, 400);
   const inside = (x, y) => { let c = false; for (let i = 0, j = MR_FLOOR.length - 1; i < MR_FLOOR.length; j = i++) { const [xi, yi] = MR_FLOOR[i], [xj, yj] = MR_FLOOR[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
   const Y0 = .53, Y1 = .96;
-  const randPt = () => { for (let k = 0; k < 200; k++) { const x = .08 + Math.random() * .84, y = Y0 + Math.random() * (Y1 - Y0); if (inside(x, y)) return [x, y]; } return [.5, .85]; };
   const depth = y => .6 + .4 * Math.max(0, Math.min(1, (y - Y0) / (Y1 - Y0))); // 멀리 있을수록 작게
   const toFloor = (x, y) => { for (let k = 0; k < 40 && !inside(x, y); k++) { x += (.5 - x) * .12; y += (.82 - y) * .12; } return [x, y]; };
-  // 가구: 바닥 것은 아래 가운데가 자리, 벽 것은 가운데가 자리이고 벽 기울기에 맞춰 비튼다
-  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3) })) } });
+  // 가구가 바닥에서 차지하는 자리 (앞뒤 깊이, 방 높이에 대한 비율). 캐릭터는 이 자리를 피해서 걷는다. 러그·벽 장식은 밟거나 지나가도 된다
+  const FOOT = { bed: .17, shelf: .06, desk: .09, sofa: .08, toybox: .06, tent: .11, plant: .035, lamp: .03 };
+  let BL = [];
+  const blocks = () => { BL = room.items.filter(o => FOOT[o.id.slice(5)]).map(o => { const s = depth(o.y) * (o.k || 1), hw = mrItem(o.id).w * s * .45, d = FOOT[o.id.slice(5)] * s; return [o.x - hw - .025, o.y - d - .015, o.x + hw + .025, o.y + .02]; }); };
+  const free = (x, y) => inside(x, y) && !BL.some(([a, b, c, d]) => x > a && x < c && y > b && y < d);
+  const randPt = () => { for (let k = 0; k < 300; k++) { const x = .08 + Math.random() * .84, y = Y0 + Math.random() * (Y1 - Y0); if (free(x, y)) return [x, y]; } return [.5, .9]; };
+  // 길 찾기: 바닥을 칸으로 나눠 가구를 돌아가는 길을 찾고, 곧장 갈 수 있는 곳은 건너뛴다
+  const GX = 40, GY = 24, cell = (i, j) => [.04 + i * .92 / (GX - 1), Y0 + j * (Y1 - Y0) / (GY - 1)];
+  const ci = x => Math.max(0, Math.min(GX - 1, Math.round((x - .04) / .92 * (GX - 1)))), cj = y => Math.max(0, Math.min(GY - 1, Math.round((y - Y0) / (Y1 - Y0) * (GY - 1))));
+  const clear = (a, b) => { for (let t = .05; t <= 1; t += .05) if (!free(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)) return false; return true; };
+  const route = (x0, y0, x1, y1) => {
+    const ok = (i, j) => i >= 0 && j >= 0 && i < GX && j < GY && free(...cell(i, j)), key = (i, j) => j * GX + i;
+    let gi = ci(x1), gj = cj(y1), exact = free(x1, y1);
+    if (!ok(gi, gj)) { let best = null; for (let i = 0; i < GX; i++) for (let j = 0; j < GY; j++) if (ok(i, j)) { const d = (i - gi) ** 2 + ((j - gj) * 1.6) ** 2; if (!best || d < best[0]) best = [d, i, j]; } if (!best) return null; [, gi, gj] = best; exact = false; }
+    const si = ci(x0), sj = cj(y0), prev = new Map([[key(si, sj), -1]]), q = [[si, sj]];
+    while (q.length) {
+      const [i, j] = q.shift(); if (i === gi && j === gj) break;
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) { const ni = i + di, nj = j + dj, k = key(ni, nj); if (!prev.has(k) && ok(ni, nj)) { prev.set(k, key(i, j)); q.push([ni, nj]); } }
+    }
+    if (!prev.has(key(gi, gj))) return null;
+    const pts = []; for (let k = key(gi, gj); k !== -1 && k !== key(si, sj); k = prev.get(k)) pts.unshift(cell(k % GX, Math.floor(k / GX)));
+    if (exact) pts.push([x1, y1]); if (!pts.length) return null;
+    const out = []; let cur = [x0, y0], i = 0;
+    while (i < pts.length) { let j = pts.length - 1; while (j > i && !clear(cur, pts[j])) j--; out.push(pts[j]); cur = pts[j]; i = j + 1; }
+    return out;
+  };
+  // 가구: 바닥 것은 아래 가운데가 자리, 벽 것은 가운데가 자리이고 벽 기울기에 맞춰 비튼다. k는 아이가 고른 크기
+  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3), ...(o.k && o.k !== 1 ? { k: o.k } : {}) })) } });
   const drawFurn = () => {
+    blocks();
     furn.innerHTML = room.items.map((o, i) => {
       const it = mrItem(o.id), wall = it.slot === 'wall', flat = it.id === 'room-rug';
       const z = flat ? 1 : wall ? 2 : Math.round(o.y * 1000), s = wall ? 1 : depth(o.y), skew = wall ? (o.x < .5 ? -24 : 24) : 0;
-      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * 100}%;z-index:${z};--s:${s};--skew:${skew}deg" aria-label="${it.name}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${edit && sel === i ? '<span class="mr-x" data-del>✕</span>' : ''}</button>`;
+      const tools = edit && sel === i ? `<span class="mr-tools"><span data-size="-1" aria-label="작게">➖</span><span data-size="1" aria-label="크게">➕</span><span class="del" data-del aria-label="치우기">✕</span></span>` : '';
+      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * (o.k || 1) * 100}%;z-index:${sel === i ? 4000 : z};--s:${s};--skew:${skew}deg" aria-label="${it.name}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${tools}</button>`;
     }).join('');
   };
   const drawTray = () => {
@@ -2143,6 +2189,8 @@ Views.room = el => {
   furn.addEventListener('pointerdown', ev => {
     if (!edit) return; const b = ev.target.closest('.mr-f'); if (!b) return;
     if (ev.target.closest('[data-del]')) { room.items.splice(+b.dataset.i, 1); sel = null; save(); drawFurn(); drawTray(); return; }
+    const sz = ev.target.closest('[data-size]');
+    if (sz) { const o = room.items[+b.dataset.i]; o.k = Math.max(.6, Math.min(1.6, Math.round(((o.k || 1) + .15 * sz.dataset.size) * 100) / 100)); save(); drawFurn(); Speech.sfx.tap(); ev.preventDefault(); return; }
     sel = +b.dataset.i; drawFurn(); drag = { i: sel, moved: false }; ev.preventDefault();
   });
   window.addEventListener('pointermove', ev => {
@@ -2154,20 +2202,19 @@ Views.room = el => {
   });
   window.addEventListener('pointerup', () => { if (drag) { drag = null; save(); drawFurn(); } });
   // 캐릭터
-  const [sx, sy] = randPt();
-  const me = { el: cEl, x: sx, y: sy, tx: sx, ty: sy, dir: 1, walk: false, wait: 1.2, speed: .11 };
+  blocks(); const [sx, sy] = randPt();
+  const me = { el: cEl, x: sx, y: sy, path: [], dir: 1, walk: false, wait: 1.2, speed: .11 };
   const fr = pEl && { el: pEl, x: sx - .07, y: Math.min(Y1, sy + .01), dir: 1, walk: false, speed: .16 };
   const place = a => {
     a.el.style.left = `${a.x * 100}%`; a.el.style.top = `${a.y * 100}%`; a.el.style.zIndex = Math.round(a.y * 1000) + 1;
-    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a === me && me.view !== 'side' ? 1 : a.dir);
+    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a === me && me.view !== 's' ? 1 : a.dir);
     a.el.classList.toggle('walking', a.walk);
   };
   // 걷는 쪽에 따라 앞·옆·뒷모습, 발은 번갈아 내딛는 두 장. 멈추면 앞을 보고 선다
   const pose = now => {
-    let view = 'front', fr = '0';
-    if (me.walk && me.mvx !== undefined) { view = Math.abs(me.mvy) > Math.abs(me.mvx) * 1.1 ? (me.mvy < 0 ? 'back' : 'front') : 'side'; fr = Math.floor(now / 200) % 2 ? 'a' : 'b'; }
-    if (view !== me.view) { me.view = view; mrView(cEl, body, view); }
-    const key = view[0] + fr; if (key !== me.frame) { me.frame = key; cImg.src = body.img[key]; }
+    let key = 'f0';
+    if (me.walk && me.mvx !== undefined) key = (Math.abs(me.mvy) > Math.abs(me.mvx) * 1.1 ? (me.mvy < 0 ? 'b' : 'f') : 's') + (Math.floor(now / 200) % 2 ? 'a' : 'b');
+    if (key !== me.frame) { me.frame = key; me.view = key[0]; mrFrame(cEl, p.avatar, key); }
   };
   let sayT = null;
   const speak = (text, voice) => {
@@ -2180,8 +2227,9 @@ Views.room = el => {
     if (edit) { if (!ev.target.closest('.mr-f')) { sel = null; drawFurn(); } return; }
     if (ev.target.closest('.mr-char')) { me.walk = false; me.wait = 2.2; hop(); speak(SAY[Math.floor(Math.random() * SAY.length)], true); return; }
     const r = bg.getBoundingClientRect(), [x, y] = toFloor((ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height);
-    if (inside(x, y)) { me.tx = x; me.ty = y; me.walk = true; }
+    walkTo(x, y);
   });
+  const walkTo = (x, y) => { const path = route(me.x, me.y, x, y); if (path) { me.path = path; me.walk = true; } };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const step = (a, tx, ty, dt) => {
     const dx = tx - a.x, dy = (ty - a.y) * 1.6, d = Math.hypot(dx, dy); // 세로는 원근 때문에 조금 더 멀게 친다
@@ -2194,8 +2242,10 @@ Views.room = el => {
   const tick = now => {
     if (!document.body.contains(stage)) return; // 다른 화면으로 가면 멈춘다
     const dt = Math.min(.05, (now - last) / 1000); last = now;
-    if (me.walk) { if (step(me, me.tx, me.ty, dt)) { me.walk = false; me.wait = 1.5 + Math.random() * 3; if (Math.random() < .45) { if (Math.random() < .5) hop(); speak(EMOTE[Math.floor(Math.random() * EMOTE.length)]); } } }
-    else if ((me.wait -= dt) <= 0) { if (Math.random() < .25) { me.dir *= -1; me.wait = 1 + Math.random() * 1.5; } else { const [x, y] = randPt(); me.tx = x; me.ty = y; me.walk = true; } }
+    if (me.walk) {
+      const [tx, ty] = me.path[0];
+      if (step(me, tx, ty, dt)) { me.path.shift(); if (!me.path.length) { me.walk = false; me.wait = 1.5 + Math.random() * 3; if (Math.random() < .45) { if (Math.random() < .5) hop(); speak(EMOTE[Math.floor(Math.random() * EMOTE.length)]); } } }
+    } else if ((me.wait -= dt) <= 0) { if (Math.random() < .25) { me.dir *= -1; me.wait = 1 + Math.random() * 1.5; } else { walkTo(...randPt()); me.wait = .5; } }
     pose(now); place(me);
     if (fr) { // 친구는 캐릭터 뒤쪽을 졸졸 따라온다
       const [gx, gy] = toFloor(me.x - me.dir * .075, Math.min(Y1, me.y + .012)), far = Math.hypot(gx - fr.x, (gy - fr.y) * 1.6);
