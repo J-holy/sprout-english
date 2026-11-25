@@ -821,7 +821,7 @@ const WORD_SCENES = {
   '📦': 'a plain closed cardboard box', '🪀': 'a round colorful yo-yo toy made of two discs joined at the middle, its string looped on a child\'s finger', '🪱': 'a long pink earthworm on soil', '🦵': "a child's bare leg from the knee down to the foot",
   '✈️': 'a white airplane with wings flying in the blue sky', '⛵': 'a small sailboat on the water', '🧒': 'two happy children, a boy and a girl, standing together', '📕': 'one closed red book',
   '👨': 'a smiling adult father with a short beard, holding the hand of his small child', '🍟': 'a pile of potato chips', '🌊': 'the deep blue ocean with big waves', '🌌': 'a child looking up at a very dark night sky full of tiny stars, the dark sky filling the whole picture', '🤡': 'a funny clown with curly rainbow hair, a red nose, big shoes and baggy polka dot clothes, juggling balls, full body',
-  '🐔': 'one hen with one head, standing',
+  '🐔': 'one hen with one head, standing', '🦶': "a child's two bare feet standing side by side, a left foot and a right foot, slightly apart, seen from the front and a little above, each foot with exactly five small round toes, the big toes on the inner sides, a little of the ankles showing",
   '🪑🌳': 'a wooden park bench', '🚰': 'a small cozy kitchen with a stove and a table, no people', '🌿': 'short green grass', '🪆': 'a cute doll', '💰': 'a piggy bank with gold coins',
   // 다시 그린 그림을 눈으로 보고 뜻이 모호해서 상황으로 바꾼 것
   '👩': 'a smiling adult mother with long hair hugging her small child', '🤫': 'a child holding one finger to the lips, saying shh and keeping quiet', '🧑‍✈️': 'a smiling grown-up pilot in a navy uniform and captain hat standing in front of an airplane',
