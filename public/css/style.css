@@ -1532,6 +1532,6 @@ a.shop-ava { display: block; }
   .mr-page { padding-top: 6px; }
   .mr-head { margin-bottom: 6px; }
   .mr-head h1 { font-size: 1.2rem; }
-  .mr-stage { width: min(100%, calc((100dvh - 70px) * 1.6)); margin: 0 auto; }
+  .mr-stage { width: min(100%, calc((100dvh - 125px) * 1.6)); margin: 0 auto; }
   .mr-tip { margin: 4px 0; font-size: .85rem; }
 }
