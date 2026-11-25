@@ -96,9 +96,9 @@ const SHOP = [
   { id: 'acc-clover', kind: 'acc', slot: 'fx', emoji: '🍀', name: '네잎클로버', cost: 7 },
   { id: 'acc-moon', kind: 'acc', slot: 'fx', emoji: '🌙', name: '달님', cost: 8 },
   // 미니룸 꾸미기 (시험): slot paper 벽지 · floor 바닥 가구 · wall 벽에 거는 것. w는 방 너비에 대한 크기
-  { id: 'room-star', kind: 'room', slot: 'paper', emoji: '🌟', name: '별 벽지', cost: 10, img: 'img/room/paper-star.jpg' },
-  { id: 'room-heart', kind: 'room', slot: 'paper', emoji: '💗', name: '하트 벽지', cost: 10, img: 'img/room/paper-heart.jpg' },
-  { id: 'room-stripe', kind: 'room', slot: 'paper', emoji: '💚', name: '줄무늬 벽지', cost: 10, img: 'img/room/paper-stripe.jpg' },
+  { id: 'room-star', kind: 'room', slot: 'paper', emoji: '🌟', name: '별 벽지', cost: 10, img: 'img/room/paper-star.jpg?v=2' },
+  { id: 'room-heart', kind: 'room', slot: 'paper', emoji: '💗', name: '하트 벽지', cost: 10, img: 'img/room/paper-heart.jpg?v=2' },
+  { id: 'room-stripe', kind: 'room', slot: 'paper', emoji: '💚', name: '줄무늬 벽지', cost: 10, img: 'img/room/paper-stripe.jpg?v=2' },
   { id: 'room-bed', kind: 'room', slot: 'floor', emoji: '🛏️', name: '침대', cost: 14, w: 0.195, img: 'img/room/f-bed.png' },
   { id: 'room-rug', kind: 'room', slot: 'floor', emoji: '🩷', name: '동그란 러그', cost: 6, w: 0.195, img: 'img/room/f-rug.png' },
   { id: 'room-shelf', kind: 'room', slot: 'floor', emoji: '📚', name: '책장', cost: 10, w: 0.13, img: 'img/room/f-shelf.png' },

@@ -2112,7 +2112,7 @@ Views.room = el => {
   let room = mrRoom(p), edit = false, sel = null;
   const SAY = ['Hello!', 'Hi!', "I'm happy!", "Let's play!", 'I love my room!', 'Look at me!', 'Yay!'];
   const EMOTE = ['💖', '🎵', '✨', '😊', '⭐'];
-  const paperImg = () => (room.paper && mrItem(room.paper)?.img) || 'img/room/paper-base.jpg';
+  const paperImg = () => (room.paper && mrItem(room.paper)?.img) || 'img/room/paper-base.jpg?v=2';
   el.innerHTML = `<section class="wrap mr-page">
     <div class="mr-head"><h1>🏠 ${esc(p.name)}의 미니룸</h1>
       <div class="row"><button class="btn btn-primary sm" data-mr-edit>🛋️ 방 꾸미기</button><a class="btn btn-ghost sm" href="#/shop">🛍️ 별 상점</a></div></div>
