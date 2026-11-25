@@ -1521,3 +1521,5 @@ a.shop-ava { display: block; }
 .avatar.drawn.mr-ava .acc-pearls { width: calc(var(--hw) * .36 * 100%); top: calc((var(--ny) - .025) * 100%); }
 /* 작은 캐릭터: 말풍선은 조금 작게, 걸을 때 오르는 폭은 그대로 */
 .mr-say { font-size: clamp(.7rem, 2vw, .95rem); padding: 3px 8px; }
+/* 방 꾸미기 아이템 방향: 놓은 쪽 벽에 맞게 좌우 뒤집기(--fx)와 벽 따라 살짝 비틀기(--lean) */
+.mr-f.floor img { transform: scaleX(var(--fx, 1)) skewY(var(--lean, 0deg)); transition: transform .2s; }

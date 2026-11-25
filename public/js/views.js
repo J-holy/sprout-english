@@ -2163,14 +2163,17 @@ Views.room = el => {
     return out;
   };
   // 가구: 바닥 것은 아래 가운데가 자리, 벽 것은 가운데가 자리이고 벽 기울기에 맞춰 비튼다. k는 아이가 고른 크기
-  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3), ...(o.k && o.k !== 1 ? { k: o.k } : {}) })) } });
+  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3), ...(o.k && o.k !== 1 ? { k: o.k } : {}), ...(o.f ? { f: 1 } : {}) })) } });
+  // 방향: 그림이 어느 쪽 벽에 맞게 그려졌는지(L 왼쪽 벽, R 오른쪽 벽). 놓은 쪽 벽에 맞게 좌우를 뒤집는다. 정면 그림(책장·소파)은 그쪽 벽을 따라 살짝 비튼다. 🔄로 반대로 돌릴 수 있다
+  const FACE = { bed: 'L', toybox: 'L', desk: 'R' }, LEAN = { shelf: 1, sofa: .6 };
+  const look = o => { const k = o.id.slice(5), side = o.x < .5 ? 'L' : 'R'; let flip = FACE[k] ? FACE[k] !== side : false; if (o.f) flip = !flip; const lean = LEAN[k] ? (side === 'L' ? -1 : 1) * 10 * LEAN[k] * (o.f ? -1 : 1) : 0; return `--fx:${flip ? -1 : 1};--lean:${lean}deg`; };
   const drawFurn = () => {
     blocks();
     furn.innerHTML = room.items.map((o, i) => {
       const it = mrItem(o.id), wall = it.slot === 'wall', flat = it.id === 'room-rug';
       const z = flat ? 1 : wall ? 2 : Math.round(o.y * 1000), s = wall ? 1 : depth(o.y), skew = wall ? (o.x < .5 ? -24 : 24) : 0;
-      const tools = edit && sel === i ? `<span class="mr-tools"><span data-size="-1" aria-label="작게">➖</span><span data-size="1" aria-label="크게">➕</span><span class="del" data-del aria-label="치우기">✕</span></span>` : '';
-      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * (o.k || 1) * 100}%;z-index:${sel === i ? 4000 : z};--s:${s};--skew:${skew}deg" aria-label="${it.name}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${tools}</button>`;
+      const tools = edit && sel === i ? `<span class="mr-tools"><span data-size="-1" aria-label="작게">➖</span><span data-size="1" aria-label="크게">➕</span>${wall || flat ? '' : '<span data-flip aria-label="방향 바꾸기">🔄</span>'}<span class="del" data-del aria-label="치우기">✕</span></span>` : '';
+      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * (o.k || 1) * 100}%;z-index:${sel === i ? 4000 : z};--s:${s};--skew:${skew}deg;${wall ? '' : look(o)}" aria-label="${it.name}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${tools}</button>`;
     }).join('');
   };
   const drawTray = () => {
@@ -2194,6 +2197,7 @@ Views.room = el => {
   furn.addEventListener('pointerdown', ev => {
     if (!edit) return; const b = ev.target.closest('.mr-f'); if (!b) return;
     if (ev.target.closest('[data-del]')) { room.items.splice(+b.dataset.i, 1); sel = null; save(); drawFurn(); drawTray(); return; }
+    if (ev.target.closest('[data-flip]')) { const o = room.items[+b.dataset.i]; o.f = !o.f; save(); drawFurn(); Speech.sfx.tap(); ev.preventDefault(); return; }
     const sz = ev.target.closest('[data-size]');
     if (sz) { const o = room.items[+b.dataset.i]; o.k = Math.max(.6, Math.min(1.6, Math.round(((o.k || 1) + .15 * sz.dataset.size) * 100) / 100)); save(); drawFurn(); Speech.sfx.tap(); ev.preventDefault(); return; }
     sel = +b.dataset.i; drawFurn(); drag = { i: sel, moved: false }; ev.preventDefault();
@@ -2203,7 +2207,7 @@ Views.room = el => {
     let x = Math.max(.04, Math.min(.96, (ev.clientX - r.left) / r.width)), y = (ev.clientY - r.top) / r.height;
     if (it.slot === 'wall') y = Math.max(.08, Math.min(mrBase(x) - .14, y)); else [x, y] = toFloor(x, Math.max(Y0, Math.min(Y1 + .02, y)));
     o.x = x; o.y = y; drag.moved = true;
-    const b = furn.querySelector(`[data-i="${drag.i}"]`); if (b) { b.style.left = `${x * 100}%`; b.style.top = `${y * 100}%`; if (it.slot !== 'wall') { b.style.setProperty('--s', depth(y)); if (it.id !== 'room-rug') b.style.zIndex = Math.round(y * 1000); } else b.style.setProperty('--skew', `${x < .5 ? -24 : 24}deg`); }
+    const b = furn.querySelector(`[data-i="${drag.i}"]`); if (b) { b.style.left = `${x * 100}%`; b.style.top = `${y * 100}%`; if (it.slot !== 'wall') { b.style.setProperty('--s', depth(y)); b.style.cssText += ';' + look(o); if (it.id !== 'room-rug') b.style.zIndex = Math.round(y * 1000); } else b.style.setProperty('--skew', `${x < .5 ? -24 : 24}deg`); }
   });
   window.addEventListener('pointerup', () => { if (drag) { drag = null; save(); drawFurn(); } });
   // 캐릭터
