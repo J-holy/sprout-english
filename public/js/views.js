@@ -1128,7 +1128,7 @@ Views.learn = el => {
   const greet = todayN >= p.dailyGoal ? `오늘 목표 달성! 놀이터에서 놀아도 좋아 🎈` : todayN ? `잘하고 있어! 레슨 ${p.dailyGoal - todayN}개만 더 하면 목표 달성!` : `안녕 ${esc(p.name)}! 오늘도 같이 모험하자!`;
   el.innerHTML = `<div class="wrap sec">
     <div class="learner-bar card">
-      ${avatarHtml(p, 'big')}
+      <a class="ava-link" href="#/room" aria-label="${esc(p.name)}의 미니룸 가기" title="내 미니룸">${avatarHtml(p, 'big')}<span class="ava-room-tag" aria-hidden="true">🏠</span></a>
       <div class="lb-info"><h1>${esc(p.name)}의 모험</h1><p>${a.kind === 'admin' ? '🛠️ 관리자 · 전체 열림' : a.kind === 'member' ? '💎 플러스' : a.kind === 'free' ? '🌱 무료 (1~2단계) · <a href="#/pricing">💎 플러스 보기</a>' : a.beta ? `🧪 베타 테스트 · ${fmtDay(API.cfg.betaUntil)}까지 전체 무료` : `🎁 전체 체험 ${a.daysLeft}일 남음`} · <a href="#/profiles">프로필 변경</a></p></div>
       <div class="lb-stats">
         <div><b>🔥 ${Store.streak()}</b><small>연속 학습일</small></div>
@@ -1665,7 +1665,7 @@ Views.shop = el => {
     el.innerHTML = `<div class="wrap sec">
       <h1 class="page-title">🛍️ 별 상점</h1>
       <div class="two-col top">
-        <div class="card star-bank"><div class="shop-ava">${roomAvatar(p, 'shop')}${Store.worn(p).filter(w => w.slot === 'pet').map(w => `<span class="shop-pet">${accArt(w)}</span>`).join('')}</div><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p><a class="btn btn-primary sm" href="#/room">🏠 내 미니룸 가기</a></div>
+        <div class="card star-bank"><a class="shop-ava ava-link" href="#/room" aria-label="${esc(p.name)}의 미니룸 가기" title="내 미니룸">${roomAvatar(p, 'shop')}${Store.worn(p).filter(w => w.slot === 'pet').map(w => `<span class="shop-pet">${accArt(w)}</span>`).join('')}</a><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p><a class="btn btn-primary sm" href="#/room">🏠 내 미니룸 가기</a></div>
         <div class="card"><h3>별은 이렇게 모아요</h3>${UI.starsInfo()}</div>
       </div>
       <h2 class="sec-sub">아바타 꾸미기 <small>부위마다 하나씩, 여러 개를 함께 입을 수 있어요</small></h2>
