@@ -1361,11 +1361,11 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 /* 11-25 더한 꾸미기: 자리·크기 */
 .avatar.drawn .acc-party { width: calc(var(--hw) * 44%); transform: translate(-50%, -92%) rotate(-8deg); }
 .avatar.drawn .acc-wreath { width: calc(var(--hw) * 82%); transform: translate(-50%, -38%); }
-.avatar.drawn .acc-catears { width: calc(var(--hw) * 96%); transform: translate(-50%, -96%); }
+.avatar.drawn .acc-catears { width: calc(var(--hw) * 96%); transform: translate(-50%, -42%); }
 .avatar.drawn .acc-mushroom { width: calc(var(--hw) * 74%); transform: translate(-50%, -84%) rotate(-6deg); }
 .avatar.drawn .acc-starpin { left: calc((var(--hx) + var(--hw) * .34) * 100%); width: calc(var(--hw) * 36%); transform: translate(-50%, -40%) rotate(-12deg); }
 .avatar.drawn .acc-bowtie { width: calc(var(--hw) * 56%); }
-.avatar.drawn .acc-pearls { width: calc(var(--hw) * 62%); transform: translate(-50%, -24%); }
+.avatar.drawn .acc-pearls { width: calc(var(--hw) * 70%); transform: translate(-50%, -40%); }
 .avatar.drawn .acc-bell { width: 18%; transform: translate(-50%, -20%); }
 .acc-icecream .paw { left: 50%; top: 80%; } .acc-sunflower .paw { left: 50%; top: 74%; } .acc-bubbles .paw { left: 14%; top: 88%; }
 /* 11-25 더한 꾸미기: 움직임 */
@@ -1496,7 +1496,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .avatar.drawn.mr-ava .acc-crown { --k: .82; --sit: 84%; }
 .avatar.drawn.mr-ava .acc-party { --k: .56; --sit: 92%; }
 .avatar.drawn.mr-ava .acc-wreath { --k: 1.45; --sit: 32%; }
-.avatar.drawn.mr-ava .acc-catears { --k: 1.18; --sit: 80%; }
+.avatar.drawn.mr-ava .acc-catears { --k: 1.75; --sit: 48%; }
 .avatar.drawn.mr-ava .acc-mushroom { --k: 1.1; --sit: 66%; }
 /* 걷기: 몸을 기울이는 흔들림 대신 그림 순서와 발 모을 때 살짝 오르기로 움직인다. 방향을 바꿀 때 바로 돈다 */
 .mr-char.walking .mr-bob { animation: none; }
@@ -1504,6 +1504,10 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .mr-ava .ava-body { transition: translate .08s linear; }
 /* 방향마다 보이는 것: 손 아이템은 앞·뒤·오른쪽을 볼 때 몸 뒤로, 왼쪽을 볼 때 앞으로 */
 .mr-char.near .avatar.drawn.mr-ava[data-view="side"] .acc-hand { z-index: 3; }
+/* 옆모습: 손에 든 것을 걷는 쪽(앞)으로 향하게 뒤집어 몸 앞에서 쥔다 */
+.avatar.drawn.mr-ava[data-view="side"] .acc-hand { z-index: 3; left: calc((var(--handx) - .05) * 100%); top: calc(max(var(--handy), var(--ny) + .2) * 100%); transform-origin: var(--px) var(--py); transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1); }
+.avatar.drawn.mr-ava[data-view="side"] .acc-hand.acc-wand { transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1) rotate(-16deg); }
+.avatar.drawn.mr-ava[data-view="side"] .acc-hand.acc-balloon { transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1) rotate(-48deg); }
 /* 머리핀: 앞모습은 오른쪽, 뒷모습은 왼쪽, 옆모습은 머리핀 쪽이 보일 때(왼쪽을 볼 때)만 */
 .avatar.drawn.mr-ava[data-view="back"] :is(.acc-bow, .acc-flower, .acc-starpin) { left: calc((var(--hx) - var(--hw) * .3) * 100%); transform: translate(-50%, -50%) rotate(-14deg); }
 .avatar.drawn.mr-ava[data-view="side"] :is(.acc-bow, .acc-flower, .acc-starpin) { display: none; }
@@ -1531,6 +1535,7 @@ a.shop-ava { display: block; }
 .avatar.drawn.mr-ava .acc-pearls { top: calc((var(--ny) - .01) * 100%); transform: translate(-50%, 0); }
 .avatar.drawn.mr-ava[data-view="side"] :is(.acc-medal, .acc-bell, .acc-bowtie, .acc-pearls) { left: calc((var(--hx) * .45 + var(--chest) * .55 - .03) * 100%); scale: .6 1; }
 .avatar.drawn.mr-ava .acc-pearls { width: calc(var(--hw) * .36 * 100%); top: calc((var(--ny) - .025) * 100%); }
+.avatar.drawn.mr-ava:not([data-view="side"]) .acc-pearls { width: calc(var(--hw) * .52 * 100%); top: calc((var(--ny) - .02) * 100%); }
 /* 작은 캐릭터: 말풍선은 조금 작게, 걸을 때 오르는 폭은 그대로 */
 .mr-say { font-size: clamp(.7rem, 2vw, .95rem); padding: 3px 8px; }
 /* 방 꾸미기 아이템 방향: 놓은 쪽 벽에 맞게 좌우 뒤집기(--fx)와 벽 따라 살짝 비틀기(--lean) */
