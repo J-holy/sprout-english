@@ -1474,3 +1474,32 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .mr-tools span.del { background: #ff6b6b; color: #fff; border-color: #ff6b6b; }
 .mr-f.flat .mr-tools { scale: 1 2.17; transform-origin: 50% 100%; }
 .mr-f.wall .mr-tools { transform: skewY(calc(var(--skew) * -1)); }
+
+/* 머리에 쓰는 것: 귀(뿔·눈) 사이 머리 꼭대기 폭(--gap)에 맞춰 작게, 귀 사이 가운데(--crown)에 쓴다 */
+.avatar.drawn.mr-ava .acc-head { left: calc(var(--crown, var(--hx)) * 100%); width: calc(var(--hw) * var(--gap, .58) * var(--k, 1) * 100%); }
+.avatar.drawn.mr-ava .acc-cap { --k: 1.08; --sit: 66%; }
+.avatar.drawn.mr-ava .acc-sunhat { --k: 1.5; --sit: 64%; }
+.avatar.drawn.mr-ava .acc-hat { --k: .78; --sit: 86%; }
+.avatar.drawn.mr-ava .acc-grad { --k: 1.12; --sit: 62%; }
+.avatar.drawn.mr-ava .acc-crown { --k: .82; --sit: 84%; }
+.avatar.drawn.mr-ava .acc-party { --k: .56; --sit: 92%; }
+.avatar.drawn.mr-ava .acc-wreath { --k: 1.12; --sit: 74%; }
+.avatar.drawn.mr-ava .acc-catears { --k: 1.18; --sit: 80%; }
+.avatar.drawn.mr-ava .acc-mushroom { --k: 1.1; --sit: 66%; }
+/* 걷기: 몸을 기울이는 흔들림 대신 그림 순서와 발 모을 때 살짝 오르기로 움직인다. 방향을 바꿀 때 바로 돈다 */
+.mr-char.walking .mr-bob { animation: none; }
+.mr-char .mr-flip { transition: none; }
+.mr-ava .ava-body { transition: translate .08s linear; }
+/* 방향마다 보이는 것: 손 아이템은 앞·뒤·오른쪽을 볼 때 몸 뒤로, 왼쪽을 볼 때 앞으로 */
+.mr-char.near .avatar.drawn.mr-ava[data-view="side"] .acc-hand { z-index: 3; }
+/* 머리핀: 앞모습은 오른쪽, 뒷모습은 왼쪽, 옆모습은 머리핀 쪽이 보일 때(왼쪽을 볼 때)만 */
+.avatar.drawn.mr-ava[data-view="back"] :is(.acc-bow, .acc-flower, .acc-starpin) { left: calc((var(--hx) - var(--hw) * .3) * 100%); transform: translate(-50%, -50%) rotate(-14deg); }
+.avatar.drawn.mr-ava[data-view="side"] :is(.acc-bow, .acc-flower, .acc-starpin) { display: none; }
+.mr-char.near .avatar.drawn.mr-ava[data-view="side"] :is(.acc-bow, .acc-flower, .acc-starpin) { display: block; left: calc((var(--hx) - var(--hw) * .08) * 100%); }
+/* 목에 거는 것: 옆모습은 가슴 앞쪽에 작게, 목도리는 옆에서 본 만큼 좁게 */
+.avatar.drawn.mr-ava[data-view="side"] :is(.acc-medal, .acc-bell, .acc-bowtie, .acc-pearls) { left: calc((var(--chest) - .07) * 100%); scale: .55 1; }
+.avatar.drawn.mr-ava[data-view="side"] .acc-scarf { scale: .78 1; }
+/* (위의 머리 규칙보다 뒤에 두어야 머리핀 자리가 지켜진다) */
+.avatar.drawn.mr-ava:not([data-view="back"]) :is(.acc-bow, .acc-flower, .acc-starpin) { left: calc((var(--hx) + var(--hw) * .3) * 100%); width: calc(var(--hw) * .3 * 100%); }
+.avatar.drawn.mr-ava[data-view="back"] :is(.acc-bow, .acc-flower, .acc-starpin) { left: calc((var(--hx) - var(--hw) * .3) * 100%); width: calc(var(--hw) * .3 * 100%); }
+.mr-char.near .avatar.drawn.mr-ava[data-view="side"] :is(.acc-bow, .acc-flower, .acc-starpin) { left: calc((var(--hx) - var(--hw) * .08) * 100%); }
