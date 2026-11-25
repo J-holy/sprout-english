@@ -1404,8 +1404,10 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .mr-pet { width: 6.5%; }
 .mr-flip { transform: scaleX(var(--dir, 1)); transition: transform .18s; }
 .mr-char .mr-bob { pointer-events: auto; cursor: pointer; }
-.mr-actor.walking .mr-bob { animation: mr-step .42s ease-in-out infinite; transform-origin: 50% 100%; }
-@keyframes mr-step { 0%, 100% { translate: 0 0; rotate: -3deg; } 50% { translate: 0 -5%; rotate: 3deg; } }
+.mr-actor.walking .mr-bob { animation: mr-step .4s ease-in-out infinite; transform-origin: 50% 100%; }
+.mr-pet.walking .mr-bob { animation-name: mr-pet-step; }
+@keyframes mr-pet-step { 0%, 100% { translate: 0 0; rotate: -4deg; } 50% { translate: 0 -8%; rotate: 4deg; } }
+@keyframes mr-step { 0%, 100% { translate: 0 0; rotate: -1.5deg; } 50% { translate: 0 -2.5%; rotate: 1.5deg; } }
 .mr-pet.walking .mr-bob { animation-duration: .3s; }
 .mr-char.hop .mr-flip { animation: mr-hop .55s ease-out; }
 @keyframes mr-hop { 0%, 100% { translate: 0 0; } 25% { translate: 0 2%; scale: 1.04 .96; } 55% { translate: 0 -22%; scale: .97 1.04; } 80% { translate: 0 0; scale: 1.03 .97; } }
@@ -1415,9 +1417,15 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .mr-ava { display: block; width: 100%; font-size: 4rem; }
 .mr-ava.avatar.drawn .ava-body { display: block; width: 100%; height: auto; }
 .mr-img { display: block; width: 100%; height: auto; }
-.mr-ava .acc-hand { left: calc(var(--handx) * 100%); top: calc(var(--handy) * 100%); right: auto; bottom: auto; width: 30%; transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)); }
-.mr-ava .paw::before { display: none; }
-.mr-say { position: absolute; left: 50%; bottom: 102%; translate: -50% 0; background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 4px 10px; font-family: var(--en); font-size: clamp(.8rem, 2.4vw, 1.1rem); white-space: nowrap; box-shadow: 0 2px 4px rgba(0, 0, 0, .12); }
+.avatar.drawn.mr-ava .acc-hand { left: calc((var(--handx) + .03) * 100%); top: calc(var(--handy) * 100%); right: auto; bottom: auto; width: 34%; transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)); }
+/* 전신 캐릭터는 제 팔이 있어서 따로 그린 손은 쓰지 않는다. 막대는 몸(손) 뒤로 지나가게 해서 쥔 것처럼 보인다 */
+.mr-ava .paw { display: none; }
+.mr-ava .mr-img { position: relative; z-index: 2; }
+.mr-ava .acc, .mr-ava .ava-lid { z-index: 3; }
+.avatar.drawn.mr-ava .acc-hand { z-index: 1; }
+/* 옆·뒷모습에서는 얼굴 꾸미기와 눈꺼풀을 감추고, 뒷모습에서는 목에 거는 작은 것도 감춘다. 걷는 동안에는 눈을 깜빡이지 않는다 */
+.mr-ava:not([data-view="front"]) :is(.acc-face, .ava-lid), .mr-actor.walking .ava-lid, .mr-ava[data-view="back"] .acc-neck:not(.acc-scarf) { display: none; }
+.mr-say { position: absolute; left: 50%; bottom: calc(104% + var(--lift, 0%)); z-index: 5; translate: -50% 0; background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 4px 10px; font-family: var(--en); font-size: clamp(.8rem, 2.4vw, 1.1rem); white-space: nowrap; box-shadow: 0 2px 4px rgba(0, 0, 0, .12); }
 .mr-say::after { content: ''; position: absolute; left: 50%; top: 100%; translate: -50% -1px; border: 7px solid transparent; border-top-color: #fff; }
 .mr-say.pop { animation: mr-pop .3s ease-out; }
 @keyframes mr-pop { from { scale: .4; opacity: 0; } }
@@ -1433,3 +1441,10 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .si-room img { display: block; max-width: 80px; max-height: 64px; margin: 0 auto; object-fit: contain; }
 .si-room.paper img { max-width: 110px; max-height: 70px; border-radius: 10px; }
 @media (prefers-reduced-motion: reduce) { .mr-actor.walking .mr-bob, .mr-char.hop .mr-flip { animation: none; } }
+
+/* 별 상점: 미니룸과 같은 전신 캐릭터 (발밑 그림자, 친구는 옆에 앉는다) */
+.shop-ava { position: relative; width: 150px; margin: 4px auto 8px; padding: 46px 0 6px; }
+.shop-ava::after { content: ''; position: absolute; left: 14%; right: 14%; bottom: 2px; height: 14px; border-radius: 50%; background: rgba(90, 60, 40, .14); z-index: -1; }
+.shop-ava .mr-ava { font-size: 4.4rem; }
+.shop-pet { position: absolute; left: -46px; bottom: 4px; width: 58px; }
+.shop-pet img { display: block; width: 100%; height: auto; }

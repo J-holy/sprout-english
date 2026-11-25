@@ -29,35 +29,36 @@ const DRAWN_EYES = {
   '🐸': [.298, .331, .707, .317, .105, '#a6d384', '#8cc46c'], '🦁': [.4, .534, .601, .533, .033, '#f4dba0', '#efc46c'], '🐧': [.357, .463, .645, .463, .034, '#f7f8f2', '#6f7a8a'],
   '🦄': [.375, .575, .616, .579, .023, '#fbfdfa', '#fbf8f4'],
 };
-// 미니룸 (시험): 방 그림 세 가지와 걸어 다닐 수 있는 바닥(방 그림에 대한 비율로 그린 다각형)
-const MR_ROOMS = [
-  { img: 'img/room/room-22.jpg', floor: [[.06, .88], [.40, .57], [.58, .57], [.58, .80], [.80, .86], [.90, .92], [.50, .95], [.15, .95]] },
-  { img: 'img/room/room-33.jpg', floor: [[.08, .85], [.40, .53], [.55, .55], [.55, .76], [.78, .84], [.88, .92], [.50, .96], [.15, .95]] },
-  { img: 'img/room/room-11.jpg', floor: [[.08, .84], [.38, .52], [.56, .52], [.56, .70], [.78, .80], [.88, .90], [.50, .96], [.15, .95]] },
-];
-// 미니룸 전신 캐릭터: 꾸미기 자리(fit, 얼굴 그림과 같은 순서), 눈, 손 끝 (그림 너비·높이에 대한 비율)
+// 미니룸 전신 캐릭터: 앞(f)·옆(s, 오른쪽을 봄)·뒤(b) × 서 있기(0)·걷기 두 장(a, b). 모두 같은 캔버스라 바꿔 끼워도 자리가 같다
+//   fit: 앞모습 꾸미기 자리(얼굴 그림과 같은 순서), head: 보기마다 머리 가운데·폭, hand: 보기마다 손 끝 (그림 너비·높이에 대한 비율)
 const MR_BODY = {
-  '🐰': { img: 'img/room/b-1f430.png', w: 263, h: 487, fit: [0.503, 0.319, 0.993, 0.515, 0.67], eyes: [0.27, 0.511, 0.715, 0.51, 0.042], hand: [0.996, 0.821] },
-  '🐻': { img: 'img/room/b-1f43b.png', w: 308, h: 407, fit: [0.48, -0.038, 0.937, 0.353, 0.647], eyes: [0.307, 0.362, 0.701, 0.358, 0.049], hand: [0.932, 0.767] },
-  '🦊': { img: 'img/room/b-1f98a.png', w: 307, h: 441, fit: [0.495, 0.138, 0.962, 0.45, 0.685], eyes: [0.328, 0.446, 0.676, 0.44, 0.034], hand: [0.896, 0.787] },
-  '🐼': { img: 'img/room/b-1f43c.png', w: 317, h: 432, fit: [0.501, 0.007, 0.97, 0.362, 0.623], eyes: [0.315, 0.363, 0.669, 0.363, 0.044], hand: [0.956, 0.769] },
-  '🐯': { img: 'img/room/b-1f42f.png', w: 314, h: 416, fit: [0.494, 0.015, 0.992, 0.354, 0.658], eyes: [0.323, 0.361, 0.678, 0.354, 0.056], hand: [0.892, 0.786] },
-  '🐨': { img: 'img/room/b-1f428.png', w: 387, h: 417, fit: [0.495, 0.062, 0.632, 0.393, 0.628], eyes: [0.348, 0.396, 0.64, 0.394, 0.028], hand: [0.78, 0.796] },
-  '🐸': { img: 'img/room/b-1f438.png', w: 288, h: 344, fit: [0.503, -0.132, 0.877, 0.125, 0.688], eyes: [0.208, 0.105, 0.806, 0.105, 0.083], hand: [0.979, 0.808] },
-  '🦁': { img: 'img/room/b-1f981.png', w: 340, h: 466, fit: [0.495, 0.04, 0.839, 0.395, 0.701], eyes: [0.36, 0.399, 0.632, 0.398, 0.037], hand: [0.891, 0.597] },
-  '🐧': { img: 'img/room/b-1f427.png', w: 353, h: 440, fit: [0.482, 0.005, 0.852, 0.347, 0.63], eyes: [0.287, 0.353, 0.71, 0.348, 0.033], hand: [0.997, 0.734] },
-  '🦄': { img: 'img/room/b-1f984.png', w: 335, h: 441, fit: [0.437, 0.215, 0.85, 0.504, 0.794], eyes: [0.269, 0.552, 0.622, 0.539, 0.036], hand: [0.842, 0.834] },
+  '🐰': {"w": 184, "h": 300, "img": {"f0": "img/room/c-1f430-f0.webp", "fa": "img/room/c-1f430-fa.webp", "fb": "img/room/c-1f430-fb.webp", "s0": "img/room/c-1f430-s0.webp", "sa": "img/room/c-1f430-sa.webp", "sb": "img/room/c-1f430-sb.webp", "b0": "img/room/c-1f430-b0.webp", "ba": "img/room/c-1f430-ba.webp", "bb": "img/room/c-1f430-bb.webp"}, "fit": [0.512, 0.325, 0.845, 0.514, 0.664], "head": {"front": [0.512, 0.845], "side": [0.546, 0.849], "back": [0.514, 0.841]}, "eyes": [0.314, 0.511, 0.693, 0.51, 0.036], "hand": {"front": [0.932, 0.81], "side": [0.707, 0.81], "back": [0.902, 0.81]}},
+  '🐻': {"w": 223, "h": 300, "img": {"f0": "img/room/c-1f43b-f0.webp", "fa": "img/room/c-1f43b-fa.webp", "fb": "img/room/c-1f43b-fb.webp", "s0": "img/room/c-1f43b-s0.webp", "sa": "img/room/c-1f43b-sa.webp", "sb": "img/room/c-1f43b-sb.webp", "b0": "img/room/c-1f43b-b0.webp", "ba": "img/room/c-1f43b-ba.webp", "bb": "img/room/c-1f43b-bb.webp"}, "fit": [0.479, 0.001, 0.91, 0.374, 0.654], "head": {"front": [0.479, 0.91], "side": [0.484, 0.907], "back": [0.486, 0.896]}, "eyes": [0.311, 0.383, 0.694, 0.379, 0.048], "hand": {"front": [0.918, 0.769], "side": [0.687, 0.769], "back": [0.885, 0.769]}},
+  '🦊': {"w": 238, "h": 300, "img": {"f0": "img/room/c-1f98a-f0.webp", "fa": "img/room/c-1f98a-fa.webp", "fb": "img/room/c-1f98a-fb.webp", "s0": "img/room/c-1f98a-s0.webp", "sa": "img/room/c-1f98a-sa.webp", "sb": "img/room/c-1f98a-sb.webp", "b0": "img/room/c-1f98a-b0.webp", "ba": "img/room/c-1f98a-ba.webp", "bb": "img/room/c-1f98a-bb.webp"}, "fit": [0.529, 0.144, 0.827, 0.45, 0.68], "head": {"front": [0.529, 0.827], "side": [0.613, 0.743], "back": [0.529, 0.827]}, "eyes": [0.386, 0.446, 0.685, 0.44, 0.029], "hand": {"front": [0.874, 0.78], "side": [0.664, 0.78], "back": [0.841, 0.78]}},
+  '🐼': {"w": 229, "h": 300, "img": {"f0": "img/room/c-1f43c-f0.webp", "fa": "img/room/c-1f43c-fa.webp", "fb": "img/room/c-1f43c-fb.webp", "s0": "img/room/c-1f43c-s0.webp", "sa": "img/room/c-1f43c-sa.webp", "sb": "img/room/c-1f43c-sb.webp", "b0": "img/room/c-1f43c-b0.webp", "ba": "img/room/c-1f43c-ba.webp", "bb": "img/room/c-1f43c-bb.webp"}, "fit": [0.519, 0.041, 0.879, 0.376, 0.621], "head": {"front": [0.519, 0.879], "side": [0.539, 0.879], "back": [0.521, 0.876]}, "eyes": [0.351, 0.377, 0.672, 0.377, 0.04], "hand": {"front": [0.932, 0.759], "side": [0.69, 0.759], "back": [0.899, 0.759]}},
+  '🐯': {"w": 237, "h": 300, "img": {"f0": "img/room/c-1f42f-f0.webp", "fa": "img/room/c-1f42f-fa.webp", "fb": "img/room/c-1f42f-fb.webp", "s0": "img/room/c-1f42f-s0.webp", "sa": "img/room/c-1f42f-sa.webp", "sb": "img/room/c-1f42f-sb.webp", "b0": "img/room/c-1f42f-b0.webp", "ba": "img/room/c-1f42f-ba.webp", "bb": "img/room/c-1f42f-bb.webp"}, "fit": [0.514, 0.031, 0.924, 0.361, 0.657], "head": {"front": [0.514, 0.924], "side": [0.498, 0.86], "back": [0.517, 0.924]}, "eyes": [0.354, 0.368, 0.685, 0.361, 0.052], "hand": {"front": [0.885, 0.782], "side": [0.684, 0.782], "back": [0.854, 0.782]}},
+  '🐨': {"w": 276, "h": 300, "img": {"f0": "img/room/c-1f428-f0.webp", "fa": "img/room/c-1f428-fa.webp", "fb": "img/room/c-1f428-fb.webp", "s0": "img/room/c-1f428-s0.webp", "sa": "img/room/c-1f428-sa.webp", "sb": "img/room/c-1f428-sb.webp", "b0": "img/room/c-1f428-b0.webp", "ba": "img/room/c-1f428-ba.webp", "bb": "img/room/c-1f428-bb.webp"}, "fit": [0.495, 0.079, 0.619, 0.4, 0.628], "head": {"front": [0.495, 0.619], "side": [0.629, 0.543], "back": [0.495, 0.615]}, "eyes": [0.351, 0.403, 0.637, 0.401, 0.027], "hand": {"front": [0.774, 0.791], "side": [0.573, 0.791], "back": [0.732, 0.791]}},
+  '🐸': {"w": 316, "h": 300, "img": {"f0": "img/room/c-1f438-f0.webp", "fa": "img/room/c-1f438-fa.webp", "fb": "img/room/c-1f438-fb.webp", "s0": "img/room/c-1f438-s0.webp", "sa": "img/room/c-1f438-sa.webp", "sb": "img/room/c-1f438-sb.webp", "b0": "img/room/c-1f438-b0.webp", "ba": "img/room/c-1f438-ba.webp", "bb": "img/room/c-1f438-bb.webp"}, "fit": [0.495, -0.102, 0.635, 0.132, 0.645], "head": {"front": [0.495, 0.635], "side": [0.53, 0.267], "back": [0.482, 0.672]}, "eyes": [0.281, 0.114, 0.714, 0.114, 0.06], "hand": {"front": [0.839, 0.754], "side": [0.613, 0.754], "back": [0.794, 0.754]}},
+  '🦁': {"w": 219, "h": 300, "img": {"f0": "img/room/c-1f981-f0.webp", "fa": "img/room/c-1f981-fa.webp", "fb": "img/room/c-1f981-fb.webp", "s0": "img/room/c-1f981-s0.webp", "sa": "img/room/c-1f981-sa.webp", "sb": "img/room/c-1f981-sb.webp", "b0": "img/room/c-1f981-b0.webp", "ba": "img/room/c-1f981-ba.webp", "bb": "img/room/c-1f981-bb.webp"}, "fit": [0.495, 0.052, 0.82, 0.399, 0.699], "head": {"front": [0.495, 0.82], "side": [0.471, 0.681], "back": [0.504, 0.805]}, "eyes": [0.363, 0.403, 0.629, 0.402, 0.036], "hand": {"front": [0.882, 0.597], "side": [0.68, 0.597], "back": [0.826, 0.597]}},
+  '🐧': {"w": 254, "h": 300, "img": {"f0": "img/room/c-1f427-f0.webp", "fa": "img/room/c-1f427-fa.webp", "fb": "img/room/c-1f427-fb.webp", "s0": "img/room/c-1f427-s0.webp", "sa": "img/room/c-1f427-sa.webp", "sb": "img/room/c-1f427-sb.webp", "b0": "img/room/c-1f427-b0.webp", "ba": "img/room/c-1f427-ba.webp", "bb": "img/room/c-1f427-bb.webp"}, "fit": [0.482, 0.014, 0.783, 0.345, 0.619], "head": {"front": [0.482, 0.783], "side": [0.516, 0.836], "back": [0.481, 0.78]}, "eyes": [0.303, 0.351, 0.692, 0.346, 0.03], "hand": {"front": [0.956, 0.72], "side": [0.693, 0.72], "back": [0.926, 0.72]}},
+  '🦄': {"w": 240, "h": 300, "img": {"f0": "img/room/c-1f984-f0.webp", "fa": "img/room/c-1f984-fa.webp", "fb": "img/room/c-1f984-fb.webp", "s0": "img/room/c-1f984-s0.webp", "sa": "img/room/c-1f984-sa.webp", "sb": "img/room/c-1f984-sb.webp", "b0": "img/room/c-1f984-b0.webp", "ba": "img/room/c-1f984-ba.webp", "bb": "img/room/c-1f984-bb.webp"}, "fit": [0.45, 0.214, 0.761, 0.487, 0.761], "head": {"front": [0.45, 0.761], "side": [0.47, 0.71], "back": [0.472, 0.693]}, "eyes": [0.3, 0.532, 0.616, 0.52, 0.032], "hand": {"front": [0.813, 0.798], "side": [0.606, 0.798], "back": [0.767, 0.798]}},
 };
 // 손 아이템을 쥐는 자리 (아이템 그림에 대한 비율, style.css 의 .paw 자리와 같다)
 const MR_GRIP = { 'acc-lollipop': [50, 70], 'acc-wand': [62, 66], 'acc-balloon': [50, 92], 'acc-teddy': [18, 58], 'acc-icecream': [50, 80], 'acc-sunflower': [50, 74], 'acc-bubbles': [14, 88] };
-const roomAvatar = p => {
+// 전신 캐릭터 (미니룸·별 상점). view: front | side | back
+const mrView = (el, b, view) => {
+  const body = el.querySelector('.ava-body'), [hx, hw] = b.head[view], [x, y] = b.hand[view];
+  body.style.setProperty('--hx', hx); body.style.setProperty('--hw', hw); body.style.setProperty('--handx', x); body.style.setProperty('--handy', y);
+  el.querySelector('.mr-ava').dataset.view = view;
+};
+const roomAvatar = (p, cls = '') => {
   const b = MR_BODY[p.avatar] || MR_BODY['🐰'], de = DRAWN_EYES[p.avatar] || DRAWN_EYES['🐰'], [hx, hy, hw, ey, ny] = b.fit;
   const acc = Store.worn(p).filter(w => w.slot !== 'pet').map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => {
     const g = MR_GRIP[w.id] || [50, 75];
-    return `<i class="acc acc-${w.slot} ${w.id} ${x}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w)}${w.slot === 'hand' ? '<b class="paw"></b>' : ''}</i>`;
+    return `<i class="acc acc-${w.slot} ${w.id} ${x}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w)}</i>`;
   }).join('')).join('');
   const lids = [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${b.eyes[i] * 100}%;top:${b.eyes[i + 1] * 100}%;--r:${b.eyes[4] * 100}%;background:${de[5]}"></i>`).join('');
-  return `<span class="avatar drawn huge mr-ava"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny};--paw:${de[6]};--handx:${b.hand[0]};--handy:${b.hand[1]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img}" alt="" draggable="false">${lids}${acc}</span></span>`;
+  return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny};--paw:${de[6]};--handx:${b.hand.front[0]};--handy:${b.hand.front[1]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
 };
 const accArt = w => PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
 const avatarHtml = (p, cls = '') => {
@@ -1641,7 +1642,7 @@ Views.shop = el => {
     el.innerHTML = `<div class="wrap sec">
       <h1 class="page-title">🛍️ 별 상점</h1>
       <div class="two-col top">
-        <div class="card star-bank"><div class="avatar-show">${avatarHtml(p, 'huge')}</div><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p><a class="btn btn-primary sm" href="#/room">🏠 내 미니룸 가기</a></div>
+        <div class="card star-bank"><div class="shop-ava">${roomAvatar(p, 'shop')}${Store.worn(p).filter(w => w.slot === 'pet').map(w => `<span class="shop-pet">${accArt(w)}</span>`).join('')}</div><b class="star-count">⭐ ${p.stars || 0}</b><p>${esc(p.name)}가 모은 별</p><a class="btn btn-primary sm" href="#/room">🏠 내 미니룸 가기</a></div>
         <div class="card"><h3>별은 이렇게 모아요</h3>${UI.starsInfo()}</div>
       </div>
       <h2 class="sec-sub">아바타 꾸미기 <small>부위마다 하나씩, 여러 개를 함께 입을 수 있어요</small></h2>
@@ -2102,6 +2103,11 @@ Views.room = el => {
     <div class="mr-tray card" hidden></div>
   </section>`;
   const stage = $('.mr-stage', el), bg = $('.mr-bg', el), furn = $('.mr-furn', el), tray = $('.mr-tray', el), cEl = $('.mr-char', el), pEl = $('.mr-pet', el), say = $('.mr-say', el);
+  const body = MR_BODY[p.avatar] || MR_BODY['🐰'], cImg = $('.mr-img', cEl);
+  Object.values(body.img).forEach(src => { const im = new Image(); im.src = src; }); // 걸음 그림을 미리 받아 둔다
+  // 말풍선은 모자·머리 장식 위로 (가장 높이 올라온 꾸미기를 잰다)
+  const lift = () => { const r = cEl.getBoundingClientRect(); if (!r.height) return; const top = Math.min(r.top, ...$$('.acc:not(.acc-hand):not(.acc-fx)', cEl).map(a => a.getBoundingClientRect().top)); say.style.setProperty('--lift', `${((r.top - top) / r.height * 100).toFixed(1)}%`); };
+  cImg.addEventListener('load', lift, { once: true }); setTimeout(lift, 400);
   const inside = (x, y) => { let c = false; for (let i = 0, j = MR_FLOOR.length - 1; i < MR_FLOOR.length; j = i++) { const [xi, yi] = MR_FLOOR[i], [xj, yj] = MR_FLOOR[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
   const Y0 = .53, Y1 = .96;
   const randPt = () => { for (let k = 0; k < 200; k++) { const x = .08 + Math.random() * .84, y = Y0 + Math.random() * (Y1 - Y0); if (inside(x, y)) return [x, y]; } return [.5, .85]; };
@@ -2153,8 +2159,15 @@ Views.room = el => {
   const fr = pEl && { el: pEl, x: sx - .07, y: Math.min(Y1, sy + .01), dir: 1, walk: false, speed: .16 };
   const place = a => {
     a.el.style.left = `${a.x * 100}%`; a.el.style.top = `${a.y * 100}%`; a.el.style.zIndex = Math.round(a.y * 1000) + 1;
-    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a.dir);
+    a.el.style.setProperty('--s', depth(a.y).toFixed(3)); a.el.style.setProperty('--dir', a === me && me.view !== 'side' ? 1 : a.dir);
     a.el.classList.toggle('walking', a.walk);
+  };
+  // 걷는 쪽에 따라 앞·옆·뒷모습, 발은 번갈아 내딛는 두 장. 멈추면 앞을 보고 선다
+  const pose = now => {
+    let view = 'front', fr = '0';
+    if (me.walk && me.mvx !== undefined) { view = Math.abs(me.mvy) > Math.abs(me.mvx) * 1.1 ? (me.mvy < 0 ? 'back' : 'front') : 'side'; fr = Math.floor(now / 200) % 2 ? 'a' : 'b'; }
+    if (view !== me.view) { me.view = view; mrView(cEl, body, view); }
+    const key = view[0] + fr; if (key !== me.frame) { me.frame = key; cImg.src = body.img[key]; }
   };
   let sayT = null;
   const speak = (text, voice) => {
@@ -2174,7 +2187,7 @@ Views.room = el => {
     const dx = tx - a.x, dy = (ty - a.y) * 1.6, d = Math.hypot(dx, dy); // 세로는 원근 때문에 조금 더 멀게 친다
     if (d < .006) return true;
     const v = a.speed * depth(a.y) * (reduced ? .7 : 1) * dt, k = Math.min(1, v / d);
-    a.x += dx * k; a.y += (ty - a.y) * k; if (Math.abs(dx) > .002) a.dir = dx > 0 ? 1 : -1;
+    a.x += dx * k; a.y += (ty - a.y) * k; if (Math.abs(dx) > .002) a.dir = dx > 0 ? 1 : -1; a.mvx = dx; a.mvy = dy;
     return false;
   };
   let last = performance.now();
@@ -2183,7 +2196,7 @@ Views.room = el => {
     const dt = Math.min(.05, (now - last) / 1000); last = now;
     if (me.walk) { if (step(me, me.tx, me.ty, dt)) { me.walk = false; me.wait = 1.5 + Math.random() * 3; if (Math.random() < .45) { if (Math.random() < .5) hop(); speak(EMOTE[Math.floor(Math.random() * EMOTE.length)]); } } }
     else if ((me.wait -= dt) <= 0) { if (Math.random() < .25) { me.dir *= -1; me.wait = 1 + Math.random() * 1.5; } else { const [x, y] = randPt(); me.tx = x; me.ty = y; me.walk = true; } }
-    place(me);
+    pose(now); place(me);
     if (fr) { // 친구는 캐릭터 뒤쪽을 졸졸 따라온다
       const [gx, gy] = toFloor(me.x - me.dir * .075, Math.min(Y1, me.y + .012)), far = Math.hypot(gx - fr.x, (gy - fr.y) * 1.6);
       fr.walk = far > .02 && (fr.walk || far > .05); if (fr.walk && step(fr, gx, gy, dt)) fr.walk = false;
@@ -2192,6 +2205,6 @@ Views.room = el => {
     }
     requestAnimationFrame(tick);
   };
-  drawFurn(); place(me); if (fr) place(fr); requestAnimationFrame(tick);
+  drawFurn(); pose(performance.now()); place(me); if (fr) place(fr); requestAnimationFrame(tick);
   setTimeout(() => speak(`Hi, ${p.name}!`), 600);
 };
