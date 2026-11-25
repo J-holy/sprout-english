@@ -2179,7 +2179,7 @@ Views.room = el => {
   const drawTray = () => {
     const mine = SHOP.filter(i => i.kind === 'room' && p.owned.includes(i.id)), papers = mine.filter(i => i.slot === 'paper'), things = mine.filter(i => i.slot !== 'paper');
     tray.innerHTML = `<div class="mr-tray-head"><b>🛋️ 방 꾸미기</b><small>아이템을 누르면 방에 놓이고, 방 안에서 끌어서 옮겨요</small><button class="btn btn-primary sm" data-mr-done>다 했어요</button></div>
-      <h4>벽지</h4><div class="mr-row"><button class="mr-pick ${!room.paper ? 'on' : ''}" data-paper=""><img src="img/room/paper-base.jpg" alt=""><span>기본 방</span></button>${papers.map(i => `<button class="mr-pick ${room.paper === i.id ? 'on' : ''}" data-paper="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('')}</div>
+      <h4>벽지</h4><div class="mr-row"><button class="mr-pick ${!room.paper ? 'on' : ''}" data-paper=""><img src="img/room/paper-base.jpg?v=2" alt=""><span>기본 방</span></button>${papers.map(i => `<button class="mr-pick ${room.paper === i.id ? 'on' : ''}" data-paper="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('')}</div>
       <h4>가구·소품</h4><div class="mr-row">${things.length ? things.map(i => `<button class="mr-pick ${room.items.some(o => o.id === i.id) ? 'on' : ''}" data-put="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('') : '<p class="fine">아직 가진 가구가 없어요.</p>'}</div>
       <p class="fine"><a href="#/shop">🛍️ 별 상점에서 더 사기</a></p>`;
     $$('[data-paper]', tray).forEach(b => b.onclick = () => { room.paper = b.dataset.paper || null; bg.src = paperImg(); save(); drawTray(); Speech.sfx.tap(); });
