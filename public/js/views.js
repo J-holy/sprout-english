@@ -61,9 +61,7 @@ const MR_FRAMES = {
 // 귀(뿔·눈) 사이 머리 꼭대기 폭 (머리 폭에 대한 비율): 머리에 쓰는 것은 이 폭에 맞춰 귀 사이에 쓴다
 const MR_GAP = { '🐰': .5, '🐻': .6, '🦊': .5, '🐼': .58, '🐯': .58, '🐨': .55, '🐸': .45, '🦁': .58, '🐧': .62, '🦄': .55 };
 // 머리 꼭대기로 잰 자리가 머리보다 높은 캐릭터(유니콘의 뿔)는 귀처럼 머리에 붙이는 것을 그만큼 내린다
-const MR_CDROP = { '🐻': .04, '🐼': .042, '🐯': .027, '🐨': .025, '🦁': .07, '🐧': .049, '🦄': .17 }, MR_SDROP = { '🦄': .075 };
-// 고양이 귀는 머리 뒤에서 솟게 한다. 자기 귀·눈이 그 자리를 가리는 캐릭터만 머리 앞에 얹는다
-const MR_CATFRONT = { '🐰': 1, '🦊': 1, '🐸': 1 };
+const MR_CDROP = { '🦄': .13 }, MR_SDROP = { '🦄': .075 };
 // 머리·목 꾸미기의 옆모습·뒷모습 그림 (있는 것만, 없으면 앞모습 그림을 쓴다)
 const MR_ACC_VIEW = {"🧢": {"side": "img/room/acc/side-1f9e2.png", "back": "img/room/acc/back-1f9e2.png"}, "👒": {"side": "img/room/acc/side-1f452.png", "back": "img/room/acc/back-1f452.png"}, "🎩": {"side": "img/room/acc/side-1f3a9.png", "back": "img/room/acc/back-1f3a9.png"}, "🎓": {"side": "img/room/acc/side-1f393.png", "back": "img/room/acc/back-1f393.png"}, "👑": {"side": "img/room/acc/side-1f451.png", "back": "img/room/acc/back-1f451.png"}, "🎉": {"side": "img/room/acc/side-1f389.png", "back": "img/room/acc/back-1f389.png"}, "🐱": {"side": "img/room/acc/ears-1f431.png?v=1", "back": "img/room/acc/earsback-1f431.png?v=2"}, "🍄": {"side": "img/room/acc/side-1f344.png", "back": "img/room/acc/back-1f344.png"}, "🧣": {"back": "img/room/acc/back-1f9e3.png"}, "📿": {"side": "img/room/acc/side-1f4ff.png"}, "🏅": {"side": "img/room/acc/side-1f3c5.png"}, "🎗️": {"side": "img/room/acc/side-1f397.png"}, "🔔": {"side": "img/room/acc/side-1f514.png"}, "🕶️": {"side": "img/room/acc/side-1f576.png"}, "👓": {"side": "img/room/acc/side-1f453.png"}, "🩷": {"side": "img/room/acc/side-1fa77.png"}, "🤿": {"side": "img/room/acc/side-1f93f.png"}};
 const accViewArt = (emoji, view) => (view !== 'front' && MR_ACC_VIEW[emoji]?.[view]) || WORN_ART[emoji] || (PICS.x[emoji] ? 'img/' + PICS.x[emoji] : '');
@@ -85,7 +83,7 @@ const roomAvatar = (p, cls = '') => {
     return `<i class="acc acc-${w.slot} ${w.id} ${x}" data-emoji="${w.emoji}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w, 1)}</i>`;
   }).join('')).join('');
   const lids = [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${b.eyes[i] * 100}%;top:${b.eyes[i + 1] * 100}%;--r:${b.eyes[4] * 100}%;background:${de[5]}"></i>`).join('');
-  return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${f[0]};--top:${f[1]};--hw:${f[2]};--ny:${f[3]};--handx:${f[4]};--handy:${f[5]};--eye:${(b.eyes[1] + b.eyes[3]) / 2};--chest:${f[9]};--crown:${f[10]};--gap:${MR_GAP[p.avatar] || .58};--cdrop:${MR_CDROP[p.avatar] || 0};--sdrop:${MR_SDROP[p.avatar] || 0};${MR_CATFRONT[p.avatar] ? "--catz:3;--catsit:78%;" : ""}--paw:${de[6]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
+  return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${f[0]};--top:${f[1]};--hw:${f[2]};--ny:${f[3]};--handx:${f[4]};--handy:${f[5]};--eye:${(b.eyes[1] + b.eyes[3]) / 2};--chest:${f[9]};--crown:${f[10]};--gap:${MR_GAP[p.avatar] || .58};--cdrop:${MR_CDROP[p.avatar] || 0};--sdrop:${MR_SDROP[p.avatar] || 0};--paw:${de[6]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
 };
 // 캐릭터가 쓸 때만 다른 그림 (상점 아이콘은 그대로): 화관은 머리에 얹은 납작한 타원
 const WORN_ART = { '🌸': 'img/room/acc/wear-1f338.png?v=1', '🐱': 'img/room/acc/earsfront-1f431.png?v=1', '📿': 'img/room/acc/wear-1f4ff.png?v=1' };
