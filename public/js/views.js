@@ -1685,12 +1685,13 @@ Views.shop = el => {
       try { if (Store.buy(b.dataset.buy)) { Speech.sfx.cheer(); Lesson.confetti(); App.toast('새 아이템을 얻었어요! 🎉'); draw(); App.refreshHeader(); } }
       catch (x) { Speech.sfx.wrong(); App.toast(x.message); }
     });
+    $$('[data-try-room]', el).forEach(b => b.onclick = () => { try { sessionStorage.setItem('mr-try', b.dataset.tryRoom); } catch (x) { /* ignore */ } });
     $$('[data-equip]', el).forEach(b => b.onclick = () => { Store.equip(b.dataset.equip); Speech.sfx.tap(); draw(); App.refreshHeader(); });
   };
   const item = i => {
     const own = p.owned.includes(i.id), on = Store.isWorn(i.id, p);
     return `<div class="shop-item ${own ? 'own' : ''} ${on ? 'worn' : ''}"><span class="si-emoji ${i.kind === 'room' ? 'si-room ' + i.slot : ''}">${i.kind === 'room' ? `<img src="${i.img}" alt="" draggable="false">` : i.kind === 'acc' && PICS.x[i.emoji] ? accArt(i) : i.emoji}</span><b>${i.name}</b>
-      ${own ? (i.kind === 'room' ? '<a class="btn btn-ghost sm" href="#/room">방에 놓기</a>' : i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}" aria-pressed="${on}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>`}</div>`;
+      ${own ? (i.kind === 'room' ? '<a class="btn btn-ghost sm" href="#/room">방에 놓기</a>' : i.kind === 'acc' ? `<button class="btn btn-ghost sm" data-equip="${i.id}" aria-pressed="${on}">${on ? '벗기' : '착용'}</button>` : '<span class="chip">모음 ✅</span>') : `<button class="btn btn-primary sm" data-buy="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost}</button>${i.kind === 'room' ? `<a class="btn btn-ghost sm" href="#/room" data-try-room="${i.id}">👀 방에서 미리보기</a>` : ''}`}</div>`;
   };
   draw();
 };
@@ -2117,7 +2118,8 @@ Views.room = el => {
   let room = mrRoom(p), edit = false, sel = null;
   const SAY = ['Hello!', 'Hi!', "I'm happy!", "Let's play!", 'I love my room!', 'Look at me!', 'Yay!'];
   const EMOTE = ['💖', '🎵', '✨', '😊', '⭐'];
-  const paperImg = () => (room.paper && mrItem(room.paper)?.img) || 'img/room/paper-base.jpg?v=2';
+  // 미리보기: 아직 사지 않은 가구(try)와 벽지(tryPaper)를 방에 놓아 볼 수 있다. 저장하지 않고, 꾸미기를 마치면 치운다
+  const paperImg = () => { const id = room.tryPaper || room.paper; return (id && mrItem(id)?.img) || 'img/room/paper-base.jpg?v=2'; };
   el.innerHTML = `<section class="wrap mr-page">
     <div class="mr-head"><h1>🏠 ${esc(p.name)}의 미니룸</h1>
       <div class="row"><button class="btn btn-primary sm" data-mr-edit>🛋️ 방 꾸미기</button><a class="btn btn-ghost sm" href="#/shop">🛍️ 별 상점</a></div></div>
@@ -2168,7 +2170,7 @@ Views.room = el => {
     return out;
   };
   // 가구: 바닥 것은 아래 가운데가 자리, 벽 것은 가운데가 자리이고 벽 기울기에 맞춰 비튼다. k는 아이가 고른 크기
-  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3), ...(o.k && o.k !== 1 ? { k: o.k } : {}), ...(o.f ? { f: 1 } : {}) })) } });
+  const save = () => Store.updateProfile({ room: { paper: room.paper, items: room.items.filter(o => !o.try).map(o => ({ id: o.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3), ...(o.k && o.k !== 1 ? { k: o.k } : {}), ...(o.f ? { f: 1 } : {}) })) } });
   // 방향: 그림이 어느 쪽 벽에 맞게 그려졌는지(L 왼쪽 벽, R 오른쪽 벽). 놓은 쪽 벽에 맞게 좌우를 뒤집는다. 정면 그림(책장·소파)은 그쪽 벽을 따라 살짝 비튼다. 🔄로 반대로 돌릴 수 있다
   const FACE = { bed: 'L', toybox: 'L', desk: 'R' }, LEAN = { shelf: 1, sofa: .6 };
   const look = o => { const k = o.id.slice(5), side = o.x < .5 ? 'L' : 'R'; let flip = FACE[k] ? FACE[k] !== side : false; if (o.f) flip = !flip; const lean = LEAN[k] ? (side === 'L' ? -1 : 1) * 10 * LEAN[k] * (o.f ? -1 : 1) : 0; return `--fx:${flip ? -1 : 1};--lean:${lean}deg`; };
@@ -2177,31 +2179,67 @@ Views.room = el => {
     furn.innerHTML = room.items.map((o, i) => {
       const it = mrItem(o.id), wall = it.slot === 'wall', flat = it.id === 'room-rug';
       const z = flat ? 1 : wall ? 2 : Math.round(o.y * 1000), s = wall ? 1 : depth(o.y), skew = wall ? (o.x < .5 ? -24 : 24) : 0;
-      const tools = edit && sel === i ? `<span class="mr-tools"><span data-size="-1" aria-label="작게">➖</span><span data-size="1" aria-label="크게">➕</span>${wall || flat ? '' : '<span data-flip aria-label="방향 바꾸기">🔄</span>'}<span class="del" data-del aria-label="치우기">✕</span></span>` : '';
-      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * (o.k || 1) * 100}%;z-index:${sel === i ? 4000 : z};--s:${s};--skew:${skew}deg;${wall ? '' : look(o)}" aria-label="${it.name}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${tools}</button>`;
+      const tools = edit && sel === i ? `<span class="mr-tools">${o.try ? `<span class="buy" data-buyi aria-label="${it.name} 사기">⭐ ${it.cost}</span>` : ''}<span data-size="-1" aria-label="작게">➖</span><span data-size="1" aria-label="크게">➕</span>${wall || flat ? '' : '<span data-flip aria-label="방향 바꾸기">🔄</span>'}<span class="del" data-del aria-label="치우기">✕</span></span>` : '';
+      return `<button class="mr-f ${wall ? 'wall' : 'floor'} ${flat ? 'flat' : ''} ${sel === i ? 'sel' : ''} ${o.try ? 'try' : ''}" data-i="${i}" style="left:${o.x * 100}%;top:${o.y * 100}%;width:${it.w * (o.k || 1) * 100}%;z-index:${sel === i ? 4000 : z};--s:${s};--skew:${skew}deg;${wall ? '' : look(o)}" aria-label="${it.name}${o.try ? ' (미리보기)' : ''}" ${edit ? '' : 'tabindex="-1"'}><img src="${it.img}" alt="" draggable="false">${o.try ? '<em class="mr-try-tag">미리보기</em>' : ''}${tools}</button>`;
     }).join('');
   };
   const drawTray = () => {
-    const mine = SHOP.filter(i => i.kind === 'room' && p.owned.includes(i.id)), papers = mine.filter(i => i.slot === 'paper'), things = mine.filter(i => i.slot !== 'paper');
-    tray.innerHTML = `<div class="mr-tray-head"><b>🛋️ 방 꾸미기</b><small>아이템을 누르면 방에 놓이고, 방 안에서 끌어서 옮겨요</small><button class="btn btn-primary sm" data-mr-done>다 했어요</button></div>
-      <h4>벽지</h4><div class="mr-row"><button class="mr-pick ${!room.paper ? 'on' : ''}" data-paper=""><img src="img/room/paper-base.jpg?v=2" alt=""><span>기본 방</span></button>${papers.map(i => `<button class="mr-pick ${room.paper === i.id ? 'on' : ''}" data-paper="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('')}</div>
-      <h4>가구·소품</h4><div class="mr-row">${things.length ? things.map(i => `<button class="mr-pick ${room.items.some(o => o.id === i.id) ? 'on' : ''}" data-put="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span></button>`).join('') : '<p class="fine">아직 가진 가구가 없어요.</p>'}</div>
-      <p class="fine"><a href="#/shop">🛍️ 별 상점에서 더 사기</a></p>`;
-    $$('[data-paper]', tray).forEach(b => b.onclick = () => { room.paper = b.dataset.paper || null; bg.src = paperImg(); save(); drawTray(); Speech.sfx.tap(); });
+    // 가진 것은 앞에, 아직 안 산 것은 뒤에 별 값과 함께 (눌러서 방에 놓아 보는 미리보기)
+    const all = SHOP.filter(i => i.kind === 'room'), own = i => p.owned.includes(i.id);
+    const sorted = list => [...list.filter(own), ...list.filter(i => !own(i))];
+    const papers = sorted(all.filter(i => i.slot === 'paper')), things = sorted(all.filter(i => i.slot !== 'paper'));
+    const shown = room.tryPaper || room.paper, cost = i => own(i) ? '' : `<small class="mr-cost">⭐ ${i.cost} · 미리보기</small>`;
+    const tries = [...(room.tryPaper ? [room.tryPaper] : []), ...new Set(room.items.filter(o => o.try).map(o => o.id))].map(mrItem);
+    const total = tries.reduce((n, i) => n + i.cost, 0);
+    tray.innerHTML = `<div class="mr-tray-head"><b>🛋️ 방 꾸미기</b><small>아이템을 누르면 방에 놓이고, 방 안에서 끌어서 옮겨요. 아직 없는 아이템도 놓아 보고 마음에 들면 살 수 있어요</small><b class="mr-stars">⭐ ${p.stars || 0}</b><button class="btn btn-primary sm" data-mr-done>다 했어요</button></div>
+      ${tries.length ? `<div class="mr-trybar"><b>👀 미리보기 중</b><span class="fine">사야 방에 남아요</span><div class="mr-tries">${tries.map(i => `<span class="mr-tryi"><img src="${i.img}" alt="">${i.name}<button class="btn btn-primary sm" data-buy-try="${i.id}" ${p.stars < i.cost ? 'aria-disabled="true"' : ''}>⭐ ${i.cost} 사기</button><button class="btn btn-ghost sm" data-untry="${i.id}" aria-label="${i.name} 치우기">✕</button></span>`).join('')}</div>${tries.length > 1 ? `<button class="btn btn-primary sm" data-buy-all ${p.stars < total ? 'aria-disabled="true"' : ''}>모두 사기 ⭐ ${total}</button>` : ''}</div>` : ''}
+      <h4>벽지</h4><div class="mr-row"><button class="mr-pick ${!shown ? 'on' : ''}" data-paper=""><img src="img/room/paper-base.jpg?v=2" alt=""><span>기본 방</span></button>${papers.map(i => `<button class="mr-pick ${own(i) ? '' : 'locked'} ${shown === i.id ? 'on' : ''}" data-paper="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span>${cost(i)}</button>`).join('')}</div>
+      <h4>가구·소품</h4><div class="mr-row">${things.map(i => `<button class="mr-pick ${own(i) ? '' : 'locked'} ${room.items.some(o => o.id === i.id) ? 'on' : ''}" data-put="${i.id}"><img src="${i.img}" alt=""><span>${i.name}</span>${cost(i)}</button>`).join('')}</div>
+      <p class="fine"><a href="#/shop">🛍️ 별 상점 가기</a></p>`;
+    $$('[data-paper]', tray).forEach(b => b.onclick = () => {
+      const id = b.dataset.paper || null;
+      if (!id || p.owned.includes(id)) { room.paper = id; room.tryPaper = null; save(); } else room.tryPaper = room.tryPaper === id ? null : id;
+      bg.src = paperImg(); drawTray(); Speech.sfx.tap();
+    });
     $$('[data-put]', tray).forEach(b => b.onclick = () => {
       const id = b.dataset.put, k = room.items.findIndex(o => o.id === id);
-      if (k >= 0) { room.items.splice(k, 1); sel = null; } else { const [x, y] = MR_SPOT[id.slice(5)] || [.5, .8]; room.items.push({ id, x, y }); sel = room.items.length - 1; }
+      if (k >= 0) { room.items.splice(k, 1); sel = null; } else { const [x, y] = MR_SPOT[id.slice(5)] || [.5, .8]; room.items.push({ id, x, y, ...(p.owned.includes(id) ? {} : { try: true }) }); sel = room.items.length - 1; }
       save(); drawFurn(); drawTray(); Speech.sfx.tap();
     });
+    $$('[data-buy-try]', tray).forEach(b => b.onclick = () => buyTry([b.dataset.buyTry]));
+    $$('[data-untry]', tray).forEach(b => b.onclick = () => { const id = b.dataset.untry; if (room.tryPaper === id) { room.tryPaper = null; bg.src = paperImg(); } room.items = room.items.filter(o => o.id !== id || !o.try); sel = null; drawFurn(); drawTray(); Speech.sfx.tap(); });
+    const all2 = $('[data-buy-all]', tray); if (all2) all2.onclick = () => buyTry(tries.map(i => i.id));
     $('[data-mr-done]', tray).onclick = () => setEdit(false);
   };
-  const setEdit = on => { edit = on; sel = null; stage.classList.toggle('editing', on); tray.hidden = !on; if (on) drawTray(); drawFurn(); $('[data-mr-edit]', el).hidden = on; if (on) tray.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+  // 미리보기한 것을 별로 산다. 산 것은 그 자리에 그대로 남는다
+  const buyTry = ids => {
+    const need = ids.reduce((n, id) => n + (p.owned.includes(id) ? 0 : mrItem(id).cost), 0);
+    if ((p.stars || 0) < need) { Speech.sfx.wrong(); return App.toast(`별이 ${need - (p.stars || 0)}개 더 필요해요.`); }
+    try {
+      ids.forEach(id => { Store.buy(id); room.items.forEach(o => { if (o.id === id) delete o.try; }); if (room.tryPaper === id) { room.paper = id; room.tryPaper = null; } });
+      save(); drawFurn(); drawTray(); App.refreshHeader(); Speech.sfx.cheer(); Lesson.confetti(); App.toast('새 아이템을 얻었어요! 방에 그대로 둘게요 🎉');
+    } catch (x) { Speech.sfx.wrong(); App.toast(x.message); }
+  };
+  const setEdit = on => {
+    if (!on && (room.tryPaper || room.items.some(o => o.try))) { room.tryPaper = null; room.items = room.items.filter(o => !o.try); bg.src = paperImg(); App.toast('사지 않은 미리보기 아이템은 치웠어요.'); }
+    edit = on; sel = null; stage.classList.toggle('editing', on); tray.hidden = !on; if (on) drawTray(); drawFurn(); $('[data-mr-edit]', el).hidden = on; if (on) tray.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  };
   $('[data-mr-edit]', el).onclick = () => setEdit(true);
+  // 별 상점의 '방에서 미리보기'로 왔으면 그 아이템을 놓아 둔 채로 꾸미기를 연다
+  let tryId = null; try { tryId = sessionStorage.getItem('mr-try'); sessionStorage.removeItem('mr-try'); } catch (x) { /* ignore */ }
+  const tryIt = tryId && mrItem(tryId);
+  if (tryIt && tryIt.kind === 'room') {
+    setEdit(true);
+    if (tryIt.slot === 'paper') { if (p.owned.includes(tryId)) { room.paper = tryId; save(); } else room.tryPaper = tryId; bg.src = paperImg(); }
+    else if (!room.items.some(o => o.id === tryId)) { const [x, y] = MR_SPOT[tryId.slice(5)] || [.5, .8]; room.items.push({ id: tryId, x, y, ...(p.owned.includes(tryId) ? {} : { try: true }) }); sel = room.items.length - 1; drawFurn(); }
+    drawTray();
+  }
   // 꾸미기 중: 가구를 끌어서 옮긴다 (바닥 것은 바닥 안, 벽 것은 벽 안)
   let drag = null;
   furn.addEventListener('pointerdown', ev => {
     if (!edit) return; const b = ev.target.closest('.mr-f'); if (!b) return;
     if (ev.target.closest('[data-del]')) { room.items.splice(+b.dataset.i, 1); sel = null; save(); drawFurn(); drawTray(); return; }
+    if (ev.target.closest('[data-buyi]')) { buyTry([room.items[+b.dataset.i].id]); ev.preventDefault(); return; }
     if (ev.target.closest('[data-flip]')) { const o = room.items[+b.dataset.i]; o.f = !o.f; save(); drawFurn(); Speech.sfx.tap(); ev.preventDefault(); return; }
     const sz = ev.target.closest('[data-size]');
     if (sz) { const o = room.items[+b.dataset.i]; o.k = Math.max(.6, Math.min(1.6, Math.round(((o.k || 1) + .15 * sz.dataset.size) * 100) / 100)); save(); drawFurn(); Speech.sfx.tap(); ev.preventDefault(); return; }
