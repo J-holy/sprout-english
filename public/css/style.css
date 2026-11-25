@@ -1523,3 +1523,5 @@ a.shop-ava { display: block; }
 .mr-say { font-size: clamp(.7rem, 2vw, .95rem); padding: 3px 8px; }
 /* 방 꾸미기 아이템 방향: 놓은 쪽 벽에 맞게 좌우 뒤집기(--fx)와 벽 따라 살짝 비틀기(--lean) */
 .mr-f.floor img { transform: scaleX(var(--fx, 1)) skewY(var(--lean, 0deg)); transition: transform .2s; }
+/* 정면에서는 손에 든 아이템이 몸 앞에 보이게 (뒷모습·오른쪽을 볼 때만 몸 뒤로) */
+.avatar.drawn.mr-ava[data-view="front"] .acc-hand { z-index: 3; }
