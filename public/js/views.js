@@ -62,7 +62,7 @@ const MR_FRAMES = {
 const MR_GAP = { '🐰': .5, '🐻': .6, '🦊': .5, '🐼': .58, '🐯': .58, '🐨': .55, '🐸': .45, '🦁': .58, '🐧': .62, '🦄': .55 };
 // 머리·목 꾸미기의 옆모습·뒷모습 그림 (있는 것만, 없으면 앞모습 그림을 쓴다)
 const MR_ACC_VIEW = {"🧢": {"side": "img/room/acc/side-1f9e2.png", "back": "img/room/acc/back-1f9e2.png"}, "👒": {"side": "img/room/acc/side-1f452.png", "back": "img/room/acc/back-1f452.png"}, "🎩": {"side": "img/room/acc/side-1f3a9.png", "back": "img/room/acc/back-1f3a9.png"}, "🎓": {"side": "img/room/acc/side-1f393.png", "back": "img/room/acc/back-1f393.png"}, "👑": {"side": "img/room/acc/side-1f451.png", "back": "img/room/acc/back-1f451.png"}, "🎉": {"side": "img/room/acc/side-1f389.png", "back": "img/room/acc/back-1f389.png"}, "🐱": {"side": "img/room/acc/side-1f431.png", "back": "img/room/acc/back-1f431.png"}, "🍄": {"side": "img/room/acc/side-1f344.png", "back": "img/room/acc/back-1f344.png"}, "🧣": {"back": "img/room/acc/back-1f9e3.png"}, "📿": {"side": "img/room/acc/side-1f4ff.png"}, "🏅": {"side": "img/room/acc/side-1f3c5.png"}, "🎗️": {"side": "img/room/acc/side-1f397.png"}, "🔔": {"side": "img/room/acc/side-1f514.png"}, "🕶️": {"side": "img/room/acc/side-1f576.png"}, "👓": {"side": "img/room/acc/side-1f453.png"}, "🩷": {"side": "img/room/acc/side-1fa77.png"}, "🤿": {"side": "img/room/acc/side-1f93f.png"}};
-const accViewArt = (emoji, view) => (view !== 'front' && MR_ACC_VIEW[emoji]?.[view]) || (PICS.x[emoji] ? 'img/' + PICS.x[emoji] : '');
+const accViewArt = (emoji, view) => (view !== 'front' && MR_ACC_VIEW[emoji]?.[view]) || WORN_ART[emoji] || (PICS.x[emoji] ? 'img/' + PICS.x[emoji] : '');
 // 전신 캐릭터 (미니룸·별 상점). key: f0 fa fb s0 sa sb b0 ba bb (보기 앞·옆·뒤 × 서 있기·걷기 두 장)
 // 걷는 그림마다 머리 자리가 조금씩 달라서, 그 보기의 서 있는 그림에 머리가 맞도록 몸 전체를 옮긴다 (머리가 흔들리지 않고 다리만 움직이게)
 const mrFrame = (el, avatar, key, up = 0) => {
@@ -78,14 +78,16 @@ const roomAvatar = (p, cls = '') => {
   const b = MR_BODY[p.avatar] || MR_BODY['🐰'], de = DRAWN_EYES[p.avatar] || DRAWN_EYES['🐰'], f = (MR_FRAMES[p.avatar] || MR_FRAMES['🐰']).f0;
   const acc = Store.worn(p).filter(w => w.slot !== 'pet').map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => {
     const g = MR_GRIP[w.id] || [50, 75];
-    return `<i class="acc acc-${w.slot} ${w.id} ${x}" data-emoji="${w.emoji}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w)}</i>`;
+    return `<i class="acc acc-${w.slot} ${w.id} ${x}" data-emoji="${w.emoji}" style="--px:${g[0]}%;--py:${g[1]}%" aria-hidden="true">${accArt(w, 1)}</i>`;
   }).join('')).join('');
   const lids = [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${b.eyes[i] * 100}%;top:${b.eyes[i + 1] * 100}%;--r:${b.eyes[4] * 100}%;background:${de[5]}"></i>`).join('');
   return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${f[0]};--top:${f[1]};--hw:${f[2]};--ny:${f[3]};--handx:${f[4]};--handy:${f[5]};--eye:${(b.eyes[1] + b.eyes[3]) / 2};--chest:${f[9]};--crown:${f[10]};--gap:${MR_GAP[p.avatar] || .58};--paw:${de[6]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
 };
-const accArt = w => PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
+// 캐릭터가 쓸 때만 다른 그림 (상점 아이콘은 그대로): 화관은 머리에 얹은 납작한 타원
+const WORN_ART = { '🌸': 'img/room/acc/wear-1f338.png?v=1' };
+const accArt = (w, worn) => (worn && WORN_ART[w.emoji]) ? `<img src="${WORN_ART[w.emoji]}" alt="" draggable="false">` : PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
 const avatarHtml = (p, cls = '') => {
-  const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w) + (w.slot === 'hand' ? '<b class="paw"></b>' : '') : w.emoji}</i>`).join('')).join('');
+  const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w, 1) + (w.slot === 'hand' ? '<b class="paw"></b>' : '') : w.emoji}</i>`).join('')).join('');
   if (PICS.a[p.avatar]) { const [hx, hy, hw, ey, ny] = DRAWN_FIT[p.avatar] || [.5, .4, .56, .62, .9]; const eyes = DRAWN_EYES[p.avatar], lids = eyes ? [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${eyes[i] * 100}%;top:${eyes[i + 1] * 100}%;--r:${eyes[4] * 100}%;background:${eyes[5]}"></i>`).join('') : ''; return `<span class="avatar drawn ${cls}"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny}${eyes ? `;--paw:${eyes[6]}` : ''}"><img class="ava-face" src="img/${PICS.a[p.avatar]}" alt="" draggable="false">${lids}${acc}</span></span>`; }
   const [hy, ey, ny] = AVATAR_FIT[p.avatar] || [.2, .5, .88]; return `<span class="avatar ${cls}"><span class="ava-body" style="--hy:${hy};--ey:${ey};--ny:${ny}">${p.avatar}${acc}</span></span>`;
 };
