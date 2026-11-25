@@ -22,10 +22,17 @@ const DRAWN_FIT = {
   '🐰': [.5, .46, .52, .65, .8], '🐻': [.48, .2, .58, .52, .76], '🦊': [.5, .27, .6, .55, .76], '🐼': [.5, .2, .6, .5, .72], '🐯': [.49, .2, .64, .49, .75],
   '🐨': [.5, .22, .55, .53, .75], '🐸': [.5, .13, .6, .34, .8], '🦁': [.5, .17, .62, .53, .84], '🐧': [.49, .17, .58, .46, .7], '🦄': [.49, .28, .58, .54, .8],
 };
+// 그린 캐릭터의 눈 자리(왼눈 x,y · 오른눈 x,y · 반지름, 얼굴 그림 비율)와 눈꺼풀 색, 아이템을 쥐는 손 색
+const DRAWN_EYES = {
+  '🐰': [.378, .648, .611, .643, .03, '#fdfdfb', '#fbf9f5'], '🐻': [.373, .527, .617, .524, .031, '#c99063', '#b47b4e'], '🦊': [.396, .548, .613, .539, .036, '#f6b26b', '#e98a3d'],
+  '🐼': [.385, .503, .604, .498, .028, '#2e2b29', '#2e2b29'], '🐯': [.38, .495, .609, .491, .036, '#f9b86a', '#f5a24a'], '🐨': [.372, .535, .626, .529, .03, '#c9c9c7', '#b9b9b7'],
+  '🐸': [.298, .331, .707, .317, .105, '#a6d384', '#8cc46c'], '🦁': [.4, .534, .601, .533, .033, '#f4dba0', '#efc46c'], '🐧': [.357, .463, .645, .463, .034, '#f7f8f2', '#6f7a8a'],
+  '🦄': [.375, .575, .616, .579, .023, '#fbfdfa', '#fbf8f4'],
+};
 const accArt = w => PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
 const avatarHtml = (p, cls = '') => {
-  const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w) : w.emoji}</i>`).join('')).join('');
-  if (PICS.a[p.avatar]) { const [hx, hy, hw, ey, ny] = DRAWN_FIT[p.avatar] || [.5, .4, .56, .62, .9]; return `<span class="avatar drawn ${cls}"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny}"><img class="ava-face" src="img/${PICS.a[p.avatar]}" alt="" draggable="false">${acc}</span></span>`; }
+  const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w) + (w.slot === 'hand' ? '<b class="paw"></b>' : '') : w.emoji}</i>`).join('')).join('');
+  if (PICS.a[p.avatar]) { const [hx, hy, hw, ey, ny] = DRAWN_FIT[p.avatar] || [.5, .4, .56, .62, .9]; const eyes = DRAWN_EYES[p.avatar], lids = eyes ? [0, 2].map(i => `<i class="ava-lid" aria-hidden="true" style="left:${eyes[i] * 100}%;top:${eyes[i + 1] * 100}%;--r:${eyes[4] * 100}%;background:${eyes[5]}"></i>`).join('') : ''; return `<span class="avatar drawn ${cls}"><span class="ava-body" style="--hx:${hx};--hy:${hy};--hw:${hw};--ey:${ey};--ny:${ny}${eyes ? `;--paw:${eyes[6]}` : ''}"><img class="ava-face" src="img/${PICS.a[p.avatar]}" alt="" draggable="false">${lids}${acc}</span></span>`; }
   const [hy, ey, ny] = AVATAR_FIT[p.avatar] || [.2, .5, .88]; return `<span class="avatar ${cls}"><span class="ava-body" style="--hy:${hy};--ey:${ey};--ny:${ny}">${p.avatar}${acc}</span></span>`;
 };
 // 놀이터·카드에 쓸 그림 단어 (알파벳 단어 + 파닉스 단어)
