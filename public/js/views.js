@@ -2139,7 +2139,7 @@ Views.room = el => {
   //   [그림 높이/너비, 그림 높이 중 바닥에 닿는 깊이의 비율]. 방 그림은 가로:세로 = 1024:640
   const FOOT = { bed: [.85, .6], shelf: [.85, .28], desk: [1.19, .42], sofa: [.68, .5], toybox: [.99, .45], tent: [1.04, .55], plant: [1.25, .25], lamp: [1.73, .12] };
   let BL = [];
-  const blocks = () => { BL = room.items.filter(o => FOOT[o.id.slice(5)]).map(o => { const [ar, fd] = FOOT[o.id.slice(5)], w = mrItem(o.id).w * depth(o.y) * (o.k || 1), d = w * ar * 1.6 * fd; return [o.x - w / 2 - .035, o.y - d - .02, o.x + w / 2 + .035, o.y + .03]; }); };
+  const blocks = () => { BL = room.items.filter(o => FOOT[o.id.slice(5)]).map(o => { const [ar, fd] = FOOT[o.id.slice(5)], w = mrItem(o.id).w * depth(o.y) * (o.k || 1), d = w * ar * 1.6 * fd; return [o.x - w / 2 - .025, o.y - d - .015, o.x + w / 2 + .025, o.y + .025]; }); };
   const free = (x, y) => inside(x, y) && !BL.some(([a, b, c, d]) => x > a && x < c && y > b && y < d);
   const randPt = () => { for (let k = 0; k < 300; k++) { const x = .08 + Math.random() * .84, y = Y0 + Math.random() * (Y1 - Y0); if (free(x, y)) return [x, y]; } return [.5, .9]; };
   // 길 찾기: 바닥을 칸으로 나눠 가구를 돌아가는 길을 찾고, 곧장 갈 수 있는 곳은 건너뛴다
