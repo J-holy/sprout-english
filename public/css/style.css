@@ -1449,10 +1449,6 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .mr-tryi { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 4px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; font-size: .9rem; }
 .mr-tryi img { width: 36px; height: 30px; object-fit: contain; }
 .mr-f.try img { opacity: .82; }
-.mr-try-tag { position: absolute; left: 50%; top: 100%; translate: -50% 4px; padding: 1px 7px; border-radius: 9px; background: #4a9be8; color: #fff; font: 700 11px/1.5 inherit; font-style: normal; white-space: nowrap; pointer-events: none; z-index: 4; }
-.mr-f.flat .mr-try-tag { scale: 1 2.17; transform-origin: 50% 0; }
-.mr-f.wall .mr-try-tag { transform: skewY(calc(var(--skew) * -1)); }
-.mr-stage:not(.editing) .mr-try-tag { display: none; }
 .mr-tools span.buy { width: auto; padding: 0 9px; border-radius: 15px; background: #ffd34d; border-color: #f0a830; font-weight: 700; white-space: nowrap; }
 .si-room img { display: block; max-width: 80px; max-height: 64px; margin: 0 auto; object-fit: contain; }
 .si-room.paper img { max-width: 110px; max-height: 70px; border-radius: 10px; }
@@ -1560,3 +1556,9 @@ a.shop-ava { display: block; }
 /* 옆모습 안경: 눈 앞쪽에 옆에서 본 안경 (얼굴이 오른쪽을 본다) */
 .avatar.drawn.mr-ava[data-view="side"] .acc-face { display: block; left: calc((var(--hx) + var(--hw) * .2) * 100%); width: calc(var(--hw) * .5 * 100%); }
 .avatar.drawn.mr-ava[data-view="back"] .acc-face { display: none; }
+/* 별 상점 입어 보기: 입어 본 모습을 화면 오른쪽 아래에 띄운다 */
+.try-ava { position: fixed; right: 16px; bottom: 16px; z-index: 60; width: 176px; padding: 8px 10px 10px; display: grid; justify-items: center; gap: 6px; box-shadow: 0 6px 22px rgba(0, 0, 0, .22); }
+.try-ava .shop-ava { width: 120px; margin: 0 auto; padding: 38px 0 4px; }
+.try-ava .shop-ava .mr-ava { font-size: 3.5rem; }
+.try-ava .shop-pet { left: -30px; width: 44px; }
+.try-ava-btns { display: flex; gap: 6px; }
