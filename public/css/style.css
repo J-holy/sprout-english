@@ -1361,7 +1361,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 /* 11-25 더한 꾸미기: 자리·크기 */
 .avatar.drawn .acc-party { width: calc(var(--hw) * 44%); transform: translate(-50%, -92%) rotate(-8deg); }
 .avatar.drawn .acc-wreath { width: calc(var(--hw) * 82%); transform: translate(-50%, -38%); }
-.avatar.drawn .acc-catears { width: calc(var(--hw) * 52%); transform: translate(-50%, -84%); }
+.avatar.drawn .acc-catears { width: calc(var(--hw) * 52%); transform: translate(-50%, -38%); }
 .avatar.drawn .acc-mushroom { width: calc(var(--hw) * 74%); transform: translate(-50%, -84%) rotate(-6deg); }
 .avatar.drawn .acc-starpin { left: calc((var(--hx) + var(--hw) * .34) * 100%); width: calc(var(--hw) * 36%); transform: translate(-50%, -40%) rotate(-12deg); }
 .avatar.drawn .acc-bowtie { width: calc(var(--hw) * 56%); }
@@ -1496,7 +1496,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 .avatar.drawn.mr-ava .acc-crown { --k: .82; --sit: 84%; }
 .avatar.drawn.mr-ava .acc-party { --k: .56; --sit: 92%; }
 .avatar.drawn.mr-ava .acc-wreath { --k: 1.45; --sit: 32%; }
-.avatar.drawn.mr-ava .acc-catears { width: calc(var(--hw) * var(--gap, .58) * .95 * 100%); --sit: 70%; }
+.avatar.drawn.mr-ava .acc-catears { width: calc(var(--hw) * var(--gap, .58) * .95 * 100%); --sit: 52%; top: calc((var(--top) + var(--cdrop, 0)) * 100%); }
 .avatar.drawn.mr-ava .acc-mushroom { --k: 1.1; --sit: 66%; }
 /* 걷기: 몸을 기울이는 흔들림 대신 그림 순서와 발 모을 때 살짝 오르기로 움직인다. 방향을 바꿀 때 바로 돈다 */
 .mr-char.walking .mr-bob { animation: none; }
@@ -1505,7 +1505,7 @@ img.ico { width: 1.25em; height: 1.25em; border-radius: 50%; object-fit: cover; 
 /* 방향마다 보이는 것: 손 아이템은 앞·뒤·오른쪽을 볼 때 몸 뒤로, 왼쪽을 볼 때 앞으로 */
 .mr-char.near .avatar.drawn.mr-ava[data-view="side"] .acc-hand { z-index: 3; }
 /* 옆모습: 손에 든 것을 걷는 쪽(앞)으로 향하게 뒤집어 몸 앞에서 쥔다 */
-.avatar.drawn.mr-ava[data-view="side"] .acc-hand { z-index: 3; left: calc((var(--handx) - .05) * 100%); top: calc(max(var(--handy), var(--ny) + .2) * 100%); transform-origin: var(--px) var(--py); transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1); }
+.avatar.drawn.mr-ava[data-view="side"] .acc-hand { z-index: 3; left: calc(var(--handx) * 100%); top: calc(var(--handy) * 100%); transform-origin: var(--px) var(--py); transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1); }
 .avatar.drawn.mr-ava[data-view="side"] .acc-hand.acc-wand { transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1) rotate(-16deg); }
 .avatar.drawn.mr-ava[data-view="side"] .acc-hand.acc-balloon { transform: translate(calc(var(--px) * -1), calc(var(--py) * -1)) scaleX(-1) rotate(-48deg); }
 /* 머리핀: 앞모습은 오른쪽, 뒷모습은 왼쪽, 옆모습은 머리핀 쪽이 보일 때(왼쪽을 볼 때)만 */
