@@ -84,7 +84,7 @@ const roomAvatar = (p, cls = '') => {
   return `<span class="avatar drawn huge mr-ava ${cls}" data-view="front"><span class="ava-body" style="--hx:${f[0]};--top:${f[1]};--hw:${f[2]};--ny:${f[3]};--handx:${f[4]};--handy:${f[5]};--eye:${(b.eyes[1] + b.eyes[3]) / 2};--chest:${f[9]};--crown:${f[10]};--gap:${MR_GAP[p.avatar] || .58};--paw:${de[6]};aspect-ratio:${b.w}/${b.h}"><img class="mr-img" src="${b.img.f0}" alt="" draggable="false">${lids}${acc}</span></span>`;
 };
 // 캐릭터가 쓸 때만 다른 그림 (상점 아이콘은 그대로): 화관은 머리에 얹은 납작한 타원
-const WORN_ART = { '🌸': 'img/room/acc/wear-1f338.png?v=1', '🐱': 'img/room/acc/wear-1f431.png?v=1', '📿': 'img/room/acc/wear-1f4ff.png?v=1' };
+const WORN_ART = { '🌸': 'img/room/acc/wear-1f338.png?v=1', '🐱': 'img/room/acc/wearside-1f431.png?v=1', '📿': 'img/room/acc/wear-1f4ff.png?v=1' };
 const accArt = (w, worn) => (worn && WORN_ART[w.emoji]) ? `<img src="${WORN_ART[w.emoji]}" alt="" draggable="false">` : PICS.x[w.emoji] ? `<img src="img/${PICS.x[w.emoji]}" alt="" draggable="false">` : w.emoji;
 const avatarHtml = (p, cls = '') => {
   const acc = Store.worn(p).map(w => (w.slot === 'fx' ? ['f1', 'f2', 'f3'] : ['']).map(x => `<i class="acc acc-${w.slot} ${w.id} ${x}" aria-hidden="true">${PICS.a[p.avatar] ? accArt(w, 1) + (w.slot === 'hand' ? '<b class="paw"></b>' : '') : w.emoji}</i>`).join('')).join('');
