@@ -757,6 +757,14 @@ const ACC_ART = {
   '🎈': ['one red balloon on a long string'], '🍭': ['a swirly rainbow lollipop on a stick'], '🪄': ['a short magic wand with a gold star on top'], '🧸': ['a small brown teddy bear toy sitting'],
   '🐥': ['a cute round yellow baby chick sitting'], '🦋': ['a sky blue butterfly with open wings'], '🐢': ['a small cute green turtle sitting'],
   '✨': ['one yellow four-pointed sparkle star'], '💖': ['one shiny pink heart'], '🎵': ['one purple music note'],
+  // 11-25 더한 꾸미기
+  '🎉': ['a tall pointy party cone hat with pink, yellow and blue stripes and one big fluffy white pom-pom on its pointed top, the whole hat drawn with clear outlines, seen from the front'], '🌸': ['a round wreath flower crown of small pink and white flowers and green leaves, seen from the front, wide, empty in the middle', 1],
+  '🐱': ['a headband with two pink and white cat ears, seen from the front, wide, empty in the middle', 1], '🍄': ['a cute red mushroom cap hat with white dots, seen from the front'], '⭐': ['one yellow star-shaped hair clip with a clear brown outline'],
+  '🩷': ['a pair of heart-shaped sunglasses with pink frames and see-through pink tinted lenses, seen straight from the front, wide'], '🤿': ['a pair of blue swimming goggles seen straight from the front, wide, clear empty lenses', 1],
+  '🎗️': ['a red bow tie seen from the front'], '📿': ['a white pearl necklace laid in a wide U shape, seen from the front, empty in the middle', 1], '🔔': ['one small golden bell with a short red ribbon on top'],
+  '🍦': ['an ice cream cone with one scoop of strawberry ice cream'], '🌻': ['one yellow sunflower on a long green stem with one leaf'], '🫧': ['a pink bubble wand with a round ring on a stick and three soap bubbles floating next to it'],
+  '🐶': ['a cute small light brown puppy with darker brown floppy ears sitting, with a clear brown outline'], '🐹': ['a cute round golden hamster sitting'], '🐙': ['a cute small pink octopus smiling'], '🦔': ['a cute small brown hedgehog'],
+  '❄️': ['one light blue snowflake'], '🍀': ['one green four-leaf clover'], '🌙': ['one yellow crescent moon'],
 };
 if (only !== 's' && !book) {
   for (const [e, [label, bg]] of Object.entries(AVATAR_ART)) {

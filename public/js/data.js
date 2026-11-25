@@ -74,6 +74,27 @@ const SHOP = [
   { id: 'acc-sparkle', kind: 'acc', slot: 'fx', emoji: '✨', name: '반짝반짝', cost: 7 },
   { id: 'acc-hearts', kind: 'acc', slot: 'fx', emoji: '💖', name: '하트', cost: 7 },
   { id: 'acc-music', kind: 'acc', slot: 'fx', emoji: '🎵', name: '음표', cost: 7 },
+  // 11-25 더한 꾸미기
+  { id: 'acc-party', kind: 'acc', slot: 'head', emoji: '🎉', name: '파티 모자', cost: 9 },
+  { id: 'acc-wreath', kind: 'acc', slot: 'head', emoji: '🌸', name: '꽃 화관', cost: 9 },
+  { id: 'acc-catears', kind: 'acc', slot: 'head', emoji: '🐱', name: '고양이 귀 머리띠', cost: 9 },
+  { id: 'acc-mushroom', kind: 'acc', slot: 'head', emoji: '🍄', name: '버섯 모자', cost: 8 },
+  { id: 'acc-starpin', kind: 'acc', slot: 'head', emoji: '⭐', name: '별 머리핀', cost: 5 },
+  { id: 'acc-heartglasses', kind: 'acc', slot: 'face', emoji: '🩷', name: '하트 선글라스', cost: 9 },
+  { id: 'acc-goggles', kind: 'acc', slot: 'face', emoji: '🤿', name: '물안경', cost: 8 },
+  { id: 'acc-bowtie', kind: 'acc', slot: 'neck', emoji: '🎗️', name: '나비넥타이', cost: 6 },
+  { id: 'acc-pearls', kind: 'acc', slot: 'neck', emoji: '📿', name: '진주 목걸이', cost: 9 },
+  { id: 'acc-bell', kind: 'acc', slot: 'neck', emoji: '🔔', name: '방울 목걸이', cost: 7 },
+  { id: 'acc-icecream', kind: 'acc', slot: 'hand', emoji: '🍦', name: '아이스크림', cost: 6 },
+  { id: 'acc-sunflower', kind: 'acc', slot: 'hand', emoji: '🌻', name: '해바라기', cost: 7 },
+  { id: 'acc-bubbles', kind: 'acc', slot: 'hand', emoji: '🫧', name: '비눗방울', cost: 8 },
+  { id: 'acc-puppy', kind: 'acc', slot: 'pet', emoji: '🐶', name: '강아지 친구', cost: 12 },
+  { id: 'acc-hamster', kind: 'acc', slot: 'pet', emoji: '🐹', name: '햄스터 친구', cost: 11 },
+  { id: 'acc-octopus', kind: 'acc', slot: 'pet', emoji: '🐙', name: '문어 친구', cost: 12 },
+  { id: 'acc-hedgehog', kind: 'acc', slot: 'pet', emoji: '🦔', name: '고슴도치 친구', cost: 12 },
+  { id: 'acc-snow', kind: 'acc', slot: 'fx', emoji: '❄️', name: '눈송이', cost: 7 },
+  { id: 'acc-clover', kind: 'acc', slot: 'fx', emoji: '🍀', name: '네잎클로버', cost: 7 },
+  { id: 'acc-moon', kind: 'acc', slot: 'fx', emoji: '🌙', name: '달님', cost: 8 },
 ];
 const ACC_SLOTS = [['head', '머리'], ['face', '얼굴'], ['neck', '목'], ['hand', '손'], ['pet', '친구'], ['fx', '효과']];
 
