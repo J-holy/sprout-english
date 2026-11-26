@@ -31,25 +31,28 @@ const FREE = (u) => {
     plus: `${n + 1}~8단계`, plusFrom: `${n + 1}단계`, plusLessons: TOTAL_LESSONS - lessons, plusWhat: n === 2 ? '문장·대화·과거·미래' : '파닉스·문장·대화·과거·미래',
     books: STORIES.filter(s => s.stage <= n && !s.plus).length };
 };
-const PLANS = {
-  one: { list: 19900, m1: 19900, m3: 18900, m6: 17900, m12: 15900 },
-  two: { list: 29900, m1: 29900, m3: 28400, m6: 26900, m12: 23900 },
+// 과목별 요금 (2026-11-26, 서버 server/lib/pricing.js의 SUBJECT_PLANS와 같은 값): 새싹영어(en) · 새싹수학(ma) · 영어+수학(both)
+const SUBJECT_PLANS = {
+  en: { one: { list: 19900, m1: 19900, m3: 18900, m6: 17900, m12: 15900 }, two: { list: 29900, m1: 29900, m3: 28400, m6: 26900, m12: 23900 } },
+  ma: { one: { list: 9900, m1: 9900, m3: 9400, m6: 8900, m12: 7900 }, two: { list: 14900, m1: 14900, m3: 14200, m6: 13400, m12: 11900 } },
+  both: { one: { list: 23900, m1: 23900, m3: 22700, m6: 21500, m12: 19100 }, two: { list: 35900, m1: 35900, m3: 34100, m6: 32300, m12: 28700 } },
 };
-// 기간 한정 1년 특가 (서버 server/lib/pricing.js의 PROMO와 같은 값, 서버가 있으면 /api/config 값으로 바꾼다)
-// 이 기간에 12개월을 결제하면 월 9,900원(두 자녀 14,900원). 쿠폰과 함께 쓰지 않는다
-// 2026-11-26: 1년 특가 없앰 (서버 pricing.js PROMO_ON). 서버가 기간을 보내면 그 값을 쓴다
-const PROMO = { from: 0, until: 0, months: 12, one: 9900, two: 14900 };
+const SUBJECTS = { en: '새싹영어', ma: '새싹수학', both: '영어+수학' };
+const PLANS = SUBJECT_PLANS.en; // 예전 코드 호환: 영어 요금
+// 정식 오픈 기념 1년 특가 (서버 server/lib/pricing.js의 PROMO와 같은 값, 서버가 있으면 /api/config 값으로 바꾼다)
+// 12월 3일~16일에 영어+수학 12개월을 결제하면 월 17,700원(형제·자매 26,500원). 쿠폰과 함께 쓰지 않는다
+const PROMO = { from: Date.parse('2026-12-03T00:00:00+09:00'), until: Date.parse('2026-12-16T23:59:59+09:00'), months: 12, subject: 'both', one: 17700, two: 26500 };
 const promoOn = (t = Date.now()) => t >= PROMO.from && t <= PROMO.until;
-const promoMonthly = (kids, months) => (months === PROMO.months && promoOn() ? PROMO[kids] : 0);
+const promoMonthly = (kids, months, subject = 'en') => (months === PROMO.months && subject === PROMO.subject && promoOn() ? PROMO[kids] : 0);
 const promoEndText = () => { const d = new Date(PROMO.until); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
 // '월 ○원부터' 안내에 쓰는 가장 싼 월 요금
-const lowestMonthly = (kids = 'one') => promoMonthly(kids, PROMO.months) || PLANS[kids].m12;
+const lowestMonthly = (kids = 'one', subject = 'en') => promoMonthly(kids, PROMO.months, subject) || SUBJECT_PLANS[subject][kids].m12;
 const wonText = n => n.toLocaleString('ko-KR') + '원';
 // 카카오톡 채널 '새싹스쿨' (11-24 개설): 채널 추가·1:1 채팅 문의
 const KAKAO_CHANNEL = { home: 'https://pf.kakao.com/_RxjmvX', chat: 'https://pf.kakao.com/_RxjmvX/chat' };
 const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인 (모든 기간)
 const round10 = n => Math.round(n / 10) * 10;
-const planMonthly = (kids, months) => PLANS[kids]['m' + months];
+const planMonthly = (kids, months, subject = 'en') => SUBJECT_PLANS[subject][kids]['m' + months];
 
 // 별(⭐) 상점: 레슨·스토리·말하기·놀이터에서 모은 별로 스티커와 꾸미기 아이템을 사요
 const SHOP = [
@@ -127,7 +130,7 @@ const ACC_SLOTS = [['head', '머리'], ['face', '얼굴'], ['neck', '목'], ['ha
 const FAQ = [
   { cat: '요금', q: '정말 무료로 쓸 수 있나요?', get a() { const f = FREE(); return `네. ${f.range}(${f.name}, ${f.levels} ${f.lessons}레슨)와 스토리북 ${f.books}권, 놀이터, 말하기 연습, 부모 리포트는 기간 제한 없이 평생 무료예요. 카드 등록도 필요 없어요.`; } },
   { cat: '요금', q: '7일 체험은 뭔가요?', get a() { const f = FREE(); return `아이가 무료 단계를 마치고 처음으로 플러스 단계(${f.plusFrom})에 들어갈 때, 7일 무료 체험을 시작할 수 있어요. 체험하는 7일 동안은 8단계까지 모든 단계와 스토리북을 쓸 수 있어요. 체험이 끝나도 자동 결제는 없고, ${f.range}는 계속 무료로 이어져요.`; } },
-  { cat: '요금', q: '플러스는 얼마예요?', a: `아이 1명 기준 1개월 ${wonText(PLANS.one.m1)}, 3개월은 월 ${wonText(PLANS.one.m3)}, 6개월은 월 ${wonText(PLANS.one.m6)}, 12개월은 월 ${wonText(PLANS.one.m12)}이에요. 형제·자매를 2명 이상 등록하면 1개월 ${wonText(PLANS.two.m1)}, 3개월 월 ${wonText(PLANS.two.m3)}, 6개월 월 ${wonText(PLANS.two.m6)}, 12개월 월 ${wonText(PLANS.two.m12)}이에요. 가입하면 받는 웰컴쿠폰으로 가입 후 10일 안의 첫 결제는 ${Math.round(WELCOME_RATE * 100)}% 더 할인돼요.${promoOn() ? ` 1년 특가 기간(${promoEndText()}까지)에는 12개월이 월 ${wonText(PROMO.one)}(형제·자매 월 ${wonText(PROMO.two)})이고, 이때는 쿠폰을 함께 쓰지 않아요(쿠폰은 남아요).` : ''} 한 번만 결제하는 이용권이라 자동으로 다시 결제되지 않아요.` },
+  { cat: '요금', q: '플러스는 얼마예요?', a: `과목별로 골라요. 아이 1명 1개월 기준 새싹영어 ${wonText(SUBJECT_PLANS.en.one.m1)}, 새싹수학 ${wonText(SUBJECT_PLANS.ma.one.m1)}, 영어+수학 ${wonText(SUBJECT_PLANS.both.one.m1)}(따로 할 때보다 약 20% 할인)이에요. 3개월 5%, 6개월 10%, 12개월 20% 할인돼요(영어 12개월 월 ${wonText(SUBJECT_PLANS.en.one.m12)}, 수학 월 ${wonText(SUBJECT_PLANS.ma.one.m12)}, 영어+수학 월 ${wonText(SUBJECT_PLANS.both.one.m12)}). 형제·자매를 2명 이상 등록하면 형제·자매 요금(약 1.5배로 아이 모두)이 적용돼요. 가입하면 받는 웰컴쿠폰으로 가입 후 10일 안의 첫 결제는 ${Math.round(WELCOME_RATE * 100)}% 더 할인돼요.${promoOn() ? ` 정식 오픈 기념(${promoEndText()}까지)에는 영어+수학 12개월이 월 ${wonText(PROMO.one)}(형제·자매 월 ${wonText(PROMO.two)})이고, 이때는 쿠폰을 함께 쓰지 않아요(쿠폰은 남아요).` : ''} 한 번만 결제하는 이용권이라 자동으로 다시 결제되지 않아요.` },
   { cat: '요금', q: '형제·자매가 같이 쓸 수 있나요?', a: '한 계정에서 여러 아이 프로필을 만들 수 있고, 무료 구간은 모두 함께 써요. 아이를 2명 이상 등록하면 플러스를 결제할 때 형제·자매 요금이 자동으로 적용돼요.' },
   { cat: '멤버십', q: '체험 중에 플러스를 사면 남은 기간과 진도는요?', a: '남은 체험 기간은 플러스 기간에 더해지고, 학습 진도와 기록도 그대로 유지돼요.' },
   { cat: '멤버십', q: '다시 결제되나요? 환불하려면?', a: '플러스는 한 번만 결제하는 이용권이라 자동으로 다시 결제되지 않아요. 따로 해지할 필요가 없고, 이용 기간이 끝나기 3일 전에 알려 드려요. 결제 후 7일 이내이고 플러스 학습(2단계 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요.' },

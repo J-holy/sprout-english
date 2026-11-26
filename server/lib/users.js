@@ -56,8 +56,9 @@ export function membershipOf(uid) {
   const m = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(uid);
   if (!m) return null;
   // 다음 자동갱신 금액: 지금 아이 수·쿠폰으로 계산한 정가 (첫 결제 쿠폰·1년 특가는 갱신에 쓰지 않는다)
-  const u = getUser(uid), next = m.granted || !u ? null : quote(uid, kidsOf(u), m.months, { renew: true }).total;
-  return { nextAmount: next, kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key,
+  const u = getUser(uid), next = m.granted || !u ? null : quote(uid, kidsOf(u), m.months, { renew: true, subject: m.subject }).total;
+  // 관리자 지급(베타 등)은 두 과목 모두
+  return { nextAmount: next, subject: m.granted ? 'both' : (m.subject || 'en'), kids: m.kids, months: m.months, since: m.since, until: m.until, autoRenew: !!m.auto_renew, monthly: m.monthly, granted: !!m.granted, card: !!m.billing_key,
     // 한 번만 결제한 이용권(단건결제): 자동갱신이 없다
     oneTime: !m.granted && !m.billing_key && !m.auto_renew,
     // 지금 환불하면 돌려받는 금액 (없으면 null)
@@ -86,10 +87,12 @@ export function userDoc(u) {
   };
 }
 
-export function access(u) {
+// subject: 'en' 영어 | 'ma' 수학 — 멤버십이 그 과목을 포함할 때만 member
+export const coversSubject = (m, subject = 'en') => !!m && (m.subject === 'both' || m.subject === subject);
+export function access(u, subject = 'en') {
   if (isAdmin(u)) return { ok: true, kind: 'admin' };
   const m = membershipOf(u.id), t = now();
-  if (m && m.until > t) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - t) / DAY) };
+  if (m && m.until > t && coversSubject(m, subject)) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - t) / DAY) };
   // 베타 기간에는 모두 전체 단계를 쓴다 (체험이 더 길면 체험 기준)
   const beta = config.betaUntil > t ? config.betaUntil : 0;
   // 7일 체험은 아이가 처음 플러스 단계에 들어갈 때 보호자가 시작한다 (POST /api/me/trial, 2026-11-26)

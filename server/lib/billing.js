@@ -56,11 +56,11 @@ async function retireKakao(oldKey, newKey) {
 export const retireBillingKey = key => retireKakao(key, null);
 
 // 결제 대기 주문 만들기 (금액은 서버가 계산해서 저장)
-export function createOrder(u, kids, months, opts) {
+export function createOrder(u, kids, months, opts = {}) {
   const q = quote(u.id, kids, months, opts);
   const orderId = 'ord_' + crypto.randomBytes(10).toString('hex');
-  db.prepare(`INSERT INTO payments (id, user_id, order_id, at, amount, description, kids, months, coupon_id, coupon_label, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '대기')`).run(id(), u.id, orderId, now(), q.total, q.name, kids, Number(months), q.coupon?.id || null, q.couponLabel);
+  db.prepare(`INSERT INTO payments (id, user_id, order_id, at, amount, description, kids, months, coupon_id, coupon_label, status, subject)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '대기', ?)`).run(id(), u.id, orderId, now(), q.total, q.name, kids, Number(months), q.coupon?.id || null, q.couponLabel, q.subject);
   return { orderId, q };
 }
 
@@ -75,11 +75,11 @@ function fulfill(order, { paymentKey, method, billingKey, raw, oneTime = false }
     const base = cur && cur.until > t ? cur.until : t;
     const until = base + order.months * 30 * DAY + bonus;
     const monthly = Math.round(order.amount / order.months);
-    db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted, billing_key, renew_fail)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 0) ON CONFLICT(user_id) DO UPDATE SET kids = excluded.kids, months = excluded.months,
+    db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted, billing_key, renew_fail, subject)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 0, ?) ON CONFLICT(user_id) DO UPDATE SET kids = excluded.kids, months = excluded.months, subject = excluded.subject,
       since = CASE WHEN memberships.until > ? THEN memberships.since ELSE excluded.since END, until = excluded.until, auto_renew = excluded.auto_renew,
       monthly = excluded.monthly, granted = 0, billing_key = CASE WHEN ? THEN NULL ELSE COALESCE(excluded.billing_key, memberships.billing_key) END, renew_fail = 0`)
-      .run(u.id, order.kids, order.months, t, until, oneTime ? 0 : 1, monthly, oneTime ? null : billingKey || null, t, oneTime ? 1 : 0);
+      .run(u.id, order.kids, order.months, t, until, oneTime ? 0 : 1, monthly, oneTime ? null : billingKey || null, order.subject || 'en', t, oneTime ? 1 : 0);
     db.prepare('UPDATE payments SET status = ?, payment_key = ?, method = ?, raw = ?, at = ? WHERE id = ?')
       .run('결제완료', paymentKey || null, method || '', raw ? JSON.stringify(raw).slice(0, 4000) : null, t, order.id);
     if (order.coupon_id) db.prepare('UPDATE coupons SET used = 1 WHERE id = ?').run(order.coupon_id);
@@ -182,7 +182,7 @@ export async function refund(uid, { admin = false } = {}) {
 export async function renewalJob() {
   const t = now();
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 1 AND granted = 0 AND until BETWEEN ? AND ?').all(t + 3 * DAY - 3600000, t + 3 * DAY)) {
-    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 결제 금액은 ${quote(m.user_id, kidsOf(getUser(m.user_id)), m.months, { renew: true }).total.toLocaleString('ko-KR')}원이에요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
+    notify(m.user_id, `🔔 ${new Date(m.until).toLocaleDateString('ko-KR')}에 멤버십이 자동갱신돼요. 결제 금액은 ${quote(m.user_id, kidsOf(getUser(m.user_id)), m.months, { renew: true, subject: m.subject }).total.toLocaleString('ko-KR')}원이에요. 원하지 않으면 부모페이지에서 해지할 수 있어요.`, 'member');
   }
   // 단건결제 이용권(자동갱신 없음): 끝나기 3일 전에 다시 구매하라고 알린다
   for (const m of db.prepare('SELECT * FROM memberships WHERE auto_renew = 0 AND granted = 0 AND billing_key IS NULL AND until BETWEEN ? AND ?').all(t + 3 * DAY - 3600000, t + 3 * DAY)) {
@@ -192,11 +192,11 @@ export async function renewalJob() {
     const u = getUser(m.user_id);
     if (!m.billing_key) {
       if (paymentMode() === 'demo') {
-        const { orderId } = createOrder(u, kidsOf(u), m.months, { renew: true }); completeDemo(orderId);
+        const { orderId } = createOrder(u, kidsOf(u), m.months, { renew: true, subject: m.subject }); completeDemo(orderId);
       } else db.prepare('UPDATE memberships SET auto_renew = 0 WHERE user_id = ?').run(u.id);
       continue;
     }
-    const { orderId } = createOrder(u, kidsOf(u), m.months, { renew: true });
+    const { orderId } = createOrder(u, kidsOf(u), m.months, { renew: true, subject: m.subject });
     const order = db.prepare('SELECT * FROM payments WHERE order_id = ?').get(orderId);
     try {
       if (isKakaoKey(m.billing_key)) {

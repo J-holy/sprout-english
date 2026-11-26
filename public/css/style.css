@@ -1706,3 +1706,9 @@ a.shop-ava { display: block; }
 .m-count > span { width: 1.45em; height: 1.45em; display: grid; place-items: center; background: var(--soft); border: 2px solid var(--line); border-radius: 12px; }
 .m-count > span .m-pic { width: 1.1em; height: 1.1em; object-fit: contain; }
 .mini-quiz .m-count { font-size: 1.6rem; gap: 6px; }
+/* 요금: 과목 고르기 탭 (2026-11-26) */
+.plan-subjects { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px 0 4px; }
+.plan-subjects button { border: 3px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 8px 18px; font: inherit; font-weight: 700; cursor: pointer; }
+.plan-subjects button small { font-weight: 400; color: #e65100; }
+.plan-subjects button.on { background: var(--sun, #ffd23f); } .plan-subjects button.on small { color: #8a3b00; }
+.plan-subj-desc { margin: 2px 0 10px; }

@@ -14,7 +14,7 @@ import {
 import { sendCodeMail, mailReady, verifyMailer } from './lib/mailer.js';
 import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
-import { PLANS, PROMO, validPlan, quote, kidsOf } from './lib/pricing.js';
+import { PLANS, SUBJECT_PLANS, SUBJECTS, PROMO, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
 import { weeklyJob, recordOutcomes } from './lib/weekly.js';
 import { sttProvider, checkWav, toPcm16, recognize } from './lib/stt.js';
@@ -45,7 +45,7 @@ const PENDING_TTL = 30 * 60000;
 app.get('/api/health', (req, res) => res.json({ ok: true, time: now() }));
 app.get('/api/config', (req, res) => res.json({
   server: true, providers: enabledProviders(), payments: paymentMode(), payMethods: payMethods(), tossClientKey: config.toss.clientKey || null,
-  plans: PLANS, promo: PROMO, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(), sttUlaw: true,
+  plans: PLANS, subjectPlans: SUBJECT_PLANS, promo: PROMO, devShowCode: config.devShowCode && !mailReady, code: config.code, tts: ttsProvider(), stt: sttProvider(), sttUlaw: true,
   phone: smsMode() || (config.devShowCode ? 'dev' : null), betaUntil: config.betaUntil > now() ? config.betaUntil : 0,
 }));
 
@@ -318,14 +318,18 @@ app.post('/api/auth/:provider/callback', oauthCallback);
 
 // ---------- 결제 ----------
 app.get('/api/billing/quote', requireUser, (req, res) => {
-  const { months } = req.query, kids = kidsOf(req.user);
-  if (!validPlan(kids, months)) return bad(res, '상품을 다시 골라 주세요.');
-  const q = quote(req.user.id, kids, months);
+  const { months } = req.query, kids = kidsOf(req.user), subject = req.query.subject || 'en';
+  if (!validPlan(kids, months, subject)) return bad(res, '상품을 다시 골라 주세요.');
+  const q = quote(req.user.id, kids, months, { subject });
   res.json({ ...q, coupon: q.coupon ? { id: q.coupon.id, name: q.coupon.name } : null });
 });
 app.post('/api/billing/checkout', requireUser, wrap(async (req, res) => {
-  const { months } = req.body || {}, kids = kidsOf(req.user);
-  if (!validPlan(kids, months)) return bad(res, '상품을 다시 골라 주세요.');
+  const { months } = req.body || {}, kids = kidsOf(req.user), subject = req.body?.subject || 'en';
+  if (!validPlan(kids, months, subject)) return bad(res, '상품을 다시 골라 주세요.');
+  // 이용 중인 이용권과 다른 과목은 지금 이용권이 끝난 뒤에 결제한다 (기간이 다른 두 이용권을 섞지 않게)
+  const curM = db.prepare('SELECT subject, until, granted FROM memberships WHERE user_id = ?').get(req.user.id);
+  if (curM && curM.until > now() && !curM.granted && curM.subject !== subject)
+    return bad(res, `지금 ${SUBJECTS[curM.subject] || '새싹영어'} 이용권을 쓰고 있어요. 다른 과목은 지금 이용권이 끝난 뒤에 결제할 수 있어요. 바로 바꾸고 싶으면 고객센터로 문의해 주세요.`, 409);
   // 화면에 보여 준 요금과 다르면 결제하지 않는다 (다른 기기에서 아이를 추가·삭제한 경우)
   if (req.body?.kids && req.body.kids !== kids) return bad(res, '등록한 아이 수가 바뀌었어요. 새로고침한 뒤 금액을 다시 확인해 주세요.', 409);
   if (isAdmin(req.user)) return bad(res, '관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
@@ -333,7 +337,7 @@ app.post('/api/billing/checkout', requireUser, wrap(async (req, res) => {
   if (mode === 'off') return bad(res, '결제 기능을 준비 중이에요. 잠시 후 다시 시도해 주세요.', 503);
   const methods = payMethods(), method = req.body?.method === 'kakao' ? 'kakao' : 'card';
   if (mode !== 'demo' && !methods.includes(method)) return bad(res, '이 결제수단은 아직 쓸 수 없어요. 다른 결제수단을 골라 주세요.');
-  const { orderId, q } = createOrder(req.user, kids, Number(months));
+  const { orderId, q } = createOrder(req.user, kids, Number(months), { subject });
   if (mode === 'demo') { completeDemo(orderId); return res.json({ mode, done: true }); }
   if (method === 'kakao') {
     try { return res.json({ mode: 'kakao', orderId, ...await startKakaoPay(req.user, orderId) }); }
@@ -412,8 +416,8 @@ app.post('/api/admin/users/:id/action', wrap(async (req, res) => {
       const months = [1, 3, 6, 12].includes(Number(req.body.months)) ? Number(req.body.months) : 1;
       const cur = db.prepare('SELECT * FROM memberships WHERE user_id = ?').get(u.id);
       const until = (cur && cur.until > t ? cur.until : t) + months * 30 * DAY;
-      db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted) VALUES (?, 'two', ?, ?, ?, 0, 0, 1)
-        ON CONFLICT(user_id) DO UPDATE SET until = excluded.until, months = excluded.months, granted = 1, auto_renew = 0`).run(u.id, months, t, until);
+      db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted, subject) VALUES (?, 'two', ?, ?, ?, 0, 0, 1, 'both')
+        ON CONFLICT(user_id) DO UPDATE SET until = excluded.until, months = excluded.months, granted = 1, auto_renew = 0, subject = 'both'`).run(u.id, months, t, until);
       db.prepare(`INSERT INTO payments (id, user_id, at, amount, description, months, status) VALUES (?, ?, ?, 0, ?, ?, '지급')`).run(id(), u.id, t, `관리자 지급 ${months}개월`, months);
       notify(u.id, `🎁 관리자가 멤버십 ${months}개월을 지급했어요.`, 'member'); break;
     }

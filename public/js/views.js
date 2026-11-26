@@ -143,6 +143,8 @@ const UI = {
   plans() {
     return `<div class="plans">
       <p class="plan-kids center"></p>
+      <div class="plan-subjects" role="tablist">${[['both', '🌱 영어+수학', '약 20% 할인'], ['en', '🔤 새싹영어', ''], ['ma', '🧮 새싹수학', '']].map(([k, t, d]) => `<button data-subj="${k}" class="${k === 'both' ? 'on' : ''}">${t}${d ? ` <small>${d}</small>` : ''}</button>`).join('')}</div>
+      <p class="plan-subj-desc center fine"></p>
       <div class="plan-cards"></div>
       <p class="fine center">모든 상품은 한 번만 결제하는 이용권이에요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 알려 드려요.${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
     </div>`;
@@ -152,39 +154,46 @@ const UI = {
     $('.plan-kids', root).innerHTML = kids === 'two'
       ? `👧👦 아이 ${Store.user().profiles.length}명을 등록해서 <b>형제·자매 요금</b>이 적용되고 있어요.`
       : '👧👦 형제·자매가 함께 배우나요? 아이를 추가하면 <b>형제·자매 할인</b>이 자동으로 적용돼요.';
+    let subj = 'both';
+    const DESC = { both: () => `새싹영어와 새싹수학을 모두 해요. 따로 하면 월 ${won(SUBJECT_PLANS.en[kids].m1 + SUBJECT_PLANS.ma[kids].m1)} → 함께 월 ${won(SUBJECT_PLANS.both[kids].m1)}`,
+      en: () => `알파벳부터 과거·미래까지 ${FREE().plus} 영어 전체 · 스토리북 ${STORIES.length}권`, ma: () => '수 세기부터 마방진·스도쿠까지 개념 레슨 · 퍼즐 놀이 · 워크시트' };
     const draw = () => {
-      const P = PLANS[kids];
+      const P = SUBJECT_PLANS[subj][kids];
+      $('.plan-subj-desc', root).textContent = DESC[subj]();
+      $$('[data-subj]', root).forEach(b => b.classList.toggle('on', b.dataset.subj === subj));
       $('.plan-cards', root).innerHTML = [12, 6, 3, 1].map(months => {
-        const monthly = planMonthly(kids, months);
+        const monthly = planMonthly(kids, months, subj);
         // 로그인 전에는 웰컴쿠폰을 받는다고 보고 보여준다
-        const promo = promoMonthly(kids, months);
-        const q = loggedIn ? Store.quote(kids, months) : promo ? { rate: 0, promo: true, monthly: promo } : { rate: WELCOME_RATE, monthly: round10(monthly * (1 - WELCOME_RATE)) };
+        const promo = promoMonthly(kids, months, subj);
+        const q = loggedIn ? Store.quote(kids, months, subj) : promo ? { rate: 0, promo: true, monthly: promo } : { rate: WELCOME_RATE, monthly: round10(monthly * (1 - WELCOME_RATE)) };
         q.total = q.monthly * months;
         const disc = Math.round((1 - monthly / P.list) * 100);
         const perDay = Math.round((q.rate || q.promo ? q.monthly : monthly) / 30 / 10) * 10;
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
-          ${months === 12 ? `<span class="ribbon">${q.promo ? `1년 특가 · ${promoEndText()}까지` : '가장 인기'}</span>` : ''}
+          ${months === 12 ? `<span class="ribbon">${q.promo ? `오픈 기념 특가 · ${promoEndText()}까지` : '가장 인기'}</span>` : ''}
           <h4>${months}개월</h4>
-          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 3: '한 계절 꾸준히 해보기', 6: `하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: `하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
+          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 3: '한 계절 꾸준히 해보기', 6: subj === 'ma' ? '반년 동안 수학 습관 만들기' : `영어는 하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: subj === 'ma' ? '1년 동안 개념부터 퍼즐까지 꾸준히' : `영어는 하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
           <dl>${disc ? `<dt>1개월 요금</dt><dd class="strike">월 ${won(P.list)}</dd>` : ''}
           <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
-          ${q.promo ? `<dt>1년 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
+          ${q.promo ? `<dt>오픈 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
           ${q.rate ? `<dt>첫 결제 쿠폰</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
           <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}</div>
           <button class="btn btn-primary full" data-buy="${months}">선택하기</button></div>`;
       }).join('');
-      $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(+b.dataset.buy));
+      $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(+b.dataset.buy, subj));
     };
+    $$('[data-subj]', root).forEach(b => b.onclick = () => { subj = b.dataset.subj; draw(); });
     draw();
   },
   // 요금·할인 기준을 한곳에: 기간 할인 → 형제·자매 → 첫 결제 쿠폰 → 1년 특가. 한 결제에는 할인 하나만 (서버 pricing.js와 같은 규칙)
   discountRules() {
     const pct = Math.round(WELCOME_RATE * 100), on = promoOn();
     const rows = [
-      ['📅', '기간 할인', `기간이 길수록 월 요금이 내려가요. 1개월 ${won(PLANS.one.m1)} → 3개월 월 ${won(PLANS.one.m3)} → 6개월 월 ${won(PLANS.one.m6)} → 12개월 월 ${won(PLANS.one.m12)}`],
-      ['👫', '형제·자매 요금', `아이를 2명 이상 등록하면 자동으로 적용돼요. 1개월 ${won(PLANS.two.m1)} ~ 12개월 월 ${won(PLANS.two.m12)} (아이 모두 함께)`],
-      ['🎟️', `첫 결제 쿠폰 ${pct}%`, `가입하면 받는 웰컴쿠폰이에요. 가입 후 10일 안에 하는 첫 결제에서 위 요금의 ${pct}%를 더 할인해요.${on ? ' (1년 특가가 적용되는 12개월은 제외)' : ''}`],
-      ...(on ? [['🎉', `1년 특가 · ${promoEndText()}까지`, `이 기간에 12개월을 고르면 월 ${won(PROMO.one)}(형제·자매 월 ${won(PROMO.two)})예요. 쿠폰을 쓸 때보다 싸서 특가가 적용되고, 쿠폰은 쓰지 않고 남아요.`]] : []),
+      ['🌱', '영어+수학 함께 할인', `두 과목을 함께 하면 따로 할 때(월 ${won(SUBJECT_PLANS.en.one.m1 + SUBJECT_PLANS.ma.one.m1)})보다 약 20% 싼 월 ${won(SUBJECT_PLANS.both.one.m1)}이에요 (아이 1명, 1개월)`],
+      ['📅', '기간 할인', `기간이 길수록 월 요금이 내려가요. 3개월 5%, 6개월 10%, 12개월 20% (영어 1개월 ${won(PLANS.one.m1)} → 12개월 월 ${won(PLANS.one.m12)})`],
+      ['👫', '형제·자매 요금', `아이를 2명 이상 등록하면 자동으로 적용돼요. 아이 모두 함께 약 1.5배 (영어 1개월 ${won(PLANS.two.m1)}, 영어+수학 1개월 ${won(SUBJECT_PLANS.both.two.m1)})`],
+      ['🎟️', `첫 결제 쿠폰 ${pct}%`, `가입하면 받는 웰컴쿠폰이에요. 가입 후 10일 안에 하는 첫 결제에서 위 요금의 ${pct}%를 더 할인해요.${on ? ' (오픈 특가가 적용되는 영어+수학 12개월은 제외)' : ''}`],
+      ...(on ? [['🎉', `정식 오픈 기념 특가 · ${promoEndText()}까지`, `이 기간에 영어+수학 12개월을 고르면 월 ${won(PROMO.one)}(형제·자매 월 ${won(PROMO.two)})예요. 쿠폰을 쓸 때보다 싸서 특가가 적용되고, 쿠폰은 쓰지 않고 남아요.`]] : []),
     ];
     return `<div class="card discount-rules"><h2>🧾 할인은 이렇게 적용돼요</h2>
       <ol>${rows.map(([i, t, d]) => `<li><span class="dr-ico">${i}</span><div><b>${t}</b><small>${d}</small></div></li>`).join('')}</ol>
@@ -874,8 +883,14 @@ Views.pricing = (el, params) => {
       ['🎯', '매일 미션', '레슨·복습·말하기 미션과 보상 상자로 매일 습관'],
       ['🎓', '단계 수료증 · 워크시트', '단계를 마칠 때마다 수료증, 레벨별 인쇄 워크시트'],
     ].map(([i, t, d]) => `<div class="value-item"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
+    <h2 class="sec-sub">🧮 새싹수학 플러스에 들어 있는 것</h2>
+    <div class="value-grid">${[
+      ['📖', '개념 레슨', '수 세기·도형·규칙부터 더하기·빼기·분수까지, 그림과 소리로 배우기'],
+      ['🧩', '퍼즐 놀이', '수 세기·모양·규칙·머리셈·마방진·스도쿠, 할 때마다 새 문제'],
+      ['🖨️', '인쇄 워크시트', '주제마다 따라 쓰기와 문제, 정답까지 한 장에'],
+    ].map(([i, t, d]) => `<div class="value-item"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
 
-    <h2 class="sec-sub">💎 플러스 요금 <small>${F.plus} ${F.plusWhat}까지 · 스토리북 ${STORIES.length}권 전체</small></h2>
+    <h2 class="sec-sub">💎 플러스 요금 <small>과목을 골라요 · 영어+수학은 약 20% 할인</small></h2>
     ${UI.plans()}
 
     <h2 class="sec-sub">무료 vs 플러스</h2>
@@ -892,7 +907,7 @@ Views.pricing = (el, params) => {
       <div class="card feat"><span class="feat-ico">${ico('🌱')}</span><h4>끝나도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, ${F.range}는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
     <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
-      <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 3개월 / 6개월 / 12개월</dd>
+      <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 과목: 새싹영어 / 새싹수학 / 영어+수학 · 기간: 1개월 / 3개월 / 6개월 / 12개월</dd>
       <dt>서비스 제공 기간</dt><dd>결제하면 바로 이용 시작 · 1개월 30일, 3개월 90일, 6개월 180일, 12개월 360일</dd>
       <dt>결제 방식</dt><dd>한 번만 결제(단건결제) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
       <dt>결제 시기</dt><dd>구매할 때 한 번 결제해요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 종료일을 알려 드려요. 계속 이용하려면 이용권을 다시 구매해요.</dd>
@@ -908,7 +923,7 @@ Views.pricing = (el, params) => {
 };
 function statusText(a, u) {
   if (a.kind === 'admin') return '🛠️ 관리자 계정 · 모든 기능을 제한 없이 이용 중';
-  if (a.kind === 'member') return `💎 멤버십 이용 중 · <b>${a.daysLeft}일</b> 남음 · ${u.membership.autoRenew ? `다음 결제일 ${fmtDay(u.membership.until)}` : `${fmtDay(u.membership.until)}까지`}`;
+  if (a.kind === 'member') return `💎 ${SUBJECTS[u.membership.granted ? 'both' : (u.membership.subject || 'en')]} 플러스 이용 중 · <b>${a.daysLeft}일</b> 남음 · ${u.membership.autoRenew ? `다음 결제일 ${fmtDay(u.membership.until)}` : `${fmtDay(u.membership.until)}까지`}`;
   if (a.kind === 'free') { const f = FREE(); return `🌱 무료 이용 중 · ${f.range}(${f.name})는 평생 무료예요. ${a.trialReady ? `${f.plusFrom}에 들어가면 7일 무료 체험을 시작할 수 있어요.` : `💎 플러스로 ${f.plusFrom}부터 이어갈 수 있어요.`}`; }
   if (a.beta) return `🧪 베타 테스트 기간 · <b>${fmtDay(API.cfg.betaUntil)}</b>까지 전체 단계 무료 · 끝나도 ${FREE().range}는 계속 무료 (자동결제 없음)`;
   return `🎁 전체 단계 체험 중 · <b>${a.daysLeft}일</b> 남음 · 끝나도 ${FREE().range}는 계속 무료 (자동결제 없음)`;
@@ -1917,7 +1932,7 @@ const ParentTabs = {
     const a = Store.access(), m = u.membership;
     el.innerHTML = `<div class="card status-card">${statusText(a, u)}</div>
       ${m ? `<div class="card sub-card"><h3>내 멤버십</h3><dl class="summary">
-        <dt>상품</dt><dd>플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
+        <dt>상품</dt><dd>${SUBJECTS[m.granted ? 'both' : (m.subject || 'en')]} 플러스 ${m.months}개월${m.kids === 'two' ? ' · 형제·자매' : ''}${m.granted ? ' (관리자 지급)' : ''}</dd>
         <dt>이용 기간</dt><dd>${fmtDay(m.since)} ~ ${fmtDay(m.until)}</dd>
         ${m.autoRenew ? `<dt>자동갱신</dt><dd>켜짐 · 다음 결제 ${fmtDay(m.until)} · ${won(m.nextAmount != null ? m.nextAmount : planMonthly(Store.kidsPlan(), m.months) * m.months)}</dd>` : m.granted ? '' : `<dt>결제</dt><dd>한 번만 결제한 이용권 · 자동결제 없음 · ${fmtDay(m.until)} 3일 전에 알려 드려요</dd>`}
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>

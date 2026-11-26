@@ -59,6 +59,9 @@ const MIGRATIONS = [
    CREATE TABLE kid_messages (id TEXT PRIMARY KEY, friend_id TEXT NOT NULL REFERENCES friends(id) ON DELETE CASCADE,
      from_user TEXT NOT NULL, from_kid TEXT NOT NULL, to_user TEXT NOT NULL, to_kid TEXT NOT NULL, code TEXT NOT NULL, at INTEGER NOT NULL, read INTEGER NOT NULL DEFAULT 0);
    CREATE INDEX kid_messages_to ON kid_messages(to_user, at);`,
+  // 2026-11-26 과목별 요금: 멤버십·결제에 과목(en 영어, ma 수학, both 영어+수학). 예전 기록은 영어
+  `ALTER TABLE memberships ADD COLUMN subject TEXT NOT NULL DEFAULT 'en';
+   ALTER TABLE payments ADD COLUMN subject TEXT NOT NULL DEFAULT 'en';`,
 ];
 
 db.exec('CREATE TABLE IF NOT EXISTS schema_version (v INTEGER NOT NULL)');

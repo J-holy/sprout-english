@@ -70,6 +70,7 @@ const Store = (() => {
     if (API.down) return;
     if (!API.on) { loadLocal(); return; }
     Object.assign(PLANS, API.cfg.plans || {});
+    for (const k of Object.keys(API.cfg.subjectPlans || {})) Object.assign(SUBJECT_PLANS[k] || (SUBJECT_PLANS[k] = {}), API.cfg.subjectPlans[k]);
     await Promise.all([loadMe(), loadReviews()]);
   }
   function normalizeProfile(p) {
@@ -234,12 +235,14 @@ const Store = (() => {
   function updateProfile(patch) { Object.assign(profile(), patch); save(); }
 
   // ---------- 이용권 / 멤버십 ----------
-  function access(u = user()) {
+  // subject: 'en' 영어 | 'ma' 수학. 멤버십이 그 과목을 포함할 때만 member (영어+수학·관리자 지급은 둘 다)
+  const covers = (m, subject) => !!m && (m.granted || m.subject === 'both' || (m.subject || 'en') === subject);
+  function access(u = user(), subject = 'en') {
     if (!u) return { ok: false, reason: 'login' };
     if (u.access && u !== user()) return u.access.kind === 'admin' ? { ok: true, kind: 'admin', daysLeft: Infinity } : u.access; // 관리자 목록(서버 계산값)
     if (isAdmin(u)) return { ok: true, kind: 'admin', daysLeft: Infinity };
     const now = Date.now(), m = u.membership;
-    if (m && m.until > now) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - now) / DAY) };
+    if (m && m.until > now && covers(m, subject)) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - now) / DAY) };
     // 베타 기간에는 모두 전체 단계를 쓴다 (체험이 더 길면 체험 기준)
     const beta = API.on && API.cfg.betaUntil > now ? API.cfg.betaUntil : 0;
     // 7일 체험은 아이가 처음 플러스 단계에 들어갈 때 보호자가 시작한다 (가입하자마자 흘러가 버리지 않게, 2026-11-26)
@@ -255,21 +258,22 @@ const Store = (() => {
   // 요금은 등록한 아이 수로 정해진다. 2명부터 형제·자매 요금
   const kidsPlan = (u = user()) => (u && u.profiles.length >= 2 ? 'two' : 'one');
   const couponRate = c => !c ? 0 : c.welcome ? WELCOME_RATE : c.rate;
-  function quote(kids, months) {
+  function quote(kids, months, subject = 'en') {
+    const P = SUBJECT_PLANS[subject][kids];
     // 1년 특가는 쿠폰과 함께 쓰지 않는다 (서버와 같은 계산)
-    const promo = promoMonthly(kids, months);
-    if (promo) return { coupon: null, rate: 0, promo: true, monthly: promo, total: promo * months, list: PLANS[kids].list * months };
+    const promo = promoMonthly(kids, months, subject);
+    if (promo) return { subject, coupon: null, rate: 0, promo: true, monthly: promo, total: promo * months, list: P.list * months };
     const c = bestCoupon(), rate = couponRate(c);
     // 쿠폰은 멤버십 월 요금에서 할인하고 10원 단위로 맞춘다 (서버와 같은 계산)
-    const monthly = rate ? round10(planMonthly(kids, months) * (1 - rate)) : planMonthly(kids, months);
-    return { coupon: c, rate, monthly, total: monthly * months, list: PLANS[kids].list * months };
+    const monthly = rate ? round10(planMonthly(kids, months, subject) * (1 - rate)) : planMonthly(kids, months, subject);
+    return { subject, coupon: c, rate, monthly, total: monthly * months, list: P.list * months };
   }
   // → 'demo'(완료) | 'redirect'(토스·카카오페이 결제 화면으로 이동). method: 'card'(토스페이먼츠) | 'kakao'(카카오페이)
-  async function purchase({ kids, months, method = 'card' }) {
+  async function purchase({ kids, months, method = 'card', subject = 'en' }) {
     if (API.on) {
       // 방금 추가한 아이가 서버에 먼저 저장되어야 같은 금액으로 결제된다
       if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await pushState(); }
-      const r = await API.req('POST', 'api/billing/checkout', { kids, months, method });
+      const r = await API.req('POST', 'api/billing/checkout', { kids, months, method, subject });
       if (r.mode === 'demo') { await loadMe(); return 'demo'; }
       if (r.mode === 'kakao') {
         // 휴대폰·태블릿은 카카오톡 결제 화면으로, 컴퓨터는 QR·카카오톡 메시지로 결제하는 화면으로
@@ -281,12 +285,13 @@ const Store = (() => {
       await TossPayments(r.clientKey).requestBillingAuth('카드', { customerKey: r.customerKey, successUrl: r.successUrl, failUrl: r.failUrl });
       return 'redirect';
     }
-    const u = user(); const now = Date.now(); const q = quote(kids, months);
+    const u = user(); const now = Date.now(); const q = quote(kids, months, subject);
+    if (u.membership && u.membership.until > now && !u.membership.granted && (u.membership.subject || 'en') !== subject) throw new Error(`지금 ${SUBJECTS[u.membership.subject || 'en']} 이용권을 쓰고 있어요. 다른 과목은 지금 이용권이 끝난 뒤에 결제할 수 있어요.`);
     let bonus = 0;
     if (u.trialStart && !u.membership) bonus = Math.max(0, u.trialStart + 7 * DAY - now);
     const base = u.membership && u.membership.until > now ? u.membership.until : now;
-    u.membership = { kids, months, since: now, until: base + months * 30 * DAY + bonus, autoRenew: false, oneTime: true, monthly: q.monthly };
-    u.payments.unshift({ id: uid(), at: now, amount: q.total, desc: `플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`, coupon: q.coupon ? `${q.coupon.name} ${Math.round(q.rate * 100)}%` : '', couponId: q.coupon ? q.coupon.id : null, status: '결제완료' });
+    u.membership = { subject, kids, months, since: now, until: base + months * 30 * DAY + bonus, autoRenew: false, oneTime: true, monthly: q.monthly };
+    u.payments.unshift({ id: uid(), at: now, amount: q.total, desc: `${SUBJECTS[subject]} 플러스${kids === 'two' ? ' 형제·자매' : ''} ${months}개월`, coupon: q.coupon ? `${q.coupon.name} ${Math.round(q.rate * 100)}%` : '', couponId: q.coupon ? q.coupon.id : null, status: '결제완료' });
     if (q.coupon) q.coupon.used = true;
     save(); notify(`💳 멤버십(${kids === 'two' ? '형제·자매 · ' : ''}${months}개월)이 시작되었어요. 결제 금액 ${q.total.toLocaleString()}원`, 'member');
     return 'demo';
@@ -320,7 +325,8 @@ const Store = (() => {
   function levelProgress(lv, p = profile()) { return (p && p.progress[lv]) || { lessons: [] }; }
   function lessonsDone(lv, p = profile()) { return levelProgress(lv, p).lessons.filter(Boolean).length; }
   // 플러스(체험·멤버십·관리자)가 아니면 3단계부터는 잠긴다
-  const hasPlus = () => ['admin', 'member', 'trial'].includes(access().kind);
+  const hasPlus = (subject = 'en') => ['admin', 'member', 'trial'].includes(access(user(), subject).kind);
+  const hasMath = () => hasPlus('ma'); // 새싹수학 플러스(수학·영어+수학 이용권, 체험, 관리자)
   const needsPlus = lv => !isFreeLevel(lv) && !hasPlus();
   function isUnlocked(lv, p = profile()) {
     if (isAdmin()) return true;
@@ -709,7 +715,7 @@ const Store = (() => {
     get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, kidsPlan, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
-    startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
+    startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, hasPlus, hasMath, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,

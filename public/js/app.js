@@ -191,10 +191,10 @@ const App = (() => {
     return m;
   }
 
-  function buy(months) {
+  function buy(months, subject = 'en') {
     if (!Store.user()) { toast('로그인 후 구매할 수 있어요. 처음이면 회원가입부터!'); return go('/login?next=/pricing'); }
     if (Store.isAdmin()) return toast('관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
-    const kids = Store.kidsPlan(), q = Store.quote(kids, months);
+    const kids = Store.kidsPlan(), q = Store.quote(kids, months, subject);
     const payMode = API.on ? API.cfg.payments : 'demo';
     // 쓸 수 있는 결제수단 (card: 토스페이먼츠 카드, kakao: 카카오페이). 데모면 데모 버튼 하나
     // 결제사 키를 넣기 전(off)에도 결제수단 버튼까지는 보여 준다 (결제사 심사: '결제하기' 버튼까지 있어야 한다). 누르면 준비 중 안내
@@ -205,12 +205,12 @@ const App = (() => {
     const PAY_NOTE = { card: '🔒 카드: 토스페이먼츠 결제 화면으로 이동해요. 지금 한 번만 결제되고, 자동으로 다시 결제되지 않아요.',
       kakao: '💛 카카오페이: 카카오톡에서 한 번만 결제해요. 자동으로 다시 결제되지 않아요.' };
     const m = modal(`<h2>🧾 구매 확인</h2>
-      <dl class="summary"><dt>상품</dt><dd>플러스 ${months}개월${kids === 'two' ? ` · 형제·자매 요금 (아이 ${Store.user().profiles.length}명)` : ''}</dd>
+      <dl class="summary"><dt>상품</dt><dd>${SUBJECTS[subject]} 플러스 ${months}개월${kids === 'two' ? ` · 형제·자매 요금 (아이 ${Store.user().profiles.length}명)` : ''}</dd>
       <dt>이용 기간</dt><dd>결제하면 바로 시작 · ${months * 30}일 (${fmtDay(Date.now())} ~ ${fmtDay(Date.now() + months * 30 * 86400000)})</dd>
-      ${q.list > planMonthly(kids, months) * months ? `<dt>1개월 요금 기준</dt><dd class="strike">${won(q.list)}</dd>` : ''}
-      <dt>플러스 ${months}개월</dt><dd${q.promo ? ' class="strike"' : ''}>${won(planMonthly(kids, months) * months)}</dd>
-      ${q.promo ? `<dt>1년 특가</dt><dd class="hot">월 ${won(q.monthly)} × 12개월 (${promoEndText()}까지)</dd>` : ''}
-      <dt>쿠폰</dt><dd>${q.promo ? '1년 특가에는 쿠폰을 함께 쓸 수 없어요 (쿠폰은 그대로 남아요)' : q.coupon ? `${esc(q.coupon.name)} −${Math.round(q.rate * 100)}%` : '없음'}</dd>
+      ${q.list > planMonthly(kids, months, subject) * months ? `<dt>1개월 요금 기준</dt><dd class="strike">${won(q.list)}</dd>` : ''}
+      <dt>플러스 ${months}개월</dt><dd${q.promo ? ' class="strike"' : ''}>${won(planMonthly(kids, months, subject) * months)}</dd>
+      ${q.promo ? `<dt>오픈 특가</dt><dd class="hot">월 ${won(q.monthly)} × 12개월 (${promoEndText()}까지)</dd>` : ''}
+      <dt>쿠폰</dt><dd>${q.promo ? '오픈 특가에는 쿠폰을 함께 쓸 수 없어요 (쿠폰은 그대로 남아요)' : q.coupon ? `${esc(q.coupon.name)} −${Math.round(q.rate * 100)}%` : '없음'}</dd>
       <dt>총 결제 금액</dt><dd class="total">${won(q.total)}</dd>
       <dt>결제 방식</dt><dd>한 번만 결제 · 자동결제 없음 · 끝나기 3일 전 알림</dd></dl>
       ${methods.length ? methods.map(k => `<p class="fine">${PAY_NOTE[k]}</p>`).join('') : '<p class="fine">⚠️ 데모 결제예요. 실제 카드 결제는 일어나지 않아요.</p>'}
@@ -224,7 +224,7 @@ const App = (() => {
       const label = ok.textContent;
       btns.forEach(b => b.disabled = true); ok.textContent = '처리 중…';
       try {
-        const r = await Store.purchase({ kids, months, method: ok.dataset.ok });
+        const r = await Store.purchase({ kids, months, method: ok.dataset.ok, subject });
         if (r === 'redirect') return; // 토스·카카오페이 결제 화면으로 이동
         m.close(); Lesson.confetti(); toast('멤버십이 시작되었어요! 💎'); route();
       } catch (x) { btns.forEach(b => b.disabled = false); ok.textContent = label; toast(x.message); }
