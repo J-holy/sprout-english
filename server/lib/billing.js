@@ -155,7 +155,7 @@ export const refundable = uid => refundQuote(uid);
 export async function refund(uid, { admin = false } = {}) {
   const q = refundQuote(uid), p = q?.payment;
   if (!q) throw new Error('환불할 수 있는 결제가 없어요. 1개월 이용권은 이용을 시작하면 환불되지 않아요.');
-  if (!admin && !q.full) throw new Error('결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불할 수 없어요. 고객센터로 신청하면 이용한 달을 빼고 남은 달만큼 환불해 드려요.');
+  if (!admin && !q.self) throw new Error('결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불할 수 없어요. 고객센터로 신청하면 이용한 달을 빼고 남은 달만큼 환불해 드려요.');
   if (p.payment_key && isKakaoPay(p)) await kakao('/online/v1/payment/cancel', { tid: p.payment_key, cancel_amount: q.amount, cancel_tax_free_amount: 0 }, /· 단건/.test(p.method) ? config.kakaopay.onetimeCid : config.kakaopay.cid);
   else if (p.payment_key) await toss(`/v1/payments/${p.payment_key}/cancel`, q.full ? { cancelReason: '고객 요청 (전액 환불)' } : { cancelReason: `고객 요청 (남은 ${q.leftMonths}개월 환불)`, cancelAmount: q.amount });
   const key = db.prepare('SELECT billing_key FROM memberships WHERE user_id = ?').get(uid)?.billing_key;

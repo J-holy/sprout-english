@@ -303,7 +303,7 @@ const Store = (() => {
   }
   // 부모페이지에서 바로 할 수 있는 환불(전액)인지. 서버가 계산한 값(membership.refund)을 쓴다
   function canRefund(u = user()) {
-    if (API.on) return !!(u && u.membership && u.membership.refund && u.membership.refund.full);
+    if (API.on) return !!(u && u.membership && u.membership.refund && u.membership.refund.self);
     const pay = u && u.payments.find(p => p.status === '결제완료' && p.amount > 0);
     return !!(pay && u.membership && Date.now() - pay.at < 7 * DAY);
   }

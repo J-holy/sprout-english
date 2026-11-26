@@ -2,7 +2,7 @@
 //  · 결제 후 7일 이내이고 결제한 뒤 플러스 학습을 하지 않았으면 → 전액 환불 (부모페이지에서 바로, 쿠폰도 돌려준다)
 //  · 그 밖에는 고객센터로 신청 → 관리자가 처리. 이용을 시작한 달(30일 단위, 시작한 달은 한 달로 친다)을 빼고 남은 달만큼 환불
 //    예: 6개월 이용권을 10일 쓰면 1개월치를 빼고 5개월치 환불. 1개월 이용권은 이용을 시작하면 환불할 금액이 없다
-//  플러스 학습: 무료 단계(가입한 날로 1단계 또는 1~2단계)가 아닌 레슨을 마쳤거나 플러스 스토리북을 읽은 기록 (화면이 아이 프로필의 plusUsed 날짜와 레슨 날짜로 남긴다)
+//  플러스 학습: 무료 단계(1단계)가 아닌 레슨을 마쳤거나 플러스 스토리북을 읽은 기록 (화면이 아이 프로필의 plusUsed 날짜와 레슨 날짜로 남긴다)
 import { db, now, DAY } from './db.js';
 import { freeLevelsOf } from './pricing.js';
 
@@ -13,7 +13,7 @@ const parse = s => { try { return JSON.parse(s || '{}') || {}; } catch { return 
 // 결제한 날(한국 날짜) 이후에 플러스 학습 기록이 있는지
 export function plusUsedSince(uid, at) {
   const day = kstDay(at);
-  const row = db.prepare('SELECT state, created_at FROM users WHERE id = ?').get(uid), state = parse(row?.state), FREE_LEVELS = freeLevelsOf(row?.created_at); // 무료 단계는 가입한 날로 다르다
+  const row = db.prepare('SELECT state, created_at FROM users WHERE id = ?').get(uid), state = parse(row?.state), FREE_LEVELS = freeLevelsOf();
   return (state.profiles || []).some(p =>
     (p.plusUsed && p.plusUsed >= day) ||
     Object.entries(p.progress || {}).some(([lv, lp]) => !FREE_LEVELS.has(lv) && (lp.lessons || []).some(l => l && l.date >= day)));
@@ -26,12 +26,14 @@ export function refundQuote(uid) {
   const t = now();
   if (!p || !m || m.granted || m.until <= t) return null;
   const months = Number(p.months) || 1;
-  if (t - p.at < 7 * DAY && !plusUsedSince(uid, p.at)) return { payment: p, amount: p.amount, full: true, months, usedMonths: 0, leftMonths: months };
+  // self: 보호자가 부모페이지에서 바로 환불할 수 있는지 (결제 후 7일 이내이고 플러스 학습 전). 그 밖에는 고객센터 → 관리자
+  if (t - p.at < 7 * DAY && !plusUsedSince(uid, p.at)) return { payment: p, amount: p.amount, full: true, self: true, months, usedMonths: 0, leftMonths: months };
   // 이번 결제로 늘어난 기간의 시작 (첫 결제는 남은 체험 기간 뒤, 이어서 산 이용권은 앞 이용권이 끝난 뒤)
   const start = Math.max(p.at, m.until - months * MONTH);
   const usedMonths = t < start ? 0 : Math.min(months, Math.ceil((t - start) / MONTH));
   const leftMonths = months - usedMonths;
   if (leftMonths <= 0) return null;
   const amount = usedMonths ? Math.floor(p.amount * leftMonths / months / 10) * 10 : p.amount;
-  return { payment: p, amount, full: amount === p.amount, months, usedMonths, leftMonths };
+  // 체험 중에 결제하면 이용 기간이 체험 뒤에 시작돼 금액은 전액일 수 있지만, 플러스 학습을 했으면 바로 환불은 막는다 (2026-11-26)
+  return { payment: p, amount, full: amount === p.amount, self: false, months, usedMonths, leftMonths };
 }

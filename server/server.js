@@ -367,7 +367,7 @@ app.post('/api/billing/auto-renew', requireUser, (req, res) => {
 app.post('/api/billing/refund', requireUser, wrap(async (req, res) => {
   try { await refund(req.user.id); res.json({ ok: true }); } catch (err) { bad(res, err.message); }
 }));
-app.get('/api/billing/refundable', requireUser, (req, res) => { const q = refundable(req.user.id); res.json({ refundable: !!q, amount: q?.amount || 0, full: !!q?.full }); });
+app.get('/api/billing/refundable', requireUser, (req, res) => { const q = refundable(req.user.id); res.json({ refundable: !!q, amount: q?.amount || 0, full: !!q?.full, self: !!q?.self }); });
 
 // ---------- 후기 ----------
 app.get('/api/reviews', (req, res) => {

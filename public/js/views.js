@@ -1112,7 +1112,9 @@ function siblingStep(el, name) {
   $$('[data-go]', el).forEach(b => b.onclick = () => { Store.selectProfile(b.dataset.go); App.refreshHeader(); location.hash = '#/leveltest'; });
   // 마이크는 가입할 때 한 번 허용받는다 (이미 허용했거나 앱 안 브라우저처럼 쓸 수 없으면 묻지 않는다)
   const ask = $('.mic-ask', el), E = Speech.env;
-  if (!E.inApp && E.secure && navigator.mediaDevices) Speech.micPermission().then(st => {
+  // 보호자가 말하기 연습(음성 인식)에 동의하지 않았으면 마이크를 묻지 않는다
+  const u0 = Store.user(), voiceOk = !u0 || !!(u0.settings && u0.settings.voice);
+  if (voiceOk && !E.inApp && E.secure && navigator.mediaDevices) Speech.micPermission().then(st => {
     if (st === 'granted') return;
     ask.hidden = false;
     // 예전에 막아 두었으면 허용 창이 다시 뜨지 않으니, 켜는 방법을 바로 알려준다
@@ -1222,8 +1224,10 @@ Views.learn = el => {
   });
   // 말하기가 안 되는 브라우저이거나 마이크가 꺼져 있으면 레슨 전에 미리 알려 준다 (말하기 없이도 레슨은 할 수 있다)
   const micBox = $('.mic-banner', el);
-  const showMic = (title, msg) => { micBox.innerHTML = `🎤 <b>${title}</b> ${esc(msg)} <a href="#/help">마이크 점검하기 →</a><br><small class="fine">말하기 없이도 레슨은 계속할 수 있어요.</small>`; micBox.hidden = false; };
-  if (!Speech.canListen) showMic('이 브라우저에서는 말하기 점수를 받을 수 없어요.', Speech.unsupportedReason());
+  const showMic = (title, msg, help = true) => { micBox.innerHTML = `🎤 <b>${title}</b> ${esc(msg)} ${help ? '<a href="#/help">마이크 점검하기 →</a>' : '<a href="#/parent/settings">부모페이지 설정 →</a>'}<br><small class="fine">말하기 없이도 레슨은 계속할 수 있어요.</small>`; micBox.hidden = false; };
+  const u1 = Store.user(), noConsent = u1 && !(u1.settings && u1.settings.voice);
+  if (noConsent) showMic('말하기 점수는 꺼져 있어요.', '부모님이 부모페이지 › 설정에서 "말하기 연습 음성 인식 사용"을 켜면 쓸 수 있어요. 지금은 듣고 따라 말해요.', false);
+  else if (!Speech.canListen) showMic('이 브라우저에서는 말하기 점수를 받을 수 없어요.', Speech.unsupportedReason());
   else Speech.micPermission().then(st => { if (st === 'denied') showMic('마이크가 꺼져 있어요.', Speech.micHelp('not-allowed').replace(/^🎤 마이크가 꺼져 있어요\.\s*/, '')); });
 };
 
@@ -1836,7 +1840,7 @@ const ParentTabs = {
         ${m.card ? `<dt>결제수단</dt><dd>${m.payWith === 'kakao' ? '카카오페이' : '등록된 카드 (토스페이먼츠)'}</dd>` : ''}</dl>
         <div class="row">${!m.granted && m.autoRenew ? '<button class="btn btn-ghost" data-renew="0">🛑 자동갱신 해지</button>' : ''}
         ${Store.canRefund() ? '<button class="btn btn-ghost danger" data-refund>↩️ 전액 환불 (결제 7일 이내 · 플러스 학습 전)</button>' : ''}</div>
-        ${m.refund && !m.refund.full ? `<p class="fine">결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불은 안 돼요. 고객센터(010-5117-1247, support@saessakschool.co.kr, <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널</a>)로 신청하면 이용한 ${m.refund.usedMonths}개월을 빼고 남은 ${m.refund.leftMonths}개월치 ${won(m.refund.amount)}을 환불해 드려요.</p>` : ''}</div>` : ''}
+        ${m.refund && !m.refund.self ? `<p class="fine">결제 후 플러스 학습을 시작했거나 7일이 지나서 바로 환불은 안 돼요. 고객센터(010-5117-1247, support@saessakschool.co.kr, <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널</a>)로 신청하면 이용한 ${m.refund.usedMonths}개월을 빼고 남은 ${m.refund.leftMonths}개월치 ${won(m.refund.amount)}을 환불해 드려요.</p>` : ''}</div>` : ''}
       <div class="card"><h3>결제 내역</h3>${u.payments.length ? `<table class="table"><thead><tr><th>날짜</th><th>내용</th><th>쿠폰</th><th>금액</th><th>상태</th></tr></thead><tbody>${u.payments.map(p => `<tr><td>${fmtDay(p.at)}</td><td>${esc(p.desc)}</td><td>${esc(p.coupon || '-')}</td><td>${won(p.amount)}</td><td>${p.status}</td></tr>`).join('')}</tbody></table>` : '<p class="fine">결제 내역이 없어요.</p>'}</div>
       ${m && !m.granted && m.autoRenew && m.kids !== Store.kidsPlan() ? `<div class="card notice">등록한 아이 수가 바뀌어서 다음 결제부터 월 ${won(planMonthly(Store.kidsPlan(), m.months))}${Store.kidsPlan() === 'two' ? ' (형제·자매 요금)' : ''}으로 바뀌어요. 쿠폰을 쓰면 달라질 수 있어요.</div>` : ''}
       ${a.kind === 'admin' ? '' : UI.plans()}`;
