@@ -46,5 +46,19 @@ const MATH_STORY_PICS = {
  "trc-0": "ms/trc-0-da04f149.jpg",
  "avg-0": "ms/avg-0-ef45f750.jpg",
  "avg-3": "ms/avg-3-9b4ca6c0.jpg",
- "split-0": "ms/split-0-839becc0.jpg"
+ "split-0": "ms/split-0-839becc0.jpg",
+ "addsub-0": "ms/addsub-0-3331f7ca.jpg",
+ "addsub-1": "ms/addsub-1-ffd33122.jpg",
+ "sudoku-0": "ms/sudoku-0-6bd1560e.jpg",
+ "sudoku-2": "ms/sudoku-2-2e027a94.jpg",
+ "mul-0": "ms/mul-0-51230176.jpg",
+ "mul-2": "ms/mul-2-bfaf9f77.jpg",
+ "frac-0": "ms/frac-0-75cb75d7.jpg",
+ "factor-0": "ms/factor-0-7053f00b.jpg",
+ "factor-3": "ms/factor-3-dcdf55c3.jpg",
+ "angle-1": "ms/angle-1-c08082fb.jpg",
+ "poly-0": "ms/poly-0-5ec62a8a.jpg",
+ "area-0": "ms/area-0-41d712fd.jpg",
+ "area-3": "ms/area-3-3e7be331.jpg",
+ "div-0": "ms/div-0-fd9738c5.jpg"
 };
