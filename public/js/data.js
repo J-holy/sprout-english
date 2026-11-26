@@ -37,7 +37,8 @@ const PLANS = {
 };
 // 기간 한정 1년 특가 (서버 server/lib/pricing.js의 PROMO와 같은 값, 서버가 있으면 /api/config 값으로 바꾼다)
 // 이 기간에 12개월을 결제하면 월 9,900원(두 자녀 14,900원). 쿠폰과 함께 쓰지 않는다
-const PROMO = { from: Date.parse('2026-11-20T00:00:00+09:00'), until: Date.parse('2026-12-03T23:59:59+09:00'), months: 12, one: 9900, two: 14900 };
+// 2026-11-26: 1년 특가 없앰 (서버 pricing.js PROMO_ON). 서버가 기간을 보내면 그 값을 쓴다
+const PROMO = { from: 0, until: 0, months: 12, one: 9900, two: 14900 };
 const promoOn = (t = Date.now()) => t >= PROMO.from && t <= PROMO.until;
 const promoMonthly = (kids, months) => (months === PROMO.months && promoOn() ? PROMO[kids] : 0);
 const promoEndText = () => { const d = new Date(PROMO.until); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };

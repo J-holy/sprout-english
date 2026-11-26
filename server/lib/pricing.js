@@ -13,10 +13,12 @@ export const PLANS = {
 };
 // 기간 한정 1년 특가: 이 기간에 12개월을 결제하면 월 9,900원(두 자녀 14,900원). 쿠폰과 함께 쓰지 않는다.
 // 화면(public/js/data.js의 PROMO)은 /api/config로 이 값을 받아 쓴다
-export const PROMO = {
+// 2026-11-26 사용자 결정: 12월 3일까지의 1년 특가는 없앤다. 문제를 해결한 뒤 정식 이벤트를 다시 정한다 → PROMO_ON 을 true 로 바꾸고 기간을 넣는다
+const PROMO_ON = false;
+export const PROMO = PROMO_ON ? {
   from: config.promoFrom || Date.parse('2026-11-20T00:00:00+09:00'), until: config.promoUntil || Date.parse('2026-12-03T23:59:59+09:00'),
   months: 12, one: 9900, two: 14900,
-};
+} : { from: 0, until: 0, months: 12, one: 9900, two: 14900 };
 export const promoOn = (t = now()) => t >= PROMO.from && t <= PROMO.until;
 export const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인
 const round10 = n => Math.round(n / 10) * 10;

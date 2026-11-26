@@ -188,7 +188,7 @@ const UI = {
     ];
     return `<div class="card discount-rules"><h2>🧾 할인은 이렇게 적용돼요</h2>
       <ol>${rows.map(([i, t, d]) => `<li><span class="dr-ico">${i}</span><div><b>${t}</b><small>${d}</small></div></li>`).join('')}</ol>
-      <p class="fine">한 번 결제할 때 쿠폰과 특가는 함께 쓰지 않아요. 아래 상품 카드에 적힌 금액이 실제로 결제되는 금액이에요.</p></div>`;
+      <p class="fine">${on ? "한 번 결제할 때 쿠폰과 특가는 함께 쓰지 않아요. " : ""}아래 상품 카드에 적힌 금액이 실제로 결제되는 금액이에요.</p></div>`;
   },
   // 후기 부탁을 이미 했는지 (이 기기 기준, 쓰거나 '다음에'를 누르면 30일 동안 다시 묻지 않음)
   reviewAsked(set) {
