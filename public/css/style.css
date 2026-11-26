@@ -1674,6 +1674,25 @@ a.shop-ava { display: block; }
 .m-read { font-family: var(--title); font-size: 2rem; line-height: 1.5; margin: 10px auto 4px; color: var(--grape, #7e57c2); }
 .m-say { margin: 6px 0 10px; }
 .m-trace { width: min(100%, 360px); height: auto; aspect-ratio: 360 / 260; touch-action: none; }
+
+/* 새싹수학 9~10세 (곱셈 묶음·분수 원·수 표·각·다각형) · 따라 읽기 음성 확인 — 2026-11-26 */
+.m-array { display: grid; grid-template-columns: repeat(var(--c), auto); gap: 6px 10px; justify-content: center; font-size: 2.1rem; }
+.m-array .m-pic { width: 1.15em; height: 1.15em; }
+.m-pie { width: 150px; height: 150px; } .m-pie.sm { width: 76px; height: 76px; display: block; }
+.m-fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font: 700 1em var(--en); line-height: 1.05; }
+.m-fr b:first-child { border-bottom: 3px solid currentColor; padding: 0 .2em; }
+.m-ask .m-fr, .m-opts .m-fr { font-size: .8em; }
+.m-nums { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; width: min(100%, 440px); font-size: 1.3rem; }
+.m-nums span { display: grid; place-items: center; aspect-ratio: 1; border: 2px solid var(--line); border-radius: 12px; font: 700 1.2rem var(--en); color: var(--muted, #8a8196); }
+.m-nums span.hi { background: var(--sun, #ffd23f); border-color: #f5a623; color: #3a2d4f; }
+.m-ang { width: 190px; height: auto; }
+.m-angs { gap: 14px; } .m-angs figure { margin: 0; display: grid; justify-items: center; gap: 2px; }
+.m-angs .m-ang { width: 130px; } .m-angs figcaption { font: 1.1rem var(--title); color: var(--ink); }
+.m-poly { width: 92px; height: 92px; } .m-viz > .m-poly { width: 130px; height: 130px; }
+.m-mic.on { animation: m-mic-pulse 1s ease-in-out infinite; }
+@keyframes m-mic-pulse { 50% { box-shadow: 0 0 0 8px rgba(255, 112, 67, .25); } }
+.m-heard { min-height: 1.6em; margin: 4px 0 0; font-size: 1.15rem; }
+@media (prefers-reduced-motion: reduce) { .m-mic.on { animation: none; outline: 3px solid #ff7043; } }
 /* 홈: 새싹스쿨 교육과정·공부 방법·맛보기 탭 (2026-11-26) */
 .curri { display: grid; gap: 10px; max-width: 920px; margin: 14px auto 18px; }
 .curri-head, .curri-row { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 10px; align-items: stretch; }
@@ -1746,3 +1765,4 @@ a.shop-ava { display: block; }
 /* 학습알림 창 닫기 버튼 (2026-11-26) */
 .bp-head { display: flex; align-items: center; justify-content: space-between; }
 .bp-close { width: 32px; height: 32px; font-size: 1rem; }
+.m-ang { color: var(--ink, #3a2d4f); }

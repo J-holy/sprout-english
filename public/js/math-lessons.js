@@ -2,7 +2,8 @@
  * 「천재들이 만든 수학퍼즐」에 나오는 개념(수 세기·평면도형·집합·규칙·머리셈·마방진·스도쿠)을 골라
  * 새싹스쿨이 직접 쓴 짧은 설명으로 배우고 → 따라 읽고 → 따라 쓰고 → 문제로 확인한다. 책의 문장·그림·문제는 옮기지 않는다.
  * 단계: learn(개념 카드) · read(따라 읽기) · write(따라 쓰기) · quiz(확인 문제, MathGen)
- * viz(그림): count{e,n} · seq{items} · shape{s} · add{e,a,b} · sub{e,a,b} · group{groups} · grid{n,vals} */
+ * viz(그림): count{e,n} · seq{items} · shape{s} · add{e,a,b} · sub{e,a,b} · group{groups} · grid{n,vals}
+ *            · array{e,r,c} · frac{n,d} · nums{to,hi} · angle{deg | all} · poly{s:[변의 수…]} */
 const MATH_LESSONS = [
   { id: 'num1', age: '5~6세', icon: 'm🍎', title: '수 세기 1~5', topic: '수의 기원', steps: [
     { type: 'learn', viz: { k: 'count', e: '🍎', n: 3 }, text: '물건을 셀 때는 하나씩 손가락으로 짚으면서 세요. 마지막에 말한 수가 모두 몇 개인지 알려 줘요.' },
@@ -76,4 +77,55 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '4', say: '사, 넷' },
     { type: 'play', game: 'sudoku', text: '이제 4×4 스도쿠를 직접 풀어 볼까요?' },
   ] },
+  { id: 'mul', age: '9~10세', icon: '✖️', title: '곱셈', topic: '곱셈 알고리즘', steps: [
+    { type: 'learn', viz: { k: 'array', e: '🍎', r: 3, c: 4 }, text: '사과가 한 줄에 네 개씩 세 줄 있어요. 4를 세 번 더하는 대신 곱하기로 한 번에 셀 수 있어요.' },
+    { type: 'read', viz: { k: 'array', e: '🍎', r: 3, c: 4 }, text: '사 곱하기 삼은 십이예요.' },
+    { type: 'learn', viz: { k: 'array', e: '⭐', r: 2, c: 5 }, text: '곱하기는 가위표처럼 생긴 기호로 써요. 5 곱하기 2는 5를 두 번 더한 것과 같아서 10이에요.' },
+    { type: 'learn', viz: { k: 'array', e: '🍓', r: 4, c: 3 }, text: '곱하는 두 수의 자리를 바꾸어도 답은 같아요. 4 곱하기 3도, 3 곱하기 4도 모두 12예요.' },
+    { type: 'read', text: '삼 곱하기 사는 사 곱하기 삼과 같아요.' },
+    { type: 'write', glyph: '×', say: '곱하기' },
+    { type: 'write', glyph: '곱하기', say: '곱하기' },
+    { type: 'quiz', gen: 'mul' }, { type: 'quiz', gen: 'mul' },
+  ] },
+  { id: 'frac', age: '9~10세', icon: '🍕', title: '분수', topic: '분수', steps: [
+    { type: 'learn', viz: { k: 'frac', n: 1, d: 2 }, text: '피자 한 판을 똑같이 둘로 나누면 한 조각은 전체의 이분의 일이에요. 똑같이 나눈 것 가운데 몇 개인지 나타내는 수를 분수라고 해요.' },
+    { type: 'read', viz: { k: 'frac', n: 1, d: 2 }, text: '이분의 일은 똑같이 둘로 나눈 것 중 하나예요.' },
+    { type: 'learn', viz: { k: 'frac', n: 3, d: 4 }, text: '분수는 가로 막대의 아래와 위에 수를 써요. 아래에는 모두 몇 조각으로 나눴는지, 위에는 그중 몇 조각인지 써요. 아래 수를 분모, 위 수를 분자라고 해요.' },
+    { type: 'learn', viz: { k: 'frac', n: 3, d: 4 }, text: '네 조각 중 세 조각을 색칠하면 사분의 삼이에요. 읽을 때는 아래에 있는 분모를 먼저 읽어요.' },
+    { type: 'read', text: '사분의 삼은 넷으로 나눈 것 중 셋이에요.' },
+    { type: 'write', glyph: '분수', say: '분수' },
+    { type: 'write', glyph: '3/4', say: '사분의 삼' },
+    { type: 'quiz', gen: 'frac' }, { type: 'quiz', gen: 'frac' },
+  ] },
+  { id: 'factor', age: '9~10세', icon: '🍪', title: '약수와 배수', topic: '약수와 배수', steps: [
+    { type: 'learn', viz: { k: 'array', e: '🍪', r: 3, c: 4 }, text: '쿠키 열두 개를 친구들에게 남김없이 똑같이 나눠 줄 수 있을까요? 한 명, 두 명, 세 명, 네 명, 여섯 명, 열두 명이면 하나도 남지 않아요.' },
+    { type: 'learn', viz: { k: 'nums', to: 12, hi: [1, 2, 3, 4, 6, 12] }, text: '12를 나누었을 때 남는 것 없이 딱 나누어떨어지게 하는 수를 12의 약수라고 해요. 12의 약수는 1, 2, 3, 4, 6, 12예요.' },
+    { type: 'read', text: '십이의 약수는 일, 이, 삼, 사, 육, 십이예요.' },
+    { type: 'learn', viz: { k: 'nums', to: 20, hi: [3, 6, 9, 12, 15, 18] }, text: '3에 1, 2, 3, 4를 차례로 곱하면 3, 6, 9, 12가 돼요. 이렇게 3을 몇 번씩 곱해서 나오는 수를 3의 배수라고 해요.' },
+    { type: 'read', text: '삼의 배수는 삼, 육, 구, 십이예요.' },
+    { type: 'write', glyph: '약수', say: '약수' },
+    { type: 'write', glyph: '배수', say: '배수' },
+    { type: 'quiz', gen: 'factor' }, { type: 'quiz', gen: 'factor' },
+  ] },
+  { id: 'angle', age: '9~10세', icon: '📐', title: '각', topic: '각', steps: [
+    { type: 'learn', viz: { k: 'angle', deg: 60 }, text: '한 점에서 곧은 선 두 개가 뻗어 나가면 각이 생겨요. 두 선이 많이 벌어질수록 큰 각이에요.' },
+    { type: 'learn', viz: { k: 'angle', deg: 90 }, text: '공책 모서리처럼 반듯하게 선 각을 직각이라고 해요. 직각은 90도예요.' },
+    { type: 'read', viz: { k: 'angle', deg: 90 }, text: '공책 모서리는 직각이에요.' },
+    { type: 'learn', viz: { k: 'angle', all: true }, text: '직각보다 작은 각은 예각이에요. 직각보다 크고, 쭉 편 일직선보다 작은 각은 둔각이에요.' },
+    { type: 'read', viz: { k: 'angle', all: true }, text: '예각은 직각보다 작고, 둔각은 직각보다 커요.' },
+    { type: 'write', glyph: '직각', say: '직각' },
+    { type: 'write', glyph: '90°', say: '구십 도' },
+    { type: 'quiz', gen: 'angle' }, { type: 'quiz', gen: 'angle' },
+  ] },
+  { id: 'poly', age: '9~10세', icon: '🐝', title: '다각형', topic: '다각형', steps: [
+    { type: 'learn', viz: { k: 'poly', s: [3, 4, 5, 6] }, text: '곧은 선으로만 둘러싸인 도형을 다각형이라고 해요. 둘러싼 선 하나하나를 변, 변과 변이 만나는 점을 꼭짓점이라고 해요.' },
+    { type: 'learn', viz: { k: 'poly', s: [5] }, text: '변이 다섯 개면 오각형이에요. 다각형은 변의 수와 꼭짓점의 수가 언제나 같아요.' },
+    { type: 'learn', viz: { k: 'poly', s: [6] }, text: '벌집 한 칸은 변이 여섯 개인 육각형이에요. 동그라미는 굽은 선으로 되어 있어서 다각형이 아니에요.' },
+    { type: 'read', viz: { k: 'poly', s: [5, 6] }, text: '변이 다섯 개면 오각형, 여섯 개면 육각형이에요.' },
+    { type: 'write', glyph: '변', say: '변' },
+    { type: 'write', glyph: '육각형', say: '육각형' },
+    { type: 'quiz', gen: 'poly' }, { type: 'quiz', gen: 'poly' },
+  ] },
 ];
+// 따라 읽기를 음성 인식으로 확인했을 때 하는 칭찬 (pregen-tts-ko.js가 함께 음성을 만든다)
+const MATH_KO_EXTRA = ['참 잘 읽었어요!', '또박또박 잘 읽었어요!', '와, 목소리가 아주 또렷해요!', '조금만 더 크게, 한 번 더 읽어 볼까요?'];

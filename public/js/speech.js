@@ -531,7 +531,7 @@ const Speech = (() => {
   return {
     speak, speakLater, stop, listen, score, sfx, preload,
     get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return voiceOk() && (webSpeechOk() || (sttOn && canRecord())); },
-    env, externalUrl, unsupportedReason, micHelp, micPermission, askMic,
+    env, externalUrl, unsupportedReason, micHelp, micPermission, askMic, voiceOk,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
     configure({ server, manifest, stt, ulaw }) { neural = { server: !!server, manifest: manifest || null }; sttOn = !!stt; sttUlaw = !!ulaw; },
     record, stopRecording, get canRecord() { return canRecord(); }, get usesServerStt() { return useServer(); },

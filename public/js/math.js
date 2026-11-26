@@ -24,6 +24,26 @@ const MathGen = (() => {
   };
   const COLORS = ['#ff8a65', '#4db6ac', '#9575cd', '#64b5f6', '#f06292', '#ffd54f'];
   const svg = (k, col, rot = 0) => `<svg viewBox="0 0 100 100" class="m-shape" aria-label="${SHAPES[k][0]}"><g fill="${col}" stroke="#3a2d4f" stroke-width="5" transform="rotate(${rot} 50 50)">${SHAPES[k][1]}</g></svg>`;
+  // 9~10세 그림: 분수 원(색칠 n/d), 각(두 선과 호), 정다각형
+  const KN = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구', '십'];
+  const POLY = { 3: '삼각형', 4: '사각형', 5: '오각형', 6: '육각형', 7: '칠각형', 8: '팔각형' };
+  const fracTxt = v => { const [n, d] = v.split('/'); return `<span class="m-fr" aria-label="${KN[d]}분의 ${KN[n]}"><b>${n}</b><b>${d}</b></span>`; };
+  const pie = (n, d, cls = 'm-pie') => {
+    const P = a => [50 + 44 * Math.cos(a), 50 + 44 * Math.sin(a)].map(x => x.toFixed(2)).join(' ');
+    let g = '';
+    for (let k = 0; k < d; k++) { const a0 = k / d * 2 * Math.PI - Math.PI / 2, a1 = (k + 1) / d * 2 * Math.PI - Math.PI / 2; g += `<path d="M50 50 L${P(a0)} A44 44 0 0 1 ${P(a1)} Z" fill="${k < n ? '#ff8a65' : '#fff8ec'}"/>`; }
+    return `<svg viewBox="0 0 100 100" class="${cls}" aria-label="${d}조각 중 ${n}조각"><g stroke="#3a2d4f" stroke-width="3" stroke-linejoin="round">${g}</g></svg>`;
+  };
+  const angSvg = (deg, flip = 0) => {
+    const r = deg * Math.PI / 180, X = 45 + 58 * Math.cos(r), Y = 82 - 58 * Math.sin(r), ax = 45 + 16 * Math.cos(r), ay = 82 - 16 * Math.sin(r);
+    const mark = deg === 90 ? '<path d="M57 82 V70 H45" fill="none" stroke="#ff7043" stroke-width="3"/>' : `<path d="M61 82 A16 16 0 0 0 ${ax.toFixed(1)} ${ay.toFixed(1)}" fill="none" stroke="#ff7043" stroke-width="3"/>`;
+    return `<svg viewBox="-12 12 124 78" class="m-ang" aria-label="${deg}도 각"><g ${flip ? 'transform="translate(100 0) scale(-1 1)"' : ''}>${mark}<g stroke="currentColor" stroke-width="5" stroke-linecap="round"><line x1="45" y1="82" x2="104" y2="82"/><line x1="45" y1="82" x2="${X.toFixed(1)}" y2="${Y.toFixed(1)}"/></g><circle cx="45" cy="82" r="4" fill="currentColor"/></g></svg>`;
+  };
+  const polySvg = (n, col = '#4db6ac', rot = 0) => {
+    if (n === 4) rot += 45; // 네모는 반듯하게 (마름모로 보이지 않게)
+    const pts = Array.from({ length: n }, (_, k) => { const a = (k / n * 360 - 90 + rot) * Math.PI / 180; return `${(50 + 42 * Math.cos(a)).toFixed(1)},${(52 + 42 * Math.sin(a)).toFixed(1)}`; }).join(' ');
+    return `<svg viewBox="0 0 100 100" class="m-shape m-poly" aria-label="${POLY[n]}"><polygon points="${pts}" fill="${col}" stroke="#3a2d4f" stroke-width="5" stroke-linejoin="round"/></svg>`;
+  };
   const gen = {
     count(lo = 1, hi = 10) { const n = lo + R(hi - lo + 1), [e, name] = THINGS[R(THINGS.length)]; return { ask: `${mPic(e)} ${name} 몇 개일까요?`, show: `<div class="m-count">${Array(n).fill(`<span>${mPic(e)}</span>`).join('')}</div>`, opts: nearby(n, Math.max(1, lo - 2), hi), ans: n }; },
     shape() {
@@ -48,6 +68,44 @@ const MathGen = (() => {
       const [a, b] = shuffle([0, 1]).map(i => sets[i]), same = shuffle(a).slice(0, 3), diff = b[R(b.length)];
       const all = shuffle([...same, diff]);
       return { ask: '다른 무리에 들어가는 것을 골라요', show: '', opts: all, labels: Object.fromEntries(all.map(v => [v, mPic(v)])), ans: diff };
+    },    // ── 9~10세 ──
+    // 곱셈: 2~9단. 틀린 보기는 한 단 옆(a×(b±1), (a±1)×b)에서 골라 실수하기 쉬운 답으로
+    mul() {
+      const a = 2 + R(8), b = 2 + R(8), ans = a * b;
+      const wrong = shuffle([...new Set([a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, ans + 1, ans - 1])].filter(v => v > 0 && v !== ans)).slice(0, 3);
+      return { ask: `${a} × ${b} = ?`, show: '', opts: shuffle([ans, ...wrong]), ans };
+    },
+    // 분수: 색칠한 부분 읽기, 또는 말한 분수에 맞는 그림 고르기
+    frac() {
+      const d = [2, 3, 4, 5, 6, 8][R(6)], n = 1 + R(d - 1), key = `${n}/${d}`;
+      const cand = [`${d - n}/${d}`, `${n}/${d + 1}`, `${Math.min(n + 1, d - 1)}/${d}`, `${Math.max(n - 1, 1)}/${d}`, `${n}/${Math.max(d - 1, 2)}`, `${d}/${n + d}`]
+        .filter(v => { const [x, y] = v.split('/').map(Number); return x < y; });
+      // 크기가 같은 분수(2/3과 4/6)는 보기에 함께 넣지 않는다: 정답이 둘처럼 보이니까
+      const val = v => { const [x, y] = v.split('/').map(Number); return Math.round(x / y * 1e6); }, seen = new Set([val(key)]);
+      const opts = shuffle([key, ...shuffle([...new Set(cand)]).filter(v => !seen.has(val(v)) && seen.add(val(v))).slice(0, 2)]);
+      if (R(2)) return { ask: '색칠한 부분은 전체의 얼마일까요?', show: `<div class="m-viz">${pie(n, d)}</div>`, opts, labels: Object.fromEntries(opts.map(v => [v, fracTxt(v)])), ans: key };
+      return { ask: `색칠한 부분이 <b>${KN[d]}분의 ${KN[n]}</b>인 것을 골라요`, show: `<p class="m-eq-num">${fracTxt(key)}</p>`, opts, labels: Object.fromEntries(opts.map(v => [v, pie(...v.split('/').map(Number), 'm-pie sm')])), ans: key };
+    },
+    // 약수와 배수: 'n의 약수' 또는 'k의 배수'를 네 개 중에서 고른다
+    factor() {
+      if (R(2)) {
+        const n = [8, 10, 12, 14, 15, 16, 18, 20][R(8)], mid = [...Array(n).keys()].filter(v => v > 1 && v < n);
+        const ds = mid.filter(v => n % v === 0), ans = ds[R(ds.length)], wrong = shuffle(mid.filter(v => n % v)).slice(0, 3);
+        return { ask: `${n}의 약수는 어느 것일까요?`, show: '', opts: shuffle([ans, ...wrong]), ans };
+      }
+      const k = 3 + R(7), ans = k * (2 + R(4)), wrong = shuffle([ans - 2, ans - 1, ans + 1, ans + 2, ans + 3].filter(v => v > 1 && v % k)).slice(0, 3);
+      return { ask: `${k}의 배수는 어느 것일까요?`, show: '', opts: shuffle([ans, ...wrong]), ans };
+    },
+    // 각: 그림을 보고 예각·직각·둔각
+    angle() {
+      const kind = ['예각', '직각', '둔각'][R(3)], deg = { 예각: [30, 45, 60, 70], 직각: [90], 둔각: [110, 120, 135, 150] }[kind];
+      return { ask: '어떤 각일까요?', show: `<div class="m-viz">${angSvg(deg[R(deg.length)], R(2))}</div>`, opts: ['예각', '직각', '둔각'], ans: kind };
+    },
+    // 다각형: 이름 또는 변의 수
+    poly() {
+      const n = [3, 4, 5, 6, 8][R(5)], show = `<div class="m-viz">${polySvg(n, COLORS[R(6)], R(60))}</div>`;
+      if (R(2)) { const o = shuffle([n, ...shuffle([3, 4, 5, 6, 8].filter(v => v !== n)).slice(0, 2)]); return { ask: '이 도형의 이름은 무엇일까요?', show, opts: o.map(v => POLY[v]), ans: POLY[n] }; }
+      return { ask: '변은 모두 몇 개일까요?', show, opts: shuffle([n, ...shuffle([3, 4, 5, 6, 7, 8].filter(v => v !== n)).slice(0, 2)]), ans: n };
     },
   };
   // 3×3 마방진: 1~9로 합이 15. 기본판을 돌리고 뒤집어 8가지 중 하나, 빈칸 3~4개
@@ -62,7 +120,7 @@ const MathGen = (() => {
     if (R(2)) g = g.map(r => [r[1], r[0], r[2], r[3]]); if (R(2)) g = g[0].map((_, c) => g.map(r => r[c]));
     return { size: 4, sol: g.flat(), max: 4, holes: shuffle([...Array(16).keys()]).slice(0, blanks) };
   }
-  return { gen, magic, sudoku, shuffle };
+  return { gen, magic, sudoku, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN };
 })();
 
 Views.math = (el, game) => {
@@ -76,7 +134,7 @@ Views.math = (el, game) => {
       <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
       ${UI.mascot('개념을 배우고, 따라 읽고, 따라 써 본 다음 문제로 확인해요. 다 끝내면 별을 줄게!')}
       <h2 class="sec-title m-sec">${ico('📖')} 개념 배우기 <small>배우기 → 따라 읽기 → 따라 쓰기 → 확인</small></h2>
-      ${[['5~6세', '수와 모양'], ['7~8세', '셈과 퍼즐']].map(([age, t]) => `<h3 class="sec-sub">${age} <small>${t}</small></h3>
+      ${[['5~6세', '수와 모양'], ['7~8세', '셈과 퍼즐'], ['9~10세', '곱셈·분수·도형']].map(([age, t]) => `<h3 class="sec-sub">${age} <small>${t}</small></h3>
         <div class="m-lessons">${MATH_LESSONS.filter(l => l.age === age).map((l, i) => `<a class="m-lesson card ${mathDone().includes(l.id) ? 'done' : ''}" href="#/math/${l.id}"><span class="m-l-ico">${lIco(l)}</span><b>${l.title}</b><small>${mathDone().includes(l.id) ? '✅ 다 배웠어요' : `${l.steps.length}단계`}</small></a>`).join('')}</div>`).join('')}
       <h2 class="sec-title m-sec">${ico('🎯')} 퍼즐 놀이 <small>한 판에 5문제, 다 맞히면 별 (하루 5개까지)</small></h2>
       ${[['5~6세', '수와 모양 놀이'], ['7~8세', '셈과 퍼즐']].map(([age, t]) => `<h3 class="sec-sub">${age} <small>${t}</small></h3>
@@ -164,6 +222,45 @@ const KoSpeech = (() => {
   return { say, stop };
 })();
 
+// 따라 읽기 확인: 브라우저 음성 인식(ko-KR)으로 아이가 읽은 문장을 받아 적어 목표 문장과 글자로 비교한다.
+// 부모님이 음성 사용에 동의했을 때(Speech.voiceOk)만 마이크를 쓰고, 인식이 없는 기기에서는 버튼으로만 넘어간다.
+// 소리는 브라우저 음성 인식(Chrome은 구글, Safari는 애플)이 처리하고 새싹스쿨 서버로는 보내지 않는다.
+const KoListen = (() => {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let broken = false; // 이번에 마이크가 막혔으면 다시 묻지 않는다
+  const env = (typeof Speech !== 'undefined' && Speech.env) || {};
+  const supported = () => !!Rec && !broken && window.isSecureContext !== false && !env.inApp && !env.iosApp;
+  const allowed = () => typeof Speech !== 'undefined' && Speech.voiceOk && Speech.voiceOk();
+  const KN = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+  const numKo = n => { if (n === 0) return '영'; let s = ''; const c = Math.floor(n / 100) % 10, t = Math.floor(n / 10) % 10, u = n % 10; if (n >= 1000) return String(n); if (c) s += (c > 1 ? KN[c] : '') + '백'; if (t) s += (t > 1 ? KN[t] : '') + '십'; if (u) s += KN[u]; return s; };
+  // 받아쓰기는 '2 더하기 3'처럼 숫자로, '하나 둘'을 '1 2'로 적기도 하니 숫자는 한자어 읽기로, 고유어 수는 한자어로 맞춰 비교한다
+  const NATIVE = [['다섯', '오'], ['여섯', '육'], ['일곱', '칠'], ['여덟', '팔'], ['아홉', '구'], ['하나', '일'], ['둘', '이'], ['셋', '삼'], ['넷', '사']];
+  const norm = s => String(s).replace(/(\d+)\s*\/\s*(\d+)/g, (_, a, b) => numKo(+b) + '분의' + numKo(+a)).replace(/\d+/g, m => numKo(+m))
+    .replace(/[×x]/g, '곱하기').replace(/°/g, '도').replace(/[+]/g, '더하기').replace(/[=]/g, '는').replace(/[^가-힣]/g, '');
+  const nat = s => NATIVE.reduce((a, [k, v]) => a.split(k).join(v), s);
+  const lcs = (a, b) => { const d = Array(b.length + 1).fill(0); for (const ch of a) { let prev = 0; for (let j = 1; j <= b.length; j++) { const tmp = d[j]; d[j] = ch === b[j - 1] ? prev + 1 : Math.max(d[j], d[j - 1]); prev = tmp; } } return d[b.length]; };
+  const sim = (a, b) => (a.length + b.length) ? 2 * lcs(a, b) / (a.length + b.length) : 0;
+  const score = (target, heard) => { const t = norm(target), h = norm(heard); return Math.max(sim(t, h), sim(nat(t), nat(h))); };
+  let cur = null;
+  const stop = () => { if (cur) { try { cur.abort(); } catch {} cur = null; } };
+  // 한 번 듣고 { score: 0~1, heard } 로 끝낸다. 실패하면 Error(code): not-allowed · no-speech · network · busy …
+  const listen = (target, { onStart } = {}) => new Promise((resolve, reject) => {
+    stop(); KoSpeech.stop(); try { Speech.stop(); } catch {}
+    const r = new Rec(); cur = r;
+    r.lang = 'ko-KR'; r.interimResults = false; r.maxAlternatives = 4; r.continuous = false;
+    let done = false; const alts = [];
+    const end = (fn, v) => { if (done) return; done = true; clearTimeout(t); if (cur === r) cur = null; try { r.stop(); } catch {} fn(v); };
+    const t = setTimeout(() => alts.length ? end(resolve, best()) : end(reject, new Error('no-speech')), 12000);
+    const best = () => alts.map(h => ({ score: score(target, h), heard: h })).sort((a, b) => b.score - a.score)[0];
+    r.onstart = () => onStart && onStart();
+    r.onresult = e => { for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) alts.push(...[...e.results[i]].map(a => a.transcript)); };
+    r.onerror = e => { if (['not-allowed', 'service-not-allowed', 'language-not-supported', 'audio-capture'].includes(e.error)) broken = true; end(reject, new Error(e.error || 'error')); };
+    r.onend = () => alts.length ? end(resolve, best()) : end(reject, new Error('no-speech'));
+    try { r.start(); } catch { end(reject, new Error('busy')); }
+  });
+  return { get ok() { return supported() && allowed(); }, get needsConsent() { return supported() && !allowed(); }, listen, stop, score };
+})();
+
 function mathViz(v) {
   if (!v) return '';
   const row = (e, n, cls = '') => Array.from({ length: n }, () => `<span class="${cls}">${mPic(e)}</span>`).join('');
@@ -177,6 +274,11 @@ function mathViz(v) {
     case 'add': return `<div class="m-viz m-eq"><span class="m-g">${row(v.e, v.a)}</span><b>+</b><span class="m-g">${row(v.e, v.b)}</span><b>=</b><span class="m-g">${row(v.e, v.a + v.b)}</span></div><p class="m-eq-num">${v.a} + ${v.b} = ${v.a + v.b}</p>`;
     case 'sub': return `<div class="m-viz m-eq"><span class="m-g">${row(v.e, v.a - v.b)}${row(v.e, v.b, 'm-gone')}</span><b>→</b><span class="m-g">${row(v.e, v.a - v.b)}</span></div><p class="m-eq-num">${v.a} − ${v.b} = ${v.a - v.b}</p>`;
     case 'group': return `<div class="m-viz m-groups">${v.groups.map(g => `<span class="m-ring">${g.map(x => `<span>${mPic(x)}</span>`).join('')}</span>`).join('')}</div>`;
+    case 'array': return `<div class="m-viz m-array" style="--c:${v.c}">${row(v.e, v.r * v.c)}</div><p class="m-eq-num">${v.c} × ${v.r} = ${v.r * v.c}</p>`;
+    case 'frac': return `<div class="m-viz">${MathGen.pie(v.n, v.d)}</div><p class="m-eq-num">${MathGen.fracTxt(v.n + '/' + v.d)}</p>`;
+    case 'nums': return `<div class="m-viz m-nums">${Array.from({ length: v.to }, (_, k) => `<span class="${v.hi.includes(k + 1) ? 'hi' : ''}">${k + 1}</span>`).join('')}</div>`;
+    case 'angle': return v.all ? `<div class="m-viz m-angs">${[['예각', 45], ['직각', 90], ['둔각', 135]].map(([t, d]) => `<figure>${MathGen.angSvg(d)}<figcaption>${t}</figcaption></figure>`).join('')}</div>` : `<div class="m-viz">${MathGen.angSvg(v.deg)}</div>`;
+    case 'poly': return `<div class="m-viz m-angs">${v.s.map((n, k) => `<figure>${MathGen.polySvg(n, ['#4db6ac', '#ff8a65', '#9575cd', '#64b5f6'][k % 4])}<figcaption>${MathGen.POLY[n]}</figcaption></figure>`).join('')}</div>`;
     case 'grid': return `<div class="m-grid show ${v.n === 3 ? 'magic' : 'sudoku'}" style="--n:${v.n}">${v.vals.map(x => `<span class="m-cell fixed">${x || ''}</span>`).join('')}</div>`;
   }
   return '';
@@ -224,7 +326,7 @@ function mathLesson(el, L, reward) {
     $$('[data-ko]', area).forEach(b => b.onclick = () => KoSpeech.say(b.dataset.ko));
     $$('[data-ko-slow]', area).forEach(b => b.onclick = () => KoSpeech.say(b.dataset.koSlow, { slow: true }));
   };
-  const next = () => { i++; show(); };
+  const next = () => { KoListen.stop(); i++; show(); };
   const finish = () => {
     KoSpeech.stop(); mathMarkDone(L.id); const got = reward();
     Speech.sfx.cheer(); Lesson.confetti(); bar.style.width = '100%';
@@ -241,10 +343,28 @@ function mathLesson(el, L, reward) {
       area.innerHTML = `${head}${mathViz(st.viz)}<p class="m-text">${esc(st.text)}</p>${sayBtns(st.text)}<div class="row-center"><button class="btn btn-primary" data-next>다음 →</button></div>`;
       wireSay(); KoSpeech.say(st.text); $('[data-next]', area).onclick = next;
     } else if (st.type === 'read') {
-      area.innerHTML = `${head}${mathViz(st.viz)}<p class="m-read">${esc(st.text)}</p><p class="fine center">먼저 듣고, 소리 내어 따라 읽어 봐요.</p>${sayBtns(st.text)}<div class="row-center"><button class="btn btn-primary" data-next disabled>따라 읽었어요 ✅</button></div>`;
-      wireSay(); const nb = $('[data-next]', area);
+      const mic = KoListen.ok;
+      area.innerHTML = `${head}${mathViz(st.viz)}<p class="m-read">${esc(st.text)}</p><p class="fine center">${mic ? '먼저 듣고, 🎤를 누른 다음 소리 내어 따라 읽어 봐요.' : '먼저 듣고, 소리 내어 따라 읽어 봐요.'}</p>${sayBtns(st.text)}
+        <div class="row-center">${mic ? '<button class="btn btn-primary m-mic" data-mic>🎤 읽고 확인받기</button>' : ''}<button class="btn ${mic ? 'btn-ghost' : 'btn-primary'}" data-next disabled>따라 읽었어요 ✅</button></div>
+        <p class="m-msg m-heard" aria-live="polite">${KoListen.needsConsent && Store.user() ? '<span class="fine">부모님이 부모페이지 › 설정에서 음성 인식을 켜면, 읽은 것을 듣고 칭찬해 줘요.</span>' : ''}</p>`;
+      wireSay(); const nb = $('[data-next]', area), msg = $('.m-heard', area);
       KoSpeech.say(st.text, { onEnd: () => { nb.disabled = false; } }); setTimeout(() => { nb.disabled = false; }, 4000);
-      nb.onclick = next;
+      nb.onclick = () => { KoListen.stop(); next(); };
+      const mb = $('[data-mic]', area);
+      if (mb) mb.onclick = () => {
+        mb.disabled = true; mb.textContent = '🎤 듣는 중…'; msg.textContent = '';
+        KoListen.listen(st.text, { onStart: () => { mb.classList.add('on'); } }).then(({ score }) => {
+          mb.classList.remove('on'); mb.disabled = false; nb.disabled = false;
+          if (score >= 0.6) {
+            const pr = MATH_KO_EXTRA[Math.floor(Math.random() * 3)]; Speech.sfx.correct(); KoSpeech.say(pr);
+            msg.innerHTML = `🌟 <b>${esc(pr)}</b>`; mb.textContent = '🎤 한 번 더'; nb.textContent = '다음 →'; nb.className = 'btn btn-primary';
+          } else { KoSpeech.say(MATH_KO_EXTRA[3]); msg.textContent = '🙂 ' + MATH_KO_EXTRA[3]; mb.textContent = '🎤 다시 읽기'; }
+        }).catch(e => {
+          mb.classList.remove('on'); nb.disabled = false;
+          if (['not-allowed', 'service-not-allowed', 'language-not-supported', 'audio-capture'].includes(e.message)) { mb.remove(); nb.className = 'btn btn-primary'; msg.textContent = '이 기기에서는 마이크를 쓸 수 없어요. 따라 읽고 버튼을 눌러요.'; }
+          else { mb.disabled = false; mb.textContent = '🎤 다시 읽기'; msg.textContent = '목소리가 잘 들리지 않았어요. 🎤를 누르고 다시 읽어 봐요.'; }
+        });
+      };
     } else if (st.type === 'write') {
       area.innerHTML = `${head}<h2 class="m-ask">「${esc(st.glyph)}」 따라 쓰기</h2>${sayBtns(st.say)}<div class="m-write"></div>`;
       wireSay(); KoSpeech.say(st.say); mathTrace($('.m-write', area), st.glyph, () => setTimeout(next, 500));
