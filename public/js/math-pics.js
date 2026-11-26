@@ -1,17 +1,17 @@
 // pregen-math-story.js가 만든다: 수학 이야기 쪽('주제-쪽') → 그림
 const MATH_STORY_PICS = {
- "count-0": "ms/count-0-16d95099.jpg",
+ "count-0": "ms/count-0-3d5f469d.jpg",
  "shape-0": "ms/shape-0-c5a8efce.jpg",
- "shape-1": "ms/shape-1-b448b007.jpg",
- "shape-2": "ms/shape-2-9789ffbe.jpg",
+ "shape-1": "ms/shape-1-f66ed873.jpg",
+ "shape-2": "ms/shape-2-eb564c20.jpg",
  "group-0": "ms/group-0-4fdf685c.jpg",
- "group-1": "ms/group-1-f35de4a1.jpg",
- "pattern-0": "ms/pattern-0-5af18de8.jpg",
+ "group-1": "ms/group-1-7c9b4180.jpg",
+ "pattern-0": "ms/pattern-0-b1a20ac9.jpg",
  "magic-0": "ms/magic-0-d8bd1c30.jpg",
  "magic-3": "ms/magic-3-a749011b.jpg",
  "blocks-0": "ms/blocks-0-558d080e.jpg",
  "table-0": "ms/table-0-56d7dfca.jpg",
- "table-1": "ms/table-1-7a8ae474.jpg",
+ "table-1": "ms/table-1-e5b97676.jpg",
  "venn-0": "ms/venn-0-b963b591.jpg",
  "venn-3": "ms/venn-3-845a7614.jpg",
  "graph-0": "ms/graph-0-3a2d97b9.jpg",
@@ -23,7 +23,10 @@ const MATH_STORY_PICS = {
  "cipher-1": "ms/cipher-1-76a2d0b7.jpg",
  "masked-0": "ms/masked-0-63c165e0.jpg",
  "masked-3": "ms/masked-3-839d124c.jpg",
- "cases-0": "ms/cases-0-627706af.jpg",
+ "cases-0": "ms/cases-0-d1a42954.jpg",
  "cases-1": "ms/cases-1-fcdb7f53.jpg",
- "cases-3": "ms/cases-3-fc60e7fa.jpg"
+ "cases-3": "ms/cases-3-2997f8eb.jpg",
+ "count-4": "ms/count-4-e538c91e.jpg",
+ "count-5": "ms/count-5-2c19e958.jpg",
+ "count-6": "ms/count-6-2d696540.jpg"
 };
