@@ -2,12 +2,14 @@
  * 「천재들이 만든 수학퍼즐」에 나오는 개념(수 세기·평면도형·집합·규칙·머리셈·마방진·스도쿠)을 골라
  * 새싹스쿨이 직접 쓴 짧은 설명으로 배우고 → 따라 읽고 → 따라 쓰고 → 문제로 확인한다. 책의 문장·그림·문제는 옮기지 않는다.
  * 단계: learn(개념 카드, 🔊 듣기) · write(따라 쓰기) · quiz(확인 문제, MathGen) · play(퍼즐로 가기)
+ *       조작(씨앗): tap{e,n} 하나씩 눌러 세기 · corners{s} 뾰족한 곳 누르기 · sort{groups} 바구니에 옮기기 · extend{unit,shown,blanks} 규칙 이어 채우기
  * 2026-11-26 저녁: 따라 읽기(read)는 뺐다 — 수학은 읽기보다 퍼즐·워크시트로 연습한다
  * viz(그림): count{e,n} · seq{items} · shape{s} · add{e,a,b} · sub{e,a,b} · group{groups} · grid{n,vals}
  *            · array{e,r,c} · frac{n,d} · nums{to,hi} · angle{deg | all} · poly{s:[변의 수…]} */
 const MATH_LESSONS = [
   { id: 'num1', stage: 'seed', icon: 'm🍎', title: '수 세기 1~5', topic: '수의 기원', steps: [
     { type: 'learn', viz: { k: 'count', e: '🍎', n: 3 }, text: '물건을 셀 때는 하나씩 손가락으로 짚으면서 세요. 마지막에 말한 수가 모두 몇 개인지 알려 줘요.' },
+    { type: 'tap', e: '🍎', n: 5, text: '사과를 하나씩 눌러서 세어 봐요.' },
     { type: 'learn', viz: { k: 'count', e: '⭐', n: 5 }, text: '숫자로 쓰면 1, 2, 3, 4, 5예요. 1은 일, 하나라고 읽고, 5는 오, 다섯이라고 읽어요.' },
     { type: 'write', glyph: '3', say: '삼, 셋' },
     { type: 'write', glyph: '5', say: '오, 다섯' },
@@ -15,6 +17,7 @@ const MATH_LESSONS = [
   ] },
   { id: 'num2', stage: 'seed', icon: 'm🐥', title: '수 세기 6~10', topic: '수의 기원', steps: [
     { type: 'learn', viz: { k: 'count', e: '🐥', n: 7 }, text: '다섯보다 많으면 다섯 개를 먼저 묶어 세고, 남은 것을 이어서 세면 쉬워요.' },
+    { type: 'tap', e: '🐥', n: 8, text: '병아리를 하나씩 눌러서 세어 봐요. 다섯 다음에는 여섯이에요.' },
     { type: 'learn', viz: { k: 'count', e: '🍓', n: 10 }, text: '10은 십, 열이라고 읽어요. 손가락을 모두 펴면 열 개예요.' },
     { type: 'write', glyph: '7', say: '칠, 일곱' },
     { type: 'write', glyph: '10', say: '십, 열' },
@@ -22,7 +25,9 @@ const MATH_LESSONS = [
   ] },
   { id: 'shape', stage: 'seed', icon: 'math-shape', title: '세모·네모·동그라미', topic: '평면도형', steps: [
     { type: 'learn', viz: { k: 'shape', s: 'tri' }, text: '세모는 곧은 선 세 개로 둘러싸여 있고, 뾰족한 곳이 세 군데예요.' },
+    { type: 'corners', s: 'tri', text: '세모의 뾰족한 곳을 하나씩 눌러 봐요.' },
     { type: 'learn', viz: { k: 'shape', s: 'sq' }, text: '네모는 곧은 선 네 개로 둘러싸여 있고, 뾰족한 곳이 네 군데예요.' },
+    { type: 'corners', s: 'sq', text: '네모의 뾰족한 곳도 하나씩 눌러 봐요.' },
     { type: 'learn', viz: { k: 'shape', s: 'circ' }, text: '동그라미는 둥글게 굽은 선 하나로 둘러싸여 있어서 뾰족한 곳이 없어요.' },
     { type: 'write', glyph: '세모', say: '세모' },
     { type: 'write', glyph: '네모', say: '네모' },
@@ -30,13 +35,17 @@ const MATH_LESSONS = [
   ] },
   { id: 'group', stage: 'seed', icon: '🧺', title: '같은 것끼리 모으기', topic: '집합', steps: [
     { type: 'learn', viz: { k: 'group', groups: [['🍎', '🍓', '🍌'], ['🐶', '🐱', '🐥']] }, text: '과일은 과일끼리, 동물은 동물끼리 모을 수 있어요. 같은 성질을 가진 것끼리 모은 무리를 집합이라고 해요.' },
+    { type: 'sort', groups: [['🍎 과일 바구니', ['🍎', '🍓', '🍌']], ['🐾 동물 바구니', ['🐶', '🐱', '🐥']]], text: '하나를 누르고, 들어갈 바구니를 눌러서 옮겨 봐요.' },
     { type: 'learn', viz: { k: 'group', groups: [['🍎', '❤️', '🍓'], ['🍌', '⭐', '🌙']] }, text: '색으로도 모을 수 있어요. 빨간 것끼리, 노란 것끼리 모아 봐요.' },
+    { type: 'sort', groups: [['❤️ 빨간 바구니', ['🍎', '❤️', '🍓']], ['💛 노란 바구니', ['🍌', '⭐', '🌙']]], text: '이번에는 색깔 바구니에 옮겨 봐요.' },
     { type: 'write', glyph: '집합', say: '집합' },
     { type: 'quiz', gen: 'odd' }, { type: 'quiz', gen: 'odd' },
   ] },
   { id: 'pattern', stage: 'seed', icon: 'math-pattern', title: '규칙 찾기', topic: '규칙 찾기', steps: [
     { type: 'learn', viz: { k: 'seq', items: ['🍎', '🍌', '🍎', '🍌', '🍎', '🍌'] }, text: '사과, 바나나, 사과, 바나나. 똑같은 차례가 계속 되풀이되는 것을 규칙이라고 해요.' },
+    { type: 'extend', unit: ['🍎', '🍌'], shown: 4, blanks: 2, text: '규칙에 맞게 빈칸 두 개를 채워 봐요.' },
     { type: 'learn', viz: { k: 'seq', items: ['⭐', '⭐', '🌙', '⭐', '⭐', '🌙'] }, text: '별, 별, 달. 세 개가 한 묶음이 되어 되풀이되기도 해요. 한 묶음을 찾으면 다음을 알 수 있어요.' },
+    { type: 'extend', unit: ['⭐', '⭐', '🌙'], shown: 5, blanks: 3, text: '한 묶음을 찾아서 빈칸 세 개를 채워 봐요.' },
     { type: 'write', glyph: '규칙', say: '규칙' },
     { type: 'quiz', gen: 'pattern' }, { type: 'quiz', gen: 'pattern' },
   ] },
@@ -126,13 +135,13 @@ const MATH_TOPICS = [
   { id: 'pattern', stage: 'seed', icon: 'math-pattern', title: '규칙 찾기', lessons: ['pattern'], game: 'pattern',
     ws: { sum: '똑같은 차례가 되풀이되는 것을 규칙이라고 해요. 한 묶음을 찾으면 다음을 알 수 있어요.', trace: ['규칙', '다음'], gen: 'pattern', n: 6 } },
   { id: 'addsub', stage: 'sprout', icon: 'math-mental', title: '더하기·빼기', lessons: ['add', 'sub'], game: 'mental',
-    ws: { sum: '합치는 것은 더하기(+), 덜어 내는 것은 빼기(−)예요. 같다는 등호(=)로 써요.', trace: ['+', '−', '=', '더하기', '빼기'], gen: 'mental', n: 10 } },
+    ws: { sum: '합치는 것은 더하기(+), 덜어 내는 것은 빼기(−)예요. 같다는 등호(=)로 써요.', trace: ['+', '−', '=', '더하기', '빼기'], gen: 'mental', n: 8 } },
   { id: 'magic', stage: 'sprout', icon: 'math-magic', title: '마방진', lessons: ['magic'], game: 'magic',
     ws: { sum: '3×3 마방진은 가로·세로·대각선 세 수의 합이 모두 15예요. 가운데는 늘 5예요.', trace: ['15', '마방진'], grid: 'magic', n: 4 } },
   { id: 'sudoku', stage: 'sprout', icon: 'math-sudoku', title: '스도쿠', lessons: ['sudoku'], game: 'sudoku',
     ws: { sum: '가로줄·세로줄·굵은 네모 안에 1, 2, 3, 4가 한 번씩만 들어가요.', trace: ['1', '2', '3', '4'], grid: 'sudoku', n: 4 } },
   { id: 'mul', stage: 'tree', icon: '✖️', title: '곱셈', lessons: ['mul'], game: 'mul',
-    ws: { sum: '같은 수를 여러 번 더할 때는 곱하기(×)로 한 번에 셀 수 있어요. 순서를 바꿔 곱해도 답은 같아요.', trace: ['×', '곱하기'], gen: 'mul', n: 10 } },
+    ws: { sum: '같은 수를 여러 번 더할 때는 곱하기(×)로 한 번에 셀 수 있어요. 순서를 바꿔 곱해도 답은 같아요.', trace: ['×', '곱하기'], gen: 'mul', n: 8 } },
   { id: 'frac', stage: 'tree', icon: '🍕', title: '분수', lessons: ['frac'], game: 'frac',
     ws: { sum: '똑같이 나눈 것 가운데 몇 개인지 나타내는 수가 분수예요. 아래는 분모, 위는 분자예요.', trace: ['분수', '분모', '분자', '3/4'], gen: 'frac', n: 8 } },
   { id: 'factor', stage: 'tree', icon: '🍪', title: '약수와 배수', lessons: ['factor'], game: 'factor',
@@ -141,4 +150,69 @@ const MATH_TOPICS = [
     ws: { sum: '직각은 90도예요. 직각보다 작으면 예각, 크면 둔각이에요.', trace: ['직각', '예각', '둔각', '90°'], gen: 'angle', n: 6 } },
   { id: 'poly', stage: 'tree', icon: '🐝', title: '다각형', lessons: ['poly'], game: 'poly',
     ws: { sum: '곧은 선으로만 둘러싸인 도형이 다각형이에요. 변의 수와 꼭짓점의 수는 같아요.', trace: ['변', '꼭짓점', '육각형'], gen: 'poly', n: 6 } },
+];
+
+// ── 천재 이야기 (① 1분): 옛날 수수께끼·발견을 새싹스쿨이 새로 쓴 짧은 이야기. 책의 문장·그림은 쓰지 않는다
+// 그림(viz)은 mathViz: scene{items} · pair{a,b,n} · rope · count · seq · group · shape · grid
+const MATH_STORIES = {
+  count: { card: { icon: '🪨', name: '돌멩이 양치기', line: '하나에 하나씩 짝지어 세었어요' }, pages: [
+    { viz: { k: 'scene', items: ['⛰️', '🐑', '🐑', '🐑', '🌿'] }, text: '아주 먼 옛날, 숫자가 없던 때에 양을 치는 아이가 있었대요. 양들은 아침마다 풀을 먹으러 나갔다가 저녁에 돌아왔어요.' },
+    { viz: { k: 'pair', a: '🐑', b: '🪨', n: 5 }, text: '아이는 꾀를 냈어요. 양 한 마리가 나갈 때마다 주머니에 돌멩이를 하나씩 넣었어요.' },
+    { viz: { k: 'pair', a: '🐑', b: '🪨', n: 5, miss: 1 }, text: '저녁에는 양 한 마리가 들어올 때마다 돌멩이를 하나씩 꺼냈어요. 돌멩이가 남으면, 아직 돌아오지 않은 양이 있다는 뜻이에요.' },
+    { viz: { k: 'count', e: '🪨', n: 5 }, text: '이렇게 하나에 하나씩 짝지어 세는 생각에서 수가 생겨났대요. 우리도 하나씩 짚으며 세어 볼까요?' },
+  ] },
+  shape: { card: { icon: '🪢', name: '밧줄 당기는 사람', line: '밧줄로 세모를 만들었어요' }, pages: [
+    { viz: { k: 'scene', items: ['🌊', '🌾', '🌾', '🌾', '🏠'] }, text: '옛날 이집트에는 큰 강이 있었어요. 해마다 강물이 넘치면 밭과 밭 사이의 경계가 지워졌대요.' },
+    { viz: { k: 'rope' }, text: '그래서 밧줄 당기는 사람들이 나섰어요. 매듭을 똑같은 간격으로 묶은 긴 밧줄을 들고 왔지요.' },
+    { viz: { k: 'rope', tri: true }, text: '세 사람이 밧줄을 팽팽하게 당겨 세 군데를 잡으면, 곧은 선 세 개로 된 세모가 생겼어요.' },
+    { viz: { k: 'shape', s: 'all' }, text: '세모와 네모로 밭을 반듯하게 다시 나눌 수 있었대요. 우리도 모양을 알아볼까요?' },
+  ] },
+  group: { card: { icon: '🌿', name: '린네', line: '닮은 것끼리 무리를 지었어요' }, pages: [
+    { viz: { k: 'scene', items: ['🌸', '🐞', '🌿', '🦋'] }, text: '옛날 스웨덴에 꽃과 벌레를 아주 좋아하는 린네라는 아이가 있었어요.' },
+    { viz: { k: 'scene', items: ['🌸', '🐦', '🌻', '🐟', '🦋', '🌷', '🐞', '🐠'] }, text: '어른이 된 린네는 세상의 식물과 동물에 이름을 붙이고 싶었어요. 그런데 너무 많아서 헷갈렸대요.' },
+    { viz: { k: 'group', groups: [['🌸', '🌻', '🌷'], ['🐟', '🐠'], ['🦋', '🐞']] }, text: '린네는 닮은 것끼리 무리를 지어 모았어요. 꽃은 꽃끼리, 물고기는 물고기끼리 모으니 한눈에 보였어요.' },
+    { viz: { k: 'group', groups: [['🍎', '🍓', '🍌'], ['🐶', '🐱', '🐥']] }, text: '같은 성질을 가진 것끼리 모은 무리를 집합이라고 해요. 우리도 바구니에 모아 볼까요?' },
+  ] },
+  pattern: { card: { icon: '🌕', name: '달을 보는 사람', line: '되풀이되는 달 모양을 찾았어요' }, pages: [
+    { viz: { k: 'scene', items: ['🌃', '🌙', '⭐', '✨'] }, text: '아주 옛날 사람들은 밤마다 하늘의 달을 올려다보았어요.' },
+    { viz: { k: 'seq', items: ['🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'] }, text: '달은 가느다란 눈썹 모양에서 점점 차올라 동그래지고, 다시 가늘어졌어요.' },
+    { viz: { k: 'seq', items: ['🌓', '🌕', '🌗', '🌑', '🌓', '🌕', '🌗', '?'] }, text: '사람들은 달 모양이 똑같은 차례로 되풀이된다는 것을 알아챘어요. 그래서 다음 보름달이 언제 뜰지 맞힐 수 있었대요.' },
+    { viz: { k: 'seq', items: ['🍎', '🍌', '🍎', '🍌', '🍎', '?'] }, text: '되풀이되는 차례를 찾으면 다음을 알 수 있어요. 이것이 바로 규칙이에요!' },
+  ] },
+  magic: { card: { icon: '🐢', name: '낙서 거북', line: '등딱지에 신기한 판이 있었어요' }, pages: [
+    { viz: { k: 'scene', items: ['🌧️', '🌊', '🐢'] }, text: '옛날 중국에 큰 홍수가 났을 때, 강에서 커다란 거북이 한 마리 나왔대요.' },
+    { viz: { k: 'grid', n: 3, vals: [4, 9, 2, 3, 5, 7, 8, 1, 6] }, text: '거북의 등딱지에는 점들이 세 줄, 세 칸으로 새겨져 있었어요. 점의 수를 숫자로 쓰면 이렇게 돼요.' },
+    { viz: { k: 'grid', n: 3, vals: [4, 9, 2, 3, 5, 7, 8, 1, 6] }, text: '가로로 더해도, 세로로 더해도, 비스듬히 더해도 모두 15였어요. 사람들은 깜짝 놀랐대요.' },
+    { viz: { k: 'scene', items: ['✨', '🔢', '✨'] }, text: '이렇게 어느 줄을 더해도 같은 수가 되는 판을 마방진이라고 해요. 우리도 만들어 볼까요?' },
+  ] },
+};
+
+// 틀렸을 때: 1번 틀리면 힌트 한 줄(음성도), 2번 틀리면 그림 풀이
+const MATH_HINTS = {
+  count: '하나씩 손가락으로 짚으면서 세어 봐요.',
+  shape: '뾰족한 곳을 세어 봐요. 세모는 셋, 네모는 넷, 동그라미는 하나도 없어요.',
+  odd: '과일인지 동물인지, 무리 이름을 붙여 봐요.',
+  pattern: '되풀이되는 한 묶음을 먼저 찾아봐요.',
+  mental: '더하기는 합치기, 빼기는 덜어 내기예요. 손가락으로 세어 봐도 좋아요.',
+  mul: '곱하기는 같은 수를 여러 번 더한 것과 같아요.',
+  frac: '아래 수는 모두 몇 조각인지, 위 수는 색칠한 조각이 몇 개인지예요.',
+  factor: '약수는 남김없이 나누어떨어지는 수, 배수는 곱셈구구에 나오는 수예요.',
+  angle: '공책 모서리 같은 직각과 견주어 봐요.',
+  poly: '곧은 선을 하나씩 세어 봐요.',
+};
+// 씨앗 문제·조작 놀이에서 읽어 주는 말 (pregen-tts-ko.js가 함께 음성을 만든다)
+const MATH_THINGS = [['🍎', '사과는'], ['🐥', '병아리는'], ['⭐', '별은'], ['🌸', '꽃은'], ['🚗', '자동차는'], ['🎈', '풍선은'], ['🐟', '물고기는'], ['🍓', '딸기는'], ['🐶', '강아지는'], ['⚽', '공은']];
+const MATH_NATIVE = ['하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열하나', '열둘', '열셋', '열넷', '열다섯'];
+const MATH_CNT = ['한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
+const MATH_SAY = {
+  shape: { tri: '세모를 골라요', sq: '네모를 골라요', circ: '동그라미를 골라요' },
+  shapeHard: { tri: '뾰족한 곳이 세 군데인 모양을 골라요', sq: '뾰족한 곳이 네 군데인 모양을 골라요', circ: '뾰족한 곳이 없는 모양을 골라요' },
+  odd: '다른 무리에 들어가는 것을 골라요', pattern: '빈칸에 올 것을 골라요',
+  right: '맞았어요!', look: '그림을 보고 정답을 찾아봐요.', sorted: '잘 모았어요!', wrongBasket: '다른 바구니예요. 다시 생각해 봐요.',
+  extended: '규칙을 찾았어요!', card: '천재 카드를 받았어요!',
+};
+const MATH_VOICE = [
+  ...MATH_NATIVE, ...MATH_CNT.map(c => `모두 ${c} 개예요!`), '뾰족한 곳이 세 군데예요!', '뾰족한 곳이 네 군데예요!',
+  ...MATH_THINGS.map(([, n]) => `${n} 몇 개일까요?`), ...Object.values(MATH_SAY.shape), ...Object.values(MATH_SAY.shapeHard),
+  MATH_SAY.odd, MATH_SAY.pattern, MATH_SAY.right, MATH_SAY.look, MATH_SAY.sorted, MATH_SAY.wrongBasket, MATH_SAY.extended, MATH_SAY.card,
 ];

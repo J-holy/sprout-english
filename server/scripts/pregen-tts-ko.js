@@ -14,6 +14,10 @@ const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(config.publicDir, 'js', 'math-lessons.js'), 'utf8').replace(/^const (\w+)/gm, 'var $1'), ctx);
 const texts = new Set();
 for (const L of ctx.MATH_LESSONS) for (const s of L.steps) { if (s.text) texts.add(s.text); if (s.say) texts.add(s.say); }
+// 천재 이야기 · 힌트 · 씨앗 문제와 조작 놀이에서 읽어 주는 말
+for (const st of Object.values(ctx.MATH_STORIES || {})) for (const pg of st.pages) texts.add(pg.text);
+for (const h of Object.values(ctx.MATH_HINTS || {})) texts.add(h);
+for (const v of ctx.MATH_VOICE || []) texts.add(v);
 const manPath = path.join(dir, 'manifest.json');
 const man = fs.existsSync(manPath) ? JSON.parse(fs.readFileSync(manPath, 'utf8')) : {};
 // 파일 이름에 목소리가 들어가므로, 목소리를 바꾸면 이름이 달라진 문장은 다시 만든다
