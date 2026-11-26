@@ -1722,3 +1722,5 @@ a.shop-ava { display: block; }
 .tree-pic { overflow: hidden; }
 .tree-pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transform: scale(1.14); }
 .tree-pic.happy:has(img) { animation: none; }
+/* 카카오톡 문의 아이콘 (2026-11-26) */
+.kakao-ico { width: 1.3em; height: 1.3em; vertical-align: -.3em; display: inline-block; }

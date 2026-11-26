@@ -559,7 +559,7 @@ Views.home = el => {
         <li>🧾 카드 등록·자동결제 없이 <b>한 번만 결제</b>하는 이용권이에요</li>
         <li>↩️ 결제 후 7일 이내·플러스 학습 전이면 부모페이지에서 바로 <b>전액 환불</b></li>
         <li>🏢 사업자등록·통신판매업 신고를 마친 사업자예요 (맨 아래 사업자 정보)</li>
-        <li>📞 고객센터 010-5117-1247 · support@saessakschool.co.kr · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">💬 카카오톡 채널 문의</a></li></ul>`}
+        <li>📞 고객센터 010-5117-1247 · support@saessakschool.co.kr · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener"><img class="kakao-ico" src="img/kakao-talk.svg" alt="" draggable="false"> 카카오톡 채널 문의</a></li></ul>`}
       <div class="row"><a class="btn btn-ghost" href="#/reviews">후기 전체 보기</a>${u ? '<a class="btn btn-ghost" href="#/reviews">✍️ 후기 남기기</a>' : ''}</div>
     </div>
     <div class="review-stack">${bestReviews.length ? bestReviews.map(r => UI.reviewCard(r)).join('')
@@ -941,7 +941,7 @@ Views.help = el => {
     <div id="faqList"></div>
     <div class="card contact-card"><h3>💬 찾는 답이 없으면 문의해 주세요</h3>
       <p>결제·환불·학습·소리 문제 모두 도와드려요. 카카오톡 채널로 물어보시면 가장 빨리 답해 드려요.</p>
-      <div class="row"><a class="btn btn-primary sm btn-kakao" href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">💬 카카오톡으로 문의</a><a class="btn btn-ghost sm" href="tel:010-5117-1247">📞 010-5117-1247</a><a class="btn btn-ghost sm" data-mail href="mailto:support@saessakschool.co.kr">✉️ 이메일 문의</a></div>
+      <div class="row"><a class="btn btn-primary sm btn-kakao" href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener"><img class="kakao-ico" src="img/kakao-talk.svg" alt="" draggable="false"> 카카오톡으로 문의</a><a class="btn btn-ghost sm" href="tel:010-5117-1247">📞 010-5117-1247</a><a class="btn btn-ghost sm" data-mail href="mailto:support@saessakschool.co.kr">✉️ 이메일 문의</a></div>
       <p class="fine">이메일 문의를 누르면 사용 중인 기기·브라우저 정보가 미리 적혀 있어서 더 빨리 확인할 수 있어요.</p></div>
     <div class="card notice"><b>🔧 이 기기 진단</b>
       <p>음성 합성 ${Speech.canSpeak ? '✅' : '❌'} · 음성 인식 ${Speech.canListen ? '✅' : '❌'} · 알림 ${'Notification' in window ? '✅' : '❌'}</p>
