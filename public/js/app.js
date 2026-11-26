@@ -100,7 +100,7 @@ const App = (() => {
     const sb = document.getElementById('studyBtn');
     if (sb) sb.onclick = e => {
       e.stopPropagation();
-      const pop = sb.nextElementSibling;
+      const pop = sb.nextElementSibling; const bp = document.querySelector('.bell-pop'); if (bp) bp.hidden = true; // 알림 창과 동시에 열리지 않게
       pop.hidden = !pop.hidden; sb.setAttribute('aria-expanded', String(!pop.hidden));
       if (pop.hidden) return;
       let last = 'en'; try { last = localStorage.getItem('lastSubject') || 'en'; } catch (err) { /* 저장소 없음 */ }
@@ -112,7 +112,7 @@ const App = (() => {
     const bell = document.getElementById('bell');
     if (bell) bell.onclick = e => {
       e.stopPropagation();
-      const pop = bell.nextElementSibling;
+      const pop = bell.nextElementSibling; const sp = document.querySelector('.study-pop'); if (sp) { sp.hidden = true; document.getElementById('studyBtn')?.setAttribute('aria-expanded', 'false'); } // 학습하기 창과 동시에 열리지 않게
       pop.hidden = !pop.hidden;
       if (!pop.hidden) {
         const list = u.notifications.slice(0, 6);
