@@ -469,7 +469,7 @@ Views.home = el => {
     <div class="wrap hero-inner">
       <div class="hero-text">
         <span class="eyebrow">5~10세 · 알파벳부터 문장 말하기까지 · 엄마표 영어를 대신해요</span>
-        <h1>옆에 앉아 봐주지 않아도,<br>아이가 <mark>혼자</mark> 끝내는 영어 15분</h1>
+        <h1>엄마는 커피 한 잔,<br>아이는 <mark>혼자</mark> 영어 15분</h1>
         <p>레벨 진단으로 매일 할 레슨이 정해지고, 아이는 놀이처럼 듣고 말하고 읽어요. 부모님은 옆에 앉아 있지 않아도 돼요. 오늘 무엇을 할 수 있게 됐는지는 리포트로 받아요.</p>
         <div class="row">
           <a class="btn btn-primary lg" href="#/sample/A">▶ 가입 없이 3분 체험</a>
