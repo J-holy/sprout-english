@@ -1701,3 +1701,8 @@ a.shop-ava { display: block; }
 .mq-num { font: 700 2rem var(--en); }
 .mini-quiz .m-count { font-size: 1.8rem; gap: 6px; margin: 6px auto; } .mini-quiz .mq-q .m-pic { width: 1.4em; height: 1.4em; vertical-align: -.35em; }
 .en-intro .row { margin: 10px 0; }
+/* 수 세기 그림 정렬: 다섯 칸씩 한 줄, 같은 크기 칸에 가운데 맞춤 (2026-11-26) */
+.m-count, .m-viz.m-count { display: grid; grid-template-columns: repeat(5, auto); gap: 8px; width: max-content; max-width: 100%; margin: 10px auto; justify-content: center; }
+.m-count > span { width: 1.45em; height: 1.45em; display: grid; place-items: center; background: var(--soft); border: 2px solid var(--line); border-radius: 12px; }
+.m-count > span .m-pic { width: 1.1em; height: 1.1em; object-fit: contain; }
+.mini-quiz .m-count { font-size: 1.6rem; gap: 6px; }
