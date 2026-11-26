@@ -804,9 +804,9 @@ Views.pricing = (el, params) => {
 
     <h2 class="sec-sub">결제 · 환불 안내</h2>
     <div class="grid3">
-      <div class="card feat"><span class="feat-ico">🧾</span><h4>한 번만 결제</h4><p>이용권은 구매할 때 한 번만 결제돼요. 자동으로 다시 결제되지 않고, 끝나기 3일 전에 알려 드려요.</p></div>
-      <div class="card feat"><span class="feat-ico">↩️</span><h4>환불</h4><p>결제 후 7일 이내, 플러스 학습 전이면 부모페이지에서 바로 전액 환불해요. 학습을 시작했다면 남은 달만큼 1개월 단위로 환불해요.</p></div>
-      <div class="card feat"><span class="feat-ico">🌱</span><h4>끝나도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, ${F.range}는 계속 무료로 쓸 수 있어요.</p></div>
+      <div class="card feat"><span class="feat-ico">${ico('🧾')}</span><h4>한 번만 결제</h4><p>이용권은 구매할 때 한 번만 결제돼요. 자동으로 다시 결제되지 않고, 끝나기 3일 전에 알려 드려요.</p></div>
+      <div class="card feat"><span class="feat-ico">${ico('↩️')}</span><h4>환불</h4><p>결제 후 7일 이내, 플러스 학습 전이면 부모페이지에서 바로 전액 환불해요. 학습을 시작했다면 남은 달만큼 1개월 단위로 환불해요.</p></div>
+      <div class="card feat"><span class="feat-ico">${ico('🌱')}</span><h4>끝나도 무료로 계속</h4><p>플러스가 끝나도 학습 기록은 그대로이고, ${F.range}는 계속 무료로 쓸 수 있어요.</p></div>
     </div>
     <div class="card"><h3>📋 상품·결제 정보</h3><dl class="summary pay-terms">
       <dt>상품</dt><dd>새싹스쿨 플러스 이용권 (온라인 학습 서비스, 배송 없음) · 1개월 / 3개월 / 6개월 / 12개월</dd>
