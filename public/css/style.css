@@ -1652,3 +1652,25 @@ a.shop-ava { display: block; }
 .worry p span img.ico { width: 1.5em; height: 1.5em; vertical-align: middle; }
 .page-title img.ico { width: 1.3em; height: 1.3em; vertical-align: -.25em; }
 .m-seq .m-pic, .m-count .m-pic { width: 1.25em; height: 1.25em; }
+/* 새싹수학 개념 레슨 (2026-11-26) */
+.m-sec { margin-top: 28px; } .m-sec small { font-size: .9rem; color: var(--muted, #8a8196); font-family: var(--body, inherit); }
+.m-lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.m-lesson { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px; text-align: center; text-decoration: none; color: var(--ink); }
+.m-lesson .m-l-ico { font-size: 2.4rem; line-height: 1; } .m-lesson .m-l-ico img.ico, .m-lesson .m-l-ico .m-pic { width: 2.6rem; height: 2.6rem; }
+.m-lesson b { font-family: var(--title); font-weight: 400; font-size: 1.15rem; } .m-lesson small { color: var(--muted, #8a8196); }
+.m-lesson.done { background: var(--grass-soft, #e8f7df); }
+.m-lprog { margin: 6px 0 12px; }
+.m-lesson-area { text-align: center; }
+.m-viz { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; font-size: 2.4rem; margin: 6px auto 10px; max-width: 520px; }
+.m-shapes .m-shape { width: 96px; height: 96px; }
+.m-eq .m-g { display: inline-flex; flex-wrap: wrap; gap: 2px; max-width: 170px; justify-content: center; }
+.m-eq b { font-size: 2rem; color: var(--grape, #7e57c2); } .m-eq .m-pic { width: 1.1em; height: 1.1em; }
+.m-gone { opacity: .3; position: relative; } .m-gone::after { content: ''; position: absolute; left: 10%; right: 10%; top: 50%; border-top: 4px solid #e53935; transform: rotate(-30deg); }
+.m-eq-num { font: 700 1.8rem var(--en); margin: 0 0 8px; }
+.m-groups { gap: 18px; } .m-ring { display: inline-flex; gap: 4px; padding: 8px 14px; border: 3px dashed var(--grape, #7e57c2); border-radius: 999px; }
+.m-ring .m-pic { width: 1.2em; height: 1.2em; }
+.m-grid.show { margin: 6px auto 12px; } .m-grid.show .m-cell { display: grid; place-items: center; cursor: default; }
+.m-text { font-size: 1.25rem; line-height: 1.7; margin: 8px auto 6px; max-width: 34em; }
+.m-read { font-family: var(--title); font-size: 2rem; line-height: 1.5; margin: 10px auto 4px; color: var(--grape, #7e57c2); }
+.m-say { margin: 6px 0 10px; }
+.m-trace { width: min(100%, 360px); height: auto; aspect-ratio: 360 / 260; touch-action: none; }
