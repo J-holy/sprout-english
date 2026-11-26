@@ -1739,3 +1739,7 @@ a.shop-ava { display: block; }
 .stage-jump button { flex: none; border: 3px solid var(--line); border-left: 8px solid var(--c); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: .92rem; cursor: pointer; white-space: nowrap; }
 .stage-jump button b { font-family: var(--title); font-weight: 400; margin-right: 2px; }
 .stage-jump button:hover, .stage-jump button:focus-visible { background: var(--soft); }
+/* 휴대폰: 알림·학습하기 창이 화면 밖으로 잘리지 않게 화면 폭에 맞춘다 (2026-11-26) */
+@media (max-width: 640px) {
+  .bell-pop, .study-pop { position: fixed; left: 12px; right: 12px; width: auto; top: var(--pop-top, 76px); max-height: calc(100vh - var(--pop-top, 76px) - 16px); overflow-y: auto; z-index: 70; }
+}
