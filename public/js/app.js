@@ -105,7 +105,7 @@ const App = (() => {
       pop.hidden = !pop.hidden; sb.setAttribute('aria-expanded', String(!pop.hidden));
       if (pop.hidden) return;
       let last = 'en'; try { last = localStorage.getItem('lastSubject') || 'en'; } catch (err) { /* 저장소 없음 */ }
-      const items = [['en', '#/study', '🔤', '새싹영어', '레슨·스토리북·말하기'], ['ma', '#/math', '🧮', '새싹수학', '개념·퍼즐·워크시트']];
+      const items = [['en', '#/study', '🔤', '새싹영어', '레슨·스토리북·말하기'], ['ma', '#/math', '🧮', '새싹수학', '개념·생각 놀이·워크시트']];
       if (last === 'ma') items.reverse();
       pop.innerHTML = `<b>무엇을 공부할까요?</b>${items.map(([k, h, e2, t, d], i) => `<a class="sp-item" href="${h}" data-subj="${k}">${ico(e2)}<span><b>${t}</b><small>${d}</small></span>${i === 0 && k === last ? '<i class="sp-last">이어서</i>' : ''}</a>`).join('')}`;
       pop.querySelectorAll('.sp-item').forEach(x => x.onclick = () => { pop.hidden = true; });

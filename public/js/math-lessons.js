@@ -100,10 +100,10 @@ const MATH_LESSONS = [
     { type: 'learn', viz: { k: 'grid', n: 3, vals: [2, 7, 6, 9, 5, 1, 4, 3, 8] }, text: '가운데에는 늘 5가 들어가요. 빈칸이 있으면 같은 줄의 두 수를 더해서 15가 되려면 얼마가 남는지 생각해요.' },
     { type: 'write', glyph: '15', say: '십오' },
     { type: 'quiz', gen: 'mental', args: ['+'] },
-    { type: 'play', game: 'magic', text: '이제 마방진 퍼즐을 직접 풀어 볼까요?' },
+    { type: 'play', game: 'magic', text: '이제 마방진 생각 놀이를 직접 풀어 볼까요?' },
   ] },
   { id: 'sudoku', stage: 'sprout', icon: 'math-sudoku', title: '스도쿠', topic: '스도쿠', steps: [
-    { type: 'learn', viz: { k: 'grid', n: 4, vals: [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1] }, text: '스도쿠는 빈칸에 숫자를 채우는 퍼즐이에요. 가로줄에도, 세로줄에도 같은 숫자가 두 번 들어가면 안 돼요.' },
+    { type: 'learn', viz: { k: 'grid', n: 4, vals: [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1] }, text: '스도쿠는 빈칸에 숫자를 채우는 생각 놀이예요. 가로줄에도, 세로줄에도 같은 숫자가 두 번 들어가면 안 돼요.' },
     { type: 'learn', viz: { k: 'grid', n: 4, vals: [1, 2, 3, 0, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1] }, text: '첫째 줄에는 1, 2, 3이 있으니 빈칸에는 남은 숫자 4가 들어가요.' },
     { type: 'write', glyph: '4', say: '사, 넷' },
     { type: 'play', game: 'sudoku', text: '이제 4×4 스도쿠를 직접 풀어 볼까요?' },
@@ -257,7 +257,7 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '한붓', say: '한붓' },
     { type: 'quiz', gen: 'euler', lv: 0 }, { type: 'quiz', gen: 'euler', lv: 1 },
   ] },
-  { id: 'match', stage: 'sprout', icon: '🔥', title: '성냥개비 퍼즐', topic: '성냥개비 퍼즐', steps: [
+  { id: 'match', stage: 'sprout', icon: '🔥', title: '성냥개비 생각 놀이', topic: '성냥개비 생각 놀이', steps: [
     { type: 'learn', viz: { k: 'match', s: '178' }, text: '성냥개비로 숫자를 만들 수 있어요. 1은 두 개, 7은 세 개, 8은 일곱 개를 써요. 불은 붙이지 않고 막대로만 놀아요.' },
     { type: 'sticks', from: '8', to: '9', text: '8에서 막대 하나를 눌러 빼서 9를 만들어 봐요.' },
     { type: 'learn', viz: { k: 'match', s: '6+4=4', fix: '0+4=4' }, text: '6 더하기 4는 4가 아니니까 틀린 식이에요. 6의 가운데 막대를 오른쪽 위로 옮기면 0이 돼서, 0 더하기 4는 4, 맞는 식이 돼요.' },
@@ -310,7 +310,7 @@ const MATH_LESSONS = [
 // 단계: 나이 대신 귀여운 이름 (나이는 작게). 씨앗만 무료, 새싹·나무는 새싹수학 플러스(Store.hasMath)
 const MATH_STAGES = [
   { id: 'seed', icon: '🌰', name: '씨앗', age: '5~6세쯤', desc: '수와 모양 놀이', free: true },
-  { id: 'sprout', icon: '🌱', name: '새싹', age: '7~8세쯤', desc: '셈과 퍼즐' },
+  { id: 'sprout', icon: '🌱', name: '새싹', age: '7~8세쯤', desc: '셈과 생각 놀이' },
   { id: 'tree', icon: '🌳', name: '나무', age: '9~10세쯤', desc: '곱셈·분수·도형' },
 ];
 // 주제 카드: 개념 레슨(lessons) + 퍼즐(game, MATH_GAMES) + 워크시트(ws: 한 줄 요약 sum, 따라 쓰기 trace, 문제 gen·args)
@@ -348,7 +348,7 @@ const MATH_TOPICS = [
     ws: { sum: '단서를 차근차근 따지면 답을 찾을 수 있어요. 표를 그려 아닌 칸에 ✗를 하거나, 끝에서부터 거꾸로 풀어요.', trace: ['논리', '○', '✗'], gen: 'logic', n: 6 } },
   { id: 'euler', stage: 'sprout', icon: '✏️', title: '한붓그리기', lessons: ['euler'], game: 'euler',
     ws: { sum: '연필을 떼지 않고 같은 선을 두 번 지나지 않게 그리는 것이 한붓그리기예요. 선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.', trace: ['한붓', '점', '선'], gen: 'euler', n: 6 } },
-  { id: 'match', stage: 'sprout', icon: '🔥', title: '성냥개비 퍼즐', lessons: ['match'], game: 'match',
+  { id: 'match', stage: 'sprout', icon: '🔥', title: '성냥개비 생각 놀이', lessons: ['match'], game: 'match',
     ws: { sum: '성냥개비 막대로 숫자를 만들 수 있어요. 막대 하나를 빼거나 옮기면 다른 숫자가 돼요.', trace: ['막대', '8', '0'], gen: 'match', n: 6 } },
   { id: 'mul', stage: 'tree', icon: '✖️', title: '곱셈', lessons: ['mul'], game: 'mul',
     ws: { sum: '같은 수를 여러 번 더할 때는 곱하기(×)로 한 번에 셀 수 있어요. 순서를 바꿔 곱해도 답은 같아요.', trace: ['×', '곱하기'], gen: 'mul', n: 8 } },

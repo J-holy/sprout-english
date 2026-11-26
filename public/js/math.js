@@ -4,7 +4,7 @@
  * 틀리면 정답을 바로 보여 주지 않는다: 1번 틀리면 힌트 한 줄, 2번 틀리면 그림 풀이. 시간 제한은 없다 */
 const MATH_GAMES = {
   count: { icon: '🍎', title: '수 세기', stage: 'seed', c: '#ff8a65', hub: '그림을 세어 몇 개인지 골라요' },
-  big: { icon: '💯', title: '큰 수 퍼즐', stage: 'seed', c: '#ffb74d', hub: '묶음·자릿값·뛰어 세기·크기 비교' },
+  big: { icon: '💯', title: '큰 수 생각 놀이', stage: 'seed', c: '#ffb74d', hub: '묶음·자릿값·뛰어 세기·크기 비교' },
   shape: { icon: '🔷', title: '모양 찾기', stage: 'seed', c: '#4db6ac', hub: '세모·네모·동그라미를 찾아요' },
   odd: { icon: '🧺', title: '다른 무리 찾기', stage: 'seed', c: '#ffb74d', hub: '같은 무리가 아닌 것을 골라요' },
   pattern: { icon: '🔁', title: '다음에 올 것', stage: 'seed', c: '#9575cd', hub: '규칙을 찾아 빈칸을 채워요' },
@@ -20,7 +20,7 @@ const MATH_GAMES = {
   fbox: { icon: '🎩', title: '마술 상자', stage: 'sprout', c: '#9575cd', hub: '넣으면 규칙대로 나와요' },
   logic: { icon: '🔍', title: '누가 무엇을 가졌을까', stage: 'sprout', c: '#64b5f6', hub: '단서로 풀기·거꾸로 풀기' },
   euler: { icon: '✏️', title: '한붓그리기', stage: 'sprout', c: '#aed581', hub: '연필을 떼지 않고 한 번에' },
-  match: { icon: '🔥', title: '성냥개비 퍼즐', stage: 'sprout', c: '#ff8a65', hub: '막대 하나 옮겨 식 고치기' },
+  match: { icon: '🔥', title: '성냥개비 생각 놀이', stage: 'sprout', c: '#ff8a65', hub: '막대 하나 옮겨 식 고치기' },
   balance: { icon: '⚖️', title: '저울 맞추기', stage: 'tree', c: '#ffb74d', hub: '상자 안의 수 찾기' },
   base: { icon: '🏛️', title: '다른 묶음으로 세기', stage: 'tree', c: '#f06292', hub: '5씩 묶기·로마 숫자' },
   pento: { icon: '🟩', title: '펜토미노', stage: 'tree', c: '#4db6ac', hub: '빈칸에 맞는 조각 찾기' },
@@ -28,12 +28,12 @@ const MATH_GAMES = {
   avg: { icon: '📏', title: '고르게 나누기', stage: 'tree', c: '#9575cd', hub: '똑같이 나누기·평균' },
   split: { icon: '🌲', title: '수 쪼개기', stage: 'tree', c: '#aed581', hub: '곱셈 나무·소수' },
   div: { icon: '🍬', title: '나눗셈', stage: 'tree', c: '#f06292', hub: '나눠 담기·나머지' },
-  mul: { icon: '✖️', title: '곱셈 퍼즐', stage: 'tree', c: '#ff8a65', hub: '2~9단 곱셈' },
-  frac: { icon: '🍕', title: '분수 퍼즐', stage: 'tree', c: '#4db6ac', hub: '색칠한 부분은 얼마일까' },
-  factor: { icon: '🍪', title: '약수·배수 퍼즐', stage: 'tree', c: '#ffb74d', hub: '약수와 배수 고르기' },
-  angle: { icon: '📐', title: '각 퍼즐', stage: 'tree', c: '#9575cd', hub: '예각·직각·둔각' },
-  poly: { icon: '🐝', title: '다각형 퍼즐', stage: 'tree', c: '#64b5f6', hub: '이름과 변의 수' },
-  seq: { icon: '🐇', title: '수의 규칙 퍼즐', stage: 'tree', c: '#aed581', hub: '다음에 올 수 찾기' },
+  mul: { icon: '✖️', title: '곱셈 생각 놀이', stage: 'tree', c: '#ff8a65', hub: '2~9단 곱셈' },
+  frac: { icon: '🍕', title: '분수 생각 놀이', stage: 'tree', c: '#4db6ac', hub: '색칠한 부분은 얼마일까' },
+  factor: { icon: '🍪', title: '약수·배수 생각 놀이', stage: 'tree', c: '#ffb74d', hub: '약수와 배수 고르기' },
+  angle: { icon: '📐', title: '각 생각 놀이', stage: 'tree', c: '#9575cd', hub: '예각·직각·둔각' },
+  poly: { icon: '🐝', title: '다각형 생각 놀이', stage: 'tree', c: '#64b5f6', hub: '이름과 변의 수' },
+  seq: { icon: '🐇', title: '수의 규칙 생각 놀이', stage: 'tree', c: '#aed581', hub: '다음에 올 수 찾기' },
   cipher: { icon: '🗝️', title: '암호 풀기', stage: 'tree', c: '#9575cd', hub: '수를 글자로, 글자를 수로' },
   masked: { icon: '🎭', title: '복면산', stage: 'tree', c: '#f06292', hub: '가려진 숫자 찾기' },
   cases: { icon: '🎲', title: '경우의 수', stage: 'tree', c: '#ffb74d', hub: '빠짐없이 세기' },
@@ -1014,7 +1014,7 @@ const mReward = () => { if (!Store.profile()) return 0; const got = Store.addSta
 const mGcard = (t, got = true) => { const c = MATH_STORIES[t.id].card; return `<div class="m-gcard ${got ? '' : 'off'}" title="${esc(c.name)}"><span>${got ? c.icon : '❔'}</span><b>${got ? esc(c.name) : esc(t.title)}</b>${got ? `<small>${esc(c.line)}</small>` : ''}</div>`; };
 function mathCardModal(t) {
   Speech.sfx.cheer(); Lesson.confetti(); KoSpeech.say(MATH_SAY.card);
-  App.modal(`<div class="center m-gcard-modal">${mGcard(t)}<h2>천재 카드를 받았어요!</h2><p>「${esc(t.title)}」의 이야기·배우기·퍼즐·워크시트를 모두 마쳤어요.</p>
+  App.modal(`<div class="center m-gcard-modal">${mGcard(t)}<h2>천재 카드를 받았어요!</h2><p>「${esc(t.title)}」의 이야기·배우기·생각 놀이·워크시트를 모두 마쳤어요.</p>
     <p class="fine">모은 천재 카드는 새싹수학 첫 화면에 모여요. 나중에 미니룸 액자에도 걸 수 있게 할게요.</p><div class="row-center"><button class="btn btn-primary" data-close>좋아요!</button></div></div>`);
 }
 // 잠긴 단계(새싹·나무)를 누르면: 새싹수학 플러스 안내
@@ -1022,7 +1022,7 @@ function mathUpsell(stage) {
   const s = mStage(stage) || MATH_STAGES[1];
   return App.modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>${s.icon} ${s.name} 단계는 새싹수학 플러스예요</h2>
     <p>🌰 씨앗 단계(5~6세쯤)는 지금처럼 <b>무료</b>로 계속할 수 있어요.</p>
-    <ul class="perks"><li>🌱 새싹 · 더하기·빼기 · 마방진 · 스도쿠</li><li>🌳 나무 · 곱셈 · 분수 · 약수와 배수 · 각 · 다각형</li><li>📖 개념 배우기 · 🧩 퍼즐(쉬움·보통·어려움·도전) · 🖨️ 워크시트, 문제는 할 때마다 새로</li></ul>
+    <ul class="perks"><li>🌱 새싹 · 더하기·빼기 · 마방진 · 스도쿠</li><li>🌳 나무 · 곱셈 · 분수 · 약수와 배수 · 각 · 다각형</li><li>📖 개념 배우기 · 🧩 생각 놀이(쉬움·보통·어려움·도전) · 🖨️ 워크시트, 문제는 할 때마다 새로</li></ul>
     <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 요금 보기</a></div></div>`);
 }
 
@@ -1033,7 +1033,7 @@ const mHome = () => {
   return `<div class="wrap sec">
     <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
     <div class="m-intro">
-      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>퍼즐</b> 쉬움·보통·어려움·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
+      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>생각 놀이</b> 쉬움·보통·어려움·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
       <div class="card m-intro-card"><b>단계</b><p>${MATH_STAGES.map(s => `${s.icon} <b>${s.name}</b> <small>${s.age}</small> ${MATH_TOPICS.filter(t => t.stage === s.id).map(t => t.title).join('·')}${s.free ? ' <i class="chip">무료</i>' : ''}`).join('<br>')}</p></div>
       <div class="card m-intro-card"><b>부모님께</b><p>틀리면 정답을 바로 보여 주지 않아요. 한 번 틀리면 힌트, 두 번 틀리면 그림 풀이를 보여 줘요. 시간 제한은 없어요. 워크시트는 인쇄하면 다음 장에 정답이 있어요. 새싹·나무 단계는 <a href="#/pricing">새싹수학 플러스</a>예요.</p></div>
     </div>
@@ -1044,9 +1044,9 @@ const mHome = () => {
         const all = st.lesson && st.puzzle && st.ws && st.story !== false;
         return `<div class="card m-topic ${all ? 'done' : ''} ${lock(s) ? 'locked' : ''}">
           <div class="m-topic-head"><span class="m-l-ico">${tIco(t)}</span><b>${t.title}</b>${lock(s) ? '<span class="m-lock" aria-label="잠김">🔒</span>' : st.card ? `<span class="m-cardmark" title="천재 카드">${MATH_STORIES[t.id].card.icon}</span>` : all ? '<span>✅</span>' : ''}</div>
-          <div class="m-topic-btns">${st.story !== null ? btn(s, `#/math/s_${t.id}`, '📜 이야기', st.story) : ''}${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '배우기'}`, done.includes(l.id))).join('')}${(t.games || [t.game]).map((g, i) => btn(s, `#/math/p_${g}`, `🧩 ${i ? MATH_GAMES[g].title : '퍼즐'}`, i ? false : st.puzzle)).join('')}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트', st.ws)}${Object.entries(t.wsMore || {}).map(([k, w]) => btn(s, `#/math/w_${t.id}_${k}`, `🖨️ ${w.title} 워크시트`, false)).join('')}</div></div>`;
+          <div class="m-topic-btns">${st.story !== null ? btn(s, `#/math/s_${t.id}`, '📜 이야기', st.story) : ''}${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '배우기'}`, done.includes(l.id))).join('')}${(t.games || [t.game]).map((g, i) => btn(s, `#/math/p_${g}`, `🧩 ${i ? MATH_GAMES[g].title : '생각 놀이'}`, i ? false : st.puzzle)).join('')}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트', st.ws)}${Object.entries(t.wsMore || {}).map(([k, w]) => btn(s, `#/math/w_${t.id}_${k}`, `🖨️ ${w.title} 워크시트`, false)).join('')}</div></div>`;
       }).join('')}</div>`).join('')}
-    <p class="fine">새싹수학은 시험 중이에요. 퍼즐과 워크시트 문제는 할 때마다 새로 만들어져요. 로그인하면 진행과 천재 카드가 아이별로 저장돼서 다른 기기에서도 이어져요.</p></div>`;
+    <p class="fine">새싹수학은 시험 중이에요. 생각 놀이와 워크시트 문제는 할 때마다 새로 만들어져요. 로그인하면 진행과 천재 카드가 아이별로 저장돼서 다른 기기에서도 이어져요.</p></div>`;
 };
 
 Views.math = (el, game) => {
@@ -1097,7 +1097,7 @@ function mathPuzzle(el, game) {
     const all = ok === total, got = all ? mReward() : 0;
     if (all) { Speech.sfx.cheer(); Lesson.confetti(); }
     mMark(topic, 'puzzle');
-    area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico(all ? '🏆' : '🌱')}</div><h2>${MathGen.gen[game] ? `${ok} / ${total} 처음에 맞혔어요!` : '퍼즐 완성! 🎉'}</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && Store.profile() ? '<p class="fine">오늘 수학 별은 다 받았어요</p>' : ''}
+    area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico(all ? '🏆' : '🌱')}</div><h2>${MathGen.gen[game] ? `${ok} / ${total} 처음에 맞혔어요!` : '생각 놀이 완성! 🎉'}</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && Store.profile() ? '<p class="fine">오늘 수학 별은 다 받았어요</p>' : ''}
       ${!all && MathGen.gen[game] ? '<p class="fine">처음에 다 맞히면 별을 받아요. 한 번 더 해 볼까요?</p>' : ''}
       <div class="row-center">${topic ? `<a class="btn btn-primary" href="#/math/w_${topic.id}${(Object.entries(topic.wsMore || {}).find(([, w]) => w.gen === game) || [''])[0] ? '_' + Object.entries(topic.wsMore).find(([, w]) => w.gen === game)[0] : ''}">🖨️ 워크시트로 연습</a>` : ''}<button class="btn btn-ghost" data-again>한 판 더</button><a class="btn btn-ghost" href="#/math">다른 주제</a></div></div>`;
     $('[data-again]', area).onclick = () => mathPuzzle(el, game);
@@ -1312,8 +1312,8 @@ function mathLesson(el, L) {
     Speech.sfx.cheer(); Lesson.confetti(); bar.style.width = '100%'; mMark(tp);
     const more = tp && tp.lessons.find(id => id !== L.id && !mathDone().includes(id));
     area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico('🏆')}</div><h2>「${L.title}」 다 배웠어요!</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : ''}
-      <p>${more ? '다음 배우기도 이어서 해 볼까요?' : '이제 퍼즐로 해 볼까요?'}</p>
-      <div class="row-center">${more ? `<a class="btn btn-primary" href="#/math/${more}">📖 ${MATH_LESSONS.find(l => l.id === more).title}</a>` : ''}${tp ? `<a class="btn ${more ? 'btn-ghost' : 'btn-primary'}" href="#/math/p_${L.game || tp.game}">🧩 퍼즐로 해 보기</a>` : ''}</div>
+      <p>${more ? '다음 배우기도 이어서 해 볼까요?' : '이제 생각 놀이로 해 볼까요?'}</p>
+      <div class="row-center">${more ? `<a class="btn btn-primary" href="#/math/${more}">📖 ${MATH_LESSONS.find(l => l.id === more).title}</a>` : ''}${tp ? `<a class="btn ${more ? 'btn-ghost' : 'btn-primary'}" href="#/math/p_${L.game || tp.game}">🧩 생각 놀이로 해 보기</a>` : ''}</div>
       <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 주제</a><button class="btn btn-ghost" data-again>처음부터 다시</button></div></div>`;
     $('[data-again]', area).onclick = () => mathLesson(el, L);
   };
@@ -1724,7 +1724,7 @@ function mathLesson(el, L) {
       MathGen.setLevel(st.lv ?? (L.stage === 'seed' ? 0 : 1));
       mathAsk(area, MathGen.gen[st.gen](...(st.args || [])), { head, onRight: next });
     } else if (st.type === 'play') {
-      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p>${mSayBtns(st.text)}<div class="row-center"><a class="btn btn-ghost" href="#/math/p_${st.game}">🧩 퍼즐 하러 가기</a><button class="btn btn-primary" data-next>레슨 마치기</button></div>`;
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p>${mSayBtns(st.text)}<div class="row-center"><a class="btn btn-ghost" href="#/math/p_${st.game}">🧩 생각 놀이 하러 가기</a><button class="btn btn-primary" data-next>레슨 마치기</button></div>`;
       mWireSay(area); KoSpeech.say(st.text); $('[data-next]', area).onclick = next;
     }
   };
@@ -1760,7 +1760,7 @@ function mathWorksheet(el, t, key) {
   };
   const score = () => {
     const box = $('.mws-score', el);
-    if (w.grid) { box.innerHTML = `마방진·스도쿠는 <a href="#/math/p_${t.game}">🧩 퍼즐</a>에서 화면으로 풀 수 있어요. 워크시트는 인쇄해서 풀어요.`; return; }
+    if (w.grid) { box.innerHTML = `마방진·스도쿠는 <a href="#/math/p_${t.game}">🧩 생각 놀이</a>에서 화면으로 풀 수 있어요. 워크시트는 인쇄해서 풀어요.`; return; }
     const n = solved.filter(Boolean).length;
     box.innerHTML = n < qs.length ? `✏️ 화면에서 바로 풀어 봐요 · <b>${n} / ${qs.length}</b>` : `🎉 다 풀었어요! 처음에 맞힌 문제 <b>${first} / ${qs.length}</b>`;
   };
