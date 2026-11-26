@@ -1970,7 +1970,7 @@ const AdminTabs = {
   users(el, users) {
     const prov = { email: '📧', kakao: '💬', naver: 'N', google: 'G', apple: '🍎' };
     // 가입 경로별 가입 수 (마케팅 링크의 utm_source, 없으면 들어온 사이트). 2026-11-07 전에 가입한 회원은 기록이 없다
-    const SRC = { blog: '블로그', instagram: '인스타그램', cafe: '카페', kakao: '카카오톡', threads: '스레드', daangn: '당근', 'naver.com': '네이버 검색', 'google.com': '구글 검색', 'google.co.kr': '구글 검색' };
+    const SRC = { beta: '베타 모집', blog: '블로그', instagram: '인스타그램', cafe: '카페', kakao: '카카오톡', threads: '스레드', daangn: '당근', 'naver.com': '네이버 검색', 'google.com': '구글 검색', 'google.co.kr': '구글 검색' };
     const srcName = v => (v ? SRC[v] || v : '바로 들어옴·기록 없음');
     const since = d => Date.now() - d * 864e5, bySrc = {};
     users.forEach(u => { const r = bySrc[u.source || ''] ||= { d7: 0, d30: 0, all: 0 }; r.all++; if (u.createdAt > since(30)) r.d30++; if (u.createdAt > since(7)) r.d7++; });
