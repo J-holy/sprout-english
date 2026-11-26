@@ -1796,6 +1796,9 @@ const ParentTabs = {
         ${lessons >= 5 && !UI.reviewAsked() ? `<div class="card notice review-ask"><b>💌 ${esc(p.name)}의 레슨 ${lessons}개, 써 보니 어떠셨나요?</b>
           <p>새싹스쿨은 막 시작한 서비스라 부모님의 솔직한 후기가 다른 부모님께 큰 도움이 돼요. 아쉬운 점도 좋아요. 받은 의견은 개선에 반영할게요.</p>
           <div class="row"><a class="btn btn-primary sm" href="#/reviews">✍️ 후기 남기기</a><button class="btn btn-ghost sm" data-rv-later>다음에</button></div></div>` : ''}
+        ${u.settings.voice === undefined ? `<div class="card notice voice-ask"><b>🎤 말하기 연습 음성 인식이 꺼져 있어요</b>
+          <p>아이 목소리를 알아듣고 발음 점수를 주려면 보호자 동의가 필요해요. 아이가 말한 소리는 알아듣는 데만 쓰고 저장하지 않아요. 동의하지 않아도 듣고 따라 말하기로 연습할 수 있어요. <a href="privacy.html#voice" target="_blank">자세히</a></p>
+          <div class="row"><button class="btn btn-primary sm" data-voice-yes>동의하고 켜기</button><button class="btn btn-ghost sm" data-voice-no>지금은 끄고 쓰기</button></div></div>` : ''}
         ${UI.canDoReport(p)}
         ${UI.skillReport(p)}
         <div class="two-col top">
@@ -1809,6 +1812,11 @@ const ParentTabs = {
         </div>`;
       $$('[data-pid]', el).forEach(b => b.onclick = () => { p = u.profiles.find(x => x.id === b.dataset.pid); draw(); });
       const later = $('[data-rv-later]', el); if (later) later.onclick = () => { UI.reviewAsked(true); draw(); };
+      // 말하기 연습 동의 (예전에 가입해서 동의 기록이 없는 보호자에게 한 번 묻는다)
+      $$('[data-voice-yes], [data-voice-no]', el).forEach(b => b.onclick = () => {
+        u.settings.voice = b.hasAttribute('data-voice-yes'); Store.persist();
+        App.toast(u.settings.voice ? '🎤 말하기 연습을 켰어요.' : '말하기는 듣고 따라 말하기로 연습해요. 설정에서 언제든 켤 수 있어요.'); draw();
+      });
     };
     draw();
   },
@@ -1865,6 +1873,9 @@ const ParentTabs = {
       <label>난이도<select name="diff">${[['auto', '자동 (정답률에 맞춰)'], ['easy', '쉬움 (보기 2개 + 힌트)'], ['normal', '보통'], ['hard', '도전 (보기 4개)']].map(([k, t]) => `<option value="${k}" ${k === (p.difficulty || 'auto') ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` : ''}
       <label class="check"><input type="checkbox" name="voiceok" ${u.settings.voice ? 'checked' : ''}> 말하기 연습 음성 인식 사용 (보호자 동의 · 아이가 말한 소리를 알아듣는 데만 쓰고 저장하지 않아요. <a href="privacy.html#voice" target="_blank">자세히</a>)</label>
       <label class="check"><input type="checkbox" name="gentle" ${u.settings.gentle !== false ? 'checked' : ''}> 아이 목소리 너그럽게 채점 (통과 점수 45점)</label>
+      <h3>🎈 놀이터</h3>
+      <label class="check"><input type="checkbox" name="playlesson" ${u.settings.playAfterLesson !== false ? 'checked' : ''}> 오늘 레슨 1개를 마친 뒤에 놀이터 열기</label>
+      <label>하루 놀이터 시간<select name="playmin">${[[0, '제한 없음'], [10, '10분'], [15, '15분'], [20, '20분'], [30, '30분']].map(([v, t]) => `<option value="${v}" ${(+u.settings.playMinutes || 0) === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
       <h3>🔔 알림</h3>
       <label class="check"><input type="checkbox" name="notify" ${u.settings.notify ? 'checked' : ''}> 학습알림 받기</label>
       <label>매일 리마인더 시간<input type="time" name="remind" value="${u.settings.remindTime}"></label>
@@ -1894,7 +1905,7 @@ const ParentTabs = {
       e.preventDefault();
       if (p) { p.dailyGoal = +f.goal.value; p.difficulty = f.diff.value; }
       App.rate = +f.rate.value; Speech.setRate(App.rate); try { localStorage.setItem('sprout-rate', App.rate); } catch (x) { /* ignore */ }
-      u.settings.notify = f.notify.checked; u.settings.remindTime = f.remind.value || '19:00'; u.settings.gentle = f.gentle.checked; u.settings.marketing = f.mkt.checked; u.settings.voice = f.voiceok.checked; if (f.weekly) u.settings.weeklyMail = f.weekly.checked;
+      u.settings.notify = f.notify.checked; u.settings.remindTime = f.remind.value || '19:00'; u.settings.gentle = f.gentle.checked; u.settings.marketing = f.mkt.checked; u.settings.voice = f.voiceok.checked; u.settings.playAfterLesson = f.playlesson.checked; u.settings.playMinutes = +f.playmin.value; if (f.weekly) u.settings.weeklyMail = f.weekly.checked;
       if (f.pin.value) { if (!/^\d{4}$/.test(f.pin.value)) return App.toast('PIN은 숫자 4자리예요.'); u.settings.pin = await Store.hash(f.pin.value); App.pinOk = true; }
       else if (f.unpin && f.unpin.checked) u.settings.pin = '';
       Store.persist(); App.toast('저장했어요.'); App.route();

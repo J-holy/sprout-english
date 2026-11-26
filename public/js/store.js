@@ -546,6 +546,21 @@ const Store = (() => {
     return p.daily;
   }
   function bumpDaily(kind) { const d = daily(); if (d) { d[kind] = (d[kind] || 0) + 1; save(); } }
+  // 놀이터 열림 (2026-11-26): 게임이 학습보다 재미있어 레슨을 건너뛰지 않게, 보호자가 정한 규칙으로 연다
+  //   settings.playAfterLesson (기본 켬): 오늘 레슨 1개를 마쳐야 열림 · settings.playMinutes (0 = 제한 없음): 하루 놀이터 시간
+  function playGate(p = profile()) {
+    const u = user(); if (!u || !p || isAdmin()) return { ok: true, left: null };
+    const s = u.settings || {}, d = daily(p), lim = +s.playMinutes || 0, used = (p.playMin || {})[today()] || 0;
+    if (s.playAfterLesson !== false && !d.lesson) return { ok: false, why: 'lesson' };
+    if (lim && used >= lim) return { ok: false, why: 'time', lim };
+    return { ok: true, left: lim ? lim - used : null };
+  }
+  function addPlayMinute() {
+    const p = profile(); if (!p) return; const d = today();
+    p.playMin = p.playMin || {}; p.playMin[d] = (p.playMin[d] || 0) + 1;
+    for (const k of Object.keys(p.playMin)) if (k < today(new Date(Date.now() - 14 * DAY))) delete p.playMin[k]; // 2주 지난 기록은 지운다
+    save();
+  }
   function missions(p = profile()) {
     const d = daily(p); if (!d) return null;
     const list = MISSIONS.map(m => ({ ...m, ok: m.done(d) }));
@@ -694,7 +709,7 @@ const Store = (() => {
     get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, kidsPlan, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
-    startTrial, levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
+    startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,

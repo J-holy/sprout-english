@@ -779,11 +779,28 @@ Views.play = (el, game, quick) => {
   const reach = Store.isAdmin() ? 99 : ALL_LEVELS.indexOf(Store.currentLevel()) + 1;
   // 알파벳 단어와 파닉스 단어에 같은 단어가 겹쳐 있어서 한 번만 넣는다 (겹치면 같은 단어가 연달아 나왔다)
   const pool = (reach <= 2 ? PICTURE_WORDS.filter(w => LETTERS.some(l => l.word === w.en)) : PICTURE_WORDS).filter((w, k, a) => a.findIndex(x => x.en === w.en) === k);
+  // 보호자가 정한 놀이터 규칙: 오늘 레슨을 마쳐야 열리고, 하루 놀이 시간을 넘으면 닫힌다
+  const gate = Store.playGate();
+  if (!gate.ok) {
+    el.innerHTML = `<div class="wrap sec narrow"><div class="card center play-lock">
+      <div class="auth-logo">${gate.why === 'lesson' ? '🔒' : '⏰'}</div>
+      <h1>${gate.why === 'lesson' ? '오늘 레슨 1개를 끝내면 놀이터가 열려요!' : `오늘 놀이터 시간(${gate.lim}분)을 다 썼어요`}</h1>
+      <p>${gate.why === 'lesson' ? '레슨을 끝내고 와서 신나게 놀아요 🎈' : '내일 또 만나요! 스토리북을 읽거나 복습을 해 볼까요?'}</p>
+      <div class="row-center">${gate.why === 'lesson' ? '<a class="btn btn-primary lg" href="#/study">📚 레슨 하러 가기</a>' : '<a class="btn btn-primary lg" href="#/stories">📖 스토리북 읽기</a>'}</div>
+      <p class="fine">놀이터 규칙은 부모님이 부모페이지 › 설정에서 바꿀 수 있어요.</p></div></div>`;
+    return;
+  }
+  // 게임을 하는 동안 1분마다 놀이 시간을 센다 (놀이터를 벗어나면 멈춘다)
+  if (game && !Views.play.timer) Views.play.timer = setInterval(() => {
+    if (!/^#\/play\/\w/.test(location.hash) || document.hidden) { if (!/^#\/play/.test(location.hash)) { clearInterval(Views.play.timer); Views.play.timer = null; } return; }
+    Store.addPlayMinute();
+    const g = Store.playGate(); if (!g.ok) App.toast(`⏰ 오늘 놀이터 시간(${g.lim}분)이 끝났어요. 이번 판까지만 하고 내일 또 놀아요!`);
+  }, 60000);
   if (!game) {
     const got = Object.keys(PLAY_GAMES).reduce((n, g) => n + medalCount(g, best(g)), 0), all = Object.keys(PLAY_GAMES).length * 3;
     el.innerHTML = `<div class="wrap sec">
       <h1 class="page-title">🎈 놀이터</h1>
-      ${UI.mascot(`레슨이 지루할 땐 게임으로 단어를 익혀요! 메달을 따면 별을 줄게 (하루 6개까지)`)}
+      ${UI.mascot(`게임으로 단어를 더 익혀요! 메달을 따면 별을 줄게 (하루 6개까지)${gate.left !== null ? ` · 오늘 놀이 시간 ${gate.left}분 남았어요` : ""}`)}
       <p class="gm-shelf">🏅 내 메달 <b>${got}</b> / ${all}개</p>
       <div class="game-grid">
         ${Object.entries(PLAY_GAMES).map(([g, d]) => `<a class="game-card" href="#/play/${g}" style="--c:${d.c}"><span>${ico(d.icon)}</span><b>${d.title}</b><small>${d.hub}</small><em>최고 ${best(g)}점 ${medalRow(medalCount(g, best(g)))}</em></a>`).join('')}
