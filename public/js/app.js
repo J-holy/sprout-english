@@ -1,7 +1,7 @@
 /* 새싹영어 — 라우터, 헤더, 공용 동작 */
 const App = (() => {
   const main = () => document.getElementById('app');
-  const NAV = [['/', '🏠 홈'], ['/study', '📚 학습하기'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
+  const NAV = [['/', '🏠 홈'], ['/study', '📚 학습하기'], ['/math', '🧮 수학'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
   // 하위 화면도 해당 메뉴를 켜준다
   const navOf = path => /^\/(study|learn|lesson|sample|speak|stor|wrong|review|certificate|words|free|shop|play|worksheet|leveltest|profiles)/.test(path) ? '/study' : path;
   const next = () => encodeURIComponent(location.hash.slice(1));
@@ -40,6 +40,7 @@ const App = (() => {
     [/^\/review$/, learner(el => Views.review(el))],
     [/^\/words$/, learner(el => Views.words(el))],
     [/^\/free$/, learner(el => Views.free(el))],
+    [/^\/math(?:\/(\w+))?$/, (el, m) => Views.math(el, m[1])],
     [/^\/certificate\/(\d)$/, learner((el, m) => Views.certificate(el, +m[1]))],
     [/^\/shop$/, learner(el => Views.shop(el))],
     [/^\/room$/, learner(el => Views.room(el))],

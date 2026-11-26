@@ -1605,3 +1605,28 @@ a.shop-ava { display: block; }
 }
 /* 머리말은 메뉴가 한 줄에 들어가도록 본문보다 넓게 쓴다 (들어가지 않으면 ☰ 메뉴) */
 .site-header .head-inner { width: min(1320px, 100% - 32px); }
+
+/* 새싹수학 퍼즐 놀이 (math.js) */
+.m-area { display: grid; gap: 14px; justify-items: center; text-align: center; }
+.m-prog { margin: 0; color: var(--muted); font-weight: 700; }
+.m-ask { margin: 0; font-size: clamp(1.4rem, 4.5vw, 2rem); }
+.m-count { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 420px; font-size: 2.6rem; }
+.m-seq { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 2.4rem; }
+.m-q { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border: 3px dashed var(--grape); border-radius: 14px; color: var(--grape); }
+.m-opts { max-width: 460px; }
+.m-opts .option { font-size: 2rem; }
+.m-shape { width: 72px; height: 72px; }
+.m-rule { margin: 0; max-width: 460px; }
+.m-grid { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 6px; width: min(100%, calc(var(--n) * 82px)); }
+.m-grid.sudoku { gap: 0; border: 4px solid var(--line); border-radius: 14px; overflow: hidden; }
+.m-grid.sudoku .m-cell { border-radius: 0; border-width: 1px; }
+.m-grid.sudoku .m-cell:nth-child(4n+2) { border-right-width: 4px; }
+.m-grid.sudoku .m-cell:nth-child(n+5):nth-child(-n+8) { border-bottom-width: 4px; }
+.m-cell { aspect-ratio: 1; border: 3px solid var(--line); border-radius: 14px; font: 700 2rem var(--en); background: var(--paper); color: var(--ink); cursor: pointer; }
+.m-cell.fixed { background: var(--soft); cursor: default; }
+.m-cell.hole { color: var(--grape); }
+.m-cell.sel { box-shadow: 0 0 0 4px var(--sun, #ffd23f) inset; }
+.m-cell.ok { background: var(--grass-soft); }
+.m-pad { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.m-pad .btn { min-width: 54px; font-size: 1.3rem; }
+.m-done h2 { margin: 6px 0; }
