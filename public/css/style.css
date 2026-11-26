@@ -1766,3 +1766,52 @@ a.shop-ava { display: block; }
 .bp-head { display: flex; align-items: center; justify-content: space-between; }
 .bp-close { width: 32px; height: 32px; font-size: 1rem; }
 .m-ang { color: var(--ink, #3a2d4f); }
+
+/* 새싹수학 첫 화면: 소개 3칸 · 단계(씨앗·새싹·나무) · 주제 카드(개념·퍼즐·워크시트) — 2026-11-26 */
+.m-intro { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 6px 0 8px; }
+.m-intro-card { padding: 14px 16px; text-align: left; }
+.m-intro-card > b { font-family: var(--title); font-weight: 400; font-size: 1.15rem; }
+.m-intro-card p { margin: 6px 0 0; line-height: 1.7; font-size: .95rem; }
+.m-intro-card small { color: var(--muted, #8a8196); }
+.m-stage { margin-top: 26px; }
+.m-topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.m-topic { display: grid; gap: 10px; padding: 14px; align-content: start; }
+.m-topic.done { background: var(--grass-soft, #e8f7df); }
+.m-topic-head { display: flex; align-items: center; gap: 10px; }
+.m-topic-head b { font-family: var(--title); font-weight: 400; font-size: 1.25rem; flex: 1; }
+.m-topic-head .m-l-ico { font-size: 2.2rem; line-height: 1; } .m-topic-head .m-l-ico img.ico { width: 2.6rem; height: 2.6rem; }
+.m-topic-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-topic-btns .btn { flex: 1 1 auto; padding: 8px 10px; font-size: .95rem; }
+.m-topic.locked { opacity: .82; } .m-topic.locked .m-l-ico { filter: grayscale(.6); }
+.m-lock { font-size: 1.3rem; }
+
+/* 새싹수학 워크시트 (A4 인쇄) */
+.m-ws .mws-sum { font-size: 1.1rem; line-height: 1.7; margin: 0; }
+.m-ws .mws-trace .dotted { font-family: 'Jua', 'Fredoka', sans-serif; }
+.mws-probs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+.mws-q { break-inside: avoid; display: grid; gap: 6px; align-content: start; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+.mws-q .m-viz, .mws-q .m-count, .mws-q .m-seq { font-size: 1.5rem; margin: 2px 0; justify-content: flex-start; max-width: none; }
+.mws-q .m-pic { width: 1.1em; height: 1.1em; }
+.mws-q .m-pie { width: 90px; height: 90px; } .mws-q .m-ang { width: 120px; } .mws-q .m-poly { width: 70px; height: 70px; }
+.mws-q .m-eq-num { font-size: 1.3rem; margin: 0; }
+.mws-opts { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 1.15rem; align-items: center; }
+.mws-opts .m-shape { width: 44px; height: 44px; } .mws-opts .m-pie.sm { width: 52px; height: 52px; display: inline-block; vertical-align: middle; }
+.mws-opts .m-pic { width: 1.4em; height: 1.4em; }
+.m-ws .m-ang { color: #222; }
+.mws-grid { display: grid; grid-template-columns: repeat(var(--n), 34px); margin-top: 6px; border: 2px solid #222; width: max-content; }
+.mws-grid span { height: 34px; display: grid; place-items: center; border: 1px solid #999; font: 700 1.2rem 'Fredoka', sans-serif; }
+.mws-grid.sudoku span:nth-child(4n+2) { border-right: 2px solid #222; } .mws-grid.sudoku span:nth-child(n+5):nth-child(-n+8) { border-bottom: 2px solid #222; }
+.mws-grid span.ans { color: #d84315; }
+.mws-ans-page { margin-top: 26px; border-top: 2px solid #222; padding-top: 10px; }
+.mws-answers { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 1.1rem; }
+.mws-answers.grids { gap: 14px; } .mws-answers .mws-grid { grid-template-columns: repeat(var(--n), 24px); } .mws-answers .mws-grid span { height: 24px; font-size: .95rem; }
+.mws-probs.grids { grid-template-columns: repeat(2, max-content); }
+@media (max-width: 560px) { .mws-probs { grid-template-columns: 1fr; } }
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .m-ws { font-size: 12pt; }
+  .mws-ans-page { break-before: page; border-top: 0; }
+}
+.mws-trace.short { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.m-ws .m-count > span { background: #fff; border: 1.5px solid #bbb; }
+.m-ws .m-count, .m-ws .m-viz.m-count { margin: 2px 0; }

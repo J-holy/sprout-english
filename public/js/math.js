@@ -2,15 +2,21 @@
  * 「천재들이 만든 수학퍼즐」의 주제 이름만 참고하고, 문제는 모두 화면이 매번 새로 만든다 (책 내용은 쓰지 않는다. docs/MATH-TOPICS.md)
  * 한 판 = 5문제. 다 맞히면 별(하루 5개까지, 프로필이 있을 때만) */
 const MATH_GAMES = {
-  count: { icon: '🍎', title: '수 세기', age: '5~6세', c: '#ff8a65', hub: '그림을 세어 몇 개인지 골라요' },
-  shape: { icon: '🔷', title: '모양 찾기', age: '5~6세', c: '#4db6ac', hub: '세모·네모·동그라미를 찾아요' },
-  pattern: { icon: '🔁', title: '다음에 올 것', age: '5~6세', c: '#9575cd', hub: '규칙을 찾아 빈칸을 채워요' },
-  mental: { icon: '⚡', title: '빠른 머리셈', age: '7~8세', c: '#64b5f6', hub: '20까지 더하기·빼기' },
-  magic: { icon: '✨', title: '마방진', age: '7~8세', c: '#f06292', hub: '가로·세로·대각선 합이 모두 15' },
-  sudoku: { icon: '🔢', title: '4×4 스도쿠', age: '7~8세', c: '#aed581', hub: '줄마다 1·2·3·4가 한 번씩' },
+  count: { icon: '🍎', title: '수 세기', stage: 'seed', c: '#ff8a65', hub: '그림을 세어 몇 개인지 골라요' },
+  shape: { icon: '🔷', title: '모양 찾기', stage: 'seed', c: '#4db6ac', hub: '세모·네모·동그라미를 찾아요' },
+  odd: { icon: '🧺', title: '다른 무리 찾기', stage: 'seed', c: '#ffb74d', hub: '같은 무리가 아닌 것을 골라요' },
+  pattern: { icon: '🔁', title: '다음에 올 것', stage: 'seed', c: '#9575cd', hub: '규칙을 찾아 빈칸을 채워요' },
+  mental: { icon: '⚡', title: '빠른 머리셈', stage: 'sprout', c: '#64b5f6', hub: '20까지 더하기·빼기' },
+  magic: { icon: '✨', title: '마방진', stage: 'sprout', c: '#f06292', hub: '가로·세로·대각선 합이 모두 15' },
+  sudoku: { icon: '🔢', title: '4×4 스도쿠', stage: 'sprout', c: '#aed581', hub: '줄마다 1·2·3·4가 한 번씩' },
+  mul: { icon: '✖️', title: '곱셈 퍼즐', stage: 'tree', c: '#ff8a65', hub: '2~9단 곱셈' },
+  frac: { icon: '🍕', title: '분수 퍼즐', stage: 'tree', c: '#4db6ac', hub: '색칠한 부분은 얼마일까' },
+  factor: { icon: '🍪', title: '약수·배수 퍼즐', stage: 'tree', c: '#ffb74d', hub: '약수와 배수 고르기' },
+  angle: { icon: '📐', title: '각 퍼즐', stage: 'tree', c: '#9575cd', hub: '예각·직각·둔각' },
+  poly: { icon: '🐝', title: '다각형 퍼즐', stage: 'tree', c: '#64b5f6', hub: '이름과 변의 수' },
 };
 // 새싹스쿨 그림: 놀이 아이콘(PICS.i['math-…'])과 세기·규칙 스티커(PICS.x['m'+이모지]). 그림이 없으면 이모지
-const mIco = k => PICS.i['math-' + k] ? `<img class="ico" src="img/${PICS.i['math-' + k]}" alt="" draggable="false">` : MATH_GAMES[k].icon;
+const mIco = k => PICS.i['math-' + k] ? `<img class="ico" src="img/${PICS.i['math-' + k]}" alt="" draggable="false">` : ico(MATH_GAMES[k].icon);
 const mPic = e => PICS.x['m' + e] ? `<img class="m-pic" src="img/${PICS.x['m' + e]}" alt="" draggable="false">` : e;
 const MathGen = (() => {
   const R = n => Math.floor(Math.random() * n);
@@ -123,35 +129,66 @@ const MathGen = (() => {
   return { gen, magic, sudoku, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN };
 })();
 
+// ── 단계·주제·잠금 ──
+const mStage = id => MATH_STAGES.find(s => s.id === id);
+const mOpen = stage => mStage(stage).free || Store.hasMath();
+const mTopicOf = ({ lesson, game, topic }) => MATH_TOPICS.find(t => t.id === topic || (lesson && t.lessons.includes(lesson)) || (game && t.game === game));
+const tIco = t => t.icon.startsWith('math-') ? (PICS.i[t.icon] ? `<img class="ico" src="img/${PICS.i[t.icon]}" alt="" draggable="false">` : '🧮') : ico(t.icon);
+// 잠긴 단계(새싹·나무)를 누르면: 새싹수학 플러스 안내
+function mathUpsell(stage) {
+  const s = mStage(stage) || MATH_STAGES[1];
+  return App.modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>${s.icon} ${s.name} 단계는 새싹수학 플러스예요</h2>
+    <p>🌰 씨앗 단계(5~6세쯤)는 지금처럼 <b>무료</b>로 계속할 수 있어요.</p>
+    <ul class="perks"><li>🌱 새싹 · 더하기·빼기 · 마방진 · 스도쿠</li><li>🌳 나무 · 곱셈 · 분수 · 약수와 배수 · 각 · 다각형</li><li>📖 개념 배우기 · 🧩 퍼즐 · 🖨️ 워크시트, 문제는 할 때마다 새로</li></ul>
+    <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 요금 보기</a></div></div>`);
+}
+const mHome = () => {
+  const done = mathDone(), lock = s => !mOpen(s.id);
+  const btn = (s, href, label) => lock(s) ? `<button class="btn btn-ghost sm" data-lock="${s.id}">${label}</button>` : `<a class="btn btn-ghost sm" href="${href}">${label}</a>`;
+  return `<div class="wrap sec">
+    <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
+    <div class="m-intro">
+      <div class="card m-intro-card"><b>이렇게 배워요</b><p>📖 <b>배우기</b> 그림과 소리로 개념 익히기<br>→ 🧩 <b>퍼즐로 해 보기</b> 할 때마다 새 문제<br>→ 🖨️ <b>워크시트로 연습</b> 인쇄해서 쓰고 풀기</p></div>
+      <div class="card m-intro-card"><b>단계</b><p>${MATH_STAGES.map(s => `${s.icon} <b>${s.name}</b> <small>${s.age}</small> ${MATH_TOPICS.filter(t => t.stage === s.id).map(t => t.title).join('·')}${s.free ? ' <i class="chip">무료</i>' : ''}`).join('<br>')}</p></div>
+      <div class="card m-intro-card"><b>부모님께</b><p>배운 주제는 ✅로 표시되고, 다 마치면 별을 받아요(하루 5개까지). 워크시트는 맨 아래에 정답이 있어 바로 채점할 수 있어요. 새싹·나무 단계는 <a href="#/pricing">새싹수학 플러스</a>예요.</p></div>
+    </div>
+    ${MATH_STAGES.map(s => `<h2 class="sec-sub m-stage">${s.icon} ${s.name} <small>${s.age} · ${s.desc}${s.free ? ' · 무료' : lock(s) ? ' · 🔒 플러스' : ''}</small></h2>
+      <div class="m-topics">${MATH_TOPICS.filter(t => t.stage === s.id).map(t => {
+        const ls = t.lessons.map(id => MATH_LESSONS.find(l => l.id === id)), all = ls.every(l => done.includes(l.id));
+        return `<div class="card m-topic ${all ? 'done' : ''} ${lock(s) ? 'locked' : ''}">
+          <div class="m-topic-head"><span class="m-l-ico">${tIco(t)}</span><b>${t.title}</b>${lock(s) ? '<span class="m-lock" aria-label="잠김">🔒</span>' : all ? '<span>✅</span>' : ''}</div>
+          <div class="m-topic-btns">${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '개념 배우기'}${done.includes(l.id) ? ' ✅' : ''}`)).join('')}${btn(s, `#/math/p_${t.game}`, '🧩 퍼즐')}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트')}</div></div>`;
+      }).join('')}</div>`).join('')}
+    <p class="fine">새싹수학은 시험 중이에요. 퍼즐과 워크시트 문제는 할 때마다 새로 만들어져요.</p></div>`;
+};
+
 Views.math = (el, game) => {
   const p = Store.profile();
   const reward = () => { if (!p) return 0; const got = Store.addStars(1, 'math', 5); if (got) App.refreshHeader(); return got; };
-  const lesson = MATH_LESSONS.find(l => l.id === game);
+  KoSpeech.stop();
+  // 주소: #/math/<레슨 id> · #/math/p_<퍼즐> · #/math/w_<주제> (예전 주소 #/math/count 같은 퍼즐 이름도 받는다)
+  const lesson = game && MATH_LESSONS.find(l => l.id === game);
+  const pzKey = game && (game.startsWith('p_') ? game.slice(2) : !lesson && MATH_GAMES[game] ? game : null);
+  const wsTopic = game && game.startsWith('w_') && MATH_TOPICS.find(t => t.id === game.slice(2));
+  const stage = lesson ? lesson.stage : pzKey && MATH_GAMES[pzKey] ? MATH_GAMES[pzKey].stage : wsTopic ? wsTopic.stage : null;
+  if (stage && !mOpen(stage)) { location.hash = '#/math'; return void setTimeout(() => mathUpsell(stage), 50); }
   if (lesson) return mathLesson(el, lesson, reward);
-  if (!game || !MATH_GAMES[game]) {
-    KoSpeech.stop();
-    el.innerHTML = `<div class="wrap sec">
-      <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
-      ${UI.mascot('개념을 배우고, 따라 읽고, 따라 써 본 다음 문제로 확인해요. 다 끝내면 별을 줄게!')}
-      <h2 class="sec-title m-sec">${ico('📖')} 개념 배우기 <small>배우기 → 따라 읽기 → 따라 쓰기 → 확인</small></h2>
-      ${[['5~6세', '수와 모양'], ['7~8세', '셈과 퍼즐'], ['9~10세', '곱셈·분수·도형']].map(([age, t]) => `<h3 class="sec-sub">${age} <small>${t}</small></h3>
-        <div class="m-lessons">${MATH_LESSONS.filter(l => l.age === age).map((l, i) => `<a class="m-lesson card ${mathDone().includes(l.id) ? 'done' : ''}" href="#/math/${l.id}"><span class="m-l-ico">${lIco(l)}</span><b>${l.title}</b><small>${mathDone().includes(l.id) ? '✅ 다 배웠어요' : `${l.steps.length}단계`}</small></a>`).join('')}</div>`).join('')}
-      <h2 class="sec-title m-sec">${ico('🎯')} 퍼즐 놀이 <small>한 판에 5문제, 다 맞히면 별 (하루 5개까지)</small></h2>
-      ${[['5~6세', '수와 모양 놀이'], ['7~8세', '셈과 퍼즐']].map(([age, t]) => `<h3 class="sec-sub">${age} <small>${t}</small></h3>
-        <div class="game-grid">${Object.entries(MATH_GAMES).filter(([, d]) => d.age === age).map(([k, d]) => `<a class="game-card" href="#/math/${k}" style="--c:${d.c}"><span>${mIco(k)}</span><b>${d.title}</b><small>${d.hub}</small></a>`).join('')}</div>`).join('')}
-      <p class="fine">새싹수학은 시험 중이에요. 문제는 할 때마다 새로 만들어져요.</p></div>`;
+  if (wsTopic) return mathWorksheet(el, wsTopic);
+  if (!pzKey || !MATH_GAMES[pzKey]) {
+    el.innerHTML = mHome();
+    $$('[data-lock]', el).forEach(b => b.onclick = () => mathUpsell(b.dataset.lock));
     return;
   }
-  const d = MATH_GAMES[game];
-  KoSpeech.stop();
+  game = pzKey;
+  const d = MATH_GAMES[game], topic = mTopicOf({ game });
   el.innerHTML = `<div class="wrap sec narrow"><a class="link-btn" href="#/math">← 새싹수학</a><h1 class="page-title">${mIco(game)} ${d.title}</h1><div class="card m-area"></div></div>`;
   const area = $('.m-area', el);
   const done = (ok, total) => {
     const all = ok === total, got = all ? reward() : 0;
     if (all) { Speech.sfx.cheer(); Lesson.confetti(); }
     area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico(all ? '🏆' : '🌱')}</div><h2>${MathGen.gen[game] ? `${ok} / ${total} 맞혔어요!` : '퍼즐 완성! 🎉'}</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && p ? '<p class="fine">오늘 수학 별은 다 받았어요</p>' : ''}
-      <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 놀이</a><button class="btn btn-primary" data-again>한 판 더</button></div></div>`;
-    $('[data-again]', area).onclick = () => Views.math(el, game);
+      <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 주제</a>${topic ? `<a class="btn btn-ghost" href="#/math/w_${topic.id}">🖨️ 워크시트</a>` : ''}<button class="btn btn-primary" data-again>한 판 더</button></div></div>`;
+    $('[data-again]', area).onclick = () => Views.math(el, 'p_' + game);
   };
   // 보기 고르는 놀이 (수 세기·모양·규칙·머리셈)
   if (MathGen.gen[game]) {
@@ -222,45 +259,6 @@ const KoSpeech = (() => {
   return { say, stop };
 })();
 
-// 따라 읽기 확인: 브라우저 음성 인식(ko-KR)으로 아이가 읽은 문장을 받아 적어 목표 문장과 글자로 비교한다.
-// 부모님이 음성 사용에 동의했을 때(Speech.voiceOk)만 마이크를 쓰고, 인식이 없는 기기에서는 버튼으로만 넘어간다.
-// 소리는 브라우저 음성 인식(Chrome은 구글, Safari는 애플)이 처리하고 새싹스쿨 서버로는 보내지 않는다.
-const KoListen = (() => {
-  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let broken = false; // 이번에 마이크가 막혔으면 다시 묻지 않는다
-  const env = (typeof Speech !== 'undefined' && Speech.env) || {};
-  const supported = () => !!Rec && !broken && window.isSecureContext !== false && !env.inApp && !env.iosApp;
-  const allowed = () => typeof Speech !== 'undefined' && Speech.voiceOk && Speech.voiceOk();
-  const KN = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
-  const numKo = n => { if (n === 0) return '영'; let s = ''; const c = Math.floor(n / 100) % 10, t = Math.floor(n / 10) % 10, u = n % 10; if (n >= 1000) return String(n); if (c) s += (c > 1 ? KN[c] : '') + '백'; if (t) s += (t > 1 ? KN[t] : '') + '십'; if (u) s += KN[u]; return s; };
-  // 받아쓰기는 '2 더하기 3'처럼 숫자로, '하나 둘'을 '1 2'로 적기도 하니 숫자는 한자어 읽기로, 고유어 수는 한자어로 맞춰 비교한다
-  const NATIVE = [['다섯', '오'], ['여섯', '육'], ['일곱', '칠'], ['여덟', '팔'], ['아홉', '구'], ['하나', '일'], ['둘', '이'], ['셋', '삼'], ['넷', '사']];
-  const norm = s => String(s).replace(/(\d+)\s*\/\s*(\d+)/g, (_, a, b) => numKo(+b) + '분의' + numKo(+a)).replace(/\d+/g, m => numKo(+m))
-    .replace(/[×x]/g, '곱하기').replace(/°/g, '도').replace(/[+]/g, '더하기').replace(/[=]/g, '는').replace(/[^가-힣]/g, '');
-  const nat = s => NATIVE.reduce((a, [k, v]) => a.split(k).join(v), s);
-  const lcs = (a, b) => { const d = Array(b.length + 1).fill(0); for (const ch of a) { let prev = 0; for (let j = 1; j <= b.length; j++) { const tmp = d[j]; d[j] = ch === b[j - 1] ? prev + 1 : Math.max(d[j], d[j - 1]); prev = tmp; } } return d[b.length]; };
-  const sim = (a, b) => (a.length + b.length) ? 2 * lcs(a, b) / (a.length + b.length) : 0;
-  const score = (target, heard) => { const t = norm(target), h = norm(heard); return Math.max(sim(t, h), sim(nat(t), nat(h))); };
-  let cur = null;
-  const stop = () => { if (cur) { try { cur.abort(); } catch {} cur = null; } };
-  // 한 번 듣고 { score: 0~1, heard } 로 끝낸다. 실패하면 Error(code): not-allowed · no-speech · network · busy …
-  const listen = (target, { onStart } = {}) => new Promise((resolve, reject) => {
-    stop(); KoSpeech.stop(); try { Speech.stop(); } catch {}
-    const r = new Rec(); cur = r;
-    r.lang = 'ko-KR'; r.interimResults = false; r.maxAlternatives = 4; r.continuous = false;
-    let done = false; const alts = [];
-    const end = (fn, v) => { if (done) return; done = true; clearTimeout(t); if (cur === r) cur = null; try { r.stop(); } catch {} fn(v); };
-    const t = setTimeout(() => alts.length ? end(resolve, best()) : end(reject, new Error('no-speech')), 12000);
-    const best = () => alts.map(h => ({ score: score(target, h), heard: h })).sort((a, b) => b.score - a.score)[0];
-    r.onstart = () => onStart && onStart();
-    r.onresult = e => { for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) alts.push(...[...e.results[i]].map(a => a.transcript)); };
-    r.onerror = e => { if (['not-allowed', 'service-not-allowed', 'language-not-supported', 'audio-capture'].includes(e.error)) broken = true; end(reject, new Error(e.error || 'error')); };
-    r.onend = () => alts.length ? end(resolve, best()) : end(reject, new Error('no-speech'));
-    try { r.start(); } catch { end(reject, new Error('busy')); }
-  });
-  return { get ok() { return supported() && allowed(); }, get needsConsent() { return supported() && !allowed(); }, listen, stop, score };
-})();
-
 function mathViz(v) {
   if (!v) return '';
   const row = (e, n, cls = '') => Array.from({ length: n }, () => `<span class="${cls}">${mPic(e)}</span>`).join('');
@@ -326,45 +324,24 @@ function mathLesson(el, L, reward) {
     $$('[data-ko]', area).forEach(b => b.onclick = () => KoSpeech.say(b.dataset.ko));
     $$('[data-ko-slow]', area).forEach(b => b.onclick = () => KoSpeech.say(b.dataset.koSlow, { slow: true }));
   };
-  const next = () => { KoListen.stop(); i++; show(); };
+  const next = () => { i++; show(); };
   const finish = () => {
-    KoSpeech.stop(); mathMarkDone(L.id); const got = reward();
+    KoSpeech.stop(); mathMarkDone(L.id); const got = reward(), tp = mTopicOf({ lesson: L.id });
     Speech.sfx.cheer(); Lesson.confetti(); bar.style.width = '100%';
     area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico('🏆')}</div><h2>「${L.title}」 다 배웠어요!</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : ''}
-      <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 개념</a><button class="btn btn-primary" data-again>처음부터 다시</button></div></div>`;
+      <p>이제 같은 주제로 더 해 볼까요?</p>
+      <div class="row-center">${tp ? `<a class="btn btn-primary" href="#/math/p_${tp.game}">🧩 퍼즐로 해 보기</a><a class="btn btn-ghost" href="#/math/w_${tp.id}">🖨️ 워크시트</a>` : ''}</div>
+      <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 주제</a><button class="btn btn-ghost" data-again>처음부터 다시</button></div></div>`;
     $('[data-again]', area).onclick = () => mathLesson(el, L, reward);
   };
   const show = () => {
     if (i >= L.steps.length) return finish();
     const st = L.steps[i]; bar.style.width = `${Math.round(i / L.steps.length * 100)}%`;
-    const tag = { learn: '📖 배워요', read: '🗣️ 따라 읽어요', write: '✏️ 따라 써요', quiz: '❓ 확인해요', play: '🧩 해 봐요' }[st.type];
+    const tag = { learn: '📖 배워요', write: '✏️ 따라 써요', quiz: '❓ 확인해요', play: '🧩 해 봐요' }[st.type];
     const head = `<p class="m-prog">${i + 1} / ${L.steps.length} · <b>${tag}</b></p>`;
     if (st.type === 'learn') {
       area.innerHTML = `${head}${mathViz(st.viz)}<p class="m-text">${esc(st.text)}</p>${sayBtns(st.text)}<div class="row-center"><button class="btn btn-primary" data-next>다음 →</button></div>`;
       wireSay(); KoSpeech.say(st.text); $('[data-next]', area).onclick = next;
-    } else if (st.type === 'read') {
-      const mic = KoListen.ok;
-      area.innerHTML = `${head}${mathViz(st.viz)}<p class="m-read">${esc(st.text)}</p><p class="fine center">${mic ? '먼저 듣고, 🎤를 누른 다음 소리 내어 따라 읽어 봐요.' : '먼저 듣고, 소리 내어 따라 읽어 봐요.'}</p>${sayBtns(st.text)}
-        <div class="row-center">${mic ? '<button class="btn btn-primary m-mic" data-mic>🎤 읽고 확인받기</button>' : ''}<button class="btn ${mic ? 'btn-ghost' : 'btn-primary'}" data-next disabled>따라 읽었어요 ✅</button></div>
-        <p class="m-msg m-heard" aria-live="polite">${KoListen.needsConsent && Store.user() ? '<span class="fine">부모님이 부모페이지 › 설정에서 음성 인식을 켜면, 읽은 것을 듣고 칭찬해 줘요.</span>' : ''}</p>`;
-      wireSay(); const nb = $('[data-next]', area), msg = $('.m-heard', area);
-      KoSpeech.say(st.text, { onEnd: () => { nb.disabled = false; } }); setTimeout(() => { nb.disabled = false; }, 4000);
-      nb.onclick = () => { KoListen.stop(); next(); };
-      const mb = $('[data-mic]', area);
-      if (mb) mb.onclick = () => {
-        mb.disabled = true; mb.textContent = '🎤 듣는 중…'; msg.textContent = '';
-        KoListen.listen(st.text, { onStart: () => { mb.classList.add('on'); } }).then(({ score }) => {
-          mb.classList.remove('on'); mb.disabled = false; nb.disabled = false;
-          if (score >= 0.6) {
-            const pr = MATH_KO_EXTRA[Math.floor(Math.random() * 3)]; Speech.sfx.correct(); KoSpeech.say(pr);
-            msg.innerHTML = `🌟 <b>${esc(pr)}</b>`; mb.textContent = '🎤 한 번 더'; nb.textContent = '다음 →'; nb.className = 'btn btn-primary';
-          } else { KoSpeech.say(MATH_KO_EXTRA[3]); msg.textContent = '🙂 ' + MATH_KO_EXTRA[3]; mb.textContent = '🎤 다시 읽기'; }
-        }).catch(e => {
-          mb.classList.remove('on'); nb.disabled = false;
-          if (['not-allowed', 'service-not-allowed', 'language-not-supported', 'audio-capture'].includes(e.message)) { mb.remove(); nb.className = 'btn btn-primary'; msg.textContent = '이 기기에서는 마이크를 쓸 수 없어요. 따라 읽고 버튼을 눌러요.'; }
-          else { mb.disabled = false; mb.textContent = '🎤 다시 읽기'; msg.textContent = '목소리가 잘 들리지 않았어요. 🎤를 누르고 다시 읽어 봐요.'; }
-        });
-      };
     } else if (st.type === 'write') {
       area.innerHTML = `${head}<h2 class="m-ask">「${esc(st.glyph)}」 따라 쓰기</h2>${sayBtns(st.say)}<div class="m-write"></div>`;
       wireSay(); KoSpeech.say(st.say); mathTrace($('.m-write', area), st.glyph, () => setTimeout(next, 500));
@@ -376,9 +353,47 @@ function mathLesson(el, L, reward) {
         else { b.classList.add('wrong'); b.disabled = true; Speech.sfx.wrong(); }
       });
     } else if (st.type === 'play') {
-      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p>${sayBtns(st.text)}<div class="row-center"><a class="btn btn-ghost" href="#/math/${st.game}">퍼즐 하러 가기</a><button class="btn btn-primary" data-next>레슨 마치기</button></div>`;
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p>${sayBtns(st.text)}<div class="row-center"><a class="btn btn-ghost" href="#/math/p_${st.game}">🧩 퍼즐 하러 가기</a><button class="btn btn-primary" data-next>레슨 마치기</button></div>`;
       wireSay(); KoSpeech.say(st.text); $('[data-next]', area).onclick = next;
     }
   };
   show();
+}
+
+// ── 인쇄용 워크시트 (A4): 개념 한 줄 → 따라 쓰기 → 문제(MathGen, 인쇄할 때마다 새로) → 정답 (인쇄하면 다음 장) ──
+function mathWorksheet(el, t) {
+  const s = mStage(t.stage), w = t.ws, p = Store.profile(), NUM = ['①', '②', '③', '④'];
+  const make = () => {
+    let probs, answers;
+    if (w.grid) {
+      // 마방진·스도쿠: 빈칸 있는 판을 n개, 정답은 작은 판으로
+      const pzs = Array.from({ length: w.n }, () => w.grid === 'magic' ? MathGen.magic(3 + (Math.random() < .5 ? 1 : 0)) : MathGen.sudoku(6 + Math.floor(Math.random() * 3)));
+      const board = (pz, sol) => `<div class="mws-grid ${w.grid}" style="--n:${pz.size}">${pz.sol.map((v, i) => `<span class="${pz.holes.includes(i) ? (sol ? 'ans' : 'hole') : ''}">${pz.holes.includes(i) && !sol ? '' : v}</span>`).join('')}</div>`;
+      probs = pzs.map((pz, i) => `<div class="mws-q"><b>${i + 1}.</b> ${w.grid === 'magic' ? '세 수의 합이 모두 15가 되게 채워요' : '줄마다 1·2·3·4가 한 번씩'}${board(pz)}</div>`);
+      answers = pzs.map((pz, i) => `<div class="mws-a"><b>${i + 1}.</b>${board(pz, true)}</div>`);
+    } else {
+      const seen = new Set(), qs = [];
+      for (let k = 0; qs.length < w.n && k < w.n * 20; k++) { const q = MathGen.gen[w.gen](...(w.args || [])), key = q.ask + q.show + q.opts.join(); if (!seen.has(key)) { seen.add(key); qs.push(q); } }
+      probs = qs.map((q, i) => `<div class="mws-q"><b>${i + 1}.</b> <span class="mws-ask">${q.ask}</span>${q.show}<div class="mws-opts">${q.opts.map((o, j) => `<span>${NUM[j]} ${q.labels ? q.labels[o] : o}</span>`).join('')}</div></div>`);
+      answers = qs.map((q, i) => { const j = q.opts.findIndex(o => String(o) === String(q.ans)); return `<span class="mws-a"><b>${i + 1}.</b> ${NUM[j]}${q.labels ? '' : ` ${q.ans}`}</span>`; });
+    }
+    $('.mws-probs', el).innerHTML = probs.join('');
+    $('.mws-answers', el).innerHTML = answers.join('');
+  };
+  el.innerHTML = `<div class="wrap sec narrow worksheet-wrap">
+    <div class="no-print row"><a class="link-btn" href="#/math">← 새싹수학</a><button class="btn btn-ghost" data-new>🔄 새 문제</button><button class="btn btn-primary" data-print>🖨️ 워크시트 인쇄</button></div>
+    <p class="no-print fine">인쇄하거나 PDF로 저장해요. 문제는 누를 때마다 새로 만들어지고, 정답은 다음 장에 나와요.</p>
+    <article class="worksheet m-ws">
+      <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨 · 새싹수학 워크시트</b><span>${s.icon} ${s.name} 단계 · ${esc(t.title)}</span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
+      <h3>1. 알아 두어요</h3><p class="mws-sum">${esc(w.sum)}</p>
+      <h3>2. 따라 써 보세요</h3>
+      <div class="mws-trace ${w.trace.every(x => x.length <= 3) && w.trace.length > 3 ? 'short' : ''}">${w.trace.map(x => `<div class="ws-trace"><span class="dotted">${esc(x)} &nbsp; ${esc(x)} &nbsp; ${esc(x)}</span><span class="line"></span></div>`).join('')}</div>
+      <h3>3. 문제를 풀어요 <small>${w.grid ? '' : '알맞은 것에 ○ 해요'}</small></h3>
+      <div class="mws-probs ${w.grid ? 'grids' : ''}"></div>
+      <footer>참 잘했어요! 스티커를 붙여요 → ☐</footer>
+      <section class="mws-ans-page"><h3>정답 <small>${esc(t.title)}</small></h3><div class="mws-answers ${w.grid ? 'grids' : ''}"></div></section>
+    </article></div>`;
+  make();
+  $('[data-new]', el).onclick = () => { Speech.sfx.tap(); make(); };
+  $('[data-print]', el).onclick = () => window.print();
 }

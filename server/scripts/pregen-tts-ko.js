@@ -13,7 +13,6 @@ const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(config.publicDir, 'js', 'math-lessons.js'), 'utf8').replace(/^const (\w+)/gm, 'var $1'), ctx);
 const texts = new Set();
 for (const L of ctx.MATH_LESSONS) for (const s of L.steps) { if (s.text) texts.add(s.text); if (s.say) texts.add(s.say); }
-for (const t of ctx.MATH_KO_EXTRA || []) texts.add(t);
 const manPath = path.join(dir, 'manifest.json');
 const man = fs.existsSync(manPath) ? JSON.parse(fs.readFileSync(manPath, 'utf8')) : {};
 const todo = [...texts].filter(t => !man[t] || !fs.existsSync(path.join(dir, man[t])));
