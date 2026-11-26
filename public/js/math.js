@@ -1217,7 +1217,7 @@ function mathViz(v) {
     case 'towers': return `<div class="m-viz">${MathGen.towers(v.h)}</div>`;
     case 'rects': return `<div class="m-viz m-b10cmp">${[...Array(v.n).keys()].filter(d => d > 0 && d * d <= v.n && v.n % d === 0).map(d => `<figure><div class="m-dgrid" style="--c:${v.n / d}">${mDots(v.n)}</div><figcaption>${d} × ${v.n / d}</figcaption></figure>`).join('')}</div>`;
     case 'ftree': return `<div class="m-viz m-ftree">${MathGen.treeHtml(MathGen.ftree(v.n))}</div>`;
-    case 'plates': return `<div class="m-viz">${MathGen.plates(v.n, v.kk)}</div>`;
+    case 'plates': return `<div class="m-viz">${MathGen.plates(v.n, v.kk, v.e)}</div>`;
     case 'nseq': return `<div class="m-viz">${MathGen.nseq(v.items, v.labels || [])}</div>`;
     case 'key': return `<div class="m-viz">${MathGen.keyTable()}</div>`;
     case 'cshift': return `<div class="m-viz m-cshift">${[...v.w].map(c => `<span><b>${c}</b><i>↓ ${v.s}칸</i><b>${MathGen.shiftW(c, v.s)}</b></span>`).join('')}</div>`;
