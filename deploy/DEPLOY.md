@@ -253,6 +253,34 @@ cd ../.. && npm run pregen-img -- --local     # 처음 한 번 모델(약 4GB)�
 - `public/terms.html`, `public/privacy.html` 의 `[ ]` 부분을 실제 사업자 정보로 바꿔요.
 - 개인정보 처리방침 주소(`https://도메인/privacy.html`)는 카카오·네이버·Google·Apple 앱 심사에 필요해요.
 
+### 4-6. Mac 예비 서버 (선택, 2026-11-26)
+
+Pi가 멈추면(고장·정전·인터넷 끊김) 다른 곳에 켜 둔 Mac이 **같은 Cloudflare 터널**로 대신 서비스해요. 평소에는 5분마다 Pi의 최신 DB와 GitHub 코드만 받아 두고 서비스하지 않아요.
+
+**설치 (한 번)**
+1. Pi에서: `sudo ./deploy/set-backup.sh` (이미 했으면 건너뜀) → `sudo ./deploy/set-standby.sh`
+   - 5분마다 `/var/backups/sprout/latest.db`를 만들고, 터널 설정·인증 파일과 `.env`를 한 번만 묶어 둬요.
+2. Mac에서 터널 프로그램 받기 (Cloudflare 공식, Apple Silicon):
+   `mkdir -p ~/sprout-standby/bin && curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz | tar -xz -C ~/sprout-standby/bin`
+3. Mac에서: `./deploy/standby-mac.sh install`
+4. Pi에서: `sudo ./deploy/set-standby.sh --clean` (비밀 묶음 지우기)
+5. Mac이 잠들지 않게: `sudo pmset -c sleep 0` (전원 연결 중), 시스템 설정 › 배터리 › "디스플레이가 꺼져 있을 때 자동으로 잠자기 방지" 켜기. FileVault(디스크 암호화)도 켜 두세요(아이 학습 기록이 들어 있어요).
+6. 확인: `./deploy/standby-mac.sh status`
+
+**자동 전환**: 공개 주소가 3분 동안 응답하지 않고 Pi에도 닿지 않으면 Mac이 받아 둔 DB로 켜져요. Mac 알림이 떠요. Pi의 마지막 5분 안의 변경은 잃을 수 있어요.
+
+**되돌리기 (사람이 해요)**: Pi가 다시 켜지면 Mac은 바로 서비스를 멈추고 그동안의 DB를 `~/sprout-standby/data/failover-날짜.db`로 남겨요(두 곳이 함께 서비스하면 데이터가 갈라져서). 그 사이 Mac에서 생긴 가입·학습 기록을 살리려면 바로:
+```
+scp -i ~/.ssh/sprout_pi ~/sprout-standby/data/failover-날짜.db nextcode@100.109.175.94:/tmp/failover.db
+# Pi에서
+sudo systemctl stop sprout-english
+sudo cp /opt/sprout-english/server/data/sprout.db /opt/sprout-english/server/data/before-failback.db
+sudo install -o sprout -g sprout -m 600 /tmp/failover.db /opt/sprout-english/server/data/sprout.db
+sudo rm -f /opt/sprout-english/server/data/sprout.db-wal /opt/sprout-english/server/data/sprout.db-shm /tmp/failover.db
+sudo systemctl start sprout-english
+```
+**시험**: `./deploy/standby-mac.sh up` 하면 Pi와 Mac이 함께 서비스해요(요청이 나뉘어요). 시험은 사람이 적은 시간에 1~2분만 하고 `down`으로 끄세요.
+
 ---
 
 ## 5. 동작 확인 체크리스트

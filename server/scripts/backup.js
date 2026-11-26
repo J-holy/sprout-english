@@ -6,6 +6,15 @@ import path from 'node:path';
 import { db } from '../lib/db.js';
 import { config } from '../lib/env.js';
 
+// --latest: 예비 서버(Mac)용으로 BACKUP_COPY_DIR/latest.db 하나만 덮어쓴다 (5분마다, deploy/set-standby.sh). 날짜별 백업은 만들지 않는다
+if (process.argv.includes('--latest')) {
+  const copyDir = process.env.BACKUP_COPY_DIR;
+  if (!copyDir) { console.error('BACKUP_COPY_DIR가 없어요 (deploy/set-backup.sh)'); process.exit(1); }
+  const tmp = path.join(copyDir, '.latest.tmp.db'), dest = path.join(copyDir, 'latest.db');
+  fs.rmSync(tmp, { force: true });
+  db.exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`);
+  fs.chmodSync(tmp, 0o640); fs.renameSync(tmp, dest); db.close(); process.exit(0);
+}
 const dir = path.join(config.dataDir, 'backups');
 fs.mkdirSync(dir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 13);
