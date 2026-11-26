@@ -209,6 +209,46 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '둘레', say: '둘레' },
     { type: 'quiz', gen: 'area' }, { type: 'quiz', gen: 'area' },
   ] },
+  { id: 'same', stage: 'seed', icon: '🧩', title: '똑같은 모양', topic: '합동과 닮음', steps: [
+    { type: 'learn', viz: { k: 'pshapes', list: [[[[0, 0], [1, 0], [2, 0], [2, 1]], '#ffd54f'], [[[0, 0], [1, 0], [2, 0], [2, 1]], '#4db6ac']] }, text: '두 모양을 겹쳐 보면 딱 맞아요. 모양과 크기가 똑같은 두 모양을 합동이라고 해요.' },
+    { type: 'turn', goal: [[0, 0], [1, 0], [2, 0], [2, 1]], start: [[0, 0], [0, 1], [0, 2], [1, 0]], text: '돌리기 단추를 눌러서 노란 모양과 똑같이 만들어 봐요.' },
+    { type: 'learn', viz: { k: 'pshapes', list: [[[[0, 0], [1, 0], [1, 1], [2, 1]], '#ffd54f'], [[[1, 0], [2, 0], [0, 1], [1, 1]], '#4db6ac']] }, text: '거울에 비춘 것처럼 뒤집어야 겹쳐지는 모양도 있어요. 뒤집어서 딱 겹치면 이것도 합동이에요.' },
+    { type: 'turn', goal: [[0, 0], [1, 0], [1, 1], [2, 1]], start: [[1, 0], [2, 0], [0, 1], [1, 1]], flip: true, text: '이번에는 뒤집기 단추도 써서 똑같이 만들어 봐요.' },
+    { type: 'learn', viz: { k: 'pshapes', list: [[[[0, 0], [1, 0], [0, 1]], '#ffd54f', 20], [[[0, 0], [1, 0], [0, 1]], '#4db6ac', 40]] }, text: '크기만 다르고 모양이 똑같은 것도 있어요. 이런 두 모양을 닮았다고 해요.' },
+    { type: 'write', glyph: '합동', say: '합동' },
+    { type: 'quiz', gen: 'same', lv: 0 }, { type: 'quiz', gen: 'same', lv: 1 },
+  ] },
+  { id: 'fbox', stage: 'sprout', icon: '🎩', title: '마술 상자', topic: '함수', steps: [
+    { type: 'learn', viz: { k: 'fbox', pairs: [[1, 3], [2, 4], [5, 7]] }, text: '마술 상자에 수를 넣으면 다른 수가 나와요. 1을 넣으면 3, 2를 넣으면 4, 5를 넣으면 7이 나왔어요. 넣은 수에 늘 2를 더해서 내보내는 상자예요.' },
+    { type: 'machine', op: '+', k: 3, choices: ['+3', '+2', '×3'], text: '이 상자에 수를 세 개 넣어 보고, 어떤 규칙인지 맞혀 봐요.' },
+    { type: 'learn', viz: { k: 'fbox', pairs: [[1, 2], [3, 6], [4, 8]] }, text: '이 상자는 넣은 수를 두 배로 만들어요. 넣으면 늘 같은 규칙으로 나오는 것을 함수라고 해요.' },
+    { type: 'machine', op: '×', k: 2, choices: ['×2', '+2', '+4'], text: '이번 상자도 수를 넣어 보고 규칙을 찾아봐요.' },
+    { type: 'write', glyph: '함수', say: '함수' },
+    { type: 'quiz', gen: 'fbox' }, { type: 'quiz', gen: 'fbox' },
+  ] },
+  { id: 'logic', stage: 'sprout', icon: '🔍', title: '누가 무엇을 가졌을까', topic: '로직·문제해결전략', steps: [
+    { type: 'learn', viz: { k: 'ltab', n: 3 }, text: '강아지, 고양이, 토끼가 사과, 바나나, 딸기를 하나씩 가졌어요. 단서를 하나씩 읽고 아닌 칸에 엑스를 하면, 남은 칸이 답이에요.' },
+    { type: 'grid', sol: [1, 2, 0], clues: ['🐶 강아지는 사과를 갖지 않았어요.', '🐶 강아지는 딸기를 갖지 않았어요.', '🐰 토끼는 사과를 가졌어요.'], text: '칸을 누르면 엑스, 한 번 더 누르면 동그라미가 돼요. 단서대로 표를 채워 봐요.' },
+    { type: 'learn', viz: { k: 'back', a: 3, b: 2, end: 14 }, text: '거꾸로 풀기도 좋은 방법이에요. 어떤 수에 3을 더하고 두 배를 했더니 14가 되었다면, 14를 반으로 나누고 3을 빼면 처음 수 4가 나와요.' },
+    { type: 'write', glyph: '논리', say: '논리' },
+    { type: 'quiz', gen: 'logic', lv: 1 }, { type: 'quiz', gen: 'logic', lv: 2 },
+  ] },
+  { id: 'balance', stage: 'tree', icon: '⚖️', title: '저울 맞추기', topic: '방정식', steps: [
+    { type: 'learn', viz: { k: 'scale', left: ['B', 3], right: [8] }, text: '저울의 한쪽에 상자 하나와 3을, 다른 쪽에 8을 올렸더니 반듯해졌어요. 양쪽 무게가 같다는 뜻이에요.' },
+    { type: 'scale', left: ['B', 3], right: [8], text: '상자에 어떤 수를 넣으면 저울이 반듯할까요? 수를 눌러 넣어 봐요.' },
+    { type: 'learn', viz: { k: 'scale', left: ['B'], right: [5] }, text: '양쪽에서 똑같이 3씩 내려도 저울은 반듯해요. 그러면 상자 하나는 5와 같다는 것을 알 수 있어요. 모르는 수를 이렇게 찾는 식을 방정식이라고 해요.' },
+    { type: 'scale', left: ['B', 'B', 1], right: [9], text: '이번에는 똑같은 상자가 두 개예요. 상자 하나에 얼마를 넣어야 반듯할까요?' },
+    { type: 'write', glyph: '방정식', say: '방정식' },
+    { type: 'quiz', gen: 'balance' }, { type: 'quiz', gen: 'balance' },
+  ] },
+  { id: 'base', stage: 'tree', icon: '🏛️', title: '다른 묶음으로 세기', topic: '진법', steps: [
+    { type: 'learn', viz: { k: 'tally', n: 12 }, text: '막대를 네 개 긋고 다섯 번째는 비스듬히 그어 다섯씩 묶었어요. 다섯 묶음 두 개와 낱개 두 개니까 열둘이에요.' },
+    { type: 'bundle', e: '⭐', n: 13, size: 5, text: '별을 하나씩 눌러 바구니에 담아요. 이번에는 다섯 개가 차면 한 묶음이에요.' },
+    { type: 'learn', viz: { k: 'roman' }, text: '옛날 로마 사람들은 1을 I, 5를 V, 10을 X로 썼어요. 일곱은 V 다음에 I 두 개, 열둘은 X 다음에 I 두 개예요.' },
+    { type: 'write', glyph: 'V', say: '오, 브이' },
+    { type: 'write', glyph: 'X', say: '십, 엑스' },
+    { type: 'quiz', gen: 'base' }, { type: 'quiz', gen: 'base' },
+  ] },
 ];
 
 // 단계: 나이 대신 귀여운 이름 (나이는 작게). 씨앗만 무료, 새싹·나무는 새싹수학 플러스(Store.hasMath)
@@ -232,6 +272,8 @@ const MATH_TOPICS = [
     ws: { sum: '쌓기나무는 칸마다 몇 층인지 세어 더해요. 위에 있는 쌓기나무 아래에는 받치는 쌓기나무가 꼭 있어요.', trace: ['층', '쌓기나무'], gen: 'blocks', n: 6 } },
   { id: 'table', stage: 'seed', icon: '📊', title: '그림 표', lessons: ['table'], game: 'table',
     ws: { sum: '섞여 있는 것을 종류별로 한 줄에 모으면 표가 돼요. 표를 보면 무엇이 많고 적은지 한눈에 알 수 있어요.', trace: ['표', '많다', '적다'], gen: 'table', n: 6 } },
+  { id: 'same', stage: 'seed', icon: '🧩', title: '똑같은 모양', lessons: ['same'], game: 'same',
+    ws: { sum: '돌리거나 뒤집어서 딱 겹치는 두 모양을 합동, 크기만 다른 모양을 닮음이라고 해요.', trace: ['합동', '닮음'], gen: 'same', n: 6 } },
   { id: 'addsub', stage: 'sprout', icon: 'math-mental', title: '더하기·빼기', lessons: ['add', 'sub'], game: 'mental',
     ws: { sum: '합치는 것은 더하기(+), 덜어 내는 것은 빼기(−)예요. 같다는 등호(=)로 써요.', trace: ['+', '−', '=', '더하기', '빼기'], gen: 'mental', n: 8 } },
   { id: 'magic', stage: 'sprout', icon: 'math-magic', title: '마방진', lessons: ['magic'], game: 'magic',
@@ -244,6 +286,10 @@ const MATH_TOPICS = [
     ws: { sum: '수를 막대 길이로 나타낸 것이 막대그래프예요. 가장 긴 막대가 가장 많아요.', trace: ['그래프', '막대'], gen: 'graph', n: 6 } },
   { id: 'path', stage: 'sprout', icon: '🗺️', title: '가장 짧은 길', lessons: ['path'], game: 'path',
     ws: { sum: '돌아가지 않고 학교 쪽으로만 가면 가장 짧아요. 가로 칸 수와 세로 칸 수를 더하면 가장 짧은 걸음 수예요.', trace: ['거리', '짧다'], gen: 'path', n: 6 } },
+  { id: 'fbox', stage: 'sprout', icon: '🎩', title: '마술 상자', lessons: ['fbox'], game: 'fbox',
+    ws: { sum: '넣으면 늘 같은 규칙으로 나오는 것을 함수라고 해요. 넣은 수와 나온 수를 표로 견주면 규칙이 보여요.', trace: ['함수', '+3', '×2'], gen: 'fbox', n: 6 } },
+  { id: 'logic', stage: 'sprout', icon: '🔍', title: '누가 무엇을 가졌을까', lessons: ['logic'], game: 'logic',
+    ws: { sum: '단서를 차근차근 따지면 답을 찾을 수 있어요. 표를 그려 아닌 칸에 ✗를 하거나, 끝에서부터 거꾸로 풀어요.', trace: ['논리', '○', '✗'], gen: 'logic', n: 6 } },
   { id: 'mul', stage: 'tree', icon: '✖️', title: '곱셈', lessons: ['mul'], game: 'mul',
     ws: { sum: '같은 수를 여러 번 더할 때는 곱하기(×)로 한 번에 셀 수 있어요. 순서를 바꿔 곱해도 답은 같아요.', trace: ['×', '곱하기'], gen: 'mul', n: 8 } },
   { id: 'frac', stage: 'tree', icon: '🍕', title: '분수', lessons: ['frac'], game: 'frac',
@@ -264,6 +310,10 @@ const MATH_TOPICS = [
     ws: { sum: '일어날 수 있는 가짓수를 경우의 수라고 해요. 표를 그려 하나씩 짝지으면 빠뜨리지 않고 셀 수 있어요.', trace: ['가지', '경우'], gen: 'cases', n: 6 } },
   { id: 'area', stage: 'tree', icon: '🟦', title: '넓이와 둘레', lessons: ['area'], game: 'area',
     ws: { sum: '넓이는 작은 네모가 몇 개 들어가는지, 둘레는 바깥 선이 몇 개인지로 잴 수 있어요.', trace: ['넓이', '둘레'], gen: 'area', n: 6 } },
+  { id: 'balance', stage: 'tree', icon: '⚖️', title: '저울 맞추기', lessons: ['balance'], game: 'balance',
+    ws: { sum: '모르는 수를 상자로 놓고 저울처럼 양쪽을 맞춰 찾는 식이 방정식이에요. 양쪽에서 똑같은 것을 빼도 같아요.', trace: ['방정식', '='], gen: 'balance', n: 6 } },
+  { id: 'base', stage: 'tree', icon: '🏛️', title: '다른 묶음으로 세기', lessons: ['base'], game: 'base',
+    ws: { sum: '열씩 말고 다섯씩, 둘씩 묶어 셀 수도 있어요. 로마 숫자는 I = 1, V = 5, X = 10이에요.', trace: ['V', 'X', 'XII'], gen: 'base', n: 6 } },
 ];
 
 // ── 수학 이야기 (① 1분): 옛날 수수께끼·발견을 새싹스쿨이 새로 쓴 짧은 이야기. 책의 문장·그림은 쓰지 않는다
@@ -445,3 +495,48 @@ MATH_SAY.big = {
 };
 MATH_SAY.bundled = '열씩 묶어서 다 셌어요!';
 MATH_VOICE.push(...Object.values(MATH_SAY.big), MATH_SAY.bundled, ...Object.values(MATH_HINTS).filter(h => /묶음|십의 자리|100판/.test(h)));
+
+// ── 묶음 1 (2026-11-27): 똑같은 모양 · 마술 상자 · 누가 무엇을 가졌을까 · 저울 맞추기 · 다른 묶음으로 세기 ──
+Object.assign(MATH_STORIES, {
+  same: { card: { icon: '🧩', name: '타일 장인', line: '똑같은 모양을 돌리고 뒤집었어요' }, pages: [
+    { viz: { k: 'scene', items: ['🏰', '🧱', '✨'] }, text: '옛날 어느 궁전에 벽을 꾸미는 장인이 있었어요. 장인은 작은 타일로 넓은 벽을 빈틈없이 채우고 싶었대요.' },
+    { viz: { k: 'pshapes', list: [[[[0, 0], [1, 0], [2, 0], [2, 1]], '#ffd54f'], [[[0, 0], [0, 1], [0, 2], [1, 0]], '#4db6ac']] }, text: '장인은 똑같은 모양 타일을 잔뜩 만들었어요. 그리고 돌리기도 하고 뒤집기도 하면서 빈틈없이 붙였지요.' },
+    { viz: { k: 'pshapes', list: [[[[0, 0], [1, 0], [0, 1]], '#ffd54f', 20], [[[0, 0], [1, 0], [0, 1]], '#4db6ac', 40]] }, text: '큰 그림에는 같은 모양을 크게, 작은 그림에는 작게 만들었어요. 크기는 달라도 모양은 똑같았대요.' },
+    { viz: { k: 'scene', items: ['🧩', '🔄', '🪞'] }, text: '돌리거나 뒤집어서 딱 겹치는 두 모양을 합동, 크기만 다른 모양을 닮음이라고 해요. 우리도 똑같은 모양을 찾아볼까요?' },
+  ] },
+  fbox: { card: { icon: '🎩', name: '오일러', line: '넣으면 규칙대로 나와요' }, pages: [
+    { viz: { k: 'scene', items: ['🕯️', '📜', '✒️'] }, text: '옛날 스위스에 오일러라는 수학자가 살았어요. 오일러는 수가 어떻게 바뀌는지 들여다보기를 좋아했대요.' },
+    { viz: { k: 'fbox', pairs: [[1, 3], [2, 4], [3, 5]] }, text: '어떤 상자에 수를 넣으면, 늘 같은 규칙으로 바뀐 수가 나와요. 1을 넣으면 3, 2를 넣으면 4가 나왔지요.' },
+    { viz: { k: 'fbox', pairs: [[1, 3], [2, 4], [3, 5], [4, 6]], lab: '+2' }, text: '오일러는 이런 상자를 짧은 글자로 적어 두었어요. 넣은 수와 나온 수를 표에 나란히 적으면 규칙이 보여요.' },
+    { viz: { k: 'scene', items: ['🎩', '🔢', '✨'] }, text: '넣으면 규칙대로 나오는 것을 함수라고 해요. 우리도 마술 상자의 규칙을 찾아볼까요?' },
+  ] },
+  logic: { card: { icon: '🔍', name: '루이스 캐럴', line: '단서로 차근차근 풀었어요' }, pages: [
+    { viz: { k: 'scene', items: ['📚', '🐇', '⌚'] }, text: '옛날 영국에 루이스 캐럴이라는 이야기꾼이 있었어요. 신기한 나라에 간 아이 이야기를 쓴 사람이에요.' },
+    { viz: { k: 'ltab', n: 3 }, text: '캐럴은 아이들에게 단서를 하나씩 주고 답을 찾는 놀이를 즐겨 냈대요. 누가 무엇을 가졌는지 맞혀 보는 놀이였지요.' },
+    { viz: { k: 'ltab', n: 3, sol: [1, 2, 0] }, text: '단서를 듣고 아닌 칸에 엑스를 하나씩 그어 가면, 마지막에 남은 칸이 답이 되었어요.' },
+    { viz: { k: 'scene', items: ['🔍', '💡', '✅'] }, text: '단서를 차근차근 따져 답을 찾는 것을 논리라고 해요. 끝에서부터 거꾸로 생각하는 것도 좋은 방법이에요. 우리도 풀어 볼까요?' },
+  ] },
+  balance: { card: { icon: '⚖️', name: '알콰리즈미', line: '양쪽을 똑같이 맞췄어요' }, pages: [
+    { viz: { k: 'scene', items: ['🕌', '📜', '⚖️'] }, text: '옛날 바그다드에 알콰리즈미라는 학자가 있었어요. 시장 사람들의 셈을 자주 도와주었대요.' },
+    { viz: { k: 'scale', left: ['B', 3], right: [8] }, text: '어느 날 상인이 물었어요. 상자 하나와 추 셋을 올린 쪽이 추 여덟과 똑같대요. 상자는 추 몇 개만큼 무거울까요?' },
+    { viz: { k: 'scale', left: ['B'], right: [5] }, text: '알콰리즈미는 양쪽에서 추를 셋씩 똑같이 내렸어요. 저울은 여전히 반듯했고, 상자는 추 다섯 개만큼이었어요.' },
+    { viz: { k: 'scene', items: ['📦', '⚖️', '🔢'] }, text: '모르는 수를 상자로 놓고, 저울처럼 양쪽을 맞춰 찾는 식을 방정식이라고 해요. 우리도 저울을 맞춰 볼까요?' },
+  ] },
+  base: { card: { icon: '🏛️', name: '로마의 석공', line: 'I, V, X로 수를 새겼어요' }, pages: [
+    { viz: { k: 'scene', items: ['🏛️', '✋', '🪨'] }, text: '옛날 로마 사람들은 손가락으로 수를 세었대요. 손가락 하나, 둘, 셋을 막대 하나, 둘, 셋으로 그었어요.' },
+    { viz: { k: 'tally', n: 10 }, text: '손 하나를 다 펴면 다섯이에요. 그래서 다섯을 한 묶음으로 세면 편했지요. 다섯은 손 모양을 닮은 V, 열은 X로 썼대요.' },
+    { viz: { k: 'roman' }, text: '일곱은 V 다음에 I 두 개, 열둘은 X 다음에 I 두 개예요. 다섯씩, 열씩 묶어서 쓴 거예요.' },
+    { viz: { k: 'scene', items: ['🔟', '✋', '🔢'] }, text: '우리는 열씩 묶어 세지만, 다섯씩, 둘씩 묶어 셀 수도 있어요. 묶음을 바꿔 세는 방법을 진법이라고 해요. 우리도 해 볼까요?' },
+  ] },
+});
+Object.assign(MATH_HINTS, {
+  same: '모양을 마음속으로 돌리거나 뒤집어 봐요. 칸 수도 세어 봐요.',
+  fbox: '넣은 수와 나온 수가 얼마씩 차이 나는지, 몇 배인지 살펴봐요.',
+  logic: '표를 그려 아닌 칸에 엑스를 하면, 남은 칸이 답이에요.',
+  back: '끝에서부터 거꾸로, 더한 것은 빼고 곱한 것은 나눠 봐요.',
+  balance: '양쪽에서 똑같은 것을 내려도 저울은 반듯해요.',
+  base: '묶음 하나에 몇 개인지 먼저 보고, 묶음 수만큼 곱한 다음 낱개를 더해요.',
+  roman: 'I는 1, V는 5, X는 10이에요. 차례로 더해요.',
+});
+Object.assign(MATH_SAY, { balanced: '저울이 반듯해졌어요!', sameShape: '똑같아졌어요!' });
+MATH_VOICE.push(MATH_SAY.balanced, MATH_SAY.sameShape, '똑같은 모양을 골라요', '돌리면 똑같아지는 모양을 골라요', '돌리거나 뒤집으면 똑같아지는 모양을 골라요', '크기만 다르고 모양이 똑같은 것을 골라요');

@@ -1978,3 +1978,28 @@ a.shop-ava { display: block; }
 @media (max-width: 420px) { .m-hund { grid-template-columns: repeat(10, 30px); } }
 .m-ws .m-rod { height: 80px; width: 10px; background: repeating-linear-gradient(to bottom, #fff 0 6px, #333 6px 8px); } .m-ws .m-one { width: 10px; height: 8px; background: #fff; }
 .m-ws .m-bignum { font-size: 1.6rem; color: #222; } .m-ws .m-hund span { background: #fff; color: #222; }
+
+/* 새싹수학 묶음 1 (2026-11-27): 마술 상자 · 저울 · 똑같은 모양 · 논리 표 · 다른 묶음 */
+.m-fbox { display: inline-grid; gap: 6px; justify-items: center; padding: 10px 14px; border: 3px solid #9575cd; border-radius: 18px; background: color-mix(in srgb, #9575cd 12%, var(--paper)); }
+.m-fbox-hat { font: 1.1rem var(--title); color: var(--ink); } .m-fbox-hat b { color: #e53935; font-family: var(--en); }
+.m-ftab { border-collapse: collapse; } .m-ftab th, .m-ftab td { border: 2px solid var(--line); padding: 4px 10px; text-align: center; font: 700 1.2rem var(--en); color: var(--ink); background: var(--paper); }
+.m-ftab th { font: .9rem var(--font); } .m-ftab td.q { color: var(--grape, #7e57c2); background: #fff4cc; }
+.m-scale { display: grid; justify-items: center; margin: 8px auto; }
+.m-beam { display: flex; gap: 30px; padding-bottom: 6px; border-bottom: 5px solid #8d6e63; transform: rotate(var(--tilt, 0deg)); transition: transform .4s; }
+.m-pan { min-width: 110px; min-height: 48px; display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; justify-content: center; padding: 4px; border-radius: 0 0 40px 40px; background: color-mix(in srgb, #ffb74d 18%, transparent); }
+.m-post { font-size: 1.6rem; color: #8d6e63; line-height: 1; }
+.m-sbox { font-size: 1.8rem; } .m-weight { min-width: 2em; height: 2em; display: inline-grid; place-items: center; border-radius: 8px 8px 4px 4px; background: #607d8b; color: #fff; font: 700 1.1rem var(--en); }
+.m-scales { gap: 22px; flex-wrap: wrap; } .m-steps { display: grid; gap: 2px; justify-items: center; }
+.m-poly-shape { height: auto; max-width: 100%; }
+.m-ltab { border-collapse: collapse; margin: 4px auto; } .m-ltab th, .m-ltab td { border: 2px solid var(--line); width: 44px; height: 44px; text-align: center; font: 700 1.3rem var(--en); color: var(--ink); background: var(--paper); }
+.m-ltab th .m-pic { width: 1.4em; height: 1.4em; } .m-ltab td.hi { background: #ffe082; color: #3a2d4f; }
+.m-ltab.play td { padding: 0; } .m-ltab.play button { width: 100%; height: 44px; border: 0; background: none; font: 700 1.4rem var(--en); color: var(--ink); cursor: pointer; }
+.m-clues { text-align: left; margin: 4px auto; padding-left: 1.2em; max-width: 30em; font-size: 1.05rem; line-height: 1.7; }
+.m-tally { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.m-t5 { position: relative; display: inline-flex; gap: 6px; padding: 0 4px; } .m-t5 i { width: 4px; height: 44px; background: var(--ink); border-radius: 2px; }
+.m-t5 b { position: absolute; left: -4px; right: -4px; top: 50%; height: 4px; background: #e53935; transform: rotate(-28deg); border-radius: 2px; }
+.m-roman { letter-spacing: 6px; font-family: Georgia, 'Times New Roman', serif; } .m-rtab th { font-family: Georgia, serif; font-size: 1rem; }
+.m-dgroups { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 440px; } .m-dgroups .m-ring { padding: 4px 8px; }
+.m-tied[data-label]::before { content: attr(data-label); }
+.m-fbox-view, .m-scale-view { min-height: 90px; }
+.m-ws .m-fbox { background: #fff; } .m-ws .m-ftab th, .m-ws .m-ftab td { background: #fff; color: #222; } .m-ws .m-t5 i { background: #222; } .m-ws .m-ltab th, .m-ws .m-ltab td { background: #fff; color: #222; }
