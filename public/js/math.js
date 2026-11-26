@@ -12,6 +12,9 @@ const MATH_GAMES = {
   mental: { icon: '⚡', title: '빠른 머리셈', stage: 'sprout', c: '#64b5f6', hub: '더하기·빼기' },
   magic: { icon: '✨', title: '마방진', stage: 'sprout', c: '#f06292', hub: '가로·세로·대각선 합이 모두 15' },
   sudoku: { icon: '🔢', title: '4×4 스도쿠', stage: 'sprout', c: '#aed581', hub: '줄마다 1·2·3·4가 한 번씩' },
+  venn: { icon: '⭕', title: '벤 다이어그램', stage: 'sprout', c: '#f06292', hub: '두 동그라미에 나눠요' },
+  graph: { icon: '📈', title: '막대그래프', stage: 'sprout', c: '#64b5f6', hub: '그래프를 읽어요' },
+  path: { icon: '🗺️', title: '가장 짧은 길', stage: 'sprout', c: '#aed581', hub: '가장 짧은 길을 찾아요' },
   mul: { icon: '✖️', title: '곱셈 퍼즐', stage: 'tree', c: '#ff8a65', hub: '2~9단 곱셈' },
   frac: { icon: '🍕', title: '분수 퍼즐', stage: 'tree', c: '#4db6ac', hub: '색칠한 부분은 얼마일까' },
   factor: { icon: '🍪', title: '약수·배수 퍼즐', stage: 'tree', c: '#ffb74d', hub: '약수와 배수 고르기' },
@@ -78,6 +81,56 @@ const MathGen = (() => {
   const hmap = h => `<div class="m-hmap" style="--c:${h[0].length}">${h.map(r => r.map(v => `<span>${v || ''}</span>`).join('')).join('')}</div>`;
   // 그림 표: rows = [[이모지, 수, 이름?, 그림?]], mode pic(그림) · num(수) · both(그림과 수), hi = 칠할 줄
   const tableHtml = (rows, mode = 'pic', hi = []) => `<table class="m-table"><tbody>${rows.map(([e, n, label, pic], i) => `<tr class="${hi.includes(i) ? 'hi' : ''}"><th>${mPic(e)} ${label || MATH_NAMES[e] || ''}</th><td>${mode === 'num' ? `<b>${n}</b>` : `<span class="m-tpics">${Array.from({ length: n }, () => mPic(pic || e)).join('')}</span>`}${mode === 'both' ? ` <b class="m-tn">${n}</b>` : ''}</td></tr>`).join('')}</tbody></table>`;
+  // ── 새싹 더하기 그림 (2026-11-27) ──
+  // 벤 다이어그램: 왼쪽 동그라미 A(종류), 오른쪽 B(색). placed = [{ e, r: 'a'|'ab'|'b'|'o' }], hi = 동그라미 칠 영역
+  const VENN = { '🍎': ['과일', '빨간'], '🍓': ['과일', '빨간'], '🍒': ['과일', '빨간'], '🍌': ['과일', '노란'], '🍋': ['과일', '노란'], '🍏': ['과일', '초록'],
+    '🐞': ['동물', '빨간'], '🐥': ['동물', '노란'], '🐸': ['동물', '초록'], '🚒': ['탈것', '빨간'], '🚕': ['탈것', '노란'] };
+  // 받침에 따라 조사 고르기: jo('레몬', '은', '는') → '레몬은'
+  const jo = (w, a, b) => w + ((w.charCodeAt(w.length - 1) - 0xac00) % 28 ? a : b);
+  const COLN = { 빨간: '빨간 것', 노란: '노란 것', 초록: '초록색 것' };
+  const vRegion = (e, A, B) => { const [t, c] = VENN[e]; return t === A ? (c === B ? 'ab' : 'a') : c === B ? 'b' : 'o'; };
+  const vName = (r, A, B) => ({ a: `${A}에만`, ab: '두 곳 모두 (겹친 곳)', b: `${COLN[B]}에만`, o: '둘 다 아님 (바깥)' })[r];
+  const vennSvg = (A, B, placed = [], hi = null) => {
+    const SL = { a: [[78, 92], [78, 132], [102, 62]], ab: [[160, 86], [160, 128]], b: [[242, 92], [242, 132], [218, 62]], o: [[22, 40], [298, 40], [22, 178], [298, 178]] }, used = { a: 0, ab: 0, b: 0, o: 0 };
+    const items = placed.map(({ e, r }) => { const [x, y] = SL[r][used[r]++ % SL[r].length]; return `${r === hi ? `<circle cx="${x}" cy="${y - 7}" r="17" fill="#ffd54f" opacity=".8"/>` : ''}<text x="${x}" y="${y}" font-size="28" text-anchor="middle">${e}</text>`; }).join('');
+    return `<svg viewBox="0 0 320 210" class="m-venn" aria-label="벤 다이어그램: ${A}, ${COLN[B]}"><rect x="2" y="2" width="316" height="206" rx="14" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="5 4"/>
+      <circle cx="120" cy="108" r="80" fill="#64b5f6" fill-opacity=".22" stroke="#1e88e5" stroke-width="3"/><circle cx="200" cy="108" r="80" fill="#f06292" fill-opacity=".22" stroke="#d81b60" stroke-width="3"/>
+      <text x="78" y="26" font-size="15" font-weight="700" fill="#1e88e5" text-anchor="middle">${A}</text><text x="242" y="26" font-size="15" font-weight="700" fill="#d81b60" text-anchor="middle">${COLN[B]}</text>${items}</svg>`;
+  };
+  // 막대그래프: rows = [[이모지, 수]], hi = 읽는 줄을 보여 줄 막대
+  const barSvg = (rows, hi = [], title = '') => {
+    const n = rows.length, top = Math.max(5, ...rows.map(r => r[1])), W = 56 * n + 46, ph = 150, u = ph / top, base = ph + 30;
+    const ticks = Array.from({ length: top + 1 }, (_, k) => `<line x1="34" x2="${W - 6}" y1="${base - k * u}" y2="${base - k * u}" stroke="currentColor" stroke-opacity="${k ? .15 : .6}"/><text x="28" y="${base - k * u + 4}" font-size="11" text-anchor="end" fill="currentColor">${k}</text>`).join('');
+    const COLS = ['#ff8a65', '#4db6ac', '#9575cd', '#ffb74d'];
+    const bars = rows.map(([e, v], i) => { const x = 46 + i * 56; return `<rect x="${x}" y="${base - v * u}" width="36" height="${v * u}" rx="4" fill="${COLS[i % 4]}" stroke="#3a2d4f" stroke-width="2"/>`
+      + (hi.includes(i) ? `<line x1="34" x2="${x}" y1="${base - v * u}" y2="${base - v * u}" stroke="#e53935" stroke-width="2.5" stroke-dasharray="5 3"/><text x="${x + 18}" y="${base - v * u - 6}" font-size="15" font-weight="700" fill="#e53935" text-anchor="middle">${v}</text>` : '')
+      + `<text x="${x + 18}" y="${base + 24}" font-size="22" text-anchor="middle">${e}</text>`; }).join('');
+    return `<figure class="m-graph">${title ? `<figcaption>${title}</figcaption>` : ''}<svg viewBox="0 0 ${W} ${base + 34}" class="m-bars" style="width:${Math.round(W * 1.35)}px" aria-label="막대그래프">${ticks}${bars}</svg></figure>`;
+  };
+  // 그림그래프: 아래부터 그림을 쌓는다
+  const picGraph = (rows, title = '') => `<figure class="m-graph">${title ? `<figcaption>${title}</figcaption>` : ''}<div class="m-pgraph">${rows.map(([e, v]) => `<div><span class="m-pcol">${Array.from({ length: v }, () => '<i class="m-pdot"></i>').join('')}</span><b>${mPic(e)}</b></div>`).join('')}</div></figure>`;
+  // 칸 길: 집(s)에서 학교(g)까지. walls = ['x,y'], routes = [{ pts, col }], nums = { 'x,y': 수 }
+  const bfs = (W, H, s, g, walls = []) => {
+    const key = (x, y) => x + ',' + y, prev = { [key(...s)]: null }, q = [s];
+    while (q.length) { const [x, y] = q.shift(); if (x === g[0] && y === g[1]) break;
+      for (const [dx, dy] of [[1, 0], [0, -1], [-1, 0], [0, 1]]) { const nx = x + dx, ny = y + dy, k = key(nx, ny); if (nx < 0 || ny < 0 || nx >= W || ny >= H || walls.includes(k) || k in prev) continue; prev[k] = [x, y]; q.push([nx, ny]); } }
+    if (!(key(...g) in prev)) return null;
+    const path = []; for (let c = g; c; c = prev[key(...c)]) path.unshift(c); return path;
+  };
+  const pathSvg = ({ W, H, s, g, walls = [], routes = [], nums = {} }) => {
+    const C = 44, cells = [], marks = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const k = x + ',' + y;
+      cells.push(`<rect x="${x * C + 2}" y="${y * C + 2}" width="${C - 4}" height="${C - 4}" rx="7" fill="${walls.includes(k) ? '#c5e1a5' : '#fffaf0'}" stroke="#bcaaa4" stroke-width="1.5"/>`);
+      const t = x === s[0] && y === s[1] ? '🏠' : x === g[0] && y === g[1] ? '🏫' : walls.includes(k) ? '🌳' : '';
+      if (t) marks.push(`<text x="${x * C + C / 2}" y="${y * C + C / 2 + 9}" font-size="26" text-anchor="middle">${t}</text>`);
+      else if (k in nums) marks.push(`<text x="${x * C + C / 2}" y="${y * C + C / 2 + 6}" font-size="16" font-weight="700" text-anchor="middle" fill="#6d4c41">${nums[k]}</text>`); }
+    const lines = routes.map(({ pts, col }, i) => { const o = (i - (routes.length - 1) / 2) * 6; return `<polyline points="${pts.map(([x, y]) => `${x * C + C / 2 + o},${y * C + C / 2 + o}`).join(' ')}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`; }).join('');
+    return `<svg viewBox="0 0 ${W * C} ${H * C}" class="m-path" style="width:${Math.round(W * C * 1.3)}px" aria-label="칸 길 지도">${cells.join('')}${lines}${marks.join('')}</svg>`;
+  };
+  const ROUTE = [['#e53935', '빨간 길'], ['#1e88e5', '파란 길'], ['#43a047', '초록 길']];
+  const steps = (dirs, s) => { const pts = [s]; for (const [dx, dy] of dirs) { const [x, y] = pts[pts.length - 1]; pts.push([x + dx, y + dy]); } return pts; };
+  // 칸마다 집에서 몇 걸음인지 (이야기 그림)
+  const distMap = (W, H, s, walls = []) => { const d = { [s.join()]: 0 }, q = [s]; while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [0, -1], [-1, 0], [0, 1]]) { const nx = x + dx, ny = y + dy, k = nx + ',' + ny; if (nx < 0 || ny < 0 || nx >= W || ny >= H || walls.includes(k) || k in d) continue; d[k] = d[x + ',' + y] + 1; q.push([nx, ny]); } } return d; };
   const gen = {
     count(lo, hi) {
       if (lo == null) [lo, hi] = [[1, 5], [1, 10], [6, 15]][LV];
@@ -195,6 +248,63 @@ const MathGen = (() => {
       const ans = counts.reduce((a, b) => a + b, 0), say = `모두 몇 ${u}일까요?`;
       return { ask: say, say, show, opts: nearby(ans, 4, 30, 3), ans, hint: H.table, explain: `${ex([...Array(n).keys()])}<p class="m-eq-num">${counts.join(' + ')} = ${ans}</p>` };
     },
+    // ── 새싹 더하기 (2026-11-27) ──
+    // 벤 다이어그램: 쉬움 어디에 들어갈까, 보통 영역의 개수, 도전 '…이지만 …이 아닌'·바깥·겹친 곳 고르기
+    venn() {
+      const A = ['과일', '과일', '동물', '탈것'][R(4)], B = ['빨간', '노란', '초록'][R(3)], all = Object.keys(VENN);
+      const placed = shuffle(all).slice(0, 8).map(e => ({ e, r: vRegion(e, A, B) }));
+      const cap = { a: 3, ab: 2, b: 3, o: 4 }, use = { a: 0, ab: 0, b: 0, o: 0 }, ok = placed.filter(p => use[p.r]++ < cap[p.r]);
+      const cnt = r => ok.filter(p => p.r === r).length, full = vennSvg(A, B, ok);
+      const UA = { 동물: '마리', 탈것: '대' }[A] || '개'; // A 동그라미 안(A에만·A 전체)은 A를 세는 말로, 섞인 곳은 개
+      if (LV === 0) {
+        const e = all[R(all.length)], r = vRegion(e, A, B), opts = ['a', 'ab', 'b', 'o'].map(k => vName(k, A, B));
+        return { ask: `${mPic(e)} ${jo(MATH_NAMES[e], '은', '는')} 어디에 들어갈까요?`, show: `<div class="m-viz">${vennSvg(A, B)}</div>`, opts, ans: vName(r, A, B), hint: H.venn,
+          explain: `<div class="m-viz">${vennSvg(A, B, [{ e, r }], r)}</div><p class="m-eq-num">${MATH_NAMES[e]}: ${VENN[e][0]}, ${VENN[e][1]} 색 → ${vName(r, A, B)}</p>` };
+      }
+      if (LV === 1) {
+        const k = [['ab', `겹친 곳에는 몇 ${UA}가 있을까요?`], ['a+ab', `${jo(A, '은', '는')} 모두 몇 ${UA}일까요?`], ['b+ab', `${COLN[B]}은 모두 몇 개일까요?`]][R(3)];
+        const rs = k[0].split('+'), ans = rs.reduce((n, r) => n + cnt(r), 0);
+        return { ask: k[1], show: `<div class="m-viz">${full}</div>`, opts: nearby(ans, 0, 8, 3), ans, hint: H.venn, explain: `<div class="m-viz">${vennSvg(A, B, ok, rs.length > 1 ? null : rs[0])}</div><p class="m-eq-num">${rs.map(r => `${vName(r, A, B)} ${cnt(r)}`).join(' + ')} = ${ans}</p>` };
+      }
+      const k = [['b', `${COLN[B]}이지만 ${jo(A, '이', '가')} 아닌 것은 몇 개일까요?`], ['a', `${jo(A, '이지만', '지만')} ${COLN[B]}이 아닌 것은 몇 ${UA}일까요?`], ['o', '어느 동그라미에도 들어가지 않는 것은 몇 개일까요?']][R(3)], ans = cnt(k[0]);
+      return { ask: k[1], show: `<div class="m-viz">${full}</div>`, opts: nearby(ans, 0, 6, 3), ans, hint: H.venn, explain: `<div class="m-viz">${vennSvg(A, B, ok, k[0])}</div><p class="m-eq-num">${vName(k[0], A, B)}: ${ans}${k[0] === 'a' ? UA : '개'}</p>` };
+    },
+    // 막대그래프: 쉬움 그림그래프 읽기, 보통 막대 읽기·가장 많은/적은, 도전 차이·두 가지 합
+    graph() {
+      const fruit = R(2), set = fruit ? ['🍎', '🍓', '🍌', '🍇'] : ['🐶', '🐱', '🐥', '🐟'], n = LV === 0 ? 3 : 4, items = shuffle(set).slice(0, n);
+      const counts = shuffle(Array.from({ length: LV === 0 ? 5 : 8 }, (_, i) => i + 1)).slice(0, n), rows = items.map((e, i) => [e, counts[i]]), nm = e => MATH_NAMES[e];
+      const title = `우리 반 친구들이 좋아하는 ${fruit ? '과일' : '동물'}`, show = LV === 0 ? picGraph(rows, title) : barSvg(rows, [], title);
+      const kind = LV === 0 ? 'value' : LV === 1 ? ['value', 'most', 'least'][R(3)] : ['diff', 'sum'][R(2)];
+      if (kind === 'value') { const i = R(n); return { ask: `${jo(nm(items[i]), '을', '를')} 좋아하는 친구는 몇 명일까요?`, show, opts: nearby(counts[i], 1, 8, 3), ans: counts[i], hint: H.graph, explain: barSvg(rows, [i]) }; }
+      if (kind === 'most' || kind === 'least') {
+        const i = counts.indexOf(kind === 'most' ? Math.max(...counts) : Math.min(...counts));
+        return { ask: `가장 ${kind === 'most' ? '많은' : '적은'} 친구가 좋아하는 것은 무엇일까요?`, show, opts: items, labels: Object.fromEntries(items.map(e => [e, mPic(e)])), ans: items[i], hint: H.graph, explain: barSvg(rows, [i]) };
+      }
+      const [i, j] = shuffle([...Array(n).keys()]).slice(0, 2).sort((a, b) => counts[b] - counts[a]);
+      if (kind === 'diff') { const ans = counts[i] - counts[j]; return { ask: `${jo(nm(items[i]), '을', '를')} 좋아하는 친구는 ${nm(items[j])}보다 몇 명 더 많을까요?`, show, opts: nearby(ans, 1, 8, 3), ans, hint: H.graph, explain: `${barSvg(rows, [i, j])}<p class="m-eq-num">${counts[i]} − ${counts[j]} = ${ans}</p>` }; }
+      const ans = counts[i] + counts[j];
+      return { ask: `${jo(nm(items[i]), '과', '와')} ${jo(nm(items[j]), '을', '를')} 좋아하는 친구는 모두 몇 명일까요?`, show, opts: nearby(ans, 2, 16, 3), ans, hint: H.graph, explain: `${barSvg(rows, [i, j])}<p class="m-eq-num">${counts[i]} + ${counts[j]} = ${ans}</p>` };
+    },
+    // 가장 짧은 길: 쉬움 세 길 가운데 가장 짧은 길, 보통 가장 짧은 걸음 수, 도전 나무를 피해 가는 가장 짧은 걸음 수
+    path() {
+      if (LV === 0) {
+        const W = 5, H = 4, s = [0, 3], g = [3, 1], R1 = [1, 0], U = [0, -1], D = [0, 1];
+        const best = steps(shuffle([R1, R1, R1, U, U]), s), up = steps([U, U, U, R1, R1, R1, D], s), right = steps([R1, R1, R1, R1, U, U, [-1, 0]], s);
+        const order = shuffle([best, up, right]), routes = order.map((pts, i) => ({ pts, col: ROUTE[i][0] })), ans = ROUTE[order.indexOf(best)][1];
+        return { ask: '집에서 학교까지 가장 짧은 길은 어느 길일까요?', show: `<div class="m-viz">${pathSvg({ W, H, s, g, routes })}</div>`, opts: ROUTE.map(r => r[1]),
+          labels: Object.fromEntries(ROUTE.map(([c, nm]) => [nm, `<span class="m-swatch" style="background:${c}"></span>${nm}`])), ans, hint: MATH_HINTS.path,
+          explain: `<div class="m-viz">${pathSvg({ W, H, s, g, routes: [{ pts: best, col: '#ffb300' }], nums: Object.fromEntries(best.slice(1, -1).map((p, k) => [p.join(), k + 1])) })}</div><p class="m-eq-num">${order.map((p, i) => `${ROUTE[i][1]} ${p.length - 1}칸`).join(' · ')}</p>` };
+      }
+      for (let t = 0; t < 50; t++) {
+        const W = 5 + R(2), H = 4 + R(2), s = [0, H - 1], g = [2 + R(W - 2), R(H - 2)], walls = [];
+        if (LV === 2) while (walls.length < 3) { const k = `${R(W)},${R(H)}`; if (k !== s.join() && k !== g.join() && !walls.includes(k)) walls.push(k); }
+        const p = bfs(W, H, s, g, walls); if (!p) continue;
+        const ans = p.length - 1, man = Math.abs(g[0] - s[0]) + Math.abs(g[1] - s[1]);
+        if (LV === 2 && ans === man && t < 30) continue; // 도전은 나무 때문에 돌아가야 하는 판을 먼저
+        return { ask: '집에서 학교까지 가장 짧게 가면 몇 칸일까요?', show: `<div class="m-viz">${pathSvg({ W, H, s, g, walls })}</div>`, opts: nearby(ans, 2, 14, 3), ans, hint: MATH_HINTS.path,
+          explain: `<div class="m-viz">${pathSvg({ W, H, s, g, walls, routes: [{ pts: p, col: '#ffb300' }], nums: Object.fromEntries(p.slice(1, -1).map((q, k) => [q.join(), k + 1])) })}</div><p class="m-eq-num">가장 짧은 길: ${ans}칸</p>` };
+      }
+    },
   };
   // 3×3 마방진: 1~9로 합이 15. 기본판을 돌리고 뒤집어 8가지 중 하나
   const BASE = [2, 7, 6, 9, 5, 1, 4, 3, 8];
@@ -224,7 +334,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, setLevel, get level() { return LV; } };
+  return { gen, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -502,6 +612,14 @@ function mathViz(v) {
     case 'grid': return `<div class="m-grid show ${v.n === 3 ? 'magic' : 'sudoku'}" style="--n:${v.n}">${v.vals.map(x => `<span class="m-cell fixed">${x || ''}</span>`).join('')}</div>`;
     case 'blocks': return `<div class="m-viz">${MathGen.blocksSvg(v.h)}</div>`;
     case 'table': return `<div class="m-viz">${MathGen.tableHtml(v.rows, v.mode || 'both')}</div>`;
+    case 'venn': return `<div class="m-viz">${MathGen.vennSvg(v.A, v.B, (v.items || []).map(e => ({ e, r: MathGen.vRegion(e, v.A, v.B) })))}</div>`;
+    case 'bar': return v.table ? `<div class="m-viz m-bars-make"><div>${MathGen.tableHtml(v.rows, 'num')}</div>${MathGen.barSvg(v.rows, v.hi || [])}</div>` : `<div class="m-viz">${MathGen.barSvg(v.rows, v.hi || [])}</div>`;
+    case 'path': {
+      const o = { W: v.W, H: v.H, s: v.s, g: v.g, walls: v.walls || [] };
+      if (v.best) { const p = MathGen.bfs(v.W, v.H, v.s, v.g, o.walls); o.routes = [{ pts: p, col: '#ffb300' }]; o.nums = Object.fromEntries(p.slice(1, -1).map((q, k) => [q.join(), k + 1])); }
+      if (v.dist) o.nums = MathGen.distMap(v.W, v.H, v.s, o.walls);
+      return `<div class="m-viz">${MathGen.pathSvg(o)}</div>`;
+    }
     // 천재 이야기 그림
     case 'scene': return `<div class="m-viz m-scene">${v.items.map(x => `<span>${mPic(x)}</span>`).join('')}</div>`;
     case 'pair': return `<div class="m-viz m-pair"><div>${Array.from({ length: v.n }, (_, k) => `<span class="${v.miss && k >= v.n - v.miss ? 'm-away' : ''}">${mPic(v.a)}</span>`).join('')}</div><div class="m-links">${'<i></i>'.repeat(v.n)}</div><div>${row(v.b, v.n)}</div></div>`;
@@ -595,7 +713,7 @@ function mathLesson(el, L) {
   const show = () => {
     if (i >= L.steps.length) return finish();
     const st = L.steps[i]; bar.style.width = `${Math.round(i / L.steps.length * 100)}%`;
-    const tag = { learn: '📖 배워요', tap: '👆 눌러 봐요', corners: '👆 눌러 봐요', sort: '🧺 옮겨 봐요', extend: '🔁 채워 봐요', build: '🧱 쌓아 봐요', tally: '📊 표를 만들어요', write: '✏️ 따라 써요', quiz: '❓ 확인해요', play: '🧩 해 봐요' }[st.type];
+    const tag = { learn: '📖 배워요', tap: '👆 눌러 봐요', corners: '👆 눌러 봐요', sort: '🧺 옮겨 봐요', extend: '🔁 채워 봐요', build: '🧱 쌓아 봐요', tally: '📊 표를 만들어요', bars: '📈 그래프를 만들어요', walk: '🚶 걸어 봐요', write: '✏️ 따라 써요', quiz: '❓ 확인해요', play: '🧩 해 봐요' }[st.type];
     const head = `<p class="m-prog">${i + 1} / ${L.steps.length} · <b>${tag}</b></p>`;
     const nextBtn = '<div class="row-center"><button class="btn btn-primary" data-next disabled>다음 →</button></div>';
     if (st.type === 'learn') {
@@ -677,6 +795,54 @@ function mathLesson(el, L) {
         Speech.sfx.tap(); KoSpeech.say(MATH_NATIVE[cnt[r] - 1]);
         if (!$$('.m-sorti', area).length) ready(nb, MATH_SAY.tableDone);
       });
+    } else if (st.type === 'bars') {
+      // 막대그래프 만들기: 표를 보고 ➕·➖로 막대 높이를 맞춘다
+      const h = st.rows.map(() => 0);
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-bars-make"><div>${MathGen.tableHtml(st.rows, 'num')}</div><div class="m-bars-view"></div></div>
+        <div class="m-build">${st.rows.map(([e], k) => `<div class="m-build-col"><b>${mPic(e)}</b><button class="btn btn-ghost sm" data-add="${k}" aria-label="${MATH_NAMES[e]} 막대 올리기">➕</button><button class="btn btn-ghost sm" data-sub="${k}" aria-label="${MATH_NAMES[e]} 막대 내리기">➖</button></div>`).join('')}</div>
+        <p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
+      KoSpeech.say(st.text);
+      const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-bars-view', area); nb.onclick = next;
+      const draw = () => { view.innerHTML = MathGen.barSvg(st.rows.map(([e], k) => [e, h[k]])); };
+      const check = () => { if (h.every((v, k) => v === st.rows[k][1])) { out.textContent = '그래프 완성!'; ready(nb, MATH_SAY.graphDone); } };
+      $$('[data-add]', area).forEach(b => b.onclick = () => { const k = +b.dataset.add; if (h[k] >= 8) return; h[k]++; Speech.sfx.tap(); draw(); check(); });
+      $$('[data-sub]', area).forEach(b => b.onclick = () => { const k = +b.dataset.sub; if (!h[k]) return; h[k]--; Speech.sfx.tap(); nb.disabled = true; out.textContent = ' '; draw(); });
+      draw();
+    } else if (st.type === 'walk') {
+      // 길 걸어 보기: 옆 칸을 눌러 한 걸음씩, 집에서 학교까지. 앞 칸을 다시 누르면 한 걸음 되돌아간다
+      const { W, H, s: s0, g, walls = [] } = st, best = MathGen.bfs(W, H, s0, g, walls).length - 1;
+      let trail = [s0];
+      const at = (p, q) => p[0] === q[0] && p[1] === q[1];
+      const draw = msg => {
+        const cells = [];
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const k = trail.findIndex(p => at(p, [x, y])), wall = walls.includes(x + ',' + y);
+          cells.push(`<button class="m-wcell ${wall ? 'wall' : ''} ${k >= 0 ? 'on' : ''}" data-x="${x}" data-y="${y}" ${wall ? 'disabled' : ''}>${at([x, y], s0) ? '🏠' : at([x, y], g) ? '🏫' : wall ? '🌳' : k > 0 ? k : ''}</button>`);
+        }
+        $('.m-walk', area).innerHTML = cells.join('');
+        $('.m-walk', area).style.setProperty('--w', W);
+        $('.m-tapn', area).textContent = msg || (trail.length > 1 ? `${trail.length - 1}걸음` : ' ');
+        $$('.m-wcell', area).forEach(b => b.onclick = () => {
+          const p = [+b.dataset.x, +b.dataset.y], cur = trail[trail.length - 1];
+          if (at(cur, g)) return;
+          if (trail.length > 1 && at(p, trail[trail.length - 2])) { trail.pop(); Speech.sfx.tap(); return draw(); }
+          if (Math.abs(p[0] - cur[0]) + Math.abs(p[1] - cur[1]) !== 1 || trail.some(q => at(q, p))) return;
+          trail.push(p); Speech.sfx.tap();
+          if (at(p, g)) {
+            const n = trail.length - 1, good = n === best;
+            draw(good ? `가장 짧은 길로 왔어요! ${n}걸음` : `도착! ${n}걸음이에요. ${best}걸음 길도 있어요.`);
+            nb.disabled = false; if (good) Speech.sfx.correct(); setTimeout(() => KoSpeech.say(good ? MATH_SAY.pathBest : MATH_SAY.pathLonger), 400);
+            return;
+          }
+          draw();
+        });
+      };
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-walk"></div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>
+        <div class="row-center"><button class="btn btn-ghost" data-reset>처음부터</button><button class="btn btn-primary" data-next disabled>다음 →</button></div>`;
+      KoSpeech.say(st.text);
+      const nb = $('[data-next]', area); nb.onclick = next;
+      $('[data-reset]', area).onclick = () => { trail = [s0]; Speech.sfx.tap(); draw(); };
+      draw();
     } else if (st.type === 'write') {
       area.innerHTML = `${head}<h2 class="m-ask">「${esc(st.glyph)}」 따라 쓰기</h2>${mSayBtns(st.say)}<div class="m-write"></div>`;
       mWireSay(area); KoSpeech.say(st.say); mathTrace($('.m-write', area), st.glyph, () => setTimeout(next, 500));

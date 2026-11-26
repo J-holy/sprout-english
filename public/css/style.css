@@ -1896,3 +1896,22 @@ a.shop-ava { display: block; }
 .m-table.tally td.m-cnt { font: 700 1.3rem var(--en); text-align: center; min-width: 2.2em; }
 .m-ws .m-table { background: #fff; color: #222; } .m-ws .m-table th, .m-ws .m-table td { border-color: #888; }
 .m-ws .m-blocks { color: #222; max-width: 180px; }
+
+/* 새싹수학 새싹 더하기 (2026-11-27): 벤 다이어그램 · 막대그래프 · 가장 짧은 길 */
+.m-venn { width: min(100%, 340px); height: auto; color: var(--ink); }
+.m-graph { margin: 0 auto; display: grid; justify-items: center; gap: 4px; } .m-graph figcaption { font: 1rem var(--title); color: var(--ink); }
+.m-bars { height: auto; max-width: 100%; color: var(--ink); }
+.m-bars-make { gap: 14px; align-items: center; }
+.m-pgraph { display: flex; gap: 14px; align-items: flex-end; justify-content: center; padding: 8px 12px 0; border-bottom: 3px solid var(--line); }
+.m-pgraph > div { display: grid; justify-items: center; gap: 4px; } .m-pgraph b { font-size: 1.8rem; } .m-pgraph b .m-pic { width: 1.2em; height: 1.2em; }
+.m-pcol { display: flex; flex-direction: column-reverse; gap: 3px; } .m-pdot { width: 26px; height: 26px; border-radius: 50%; background: #ffb74d; border: 2px solid #3a2d4f; display: block; }
+.m-path { height: auto; max-width: 100%; }
+.m-swatch { display: inline-block; width: 1.2em; height: .5em; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+.m-opts .option .m-swatch { width: 1.4em; height: .6em; }
+.m-walk { display: grid; grid-template-columns: repeat(var(--w, 4), 52px); gap: 4px; justify-content: center; margin: 8px auto; }
+.m-wcell { width: 52px; height: 52px; border-radius: 10px; border: 2px solid #bcaaa4; background: #fffaf0; color: #6d4c41; font: 700 1.2rem var(--en); cursor: pointer; display: grid; place-items: center; font-size: 1.5rem; }
+.m-wcell.on { background: #ffe082; border-color: #ffb300; font-size: 1.1rem; } .m-wcell.wall { background: #c5e1a5; cursor: default; }
+.m-ws .m-venn, .m-ws .m-bars, .m-ws .m-path { color: #222; max-width: 260px; }
+.m-ws .m-pdot { width: 18px; height: 18px; }
+.m-venn { width: min(100%, 400px); }
+.m-opts .option:has(.m-swatch) { font-size: 1.2rem; white-space: nowrap; }

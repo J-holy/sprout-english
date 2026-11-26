@@ -92,6 +92,28 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '4', say: '사, 넷' },
     { type: 'play', game: 'sudoku', text: '이제 4×4 스도쿠를 직접 풀어 볼까요?' },
   ] },
+  { id: 'venn', stage: 'sprout', icon: '⭕', title: '벤 다이어그램', topic: '벤 다이어그램', steps: [
+    { type: 'learn', viz: { k: 'venn', A: '과일', B: '빨간' }, text: '과일 동그라미와 빨간 것 동그라미를 살짝 겹쳐 그렸어요. 두 무리에 모두 들어가는 것은 가운데 겹친 곳에 넣어요. 이런 그림을 벤 다이어그램이라고 해요.' },
+    { type: 'sort', groups: [['🔵 과일에만', ['🍌', '🍏']], ['🩷 빨간 것에만', ['🚒', '🐞']], ['🟣 겹친 곳', ['🍎', '🍓']], ['⬜ 바깥', ['🐸', '🚕']]], text: '하나를 누르고, 들어갈 곳을 눌러서 옮겨 봐요. 과일이면서 빨간 것은 겹친 곳이에요.' },
+    { type: 'learn', viz: { k: 'venn', A: '과일', B: '빨간', items: ['🍌', '🍏', '🚒', '🐞', '🍎', '🍓', '🐸', '🚕'] }, text: '사과와 딸기는 과일이면서 빨개서 겹친 곳에 있어요. 바나나는 과일이지만 빨갛지 않아서 과일 쪽에만 있어요. 개구리는 둘 다 아니라서 바깥에 있어요.' },
+    { type: 'write', glyph: '겹친 곳', say: '겹친 곳' },
+    { type: 'quiz', gen: 'venn' }, { type: 'quiz', gen: 'venn' },
+  ] },
+  { id: 'graph', stage: 'sprout', icon: '📈', title: '막대그래프', topic: '그래프', steps: [
+    { type: 'learn', viz: { k: 'bar', rows: [['🍎', 5], ['🍌', 3], ['🍇', 6]], table: true }, text: '표에 적은 수를 막대 길이로 그리면 그래프가 돼요. 막대가 길수록 많다는 뜻이에요.' },
+    { type: 'bars', rows: [['🍎', 4], ['🍓', 2], ['🍌', 5]], text: '표를 보고 더하기 단추로 막대를 올려서 그래프를 만들어 봐요.' },
+    { type: 'learn', viz: { k: 'bar', rows: [['🍎', 4], ['🍓', 2], ['🍌', 5]], hi: [2] }, text: '가장 긴 막대가 가장 많은 것이에요. 막대 끝에서 옆으로 줄을 따라가면 몇인지 읽을 수 있어요.' },
+    { type: 'write', glyph: '그래프', say: '그래프' },
+    { type: 'quiz', gen: 'graph' }, { type: 'quiz', gen: 'graph' },
+  ] },
+  { id: 'path', stage: 'sprout', icon: '🗺️', title: '가장 짧은 길', topic: '최단 거리', steps: [
+    { type: 'learn', viz: { k: 'path', W: 4, H: 3, s: [0, 2], g: [3, 0] }, text: '집에서 학교까지 가는 길은 여러 가지예요. 칸을 하나 지날 때마다 한 걸음이에요.' },
+    { type: 'walk', W: 4, H: 3, s: [0, 2], g: [3, 0], text: '집 옆 칸을 눌러 한 걸음씩 학교까지 가 봐요. 몇 걸음이면 갈 수 있을까요?' },
+    { type: 'learn', viz: { k: 'path', W: 4, H: 3, s: [0, 2], g: [3, 0], best: true }, text: '오른쪽과 위쪽으로만 가면 돌아가지 않아서 가장 짧아요. 오른쪽 세 칸, 위로 두 칸이니까 다섯 걸음이에요.' },
+    { type: 'walk', W: 5, H: 4, s: [0, 3], g: [4, 0], walls: ['2,2', '2,1', '3,3'], text: '이번에는 나무를 피해서 가장 짧은 길로 가 봐요.' },
+    { type: 'write', glyph: '거리', say: '거리' },
+    { type: 'quiz', gen: 'path' }, { type: 'quiz', gen: 'path' },
+  ] },
   { id: 'mul', stage: 'tree', icon: '✖️', title: '곱셈', topic: '곱셈 알고리즘', steps: [
     { type: 'learn', viz: { k: 'array', e: '🍎', r: 3, c: 4 }, text: '사과가 한 줄에 네 개씩 세 줄 있어요. 4를 세 번 더하는 대신 곱하기로 한 번에 셀 수 있어요.' },
     { type: 'learn', viz: { k: 'array', e: '⭐', r: 2, c: 5 }, text: '곱하기는 가위표처럼 생긴 기호로 써요. 5 곱하기 2는 5를 두 번 더한 것과 같아서 10이에요.' },
@@ -160,6 +182,12 @@ const MATH_TOPICS = [
     ws: { sum: '3×3 마방진은 가로·세로·대각선 세 수의 합이 모두 15예요. 가운데는 늘 5예요.', trace: ['15', '마방진'], grid: 'magic', n: 4 } },
   { id: 'sudoku', stage: 'sprout', icon: 'math-sudoku', title: '스도쿠', lessons: ['sudoku'], game: 'sudoku',
     ws: { sum: '가로줄·세로줄·굵은 네모 안에 1, 2, 3, 4가 한 번씩만 들어가요.', trace: ['1', '2', '3', '4'], grid: 'sudoku', n: 4 } },
+  { id: 'venn', stage: 'sprout', icon: '⭕', title: '벤 다이어그램', lessons: ['venn'], game: 'venn',
+    ws: { sum: '두 무리를 동그라미로 그려 겹치면, 두 무리에 모두 드는 것은 겹친 곳에 넣어요. 이런 그림을 벤 다이어그램이라고 해요.', trace: ['겹친 곳', '바깥'], gen: 'venn', n: 6 } },
+  { id: 'graph', stage: 'sprout', icon: '📈', title: '막대그래프', lessons: ['graph'], game: 'graph',
+    ws: { sum: '수를 막대 길이로 나타낸 것이 막대그래프예요. 가장 긴 막대가 가장 많아요.', trace: ['그래프', '막대'], gen: 'graph', n: 6 } },
+  { id: 'path', stage: 'sprout', icon: '🗺️', title: '가장 짧은 길', lessons: ['path'], game: 'path',
+    ws: { sum: '돌아가지 않고 학교 쪽으로만 가면 가장 짧아요. 가로 칸 수와 세로 칸 수를 더하면 가장 짧은 걸음 수예요.', trace: ['거리', '짧다'], gen: 'path', n: 6 } },
   { id: 'mul', stage: 'tree', icon: '✖️', title: '곱셈', lessons: ['mul'], game: 'mul',
     ws: { sum: '같은 수를 여러 번 더할 때는 곱하기(×)로 한 번에 셀 수 있어요. 순서를 바꿔 곱해도 답은 같아요.', trace: ['×', '곱하기'], gen: 'mul', n: 8 } },
   { id: 'frac', stage: 'tree', icon: '🍕', title: '분수', lessons: ['frac'], game: 'frac',
@@ -264,3 +292,33 @@ Object.assign(MATH_HINTS, {
 Object.assign(MATH_SAY, { blocksAsk: '쌓기나무는 모두 몇 개일까요?', tableMost: '가장 많은 것은 무엇일까요?', tableLeast: '가장 적은 것은 무엇일까요?', tableDone: '표가 완성됐어요!' });
 MATH_VOICE.push(MATH_SAY.blocksAsk, MATH_SAY.tableMost, MATH_SAY.tableLeast, MATH_SAY.tableDone,
   ...Object.keys(MATH_NAMES).map(e => `${MATH_NAMES[e]}는 몇 ${mUnit(e)}일까요?`), ...['개', '마리'].map(u => `모두 몇 ${u}일까요?`));
+
+// ── 새싹 더하기 (2026-11-27): 벤 다이어그램 · 막대그래프 · 가장 짧은 길 ──
+Object.assign(MATH_NAMES, { '🍒': '체리', '🍋': '레몬', '🍏': '풋사과', '🐞': '무당벌레', '🐸': '개구리', '🚒': '소방차', '🚕': '택시' });
+Object.assign(MATH_STORIES, {
+  venn: { card: { icon: '⭕', name: '벤 선생님', line: '동그라미를 겹쳐 그렸어요' }, pages: [
+    { viz: { k: 'scene', items: ['🏫', '📚', '✏️'] }, text: '옛날 영국에 벤이라는 선생님이 있었어요. 학생들에게 무리와 무리가 어떻게 겹치는지 쉽게 보여 주고 싶었대요.' },
+    { viz: { k: 'venn', A: '과일', B: '빨간' }, text: '벤 선생님은 무리마다 동그라미를 하나씩 그리고, 두 동그라미를 살짝 겹쳐 그렸어요.' },
+    { viz: { k: 'venn', A: '과일', B: '빨간', items: ['🍌', '🍏', '🚒', '🐞', '🍎', '🍓', '🐸'] }, text: '두 무리에 모두 들어가는 것은 겹친 곳에, 하나에만 들어가는 것은 그쪽에만 넣었어요. 어디에도 안 들어가는 것은 바깥에 두었지요.' },
+    { viz: { k: 'scene', items: ['⭕', '⭕'] }, text: '이 그림은 선생님 이름을 따서 벤 다이어그램이라고 불러요. 우리도 나누어 볼까요?' },
+  ] },
+  graph: { card: { icon: '📊', name: '막대를 그린 플레이페어', line: '수를 막대로 나타냈어요' }, pages: [
+    { viz: { k: 'scene', items: ['🚢', '📦', '⚓'] }, text: '옛날 스코틀랜드에 플레이페어라는 사람이 있었어요. 나라끼리 배로 물건을 사고파는 일을 늘 적어 두었대요.' },
+    { viz: { k: 'table', rows: [['🍎', 5], ['🍌', 3], ['🍇', 6]], mode: 'num' }, text: '그런데 수만 적어 두니, 어느 것이 더 많은지 한눈에 보이지 않았어요.' },
+    { viz: { k: 'bar', rows: [['🍎', 5], ['🍌', 3], ['🍇', 6]] }, text: '그래서 수만큼 길쭉한 막대를 그려 나란히 세웠어요. 그러자 가장 긴 막대가 가장 많다는 것이 단번에 보였지요.' },
+    { viz: { k: 'bar', rows: [['🍎', 5], ['🍌', 3], ['🍇', 6]], hi: [2] }, text: '수를 막대나 그림으로 나타낸 것을 그래프라고 해요. 우리도 그래프를 읽어 볼까요?' },
+  ] },
+  path: { card: { icon: '🗺️', name: '다익스트라', line: '가까운 곳부터 걸음을 셌어요' }, pages: [
+    { viz: { k: 'scene', items: ['☕', '🏙️', '🤔'] }, text: '네덜란드의 다익스트라라는 사람이 카페에 앉아 생각했어요. 두 곳 사이의 가장 짧은 길은 어떻게 찾을까?' },
+    { viz: { k: 'path', W: 5, H: 4, s: [0, 3], g: [4, 0], walls: ['2,2', '2,1', '3,3'] }, text: '갈 수 있는 길이 아주 많았어요. 하나하나 다 걸어 보면 너무 오래 걸리지요.' },
+    { viz: { k: 'path', W: 5, H: 4, s: [0, 3], g: [4, 0], walls: ['2,2', '2,1', '3,3'], dist: true }, text: '다익스트라는 가까운 칸부터 차례로 몇 걸음인지 적어 나갔어요. 그러면 학교 칸에 적힌 수가 가장 짧은 걸음 수가 되었대요.' },
+    { viz: { k: 'path', W: 5, H: 4, s: [0, 3], g: [4, 0], walls: ['2,2', '2,1', '3,3'], best: true }, text: '지금도 길을 알려 주는 지도가 이 생각을 써요. 우리도 가장 짧은 길을 찾아볼까요?' },
+  ] },
+});
+Object.assign(MATH_HINTS, {
+  venn: '두 무리에 모두 들어가면 겹친 곳, 하나에만 들어가면 그쪽에만 넣어요.',
+  graph: '막대 끝에서 옆으로 줄을 따라가 수를 읽어 봐요.',
+  path: '돌아가지 않게, 학교 쪽으로만 가는 길을 찾아 칸을 세어 봐요.',
+});
+Object.assign(MATH_SAY, { graphDone: '그래프가 완성됐어요!', pathBest: '가장 짧은 길로 왔어요!', pathLonger: '도착했어요! 더 짧은 길도 찾아볼까요?' });
+MATH_VOICE.push(MATH_SAY.graphDone, MATH_SAY.pathBest, MATH_SAY.pathLonger);
