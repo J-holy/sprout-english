@@ -19,6 +19,8 @@ const MATH_GAMES = {
   same: { icon: '🧩', title: '똑같은 모양 찾기', stage: 'seed', c: '#4db6ac', hub: '돌리고 뒤집어도 같은 모양' },
   fbox: { icon: '🎩', title: '마술 상자', stage: 'sprout', c: '#9575cd', hub: '넣으면 규칙대로 나와요' },
   logic: { icon: '🔍', title: '누가 무엇을 가졌을까', stage: 'sprout', c: '#64b5f6', hub: '단서로 풀기·거꾸로 풀기' },
+  euler: { icon: '✏️', title: '한붓그리기', stage: 'sprout', c: '#aed581', hub: '연필을 떼지 않고 한 번에' },
+  match: { icon: '🔥', title: '성냥개비 퍼즐', stage: 'sprout', c: '#ff8a65', hub: '막대 하나 옮겨 식 고치기' },
   balance: { icon: '⚖️', title: '저울 맞추기', stage: 'tree', c: '#ffb74d', hub: '상자 안의 수 찾기' },
   base: { icon: '🏛️', title: '다른 묶음으로 세기', stage: 'tree', c: '#f06292', hub: '5씩 묶기·로마 숫자' },
   mul: { icon: '✖️', title: '곱셈 퍼즐', stage: 'tree', c: '#ff8a65', hub: '2~9단 곱셈' },
@@ -205,6 +207,61 @@ const MathGen = (() => {
   const tally = n => `<div class="m-tally">${Array.from({ length: Math.floor(n / 5) }, () => '<span class="m-t5"><i></i><i></i><i></i><i></i><b></b></span>').join('')}${n % 5 ? `<span class="m-t5 part">${'<i></i>'.repeat(n % 5)}</span>` : ''}</div>`;
   const roman = (n, sub = true) => { let s = ''; for (const [v, r] of sub ? [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']] : [[10, 'X'], [5, 'V'], [1, 'I']]) while (n >= v) { s += r; n -= v; } return s; };
   const dotGroups = (n, g) => `<div class="m-dgroups">${Array.from({ length: Math.floor(n / g) }, () => `<span class="m-ring">${mDots(g)}</span>`).join('')}${n % g ? `<span>${mDots(n % g, 'b')}</span>` : ''}</div>`;
+  // ── 묶음 2 그림 (2026-11-27): 한붓그리기 · 성냥개비 ──
+  // 한붓그리기 그림: n = 점 [x, y](0~100), e = 선 [점, 점]
+  const FIGS = {
+    tri: { n: [[50, 10], [90, 85], [10, 85]], e: [[0, 1], [1, 2], [2, 0]] },
+    sq: { n: [[15, 15], [85, 15], [85, 85], [15, 85]], e: [[0, 1], [1, 2], [2, 3], [3, 0]] },
+    sqd: { n: [[15, 15], [85, 15], [85, 85], [15, 85]], e: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]] },
+    house: { n: [[15, 40], [85, 40], [85, 92], [15, 92], [50, 6]], e: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 4], [1, 4]] },
+    housex: { n: [[15, 40], [85, 40], [85, 92], [15, 92], [50, 6]], e: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 4], [1, 4], [0, 2], [1, 3]] },
+    bow: { n: [[50, 50], [10, 12], [10, 88], [90, 12], [90, 88]], e: [[0, 1], [0, 2], [1, 2], [0, 3], [0, 4], [3, 4]] },
+    star: { n: [[50, 6], [92, 38], [76, 92], [24, 92], [8, 38]], e: [[0, 2], [2, 4], [4, 1], [1, 3], [3, 0]] },
+    twosq: { n: [[8, 25], [50, 25], [92, 25], [92, 75], [50, 75], [8, 75]], e: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [1, 4]] },
+    twosqd: { n: [[8, 25], [50, 25], [92, 25], [92, 75], [50, 75], [8, 75]], e: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [1, 4], [0, 4]] },
+    zig: { n: [[8, 80], [36, 20], [64, 80], [92, 20]], e: [[0, 1], [1, 2], [2, 3]] },
+    env: { n: [[15, 15], [85, 15], [85, 85], [15, 85]], e: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2], [1, 3]] },
+    window: { n: [[10, 10], [50, 10], [90, 10], [10, 50], [50, 50], [90, 50], [10, 90], [50, 90], [90, 90]], e: [[0, 1], [1, 2], [3, 4], [4, 5], [6, 7], [7, 8], [0, 3], [3, 6], [1, 4], [4, 7], [2, 5], [5, 8]] },
+    tric: { n: [[50, 8], [92, 88], [8, 88], [50, 60]], e: [[0, 1], [1, 2], [2, 0], [0, 3], [1, 3], [2, 3]] },
+    plus: { n: [[50, 50], [50, 8], [92, 50], [50, 92], [8, 50]], e: [[0, 1], [0, 2], [0, 3], [0, 4]] },
+  };
+  const DRAWABLE = ['tri', 'sq', 'sqd', 'house', 'housex', 'bow', 'star', 'twosq', 'twosqd', 'zig'], NOTDRAW = ['env', 'window', 'tric', 'plus'];
+  const degs = f => f.n.map((_, i) => f.e.filter(([a, b]) => a === i || b === i).length);
+  const oddOf = f => degs(f).map((d, i) => d % 2 ? i : -1).filter(i => i >= 0);
+  const figSvg = (f, { labels = {}, used = [], odd = false, size = 150, cls = '' } = {}) => {
+    const d = degs(f), lines = f.e.map(([a, b], k) => `<line x1="${f.n[a][0]}" y1="${f.n[a][1]}" x2="${f.n[b][0]}" y2="${f.n[b][1]}" stroke="${used.includes(k) ? '#ff7043' : 'currentColor'}" stroke-width="${used.includes(k) ? 6 : 4}" stroke-linecap="round"/>`).join('');
+    const dots = f.n.map(([x, y], i) => `<g class="m-fnode" data-node="${i}"><circle cx="${x}" cy="${y}" r="${odd && d[i] % 2 ? 8 : 6}" fill="${odd && d[i] % 2 ? '#e53935' : '#3a2d4f'}" stroke="#fff" stroke-width="2"/>${labels[i] ? `<text x="${x + (x > 50 ? 9 : -9)}" y="${y - 8}" font-size="13" font-weight="700" text-anchor="middle" fill="#7e57c2">${labels[i]}</text>` : ''}${odd ? `<text x="${x}" y="${y + 20}" font-size="11" text-anchor="middle" fill="${d[i] % 2 ? '#e53935' : '#78909c'}">${d[i]}</text>` : ''}</g>`).join('');
+    return `<svg viewBox="-12 -12 124 124" class="m-fig ${cls}" style="width:${size}px" aria-label="점 ${f.n.length}개, 선 ${f.e.length}개 그림">${lines}${dots}</svg>`;
+  };
+  const figFlip = f => ({ n: f.n.map(([x, y]) => [100 - x, y]), e: f.e });
+  // 성냥개비 숫자: 일곱 칸(a 위, b 오른쪽 위, c 오른쪽 아래, d 아래, e 왼쪽 아래, f 왼쪽 위, g 가운데)
+  const DIG = { 0: 'abcdef', 1: 'bc', 2: 'abged', 3: 'abgcd', 4: 'fgbc', 5: 'afgcd', 6: 'afgedc', 7: 'abc', 8: 'abcdefg', 9: 'abcfgd' };
+  const segSet = d => new Set(DIG[d]);
+  const SEGXY = { a: [8, 6, 38, 6], b: [42, 10, 42, 40], c: [42, 50, 42, 80], d: [8, 84, 38, 84], e: [4, 50, 4, 80], f: [4, 10, 4, 40], g: [8, 45, 38, 45] };
+  const stick = ([x1, y1, x2, y2], on = true, hi = false) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${on ? (hi ? '#ff7043' : '#e0b07a') : 'currentColor'}" stroke-opacity="${on ? 1 : .15}" stroke-width="6" stroke-linecap="round"/>${on ? `<circle cx="${x2}" cy="${y2}" r="4" fill="${hi ? '#ff7043' : '#d84315'}"/>` : ''}`;
+  const digSvg = (segs, ox = 0, hi = '') => `<g transform="translate(${ox} 0)">${Object.entries(SEGXY).map(([k, xy]) => segs.has(k) ? stick(xy, true, hi.includes(k)) : '').join('')}</g>`;
+  // 식 그리기: '6+4=4' 같은 글자열. 숫자는 일곱 칸, +는 두 막대, −는 하나, =는 둘
+  const eqSvg = (str, size = 1) => {
+    let x = 0, out = '';
+    for (const ch of str) {
+      if (/\d/.test(ch)) { out += digSvg(segSet(ch), x); x += 56; }
+      else if (ch === '+') { out += stick([x + 4, 45, x + 34, 45]) + stick([x + 19, 30, x + 19, 60]); x += 46; }
+      else if (ch === '-') { out += stick([x + 4, 45, x + 34, 45]); x += 46; }
+      else if (ch === '=') { out += stick([x + 4, 36, x + 34, 36]) + stick([x + 4, 54, x + 34, 54]); x += 46; }
+    }
+    return `<svg viewBox="-4 0 ${x + 4} 92" class="m-match" style="width:${Math.round((x + 8) * 0.9 * size)}px" aria-label="성냥개비 식 ${str.replace('-', '−')}">${out}</svg>`;
+  };
+  const stickCount = str => [...str].reduce((n, ch) => n + (/\d/.test(ch) ? DIG[ch].length : ch === '+' || ch === '=' ? 2 : ch === '-' ? 1 : 0), 0);
+  // 막대 하나 옮기기 이웃: 같은 숫자 안에서(same), 빼기(less), 더하기(more)
+  const digs = Object.keys(DIG);
+  const nb = (d, kind) => digs.filter(y => { const A = segSet(d), B = segSet(y); if (y === d) return false; const onlyA = [...A].filter(s => !B.has(s)).length, onlyB = [...B].filter(s => !A.has(s)).length; return kind === 'same' ? onlyA === 1 && onlyB === 1 : kind === 'less' ? onlyA === 1 && onlyB === 0 : onlyA === 0 && onlyB === 1; });
+  const eqOk = s => { const m = s.match(/^(\d)([+-])(\d)=(\d)$/); return !!m && (m[2] === '+' ? +m[1] + +m[3] : +m[1] - +m[3]) === +m[4]; };
+  const eqShow = s => s.replace('-', ' − ').replace('+', ' + ').replace('=', ' = ');
+  // 식에서 막대 하나를 옮겨 만들 수 있는 모든 식 (숫자 안에서, 또는 한 숫자에서 빼서 다른 숫자에 더하기)
+  const oneMoves = s => { const out = new Set(), idx = [0, 2, 4];
+    for (const i of idx) for (const y of nb(s[i], 'same')) out.add(s.slice(0, i) + y + s.slice(i + 1));
+    for (const i of idx) for (const j of idx) if (i !== j) for (const y of nb(s[i], 'less')) for (const z of nb(s[j], 'more')) { const t = [...s]; t[i] = y; t[j] = z; out.add(t.join('')); }
+    return [...out]; };
   const gen = {
     count(lo, hi) {
       if (lo == null) [lo, hi] = [[1, 5], [1, 10], [6, 15], [15, 25]][LV];
@@ -661,6 +718,59 @@ const MathGen = (() => {
       return { ask: `5개씩 묶음 ${k}개와 낱개 ${r}개를 ${g}개씩 다시 묶으면 어떻게 될까요?`, show: `<div class="m-viz">${dotGroups(n, 5)}</div>`, opts: shuffle(opts), ans, hint: H.base,
         explain: `<p class="m-eq-num">5 × ${k} + ${r} = ${n}</p><div class="m-viz">${dotGroups(n, g)}</div><p class="m-eq-num">${n} = ${g} × ${Math.floor(n / g)} + ${n % g}</p>` };
     },
+    // ── 묶음 2 (2026-11-27) ──
+    // 한붓그리기: 쉬움 어디서 시작할까, 보통 선이 홀수 개 모인 점 세기, 어려움 한 번에 그릴 수 있는 그림 고르기, 도전 한 번에 못 그리는 그림 고르기(큰 그림도)
+    euler() {
+      const pickFig = k => R(2) ? figFlip(FIGS[k]) : FIGS[k];
+      if (LV === 0) {
+        const k = shuffle(['sqd', 'house', 'housex', 'twosq', 'zig', 'twosqd'])[0], f = pickFig(k), odd = oddOf(f), even = f.n.map((_, i) => i).filter(i => !odd.includes(i));
+        const start = odd[R(odd.length)], pts = shuffle([start, ...shuffle(even).slice(0, 2)]), names = ['가', '나', '다'], labels = Object.fromEntries(pts.map((p, i) => [p, names[i]]));
+        return { ask: '어느 점에서 시작하면 한 번에 그릴 수 있을까요?', show: `<div class="m-viz">${figSvg(f, { labels })}</div>`, opts: names, ans: labels[start], hint: H.euler,
+          explain: `<div class="m-viz">${figSvg(f, { labels, odd: true })}</div><p class="m-eq-num">선이 홀수 개 모인 빨간 점에서 시작해요 → ${labels[start]}</p>` };
+      }
+      if (LV === 1) {
+        const k = shuffle([...DRAWABLE, ...NOTDRAW])[0], f = pickFig(k), n = oddOf(f).length;
+        return { ask: '선이 홀수 개 모인 점은 몇 개일까요?', show: `<div class="m-viz">${figSvg(f)}</div>`, opts: [0, 2, 4], ans: n, hint: H.eulerOdd,
+          explain: `<div class="m-viz">${figSvg(f, { odd: true })}</div><p class="m-eq-num">점마다 모인 선의 수를 적었어요 · 홀수인 점 ${n}개</p>` };
+      }
+      const can = LV === 2, good = can ? shuffle(DRAWABLE)[0] : shuffle(NOTDRAW)[0], others = shuffle(can ? NOTDRAW : DRAWABLE.filter(k => FIGS[k].e.length >= 5)).slice(0, 2);
+      const keys = shuffle(['a', 'b', 'c']), figs = { [keys[0]]: pickFig(good), [keys[1]]: pickFig(others[0]), [keys[2]]: pickFig(others[1]) };
+      const ask = can ? '한 번에 그릴 수 있는 그림을 골라요' : '한 번에 그릴 수 없는 그림을 골라요';
+      return { ask, say: ask, show: '', opts: ['a', 'b', 'c'], labels: Object.fromEntries(['a', 'b', 'c'].map(k => [k, figSvg(figs[k], { size: 92 })])), ans: keys[0], hint: H.eulerOdd,
+        explain: `<div class="m-viz m-b10cmp">${['a', 'b', 'c'].map(k => `<figure>${figSvg(figs[k], { odd: true, size: 96 })}<figcaption>홀수 점 ${oddOf(figs[k]).length}개</figcaption></figure>`).join('')}</div><p class="fine">홀수 점이 0개나 2개면 한 번에 그릴 수 있어요.</p>` };
+    },
+    // 성냥개비: 쉬움 막대 수 세기, 보통 하나 빼거나 더해 만드는 숫자, 어려움 숫자 안에서 하나 옮겨 식 고치기, 도전 다른 숫자로 하나 옮겨 식 고치기
+    match() {
+      if (LV === 0) {
+        const s = R(2) ? String(R(10)) : String(10 + R(90)), n = stickCount(s);
+        return { ask: '성냥개비는 모두 몇 개일까요?', show: `<div class="m-viz">${eqSvg(s)}</div>`, opts: nearby(n, 2, 14, 3), ans: n, hint: H.match,
+          explain: `<p class="m-eq-num">${[...s].map(c => `${c}: ${DIG[c].length}개`).join(' · ')}${s.length > 1 ? ` → ${n}개` : ''}</p>` };
+      }
+      if (LV === 1) {
+        let d, kind, outs;
+        do { d = String(R(10)); kind = R(2) ? 'less' : 'more'; outs = nb(d, kind); } while (!outs.length);
+        const ans = outs[R(outs.length)], wrong = shuffle(digs.filter(y => y !== d && !outs.includes(y))).slice(0, 2), opts = shuffle([ans, ...wrong]);
+        return { ask: `막대 하나를 ${kind === 'less' ? '빼면' : '더하면'} 어떤 숫자가 될까요?`, show: `<div class="m-viz">${eqSvg(d)}</div>`, opts, labels: Object.fromEntries(opts.map(y => [y, eqSvg(y, .6)])), ans, hint: H.match,
+          explain: `<div class="m-viz m-b10cmp"><figure>${eqSvg(d, .8)}<figcaption>${d}</figcaption></figure><figure>${eqSvg(ans, .8)}<figcaption>${ans}</figcaption></figure></div><p class="m-eq-num">${d}에서 막대 하나를 ${kind === 'less' ? '빼면' : '더하면'} ${ans}</p>` };
+      }
+      for (let t = 0; t < 500; t++) {
+        const a = R(10), b = R(10), plus = R(2), c = plus ? a + b : a - b;
+        if (c < 0 || c > 9) continue;
+        const ok = `${a}${plus ? '+' : '-'}${b}=${c}`, idx = [0, 2, 4];
+        let wrongEq;
+        if (LV === 2) { const i = idx[R(3)], ys = nb(ok[i], 'same'); if (!ys.length) continue; wrongEq = ok.slice(0, i) + ys[R(ys.length)] + ok.slice(i + 1); }
+        else { const [i, j] = shuffle(idx).slice(0, 2), ys = nb(ok[i], 'more'), zs = nb(ok[j], 'less'); if (!ys.length || !zs.length) continue; const w = [...ok]; w[i] = ys[R(ys.length)]; w[j] = zs[R(zs.length)]; wrongEq = w.join(''); }
+        if (eqOk(wrongEq)) continue;
+        const fixes = oneMoves(wrongEq).filter(eqOk);
+        if (fixes.length !== 1 || fixes[0] !== ok) continue; // 막대 하나로 고치는 방법이 꼭 하나뿐인 식만
+        const wrongs = shuffle(oneMoves(wrongEq).filter(s => !eqOk(s))).slice(0, 2);
+        if (wrongs.length < 2) continue;
+        const opts = shuffle([ok, ...wrongs]);
+        return { ask: '막대 하나만 옮겨서 맞는 식으로 고치면 어떻게 될까요?', show: `<div class="m-viz">${eqSvg(wrongEq)}</div><p class="fine">지금 식: ${eqShow(wrongEq)} (틀린 식)</p>`, opts, labels: Object.fromEntries(opts.map(s => [s, eqShow(s)])), ans: ok, hint: H.matchEq,
+          explain: `<div class="m-viz">${eqSvg(ok, .8)}</div><p class="m-eq-num">${eqShow(wrongEq)} → ${eqShow(ok)}</p>` };
+      }
+      return gen.match();
+    },
   };
   // 3×3 마방진: 1~9로 합이 15. 기본판을 돌리고 뒤집어 8가지 중 하나
   const BASE = [2, 7, 6, 9, 5, 1, 4, 3, 8];
@@ -690,7 +800,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, setLevel, get level() { return LV; } };
+  return { gen, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -986,6 +1096,8 @@ function mathViz(v) {
     case 'back': return `<div class="m-viz m-steps"><p class="m-eqbig">? → +${v.a} → ×${v.b} → ${v.end}</p><p class="m-eqbig">${(v.end / v.b) - v.a} ← −${v.a} ← ÷${v.b} ← ${v.end}</p></div>`;
     case 'tally': return `<div class="m-viz">${MathGen.tally(v.n)}</div>`;
     case 'roman': return `<div class="m-viz"><table class="m-key m-rtab"><tr>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<th>${MathGen.roman(n, false)}</th>`).join('')}</tr><tr>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<td>${n}</td>`).join('')}</tr></table></div>`;
+    case 'fig': return `<div class="m-viz">${MathGen.figSvg(MathGen.FIGS[v.fig], { odd: !!v.odd, size: 190 })}</div>`;
+    case 'match': return v.fix ? `<div class="m-viz m-b10cmp"><figure>${MathGen.eqSvg(v.s, .7)}<figcaption>틀린 식</figcaption></figure><figure>${MathGen.eqSvg(v.fix, .7)}<figcaption>고친 식</figcaption></figure></div>` : `<div class="m-viz">${MathGen.eqSvg(v.s)}</div>`;
     case 'nseq': return `<div class="m-viz">${MathGen.nseq(v.items, v.labels || [])}</div>`;
     case 'key': return `<div class="m-viz">${MathGen.keyTable()}</div>`;
     case 'cshift': return `<div class="m-viz m-cshift">${[...v.w].map(c => `<span><b>${c}</b><i>↓ ${v.s}칸</i><b>${MathGen.shiftW(c, v.s)}</b></span>`).join('')}</div>`;
@@ -1089,7 +1201,7 @@ function mathLesson(el, L) {
   const show = () => {
     if (i >= L.steps.length) return finish();
     const st = L.steps[i]; bar.style.width = `${Math.round(i / L.steps.length * 100)}%`;
-    const tag = { learn: '📖 배워요', tap: '👆 눌러 봐요', corners: '👆 눌러 봐요', sort: '🧺 옮겨 봐요', extend: '🔁 채워 봐요', build: '🧱 쌓아 봐요', tally: '📊 표를 만들어요', bars: '📈 그래프를 만들어요', walk: '🚶 걸어 봐요', hop: '🐇 뛰어 세어요', bundle: '🧺 묶어 봐요', tens: '💯 수를 만들어요', machine: '🎩 넣어 봐요', scale: '⚖️ 맞춰 봐요', turn: '🔄 돌려 봐요', grid: '🔍 표를 채워요', decode: '🗝️ 암호를 풀어요', guess: '🎭 넣어 봐요', combo: '👕 짝지어 봐요', paint: '🟦 칠해 봐요', write: '✏️ 따라 써요', quiz: '❓ 확인해요', play: '🧩 해 봐요' }[st.type];
+    const tag = { learn: '📖 배워요', tap: '👆 눌러 봐요', corners: '👆 눌러 봐요', sort: '🧺 옮겨 봐요', extend: '🔁 채워 봐요', build: '🧱 쌓아 봐요', tally: '📊 표를 만들어요', bars: '📈 그래프를 만들어요', walk: '🚶 걸어 봐요', hop: '🐇 뛰어 세어요', bundle: '🧺 묶어 봐요', tens: '💯 수를 만들어요', machine: '🎩 넣어 봐요', scale: '⚖️ 맞춰 봐요', turn: '🔄 돌려 봐요', grid: '🔍 표를 채워요', stroke: '✏️ 그려 봐요', sticks: '🔥 막대를 옮겨요', decode: '🗝️ 암호를 풀어요', guess: '🎭 넣어 봐요', combo: '👕 짝지어 봐요', paint: '🟦 칠해 봐요', write: '✏️ 따라 써요', quiz: '❓ 확인해요', play: '🧩 해 봐요' }[st.type];
     const head = `<p class="m-prog">${i + 1} / ${L.steps.length} · <b>${tag}</b></p>`;
     const nextBtn = '<div class="row-center"><button class="btn btn-primary" data-next disabled>다음 →</button></div>';
     if (st.type === 'learn') {
@@ -1377,6 +1489,50 @@ function mathLesson(el, L) {
         const ok = st.sol.every((j, i) => val[i * n + j] === 2) && val.filter(v => v === 2).length === n;
         if (ok) { out.textContent = '맞았어요! 표로 찾았어요.'; ready(nb, MATH_SAY.right); } else { out.textContent = '○가 맞지 않는 줄이 있어요. 단서를 다시 읽어 봐요.'; Speech.sfx.wrong(); }
       };
+    } else if (st.type === 'stroke') {
+      // 한붓그리기: 점을 차례로 눌러 선을 따라간다. 같은 선은 두 번 못 지나고, 막히면 처음부터
+      const f = MathGen.FIGS[st.fig];
+      let cur = null, used = [];
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-stroke"></div><p class="m-eq-num m-tapn" aria-live="polite">시작할 점을 눌러요</p>
+        <div class="row-center"><button class="btn btn-ghost" data-reset>처음부터</button><button class="btn btn-primary" data-next disabled>다음 →</button></div>`;
+      KoSpeech.say(st.text);
+      const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-stroke', area); nb.onclick = next;
+      const draw = () => {
+        view.innerHTML = MathGen.figSvg(f, { used, size: 230, cls: 'play' }).replace(`data-node="${cur}"><circle`, `data-node="${cur}" class="m-fnode cur"><circle`);
+        $$('.m-fnode', view).forEach(g => g.onclick = () => {
+          const i = +g.dataset.node;
+          if (cur === null) { cur = i; Speech.sfx.tap(); out.textContent = '선을 따라 다음 점을 눌러요'; return draw(); }
+          const k = f.e.findIndex(([a, b], j) => !used.includes(j) && ((a === cur && b === i) || (b === cur && a === i)));
+          if (k < 0) { Speech.sfx.wrong(); out.textContent = '그 점으로 가는 남은 선이 없어요'; return; }
+          used.push(k); cur = i; Speech.sfx.tap();
+          if (used.length === f.e.length) { out.textContent = '한 번에 다 그렸어요! ✏️'; draw(); return ready(nb, MATH_SAY.stroked); }
+          const left = f.e.some(([a, b], j) => !used.includes(j) && (a === cur || b === cur));
+          out.textContent = left ? `선 ${used.length} / ${f.e.length}` : '막혔어요! 처음부터 다른 점에서 시작해 봐요';
+          draw();
+        });
+      };
+      $('[data-reset]', area).onclick = () => { cur = null; used = []; out.textContent = '시작할 점을 눌러요'; Speech.sfx.tap(); draw(); };
+      draw();
+    } else if (st.type === 'sticks') {
+      // 성냥개비 숫자: 막대를 눌러 빼고(손에 듦), 빈자리를 눌러 놓는다. 목표 숫자가 되면 끝
+      const goal = MathGen.segSet(st.to); let on = MathGen.segSet(st.from), hand = 0;
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-b10cmp"><figure>${MathGen.eqSvg(st.to, .8)}<figcaption>만들 숫자</figcaption></figure><figure class="m-sticks"></figure></div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
+      KoSpeech.say(st.text);
+      const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-sticks', area); nb.onclick = next;
+      const draw = () => {
+        view.innerHTML = `<svg viewBox="-6 0 58 92" class="m-match play" style="width:140px">${Object.entries(MathGen.SEGXY).map(([k, xy]) => `<g class="m-seg" data-s="${k}">${MathGen.stick(xy, on.has(k))}<line x1="${xy[0]}" y1="${xy[1]}" x2="${xy[2]}" y2="${xy[3]}" stroke="transparent" stroke-width="16"/></g>`).join('')}</svg>`;
+        out.textContent = hand ? `손에 든 막대 ${hand}개 · 빈자리를 눌러 놓아요` : ' ';
+        $$('.m-seg', view).forEach(g => g.onclick = () => {
+          const k = g.dataset.s;
+          if (on.has(k)) { on.delete(k); hand++; Speech.sfx.tap(); }
+          else if (hand > 0) { on.add(k); hand--; Speech.sfx.tap(); }
+          else { Speech.sfx.wrong(); return; }
+          draw();
+          const same = on.size === goal.size && [...goal].every(s => on.has(s));
+          if (same && (st.mode !== 'move' || hand === 0)) { out.textContent = `${st.to} 완성!`; ready(nb, MATH_SAY.right); } else nb.disabled = true;
+        });
+      };
+      draw();
     } else if (st.type === 'write') {
       area.innerHTML = `${head}<h2 class="m-ask">「${esc(st.glyph)}」 따라 쓰기</h2>${mSayBtns(st.say)}<div class="m-write"></div>`;
       mWireSay(area); KoSpeech.say(st.say); mathTrace($('.m-write', area), st.glyph, () => setTimeout(next, 500));

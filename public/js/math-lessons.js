@@ -249,6 +249,22 @@ const MATH_LESSONS = [
     { type: 'write', glyph: 'X', say: '십, 엑스' },
     { type: 'quiz', gen: 'base' }, { type: 'quiz', gen: 'base' },
   ] },
+  { id: 'euler', stage: 'sprout', icon: '✏️', title: '한붓그리기', topic: '한붓그리기', steps: [
+    { type: 'learn', viz: { k: 'fig', fig: 'house' }, text: '연필을 종이에서 떼지 않고, 같은 선을 두 번 지나지 않게 한 번에 그리는 것을 한붓그리기라고 해요.' },
+    { type: 'stroke', fig: 'tri', text: '점을 차례로 눌러서 세모를 한 번에 그려 봐요.' },
+    { type: 'learn', viz: { k: 'fig', fig: 'house', odd: true }, text: '점마다 선이 몇 개 모이는지 세어 봐요. 집 모양은 지붕 아래 두 점에 선이 세 개씩 모여요. 선이 홀수 개 모인 점에서 시작해야 한 번에 그릴 수 있어요.' },
+    { type: 'stroke', fig: 'house', text: '이번에는 집 모양이에요. 어느 점에서 시작할지 생각하고 그려 봐요.' },
+    { type: 'write', glyph: '한붓', say: '한붓' },
+    { type: 'quiz', gen: 'euler', lv: 0 }, { type: 'quiz', gen: 'euler', lv: 1 },
+  ] },
+  { id: 'match', stage: 'sprout', icon: '🔥', title: '성냥개비 퍼즐', topic: '성냥개비 퍼즐', steps: [
+    { type: 'learn', viz: { k: 'match', s: '178' }, text: '성냥개비로 숫자를 만들 수 있어요. 1은 두 개, 7은 세 개, 8은 일곱 개를 써요. 불은 붙이지 않고 막대로만 놀아요.' },
+    { type: 'sticks', from: '8', to: '9', text: '8에서 막대 하나를 눌러 빼서 9를 만들어 봐요.' },
+    { type: 'learn', viz: { k: 'match', s: '6+4=4', fix: '0+4=4' }, text: '6 더하기 4는 4가 아니니까 틀린 식이에요. 6의 가운데 막대를 오른쪽 위로 옮기면 0이 돼서, 0 더하기 4는 4, 맞는 식이 돼요.' },
+    { type: 'sticks', from: '6', to: '0', mode: 'move', text: '6의 막대 하나를 빼서 빈자리에 옮겨 0을 만들어 봐요.' },
+    { type: 'write', glyph: '막대', say: '막대' },
+    { type: 'quiz', gen: 'match', lv: 1 }, { type: 'quiz', gen: 'match', lv: 2 },
+  ] },
 ];
 
 // 단계: 나이 대신 귀여운 이름 (나이는 작게). 씨앗만 무료, 새싹·나무는 새싹수학 플러스(Store.hasMath)
@@ -290,6 +306,10 @@ const MATH_TOPICS = [
     ws: { sum: '넣으면 늘 같은 규칙으로 나오는 것을 함수라고 해요. 넣은 수와 나온 수를 표로 견주면 규칙이 보여요.', trace: ['함수', '+3', '×2'], gen: 'fbox', n: 6 } },
   { id: 'logic', stage: 'sprout', icon: '🔍', title: '누가 무엇을 가졌을까', lessons: ['logic'], game: 'logic',
     ws: { sum: '단서를 차근차근 따지면 답을 찾을 수 있어요. 표를 그려 아닌 칸에 ✗를 하거나, 끝에서부터 거꾸로 풀어요.', trace: ['논리', '○', '✗'], gen: 'logic', n: 6 } },
+  { id: 'euler', stage: 'sprout', icon: '✏️', title: '한붓그리기', lessons: ['euler'], game: 'euler',
+    ws: { sum: '연필을 떼지 않고 같은 선을 두 번 지나지 않게 그리는 것이 한붓그리기예요. 선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.', trace: ['한붓', '점', '선'], gen: 'euler', n: 6 } },
+  { id: 'match', stage: 'sprout', icon: '🔥', title: '성냥개비 퍼즐', lessons: ['match'], game: 'match',
+    ws: { sum: '성냥개비 막대로 숫자를 만들 수 있어요. 막대 하나를 빼거나 옮기면 다른 숫자가 돼요.', trace: ['막대', '8', '0'], gen: 'match', n: 6 } },
   { id: 'mul', stage: 'tree', icon: '✖️', title: '곱셈', lessons: ['mul'], game: 'mul',
     ws: { sum: '같은 수를 여러 번 더할 때는 곱하기(×)로 한 번에 셀 수 있어요. 순서를 바꿔 곱해도 답은 같아요.', trace: ['×', '곱하기'], gen: 'mul', n: 8 } },
   { id: 'frac', stage: 'tree', icon: '🍕', title: '분수', lessons: ['frac'], game: 'frac',
@@ -540,3 +560,31 @@ Object.assign(MATH_HINTS, {
 });
 Object.assign(MATH_SAY, { balanced: '저울이 반듯해졌어요!', sameShape: '똑같아졌어요!' });
 MATH_VOICE.push(MATH_SAY.balanced, MATH_SAY.sameShape, '똑같은 모양을 골라요', '돌리면 똑같아지는 모양을 골라요', '돌리거나 뒤집으면 똑같아지는 모양을 골라요', '크기만 다르고 모양이 똑같은 것을 골라요');
+
+// ── 묶음 2 (2026-11-27): 한붓그리기 · 성냥개비 퍼즐 ──
+Object.assign(MATH_STORIES, {
+  euler: { card: { icon: '🌉', name: '오일러', line: '다리를 점과 선으로 바꿨어요' }, pages: [
+    { viz: { k: 'scene', items: ['🏰', '🌉', '🌊'] }, text: '옛날 쾨니히스베르크라는 도시에는 강이 흐르고, 일곱 개의 다리가 있었어요.' },
+    { viz: { k: 'scene', items: ['🚶', '🌉', '❓'] }, text: '사람들은 궁금했어요. 다리를 모두 한 번씩만 건너서 산책을 마칠 수 있을까?' },
+    { viz: { k: 'scene', items: ['🟤', '🌉', '🟤', '🌉', '🟤'] }, text: '수학자 오일러는 땅을 점으로, 다리를 선으로 바꿔 그렸어요. 그리고 점마다 선이 몇 개 모이는지 세어 보았지요.' },
+    { viz: { k: 'scene', items: ['✏️', '🏠', '✨'] }, text: '선이 홀수 개 모인 점이 없거나 두 개뿐이면 한 번에 그릴 수 있어요. 그 다리는 네 곳 모두 홀수라서 안 되었대요. 우리도 한 번에 그려 볼까요?' },
+  ] },
+  match: { card: { icon: '🔥', name: '성냥개비 할아버지', line: '막대 하나로 수수께끼를 냈어요' }, pages: [
+    { viz: { k: 'scene', items: ['🚂', '👴', '🧒'] }, text: '옛날 긴 기차 여행 길에, 할아버지가 심심해하는 손주에게 성냥갑을 꺼내 보였어요. 불은 붙이지 않고 막대로만 하는 놀이였지요.' },
+    { viz: { k: 'match', s: '8' }, text: '할아버지는 성냥개비 일곱 개로 숫자 8을 만들었어요. 하나를 빼면 무슨 숫자가 될까?' },
+    { viz: { k: 'match', s: '6+4=4', fix: '0+4=4' }, text: '이번에는 틀린 식을 만들어 놓고, 막대 하나만 옮겨서 맞는 식으로 바꿔 보라고 했대요.' },
+    { viz: { k: 'scene', items: ['🚂', '🌾', '😄'] }, text: '막대 몇 개만 있으면 어디서든 머리를 쓰는 놀이를 할 수 있어요. 우리도 해 볼까요?' },
+  ] },
+});
+// 마술 상자 이야기: 한붓그리기에 오일러가 나오니, 마술 상자는 '함수'라는 말을 처음 쓴 라이프니츠로 바꿨다
+MATH_STORIES.fbox.card = { icon: '🎩', name: '라이프니츠', line: '넣으면 규칙대로 나와요' };
+MATH_STORIES.fbox.pages[0].text = '옛날 독일에 라이프니츠라는 학자가 살았어요. 라이프니츠는 수가 어떻게 바뀌는지 들여다보기를 좋아했대요.';
+MATH_STORIES.fbox.pages[2].text = '라이프니츠는 이렇게 규칙대로 바뀌는 것에 함수라는 이름을 붙였어요. 넣은 수와 나온 수를 표에 나란히 적으면 규칙이 보여요.';
+Object.assign(MATH_HINTS, {
+  euler: '점마다 선이 몇 개 모이는지 세어 봐요. 홀수 개 모인 점에서 시작해요.',
+  eulerOdd: '선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.',
+  match: '숫자마다 막대가 몇 개인지 세어 봐요. 8은 일곱 개를 다 써요.',
+  matchEq: '어느 숫자의 막대 하나가 다른 자리로 가면 맞는 식이 될지 하나씩 바꿔 봐요.',
+});
+Object.assign(MATH_SAY, { stroked: '한 번에 다 그렸어요!' });
+MATH_VOICE.push(MATH_SAY.stroked, '한 번에 그릴 수 있는 그림을 골라요', '한 번에 그릴 수 없는 그림을 골라요');

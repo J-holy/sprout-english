@@ -2003,3 +2003,11 @@ a.shop-ava { display: block; }
 .m-tied[data-label]::before { content: attr(data-label); }
 .m-fbox-view, .m-scale-view { min-height: 90px; }
 .m-ws .m-fbox { background: #fff; } .m-ws .m-ftab th, .m-ws .m-ftab td { background: #fff; color: #222; } .m-ws .m-t5 i { background: #222; } .m-ws .m-ltab th, .m-ws .m-ltab td { background: #fff; color: #222; }
+
+/* 새싹수학 묶음 2 (2026-11-27): 한붓그리기 · 성냥개비 */
+.m-fig { height: auto; max-width: 100%; color: var(--ink); }
+.m-fig.play .m-fnode { cursor: pointer; } .m-fig.play .m-fnode circle { r: 9; } .m-fig.play .m-fnode.cur circle { fill: #ff7043; r: 11; }
+.m-match { height: auto; max-width: 100%; color: var(--ink); }
+.m-match.play .m-seg { cursor: pointer; }
+.m-opts .option .m-match { vertical-align: middle; }
+.m-ws .m-fig, .m-ws .m-match { color: #222; }
