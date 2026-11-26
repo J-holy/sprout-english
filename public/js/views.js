@@ -1573,6 +1573,8 @@ Views.leveltest = el => {
     <button class="btn btn-primary lg" data-start>테스트 시작</button>
     ${p ? '' : '<p class="fine">로그인 없이도 볼 수 있어요. 결과를 학습에 반영하려면 프로필이 필요해요.</p>'}</div></div>`;
   $('[data-start]', el).onclick = () => {
+    // 테스트 중에는 레슨처럼 머리말·꼬리말을 숨긴다 (아래에 뜨는 정답 알림이 꼬리말과 겹치지 않게). 결과 화면에서 다시 보인다
+    el.className = 'focus'; document.body.classList.add('in-lesson');
     el.innerHTML = '<div class="wrap lesson-wrap"></div>';
     const root = $('.lesson-wrap', el), report = [];
     const exit = () => { location.hash = p ? '#/study' : '#/'; };
@@ -1628,6 +1630,7 @@ Views.leveltest = el => {
       result(st.levels[i]);
     };
     const result = start => {
+      el.className = ''; document.body.classList.remove('in-lesson');
       const stage = stageOf(start).id, fast = report.reduce((n, x) => n + x.fast, 0);
       const mark = x => x.passed ? '✅' : '🌱';
       root.innerHTML = `<div class="result card anim-in"><div class="stamp">추천<br>섬 ${stage}</div>
