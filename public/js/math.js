@@ -1,6 +1,6 @@
 /* 새싹수학 (시험, 2026-11-26)
  * 「천재들이 만든 수학퍼즐」의 주제 이름과 개념만 참고하고, 이야기·설명·문제는 모두 새로 쓰거나 화면이 매번 새로 만든다 (docs/MATH-TOPICS.md)
- * 주제 카드 하나 = 10분 놀이: ① 수학 이야기 → ② 개념 배우기(눌러 보고 옮겨 보기) → ③ 퍼즐(쉬움·보통·도전) → ④ 워크시트(화면·인쇄) → ⑤ 별과 천재 카드
+ * 주제 카드 하나 = 10분 놀이: ① 수학 이야기 → ② 개념 배우기(눌러 보고 옮겨 보기) → ③ 퍼즐(쉬움·보통·어려움·도전) → ④ 워크시트(화면·인쇄) → ⑤ 별과 천재 카드
  * 틀리면 정답을 바로 보여 주지 않는다: 1번 틀리면 힌트 한 줄, 2번 틀리면 그림 풀이. 시간 제한은 없다 */
 const MATH_GAMES = {
   count: { icon: '🍎', title: '수 세기', stage: 'seed', c: '#ff8a65', hub: '그림을 세어 몇 개인지 골라요' },
@@ -27,7 +27,7 @@ const MATH_GAMES = {
   cases: { icon: '🎲', title: '경우의 수', stage: 'tree', c: '#ffb74d', hub: '빠짐없이 세기' },
   area: { icon: '🟦', title: '넓이와 둘레', stage: 'tree', c: '#4db6ac', hub: '칸을 세어 넓이·둘레' },
 };
-const MATH_LEVELS = [['🌱', '쉬움'], ['🌿', '보통'], ['🔥', '도전']];
+const MATH_LEVELS = [['🌱', '쉬움'], ['🌿', '보통'], ['💪', '어려움'], ['🔥', '도전']];
 // 새싹스쿨 그림: 놀이 아이콘(PICS.i['math-…'])과 세기·규칙 스티커(PICS.x['m'+이모지]). 그림이 없으면 이모지
 const mIco = k => PICS.i['math-' + k] ? `<img class="ico" src="img/${PICS.i['math-' + k]}" alt="" draggable="false">` : ico(MATH_GAMES[k].icon);
 const mPic = e => PICS.x['m' + e] ? `<img class="m-pic" src="img/${PICS.x['m' + e]}" alt="" draggable="false">` : e;
@@ -37,7 +37,7 @@ const MathGen = (() => {
   const R = n => Math.floor(Math.random() * n);
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = R(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const nearby = (ans, lo, hi, n = 3) => { const s = new Set([ans]); let k = 0; while (s.size < n && k++ < 50) { const v = ans + (R(5) - 2) || ans + 3; if (v >= lo && v <= hi) s.add(v); } for (let v = lo; s.size < n; v++) s.add(v); return shuffle([...s]); };
-  let LV = 1; // 0 쉬움 · 1 보통 · 2 도전
+  let LV = 1; // 0 쉬움 · 1 보통 · 2 어려움 · 3 도전 (2026-11-27 네 단계로. 예전 저장값 0~2는 그대로 쉬움·보통·어려움)
   const H = MATH_HINTS;
   const SHAPES = {
     tri: ['세모', '<polygon points="50,8 94,90 6,90"/>', 3],
@@ -66,7 +66,7 @@ const MathGen = (() => {
     const pts = Array.from({ length: n }, (_, k) => { const a = (k / n * 360 - 90 + rot) * Math.PI / 180; return `${(50 + 42 * Math.cos(a)).toFixed(1)},${(52 + 42 * Math.sin(a)).toFixed(1)}`; }).join(' ');
     return `<svg viewBox="0 0 100 100" class="m-shape m-poly" aria-label="${POLY[n]}"><polygon points="${pts}" fill="${col}" stroke="#3a2d4f" stroke-width="5" stroke-linejoin="round"/></svg>`;
   };
-  const ODD = [['🍎', '🍓', '🍌', '🍇'], ['🐶', '🐱', '🐥', '🐟'], ['⭐', '🌙'], ['🚗', '⚽', '🎈']], ODDN = ['과일', '동물', '하늘', '장난감'];
+  const ODD = [['🍎', '🍓', '🍌', '🍇'], ['🐶', '🐱', '🐥', '🐟'], ['⭐', '🌙'], ['🚗', '⚽', '🎈'], ['🥕', '🥦', '🌽', '🥬']], ODDN = ['과일', '동물', '하늘', '장난감', '채소'];
   // 쌓기나무 그림: h[줄][칸] = 그 칸의 층 수. h[0]이 맨 뒷줄. 앞에서 조금 위·오른쪽으로 비스듬히 본 모습(칸은 왼쪽→오른쪽)
   const blocksSvg = (h, s = 30) => {
     const Y = h.length, X = h[0].length, d = s * 0.5, P = (x, y, z) => [x * s + y * d, -z * s - y * d], pts = a => a.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ');
@@ -146,7 +146,7 @@ const MathGen = (() => {
   const CWORDS = ['바다', '나라', '사자', '하마', '가자', '아가', '마차', '바나나', '가나다', '자라', '파다', '하다', '사다', '차다'];
   const enc = w => [...w].map(c => SYL.indexOf(c) + 1), shiftW = (w, k) => [...w].map(c => SYL[(SYL.indexOf(c) + k + 14) % 14]).join('');
   // 세로 덧셈: rows = ['2🍓', '15', '41'] (마지막 줄이 합)
-  const colAdd = rows => `<table class="m-col"><tbody>${rows.map((r, i) => `<tr class="${i === rows.length - 1 ? 'sum' : ''}"><td>${i === rows.length - 2 ? '+' : ''}</td>${[...r.padStart(2, ' ')].map(c => `<td>${c === ' ' ? '' : mPic(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const colAdd = (rows, op = '+') => `<table class="m-col"><tbody>${rows.map((r, i) => `<tr class="${i === rows.length - 1 ? 'sum' : ''}"><td>${i === rows.length - 2 ? op : ''}</td>${[...r.padStart(2, ' ')].map(c => `<td>${c === ' ' ? '' : mPic(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   // 칸 모양: cells = ['x,y'], nums = 칸에 번호, edge = 둘레 선을 빨갛게
   const cellsSvg = ({ W, H, cells, nums = false, edge = false }) => {
     const C = 30, has = (x, y) => cells.includes(x + ',' + y), out = [];
@@ -179,38 +179,44 @@ const MathGen = (() => {
   };
   const gen = {
     count(lo, hi) {
-      if (lo == null) [lo, hi] = [[1, 5], [1, 10], [6, 15]][LV];
+      if (lo == null) [lo, hi] = [[1, 5], [1, 10], [6, 15], [15, 25]][LV];
       const n = lo + R(hi - lo + 1), [e, name] = MATH_THINGS[R(MATH_THINGS.length)], u = mUnit(e), say = `${name} 몇 ${u}일까요?`;
       return { ask: `${mPic(e)} ${say}`, say, show: `<div class="m-count">${Array(n).fill(`<span>${mPic(e)}</span>`).join('')}</div>`, opts: nearby(n, Math.max(1, lo - 2), hi + 2), ans: n, hint: H.count,
         explain: `<div class="m-count">${Array.from({ length: n }, (_, k) => `<span class="m-num">${mPic(e)}<i>${k + 1}</i></span>`).join('')}</div><p class="m-eq-num">모두 ${n}${u}</p>` };
     },
     shape() {
       const keys = Object.keys(SHAPES), want = keys[R(3)], cols = shuffle(COLORS);
-      const rotOf = k => LV === 0 ? 0 : k === 'tri' ? [0, 15, -15, 180][R(4)] : R(LV === 2 ? 45 : 30);
-      const opts = shuffle(keys).map((k, i) => ({ k, html: svg(k, cols[i], rotOf(k)) })), say = (LV === 2 ? MATH_SAY.shapeHard : MATH_SAY.shape)[want];
+      const rotOf = k => LV === 0 ? 0 : k === 'tri' ? [0, 15, -15, 180][R(4)] : R(LV >= 2 ? 45 : 30);
+      const opts = shuffle(LV === 3 ? [...keys, R(2) ? 'p5' : 'p6'] : keys).map((k, i) => ({ k, html: SHAPES[k] ? svg(k, cols[i], rotOf(k)) : polySvg(k === 'p5' ? 5 : 6, cols[i], R(40)) })), say = (LV >= 2 ? MATH_SAY.shapeHard : MATH_SAY.shape)[want];
       return { ask: say, say, show: '', opts: opts.map(o => o.k), labels: Object.fromEntries(opts.map(o => [o.k, o.html])), ans: want, hint: H.shape,
         explain: `<div class="m-viz m-shapes">${svg(want, '#ffd54f')}</div><p class="m-eq-num">${SHAPES[want][0]} · 뾰족한 곳 ${SHAPES[want][2]}군데</p>` };
     },
     pattern() {
-      const units = [[['A', 'B']], [['A', 'A', 'B'], ['A', 'B', 'C'], ['A', 'B', 'B']], [['A', 'B', 'B', 'C'], ['A', 'A', 'B', 'B'], ['A', 'B', 'C', 'C']]][LV];
+      const units = [[['A', 'B']], [['A', 'A', 'B'], ['A', 'B', 'C'], ['A', 'B', 'B']], [['A', 'B', 'B', 'C'], ['A', 'A', 'B', 'B'], ['A', 'B', 'C', 'C']], [['A', 'B', 'C', 'B'], ['A', 'A', 'B', 'C'], ['A', 'B', 'B', 'C', 'C'], ['A', 'B', 'A', 'C', 'C']]][LV];
       const unit = units[R(units.length)], pool = shuffle(['🍎', '🍌', '🍇', '⭐', '🌙', '❤️', '🐶', '🐱', '🍓', '🐥']);
       const map = { A: pool[0], B: pool[1], C: pool[2] }, seq = Array.from({ length: unit.length * 2 + 2 }, (_, i) => map[unit[i % unit.length]]);
-      const hide = LV === 2 ? unit.length + R(seq.length - unit.length) : seq.length - 1, ans = seq[hide];
-      const o = shuffle([ans, ...[...new Set([map.A, map.B, map.C || pool[3], pool[4]])].filter(v => v !== ans).slice(0, 2)]);
+      const hide = LV >= 2 ? unit.length + R(seq.length - unit.length) : seq.length - 1, ans = seq[hide];
+      const o = shuffle([ans, ...[...new Set([map.A, map.B, map.C || pool[3], pool[4]])].filter(v => v !== ans).slice(0, LV === 3 ? 3 : 2)]);
       const chunks = []; for (let i = 0; i < seq.length; i += unit.length) chunks.push(seq.slice(i, i + unit.length).map((x, j) => i + j === hide ? `<span class="m-fill">${mPic(x)}</span>` : `<span>${mPic(x)}</span>`).join(''));
       return { ask: MATH_SAY.pattern, say: MATH_SAY.pattern, show: `<div class="m-seq">${seq.map((x, i) => i === hide ? '<b class="m-q">?</b>' : `<span>${mPic(x)}</span>`).join('')}</div>`, opts: o, labels: Object.fromEntries(o.map(v => [v, mPic(v)])), ans, hint: H.pattern,
         explain: `<div class="m-seq m-units">${chunks.map(c => `<span class="m-unit">${c}</span>`).join('')}</div><p class="fine">점선 한 칸이 되풀이되는 한 묶음이에요.</p>` };
     },
     // 다른 무리 찾기 (집합): 쉬움은 과일과 동물, 보통은 네 무리, 도전은 같은 무리 넷과 다른 하나
     odd() {
-      const a = LV === 1 ? shuffle([0, 1, 3])[0] : shuffle([0, 1])[0], b = LV === 0 ? 1 - a : shuffle([0, 1, 2, 3].filter(x => x !== a))[0];
-      const same = shuffle(ODD[a]).slice(0, LV === 2 ? 4 : 3), diff = ODD[b][R(ODD[b].length)], all = shuffle([...same, diff]);
+      const a = LV === 3 ? shuffle([0, 4])[0] : LV === 1 ? shuffle([0, 1, 3])[0] : shuffle([0, 1])[0], b = LV === 3 ? 4 - a : LV === 0 ? 1 - a : shuffle([0, 1, 2, 3].filter(x => x !== a))[0];
+      const same = shuffle(ODD[a]).slice(0, LV >= 2 ? 4 : 3), diff = ODD[b][R(ODD[b].length)], all = shuffle([...same, diff]);
       return { ask: MATH_SAY.odd, say: MATH_SAY.odd, show: '', opts: all, labels: Object.fromEntries(all.map(v => [v, mPic(v)])), ans: diff, hint: H.odd,
         explain: `<div class="m-viz m-groups"><span class="m-ring">${same.map(x => `<span>${mPic(x)}</span>`).join('')}<small>${ODDN[a]}</small></span><span class="m-ring alone"><span>${mPic(diff)}</span><small>${ODDN[b]}</small></span></div>` };
     },
     // 머리셈: 쉬움 10까지, 보통 20까지, 도전 50까지(두 자리 ± 한 자리)
     mental(op) {
-      const add = op ? op === '+' : R(2) === 0, M = [10, 20, 50][LV]; let a, b, ans;
+      const add = op ? op === '+' : R(2) === 0, M = [10, 20, 50, 100][LV]; let a, b, ans;
+      if (LV === 3) {
+        if (add) { a = 15 + R(65); b = 12 + R(99 - a - 11); } else { a = 30 + R(70); b = 12 + R(a - 17); }
+        ans = add ? a + b : a - b; const bt = b - b % 10, bo = b % 10, mid = add ? a + bt : a - bt;
+        return { ask: `${a} ${add ? '+' : '−'} ${b} = ?`, show: '', opts: shuffle([ans, ...[...new Set([ans + 10, ans - 10, ans + 1, ans - 1])].filter(v => v >= 0 && v !== ans).slice(0, 3)]), ans, hint: H.mental,
+          explain: `<p class="m-eq-num">${a} ${add ? '+' : '−'} ${bt} = ${mid}</p><p class="m-eq-num">${mid} ${add ? '+' : '−'} ${bo} = ${ans}</p><p class="fine">십 묶음 먼저, 낱개는 나중에 ${add ? '더해요' : '빼요'}.</p>` };
+      }
       if (LV === 2) { a = 11 + R(add ? 30 : 39); b = 1 + R(9); } else if (add) { a = 1 + R(M - 2); b = 1 + R(M - a); } else { a = 3 + R(M - 2); b = 1 + R(a); }
       ans = add ? a + b : a - b;
       const pic = a <= 20 ? (add ? `<div class="m-viz m-dots">${mDots(a)}<b>+</b>${mDots(b, 'b')}</div>` : `<div class="m-viz m-dots">${mDots(a - b)}${mDots(b, 'gone')}</div>`)
@@ -219,15 +225,20 @@ const MathGen = (() => {
     },
     // 곱셈: 쉬움 2·5단, 보통 2~9단, 도전은 빈 곱하는 수 찾기. 틀린 보기는 한 단 옆에서
     mul() {
+      if (LV === 3) {
+        const a = 11 + R(9), b = 2 + R(4), ans = a * b;
+        return { ask: `${a} × ${b} = ?`, show: '', opts: shuffle([ans, ...[...new Set([ans + b, ans - b, ans + 10, ans - 10])].filter(v => v > 0 && v !== ans).slice(0, 3)]), ans, hint: H.mul,
+          explain: `<p class="m-eq-num">${a} × ${b} = 10 × ${b} + ${a - 10} × ${b}</p><p class="m-eq-num">= ${10 * b} + ${(a - 10) * b} = ${ans}</p>` };
+      }
       const a = LV === 0 ? [2, 5][R(2)] : 2 + R(8), b = LV === 0 ? 1 + R(5) : 2 + R(8), ans = a * b;
       const pic = `<div class="m-viz m-dgrid" style="--c:${a}">${mDots(ans)}</div><p class="m-eq-num">${a}개씩 ${b}줄 = ${ans}</p>`;
-      if (LV === 2) return { ask: `${a} × ? = ${ans}`, show: '', opts: nearby(b, 1, 10, 4), ans: b, hint: H.mul, explain: pic };
+      if (LV >= 2) return { ask: `${a} × ? = ${ans}`, show: '', opts: nearby(b, 1, 10, 4), ans: b, hint: H.mul, explain: pic };
       const wrong = shuffle([...new Set([a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, ans + 1, ans - 1])].filter(v => v > 0 && v !== ans)).slice(0, 3);
       return { ask: `${a} × ${b} = ?`, show: '', opts: shuffle([ans, ...wrong]), ans, hint: H.mul, explain: pic };
     },
     // 분수: 색칠한 부분 읽기, 또는 말한 분수에 맞는 그림 고르기
     frac() {
-      const ds = [[2, 3, 4], [2, 3, 4, 5, 6, 8], [5, 6, 8]][LV], d = ds[R(ds.length)], n = 1 + R(d - 1), key = `${n}/${d}`;
+      const ds = [[2, 3, 4], [2, 3, 4, 5, 6, 8], [5, 6, 8], [8, 10, 12]][LV], d = ds[R(ds.length)], n = 1 + R(d - 1), key = `${n}/${d}`;
       const cand = [`${d - n}/${d}`, `${n}/${d + 1}`, `${Math.min(n + 1, d - 1)}/${d}`, `${Math.max(n - 1, 1)}/${d}`, `${n}/${Math.max(d - 1, 2)}`, `${d}/${n + d}`]
         .filter(v => { const [x, y] = v.split('/').map(Number); return x < y; });
       // 크기가 같은 분수(2/3과 4/6)는 보기에 함께 넣지 않는다: 정답이 둘처럼 보이니까
@@ -240,25 +251,25 @@ const MathGen = (() => {
     // 약수와 배수: 'n의 약수' 또는 'k의 배수'를 네 개 중에서 고른다
     factor() {
       if (R(2)) {
-        const ns = [[6, 8, 10, 12], [8, 10, 12, 14, 15, 16, 18, 20], [24, 30, 36]][LV], n = ns[R(ns.length)], mid = [...Array(n).keys()].filter(v => v > 1 && v < n);
+        const ns = [[6, 8, 10, 12], [8, 10, 12, 14, 15, 16, 18, 20], [24, 30, 36], [36, 40, 42, 48]][LV], n = ns[R(ns.length)], mid = [...Array(n).keys()].filter(v => v > 1 && v < n);
         const ds = mid.filter(v => n % v === 0), ans = ds[R(ds.length)], wrong = shuffle(mid.filter(v => n % v)).slice(0, 3);
         return { ask: `${n}의 약수는 어느 것일까요?`, show: '', opts: shuffle([ans, ...wrong]), ans, hint: H.factor,
           explain: `${mathViz({ k: 'nums', to: n, hi: [1, ...ds, n] })}<p class="m-eq-num">${n}의 약수: ${[1, ...ds, n].join(', ')}</p>` };
       }
-      const k = [[2, 3, 5], [3, 4, 5, 6, 7, 8, 9], [6, 7, 8, 9, 11, 12]][LV][R(LV === 0 ? 3 : 6)] || 3, ans = k * (2 + R(4));
+      const k = [[2, 3, 5], [3, 4, 5, 6, 7, 8, 9], [6, 7, 8, 9, 11, 12], [11, 12, 13, 14, 15, 16]][LV][R(LV === 0 ? 3 : 6)] || 3, ans = k * (2 + R(4));
       const wrong = shuffle([ans - 2, ans - 1, ans + 1, ans + 2, ans + 3].filter(v => v > 1 && v % k)).slice(0, 3), to = Math.ceil((ans + 3) / 6) * 6;
       return { ask: `${k}의 배수는 어느 것일까요?`, show: '', opts: shuffle([ans, ...wrong]), ans, hint: H.factor,
         explain: `${mathViz({ k: 'nums', to, hi: Array.from({ length: Math.floor(to / k) }, (_, i) => k * (i + 1)) })}<p class="m-eq-num">${k}의 배수: ${k}, ${k * 2}, ${k * 3}, …</p>` };
     },
     // 각: 그림을 보고 예각·직각·둔각 (도전은 직각에 가까운 각)
     angle() {
-      const kind = ['예각', '직각', '둔각'][R(3)], deg = [{ 예각: [30, 45], 직각: [90], 둔각: [135, 150] }, { 예각: [30, 45, 60, 70], 직각: [90], 둔각: [110, 120, 135, 150] }, { 예각: [70, 75, 80], 직각: [90], 둔각: [100, 105, 110] }][LV][kind];
+      const kind = ['예각', '직각', '둔각'][R(3)], deg = [{ 예각: [30, 45], 직각: [90], 둔각: [135, 150] }, { 예각: [30, 45, 60, 70], 직각: [90], 둔각: [110, 120, 135, 150] }, { 예각: [70, 75, 80], 직각: [90], 둔각: [100, 105, 110] }, { 예각: [80, 84], 직각: [90], 둔각: [96, 100] }][LV][kind];
       return { ask: '어떤 각일까요?', show: `<div class="m-viz">${angSvg(deg[R(deg.length)], R(2))}</div>`, opts: ['예각', '직각', '둔각'], ans: kind, hint: H.angle,
         explain: `${mathViz({ k: 'angle', all: true })}<p class="m-eq-num">정답: ${kind}</p>` };
     },
     // 다각형: 이름 또는 변의 수
     poly() {
-      const ns = [[3, 4, 5], [3, 4, 5, 6, 8], [3, 4, 5, 6, 7, 8]][LV], n = ns[R(ns.length)], show = `<div class="m-viz">${polySvg(n, COLORS[R(6)], LV ? R(60) : 0)}</div>`;
+      const ns = [[3, 4, 5], [3, 4, 5, 6, 8], [3, 4, 5, 6, 7, 8], [5, 6, 7, 8]][LV], n = ns[R(ns.length)], show = `<div class="m-viz">${polySvg(n, COLORS[R(6)], LV ? R(60) : 0)}</div>`;
       const explain = `<div class="m-viz">${polySvg(n, '#ffd54f')}</div><p class="m-eq-num">변 ${n}개 → ${POLY[n]}</p>`;
       if (R(2)) { const o = shuffle([n, ...shuffle(ns.filter(v => v !== n)).slice(0, 2)]); return { ask: '이 도형의 이름은 무엇일까요?', show, opts: o.map(v => POLY[v]), ans: POLY[n], hint: H.poly, explain }; }
       return { ask: '변은 모두 몇 개일까요?', show, opts: shuffle([n, ...shuffle([3, 4, 5, 6, 7, 8].filter(v => v !== n)).slice(0, 2)]), ans: n, hint: H.poly, explain };
@@ -266,10 +277,10 @@ const MathGen = (() => {
     // ── 씨앗 더하기 (2026-11-27) ──
     // 쌓기나무: 칸마다 높이를 정해 그림으로 보여 주고 모두 몇 개인지. 쉬움 한 줄, 보통 2×2, 도전 3×2(빈칸도). 뒷줄·왼쪽 칸이 앞·오른쪽보다 낮지 않게 해서 꼭대기는 다 보인다
     blocks() {
-      const Y = LV === 0 ? 1 : 2, X = LV === 2 ? 3 : 2 + (LV === 0 ? R(2) : 0), h = [];
+      const Y = LV === 0 ? 1 : LV === 3 ? 3 : 2, X = LV >= 2 ? 3 : 2 + (LV === 0 ? R(2) : 0), top = LV === 3 ? 4 : 3, h = [];
       for (let y = 0; y < Y; y++) { h.push([]); for (let x = 0; x < X; x++) {
-        const cap = Math.min(y ? h[y - 1][x] : 3, x ? h[y][x - 1] : 3), lo = LV === 2 && (x || y) ? 0 : 1;
-        h[y].push(LV === 0 ? 1 + R(3) : !x && !y ? (LV === 2 ? 3 : 2 + R(2)) : Math.max(lo, cap - R(LV === 2 ? 3 : 2)));
+        const cap = Math.min(y ? h[y - 1][x] : top, x ? h[y][x - 1] : top), lo = LV >= 2 && (x || y) ? 0 : 1;
+        h[y].push(LV === 0 ? 1 + R(3) : !x && !y ? (LV >= 2 ? top : 2 + R(2)) : Math.max(lo, cap - R(LV >= 2 ? 3 : 2)));
       } }
       const ans = h.flat().reduce((a, b) => a + b, 0), parts = h.flat().filter(Boolean);
       return { ask: MATH_SAY.blocksAsk, say: MATH_SAY.blocksAsk, show: `<div class="m-viz">${blocksSvg(h)}</div>`, opts: nearby(ans, 1, ans + 4, 3), ans, hint: H.blocks,
@@ -278,9 +289,9 @@ const MathGen = (() => {
     // 그림 표 읽기: 쉬움 몇 개, 보통 가장 많은·적은 것, 도전 수로 쓴 표에서 차이·모두
     table() {
       const set = R(2) ? ['🍎', '🍓', '🍌', '🍇'] : ['🐶', '🐱', '🐥', '🐟'], n = LV === 0 ? 3 : 4, items = shuffle(set).slice(0, n);
-      const counts = shuffle(Array.from({ length: LV === 0 ? 5 : 7 }, (_, i) => i + 1)).slice(0, n), rows = items.map((e, i) => [e, counts[i]]);
-      const u = mUnit(items[0]), nm = e => MATH_NAMES[e], show = tableHtml(rows, LV === 2 ? 'num' : 'pic');
-      const kind = LV === 0 ? 'value' : LV === 1 ? ['value', 'most', 'least'][R(3)] : ['diff', 'total'][R(2)];
+      const counts = shuffle(Array.from({ length: LV === 0 ? 5 : LV === 3 ? 9 : 7 }, (_, i) => i + 1)).slice(0, n), rows = items.map((e, i) => [e, counts[i]]);
+      const u = mUnit(items[0]), nm = e => MATH_NAMES[e], show = tableHtml(rows, LV >= 2 ? 'num' : 'pic');
+      const kind = LV === 0 ? 'value' : LV === 1 ? ['value', 'most', 'least'][R(3)] : LV === 2 ? ['diff', 'total'][R(2)] : ['maxmin', 'total'][R(2)];
       const ex = hi => `${tableHtml(rows, 'both', hi)}`;
       if (kind === 'value') { const i = R(n), say = `${nm(items[i])}는 몇 ${u}일까요?`; return { ask: say, say, show, opts: nearby(counts[i], 1, 7, 3), ans: counts[i], hint: H.table, explain: ex([i]) }; }
       if (kind === 'most' || kind === 'least') {
@@ -291,8 +302,12 @@ const MathGen = (() => {
         const [i, j] = shuffle([...Array(n).keys()]).slice(0, 2).sort((a, b) => counts[b] - counts[a]), ans = counts[i] - counts[j], say = `${nm(items[i])}는 ${nm(items[j])}보다 몇 ${u} 더 많을까요?`;
         return { ask: say, say, show, opts: nearby(ans, 1, 7, 3), ans, hint: H.table, explain: `${ex([i, j])}<p class="m-eq-num">${counts[i]} − ${counts[j]} = ${ans}</p>` };
       }
+      if (kind === 'maxmin') {
+        const hi = counts.indexOf(Math.max(...counts)), lo = counts.indexOf(Math.min(...counts)), ans = counts[hi] - counts[lo], say = `가장 많은 것과 가장 적은 것은 몇 ${u} 차이 날까요?`;
+        return { ask: say, say, show, opts: nearby(ans, 1, 9, 3), ans, hint: H.table, explain: `${ex([hi, lo])}<p class="m-eq-num">${counts[hi]} − ${counts[lo]} = ${ans}</p>` };
+      }
       const ans = counts.reduce((a, b) => a + b, 0), say = `모두 몇 ${u}일까요?`;
-      return { ask: say, say, show, opts: nearby(ans, 4, 30, 3), ans, hint: H.table, explain: `${ex([...Array(n).keys()])}<p class="m-eq-num">${counts.join(' + ')} = ${ans}</p>` };
+      return { ask: say, say, show, opts: nearby(ans, 4, 40, 3), ans, hint: H.table, explain: `${ex([...Array(n).keys()])}<p class="m-eq-num">${counts.join(' + ')} = ${ans}</p>` };
     },
     // ── 새싹 더하기 (2026-11-27) ──
     // 벤 다이어그램: 쉬움 어디에 들어갈까, 보통 영역의 개수, 도전 '…이지만 …이 아닌'·바깥·겹친 곳 고르기
@@ -312,6 +327,10 @@ const MathGen = (() => {
         const rs = k[0].split('+'), ans = rs.reduce((n, r) => n + cnt(r), 0);
         return { ask: k[1], show: `<div class="m-viz">${full}</div>`, opts: nearby(ans, 0, 8, 3), ans, hint: H.venn, explain: `<div class="m-viz">${vennSvg(A, B, ok, rs.length > 1 ? null : rs[0])}</div><p class="m-eq-num">${rs.map(r => `${vName(r, A, B)} ${cnt(r)}`).join(' + ')} = ${ans}</p>` };
       }
+      if (LV === 3) {
+        const k = [['a+b', '한 동그라미에만 들어가는 것은 모두 몇 개일까요?'], ['a+ab+b', '두 동그라미 가운데 하나라도 들어가는 것은 모두 몇 개일까요?']][R(2)], rs = k[0].split('+'), ans = rs.reduce((n, r) => n + cnt(r), 0);
+        return { ask: k[1], show: `<div class="m-viz">${full}</div>`, opts: nearby(ans, 0, 9, 3), ans, hint: H.venn, explain: `<div class="m-viz">${full}</div><p class="m-eq-num">${rs.map(r => `${vName(r, A, B)} ${cnt(r)}`).join(' + ')} = ${ans}</p>` };
+      }
       const k = [['b', `${COLN[B]}이지만 ${jo(A, '이', '가')} 아닌 것은 몇 개일까요?`], ['a', `${jo(A, '이지만', '지만')} ${COLN[B]}이 아닌 것은 몇 ${UA}일까요?`], ['o', '어느 동그라미에도 들어가지 않는 것은 몇 개일까요?']][R(3)], ans = cnt(k[0]);
       return { ask: k[1], show: `<div class="m-viz">${full}</div>`, opts: nearby(ans, 0, 6, 3), ans, hint: H.venn, explain: `<div class="m-viz">${vennSvg(A, B, ok, k[0])}</div><p class="m-eq-num">${vName(k[0], A, B)}: ${ans}${k[0] === 'a' ? UA : '개'}</p>` };
     },
@@ -320,12 +339,16 @@ const MathGen = (() => {
       const fruit = R(2), set = fruit ? ['🍎', '🍓', '🍌', '🍇'] : ['🐶', '🐱', '🐥', '🐟'], n = LV === 0 ? 3 : 4, items = shuffle(set).slice(0, n);
       const counts = shuffle(Array.from({ length: LV === 0 ? 5 : 8 }, (_, i) => i + 1)).slice(0, n), rows = items.map((e, i) => [e, counts[i]]), nm = e => MATH_NAMES[e];
       const title = `우리 반 친구들이 좋아하는 ${fruit ? '과일' : '동물'}`, show = LV === 0 ? picGraph(rows, title) : barSvg(rows, [], title);
-      const kind = LV === 0 ? 'value' : LV === 1 ? ['value', 'most', 'least'][R(3)] : ['diff', 'sum'][R(2)];
+      const kind = LV === 0 ? 'value' : LV === 1 ? ['value', 'most', 'least'][R(3)] : LV === 2 ? ['diff', 'sum'][R(2)] : ['maxmin', 'all'][R(2)];
       if (kind === 'value') { const i = R(n); return { ask: `${jo(nm(items[i]), '을', '를')} 좋아하는 친구는 몇 명일까요?`, show, opts: nearby(counts[i], 1, 8, 3), ans: counts[i], hint: H.graph, explain: barSvg(rows, [i]) }; }
       if (kind === 'most' || kind === 'least') {
         const i = counts.indexOf(kind === 'most' ? Math.max(...counts) : Math.min(...counts));
         return { ask: `가장 ${kind === 'most' ? '많은' : '적은'} 친구가 좋아하는 것은 무엇일까요?`, show, opts: items, labels: Object.fromEntries(items.map(e => [e, mPic(e)])), ans: items[i], hint: H.graph, explain: barSvg(rows, [i]) };
       }
+      if (kind === 'maxmin') { const hi = counts.indexOf(Math.max(...counts)), lo = counts.indexOf(Math.min(...counts)), ans = counts[hi] - counts[lo];
+        return { ask: '가장 많은 친구가 고른 것과 가장 적은 친구가 고른 것은 몇 명 차이 날까요?', show, opts: nearby(ans, 1, 8, 3), ans, hint: H.graph, explain: `${barSvg(rows, [hi, lo])}<p class="m-eq-num">${counts[hi]} − ${counts[lo]} = ${ans}</p>` }; }
+      if (kind === 'all') { const ans = counts.reduce((a, b) => a + b, 0);
+        return { ask: '조사한 친구는 모두 몇 명일까요?', show, opts: nearby(ans, 6, 36, 3), ans, hint: H.graph, explain: `${barSvg(rows, [...Array(n).keys()])}<p class="m-eq-num">${counts.join(' + ')} = ${ans}</p>` }; }
       const [i, j] = shuffle([...Array(n).keys()]).slice(0, 2).sort((a, b) => counts[b] - counts[a]);
       if (kind === 'diff') { const ans = counts[i] - counts[j]; return { ask: `${jo(nm(items[i]), '을', '를')} 좋아하는 친구는 ${nm(items[j])}보다 몇 명 더 많을까요?`, show, opts: nearby(ans, 1, 8, 3), ans, hint: H.graph, explain: `${barSvg(rows, [i, j])}<p class="m-eq-num">${counts[i]} − ${counts[j]} = ${ans}</p>` }; }
       const ans = counts[i] + counts[j];
@@ -342,13 +365,13 @@ const MathGen = (() => {
           explain: `<div class="m-viz">${pathSvg({ W, H, s, g, routes: [{ pts: best, col: '#ffb300' }], nums: Object.fromEntries(best.slice(1, -1).map((p, k) => [p.join(), k + 1])) })}</div><p class="m-eq-num">${order.map((p, i) => `${ROUTE[i][1]} ${p.length - 1}칸`).join(' · ')}</p>` };
       }
       // 도전: 학교를 멀리 두고 나무를 4~5그루 심어, 나무 때문에 꼭 돌아가야 하는(가장 짧은 길이 2칸 이상 길어지는) 판만 낸다
-      for (let t = 0; t < (LV === 2 ? 3000 : 50); t++) {
-        const W = 5 + R(2), H = 4 + R(2), s = [0, H - 1], g = LV === 2 ? [W - 1 - R(2), R(2)] : [2 + R(W - 2), R(H - 2)], walls = [], nw = 4 + R(2);
-        if (LV === 2) while (walls.length < nw) { const k = `${R(W)},${R(H)}`; if (k !== s.join() && k !== g.join() && !walls.includes(k)) walls.push(k); }
+      for (let t = 0; t < (LV >= 2 ? 3000 : 50); t++) {
+        const W = LV === 3 ? 7 : 5 + R(2), H = LV === 3 ? 5 : 4 + R(2), s = [0, H - 1], g = LV >= 2 ? [W - 1 - R(2), R(2)] : [2 + R(W - 2), R(H - 2)], walls = [], nw = LV === 3 ? 6 + R(2) : 4 + R(2);
+        if (LV >= 2) while (walls.length < nw) { const k = `${R(W)},${R(H)}`; if (k !== s.join() && k !== g.join() && !walls.includes(k)) walls.push(k); }
         const p = bfs(W, H, s, g, walls); if (!p) continue;
         const ans = p.length - 1, man = Math.abs(g[0] - s[0]) + Math.abs(g[1] - s[1]);
-        if (LV === 2 && ans < man + 2 && t < 2999) continue;
-        return { ask: '집에서 학교까지 가장 짧게 가면 몇 칸일까요?', show: `<div class="m-viz">${pathSvg({ W, H, s, g, walls })}</div>`, opts: LV === 2 ? shuffle([ans, man, ...nearby(ans, 2, 14, 4).filter(v => v !== ans && v !== man)].slice(0, 3)) : nearby(ans, 2, 14, 3), ans, hint: MATH_HINTS.path,
+        if (LV >= 2 && ans < man + 2 && t < 2999) continue;
+        return { ask: '집에서 학교까지 가장 짧게 가면 몇 칸일까요?', show: `<div class="m-viz">${pathSvg({ W, H, s, g, walls })}</div>`, opts: LV >= 2 ? shuffle([ans, man, ...nearby(ans, 2, 20, 4).filter(v => v !== ans && v !== man)].slice(0, 3)) : nearby(ans, 2, 14, 3), ans, hint: MATH_HINTS.path,
           explain: `<div class="m-viz">${pathSvg({ W, H, s, g, walls, routes: [{ pts: p, col: '#ffb300' }], nums: Object.fromEntries(p.slice(1, -1).map((q, k) => [q.join(), k + 1])) })}</div><p class="m-eq-num">가장 짧은 길: ${ans}칸${ans > man ? ` (나무가 없으면 ${man}칸인데, 나무를 피해 돌아가서 ${ans - man}칸 더 걸어요)` : ''}</p>` };
       }
     },
@@ -362,10 +385,15 @@ const MathGen = (() => {
         if (t === 0) { const d = 3 + R(7), s0 = d * 5 + R(20); a = Array.from({ length: 5 }, (_, i) => s0 - d * i); lab = a.map(() => `−${d}`); }
         else if (t === 1) { const s0 = 1 + R(3); a = [s0, s0 * 2, s0 * 4, s0 * 8, s0 * 16]; lab = a.map(() => '×2'); }
         else { const d = 2 + R(8), s0 = R(20); a = Array.from({ length: 5 }, (_, i) => s0 + d * i); lab = a.map(() => `+${d}`); }
+      } else if (LV === 3) {
+        const t = R(3);
+        if (t === 0) { const s0 = 1 + R(2); a = [s0, s0 * 3, s0 * 9, s0 * 27, s0 * 81]; lab = a.map(() => '×3'); }
+        else if (t === 1) { const s0 = 1 + R(5); a = [s0]; for (let k = 1; k < 6; k++) a.push(a[k - 1] + 2 * k); lab = a.slice(1).map((_, k) => `+${2 * (k + 1)}`); }
+        else { const u = 3 + R(4), v = 1 + R(2); a = [5 + R(10)]; for (let k = 1; k < 7; k++) a.push(a[k - 1] + (k % 2 ? u : -v)); lab = a.slice(1).map((_, k) => k % 2 ? `−${v}` : `+${u}`); }
       } else if (R(2)) { const x = 1 + R(3), y = x + R(3); a = [x, y]; while (a.length < 6) a.push(a[a.length - 1] + a[a.length - 2]); lab = null; }
       else { const s0 = 1 + R(5); a = [s0]; for (let k = 1; k < 6; k++) a.push(a[k - 1] + k); lab = a.slice(1).map((_, k) => `+${k + 1}`); }
-      const hide = LV === 1 && R(2) ? 1 + R(3) : a.length - 1, ans = a[hide], shown = a.map((v, i) => i === hide ? '?' : v);
-      const explain = lab ? `${nseq(a, lab, hide)}<p class="m-eq-num">규칙: ${[...new Set(lab)].length === 1 ? lab[0] : '+1, +2, +3 …처럼 차이가 1씩 커져요'}</p>`
+      const hide = (LV === 1 || LV === 3) && R(2) ? 2 + R(a.length - 3) : a.length - 1, ans = a[hide], shown = a.map((v, i) => i === hide ? '?' : v);
+      const explain = lab ? `${nseq(a, lab, hide)}<p class="m-eq-num">규칙: ${[...new Set(lab)].length === 1 ? lab[0] : [...new Set(lab)].length === 2 ? `${lab[0]}, ${lab[1]}, ${lab[0]}, ${lab[1]} …처럼 번갈아 해요` : `${lab.slice(0, 3).join(', ')} …처럼 차이가 커져요`}</p>`
         : `${nseq(a, [], hide)}<p class="m-eq-num">${a.slice(2).map((v, i) => `${a[i]} + ${a[i + 1]} = ${v}`).join(' · ')}</p>`;
       return { ask: '규칙을 찾아 빈칸에 알맞은 수를 골라요', show: nseq(shown), opts: nearby(ans, 0, 999, 3), ans, hint: H.seq, explain };
     },
@@ -379,7 +407,7 @@ const MathGen = (() => {
         const opts = [right, ...cand.slice(0, 2)];
         return { ask: `'${w}'를 암호로 쓰면 어떻게 될까요?`, show: keyTable(), opts: shuffle(opts), ans: right, hint: H.cipher, explain: ex };
       }
-      const k = 1 + R(2), e = shiftW(w, k);
+      const k = LV === 3 ? 3 + R(3) : 1 + R(2), e = shiftW(w, k);
       return { ask: `글자마다 표에서 ${k}칸씩 뒤 글자로 바꿔 썼어요. '${e}'는 원래 무슨 낱말일까요?`, show: keyTable(), opts: shuffle([w, ...others]), ans: w, hint: H.cipher,
         explain: `${keyTable([...e].map(c => SYL.indexOf(c)))}<p class="m-eq-num">${[...e].map((c, i) => `${c} → ${k}칸 앞 → ${w[i]}`).join(' · ')}</p>` };
     },
@@ -395,6 +423,12 @@ const MathGen = (() => {
         const x = 1 + R(9), y = 1 + R(9);
         return { ask: `${mPic(q)}에 들어갈 수는 얼마일까요?`, show: `<p class="m-eqbig">${mPic(p)} + ${mPic(p)} = ${2 * x}</p><p class="m-eqbig">${mPic(p)} + ${mPic(q)} = ${x + y}</p>`, opts: nearby(y, 0, 9, 3), ans: y, hint: H.masked,
           explain: `<p class="m-eq-num">${mPic(p)} = ${2 * x} ÷ 2 = ${x}</p><p class="m-eq-num">${mPic(q)} = ${x + y} − ${x} = ${y}</p>` };
+      }
+      if (LV === 3) {
+        const A = 40 + R(60), B = 11 + R(A - 20), D = A - B, which = R(4), dA = String(A).split(''), dB = String(B).split(''), dig = [dA[0], dA[1], dB[0], dB[1]][which];
+        const cover = (arr, i) => arr.map((c, j) => j === i ? '🍓' : c).join(''), rows = [which < 2 ? cover(dA, which) : dA.join(''), which >= 2 ? cover(dB, which - 2) : dB.join(''), String(D).padStart(2, ' ')];
+        return { ask: `${mPic('🍓')}에 들어갈 숫자는 무엇일까요? (빼기)`, show: `<div class="m-viz">${colAdd(rows, '−')}</div>`, opts: nearby(+dig, 0, 9, 3), ans: +dig, hint: H.masked,
+          explain: `<div class="m-viz">${colAdd([String(A), String(B), String(D).padStart(2, ' ')], '−')}</div><p class="m-eq-num">${which < 2 ? `${D} + ${B} = ${A}` : `${A} − ${D} = ${B}`}</p>` };
       }
       const A = 10 + R(50), B = 10 + R(39), S = A + B;
       if (S > 99) return gen.masked();
@@ -420,6 +454,18 @@ const MathGen = (() => {
         return { ask: '모자, 윗옷, 신발을 하나씩 골라 입는 방법은 모두 몇 가지일까요?', show: `<div class="m-viz m-pick"><span>${a.map(mPic).join('')}</span><span>${b.map(mPic).join('')}</span><span>${SHOES.map(mPic).join('')}</span></div>`, opts: nearby(ans, 4, 24, 3), ans, hint: H.cases,
           explain: `${comboGrid(a, b)}<p class="m-eq-num">${a.length} × ${b.length} = ${a.length * b.length}, 신발마다 한 번씩 더 → × 2 = ${ans}</p>` };
       }
+      if (LV === 3) {
+        const t = R(3);
+        if (t === 0) { const cards = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 3).sort(), nums = [];
+          for (const x of cards) for (const y of cards) for (const z of cards) if (x !== y && y !== z && x !== z) nums.push(x * 100 + y * 10 + z);
+          return { ask: `숫자 카드 ${cards.join(', ')}을 모두 한 번씩 써서 만들 수 있는 세 자리 수는 몇 개일까요?`, show: `<div class="m-viz m-cards-n">${cards.map(c => `<span>${c}</span>`).join('')}</div>`, opts: nearby(6, 3, 12, 3), ans: 6, hint: H.cases,
+            explain: `<div class="m-orders">${nums.map(x => `<span>${x}</span>`).join('')}</div><p class="m-eq-num">3 × 2 × 1 = 6</p>` }; }
+        if (t === 1) { const n = 6 + R(2), ans = n * (n - 1) / 2;
+          return { ask: `친구 ${n}명이 서로 한 번씩 악수하면 악수는 모두 몇 번일까요?`, show: `<div class="m-viz m-scene">${['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐯'].slice(0, n).map(mPic).join('')}</div>`, opts: nearby(ans, 10, 30, 3), ans, hint: H.cases,
+            explain: `<p class="m-eq-num">${Array.from({ length: n - 1 }, (_, i) => n - 1 - i).join(' + ')} = ${ans}</p><p class="fine">첫 친구는 ${n - 1}명과, 다음 친구는 남은 ${n - 2}명과 … 악수해요.</p>` }; }
+        return { ask: '친구 네 명이 한 줄로 서는 방법은 모두 몇 가지일까요?', show: `<div class="m-viz m-scene">${['🐶', '🐱', '🐰', '🐻'].map(mPic).join('')}</div>`, opts: nearby(24, 12, 30, 3), ans: 24, hint: H.cases,
+          explain: `<p class="m-eq-num">4 × 3 × 2 × 1 = 24</p><p class="fine">맨 앞에 설 친구 4가지, 그다음 3가지, 2가지, 1가지예요.</p>` };
+      }
       if (R(2)) {
         const n = 3 + R(3), ans = n * (n - 1) / 2, f = ['🐶', '🐱', '🐰', '🐻', '🐼'].slice(0, n), pairs = [];
         for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) pairs.push(`${mPic(f[i])}${mPic(f[j])}`);
@@ -433,25 +479,27 @@ const MathGen = (() => {
     },
     // 넓이와 둘레: 쉬움 직사각형 넓이, 보통 여러 모양 넓이·직사각형 둘레, 도전 여러 모양 둘레
     area() {
-      const W = 6, H2 = 4;
+      const W = LV === 3 ? 7 : 6, H2 = LV === 3 ? 5 : 4;
       if (LV === 0) { const w = 2 + R(3), h = 2 + R(2), c = rectCells(w, h, R(W - w + 1), R(H2 - h + 1));
         return { ask: '색칠한 모양의 넓이는 작은 네모 몇 개일까요?', show: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c })}</div>`, opts: nearby(w * h, 2, 16, 3), ans: w * h, hint: H.area,
           explain: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c, nums: true })}</div><p class="m-eq-num">${w} × ${h} = ${w * h}</p>` }; }
       if (LV === 1 && R(2)) { const w = 2 + R(3), h = 1 + R(3), c = rectCells(w, h, R(W - w + 1), R(H2 - h + 1)), p = perim(c);
         return { ask: '색칠한 네모의 둘레는 작은 선 몇 개 길이일까요?', show: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c })}</div>`, opts: nearby(p, 4, 20, 3), ans: p, hint: H.area,
           explain: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c, edge: true })}</div><p class="m-eq-num">${w} + ${h} + ${w} + ${h} = ${p}</p>` }; }
-      const c = growCells(W, H2, 5 + R(4));
+      const c = growCells(W, H2, LV === 3 ? 9 + R(4) : 5 + R(4));
+      if (LV === 3 && R(2)) return { ask: '색칠한 모양의 넓이는 작은 네모 몇 개일까요?', show: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c })}</div>`, opts: nearby(c.length, 6, 16, 3), ans: c.length, hint: H.area,
+        explain: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c, nums: true })}</div><p class="m-eq-num">넓이 ${c.length}</p>` };
       if (LV === 1) return { ask: '색칠한 모양의 넓이는 작은 네모 몇 개일까요?', show: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c })}</div>`, opts: nearby(c.length, 3, 14, 3), ans: c.length, hint: H.area,
         explain: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c, nums: true })}</div><p class="m-eq-num">넓이 ${c.length}</p>` };
       const p = perim(c);
-      return { ask: '색칠한 모양의 둘레는 작은 선 몇 개 길이일까요?', show: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c })}</div>`, opts: nearby(p, 6, 24, 3), ans: p, hint: H.area,
+      return { ask: '색칠한 모양의 둘레는 작은 선 몇 개 길이일까요?', show: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c })}</div>`, opts: nearby(p, 6, 32, 3), ans: p, hint: H.area,
         explain: `<div class="m-viz">${cellsSvg({ W, H: H2, cells: c, edge: true })}</div><p class="m-eq-num">빨간 바깥 선 ${p}개</p>` };
     },
     // 큰 수 (수 세기 주제, 2026-11-27): 쉬움 묶음 세기·수에 맞는 묶음 그림, 보통 10씩·1씩 뛰어 세기·자릿값, 도전 크기 비교·100판 빈칸
     big() {
       // 정답 하나와 다른 보기 둘 (모자라면 가까운 수로 채운다)
       const three = (ans, cands) => { const w = [...new Set(cands)].filter(v => v !== ans && v > 0 && v < 100).slice(0, 2); for (let d = 2; w.length < 2 && d < 50; d++) for (const v of [ans + d, ans - d]) if (w.length < 2 && v > 0 && v < 100 && v !== ans && !w.includes(v)) w.push(v); return shuffle([ans, ...w]); };
-      const S = MATH_SAY.big, kind = [['bundle', 'pick'], ['skip', 'place'], ['compare', 'board']][LV][R(2)];
+      const S = MATH_SAY.big, kind = [['bundle', 'pick'], ['skip', 'place'], ['compare', 'board'], ['order3', 'tenmore']][LV][R(2)];
       const n = LV === 0 ? 11 + R(39) : 11 + R(89), t = Math.floor(n / 10), o = n % 10;
       const lab = `<p class="m-eq-num">십 묶음 ${t}개 = ${t * 10}, 낱개 ${o}개 = ${o} → ${n}</p>`;
       if (kind === 'bundle') return { ask: S.bundle, say: S.bundle, show: `<div class="m-viz">${b10(n)}</div>`, opts: three(n, [o && o !== t ? o * 10 + t : n + 1, n + 10 > 99 ? n - 10 : n + 10, n - 1]), ans: n, hint: H.big,
@@ -469,6 +517,16 @@ const MathGen = (() => {
         const tens = R(2), m = t === o ? (o === 9 ? n - 1 : n + 1) : n, mt = Math.floor(m / 10), mo = m % 10, ans = tens ? mt : mo;
         return { ask: tens ? S.placeTens : S.placeOnes, say: tens ? S.placeTens : S.placeOnes, show: `<p class="m-bignum">${m}</p>`, opts: three(ans, [tens ? mo : mt, tens ? mt * 10 : mo * 10]), ans, hint: H.big,
           explain: `<div class="m-viz">${b10(m, true)}</div><p class="m-eq-num">${m} = ${mt * 10} + ${mo} · 십의 자리 ${mt}, 일의 자리 ${mo}</p>` };
+      }
+      if (kind === 'order3') {
+        const a = o && o !== t ? n : n + 1 > 99 ? 98 : n + 1, at = Math.floor(a / 10), ao = a % 10, cand = [...new Set([a, ao * 10 + at, a + 1 <= 99 ? a + 1 : a - 2, a - 10 > 10 ? a - 10 : a + 9])].filter(v => v > 10 && v < 100).slice(0, 3), ans = Math.max(...cand), opts = shuffle(cand);
+        return { ask: S.order3, say: S.order3, show: `<p class="m-bignum m-two">${opts.map(v => `<span>${v}</span>`).join('')}</p>`, opts, ans, hint: H.bigCompare,
+          explain: `<div class="m-viz m-b10cmp">${opts.map(v => `<figure>${b10(v)}<figcaption>${v}</figcaption></figure>`).join('')}</div><p class="m-eq-num">십의 자리부터 견줘요 · 가장 큰 수: ${ans}</p>` };
+      }
+      if (kind === 'tenmore') {
+        const d = [10, -10, 1, -1][R(4)], m = Math.max(11, Math.min(89, n)), ans = m + d, ask = `${m}보다 ${Math.abs(d)} ${d > 0 ? '큰' : '작은'} 수는 무엇일까요?`;
+        return { ask, say: ask, show: `<div class="m-viz">${b10(m)}</div>`, opts: three(ans, [m - d, Math.abs(d) === 10 ? ans + (d > 0 ? 1 : -1) : ans + (d > 0 ? 10 : -10)]), ans, hint: H.bigBoard,
+          explain: `<div class="m-viz">${b10(ans, true)}</div><p class="m-eq-num">${m} ${d > 0 ? '+' : '−'} ${Math.abs(d)} = ${ans} · ${Math.abs(d) === 10 ? '십 묶음' : '낱개'}이 하나 ${d > 0 ? '늘어요' : '줄어요'}</p>` };
       }
       if (kind === 'compare') {
         let a = n, b = R(2) && o && o !== t ? o * 10 + t : Math.max(11, Math.min(99, n + [-11, -9, 9, 11, 1, -1][R(6)]));
@@ -494,7 +552,7 @@ const MathGen = (() => {
     if (R(2)) g = g.map(r => [r[1], r[0], r[2], r[3]]); if (R(2)) g = g[0].map((_, c) => g.map(r => r[c]));
     return { size: 4, sol: g.flat(), max: 4, holes: shuffle([...Array(16).keys()]).slice(0, blanks) };
   }
-  const setLevel = l => { LV = Math.max(0, Math.min(2, l | 0)); };
+  const setLevel = l => { LV = Math.max(0, Math.min(3, l | 0)); };
   // 같은 문제가 이어서 나오지 않게: 종류마다 최근 8문제를 기억하고, 겹치면 다시 만든다.
   // 만들 수 있는 문제가 적은 종류(모양 등)는 15번 해도 안 되면 바로 앞 문제와만 다르게 한다
   const recent = {};
@@ -620,7 +678,7 @@ function mathUpsell(stage) {
   const s = mStage(stage) || MATH_STAGES[1];
   return App.modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>${s.icon} ${s.name} 단계는 새싹수학 플러스예요</h2>
     <p>🌰 씨앗 단계(5~6세쯤)는 지금처럼 <b>무료</b>로 계속할 수 있어요.</p>
-    <ul class="perks"><li>🌱 새싹 · 더하기·빼기 · 마방진 · 스도쿠</li><li>🌳 나무 · 곱셈 · 분수 · 약수와 배수 · 각 · 다각형</li><li>📖 개념 배우기 · 🧩 퍼즐(쉬움·보통·도전) · 🖨️ 워크시트, 문제는 할 때마다 새로</li></ul>
+    <ul class="perks"><li>🌱 새싹 · 더하기·빼기 · 마방진 · 스도쿠</li><li>🌳 나무 · 곱셈 · 분수 · 약수와 배수 · 각 · 다각형</li><li>📖 개념 배우기 · 🧩 퍼즐(쉬움·보통·어려움·도전) · 🖨️ 워크시트, 문제는 할 때마다 새로</li></ul>
     <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 요금 보기</a></div></div>`);
 }
 
@@ -631,7 +689,7 @@ const mHome = () => {
   return `<div class="wrap sec">
     <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
     <div class="m-intro">
-      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>퍼즐</b> 쉬움·보통·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
+      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>퍼즐</b> 쉬움·보통·어려움·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
       <div class="card m-intro-card"><b>단계</b><p>${MATH_STAGES.map(s => `${s.icon} <b>${s.name}</b> <small>${s.age}</small> ${MATH_TOPICS.filter(t => t.stage === s.id).map(t => t.title).join('·')}${s.free ? ' <i class="chip">무료</i>' : ''}`).join('<br>')}</p></div>
       <div class="card m-intro-card"><b>부모님께</b><p>틀리면 정답을 바로 보여 주지 않아요. 한 번 틀리면 힌트, 두 번 틀리면 그림 풀이를 보여 줘요. 시간 제한은 없어요. 워크시트는 인쇄하면 다음 장에 정답이 있어요. 새싹·나무 단계는 <a href="#/pricing">새싹수학 플러스</a>예요.</p></div>
     </div>
@@ -683,7 +741,7 @@ function mathAsk(area, q, { head = '', onRight }) {
 }
 const mHelp = (q, miss) => !q.hint ? '' : `<p class="m-hint">💡 ${esc(q.hint)}</p>${miss >= 2 && q.explain ? `<div class="m-explain"><b>🔍 그림 풀이</b>${q.explain}</div>` : ''}`;
 
-// ③ 퍼즐: 쉬움·보통·도전. 한 판 5문제, 처음에 다 맞히면 별
+// ③ 퍼즐: 쉬움·보통·어려움·도전. 한 판 5문제, 처음에 다 맞히면 별
 function mathPuzzle(el, game) {
   const d = MATH_GAMES[game], topic = mTopicOf({ game }), saved = mState().lv[game];
   let lv = saved === undefined ? (d.stage === 'seed' ? 0 : 1) : saved;
@@ -711,7 +769,7 @@ function mathPuzzle(el, game) {
     return next();
   }
   // 칸 채우는 퍼즐 (마방진·스도쿠): 빈칸을 누르고 아래 숫자를 누른다. 틀리면 1번은 힌트, 2번부터는 빈칸 하나를 채워 준다
-  const blanks = game === 'magic' ? [2, 3, 5][lv] : [4, 6, 9][lv];
+  const blanks = game === 'magic' ? [2, 3, 5, 6][lv] : [4, 6, 9, 11][lv];
   const pz = game === 'magic' ? MathGen.magic(blanks) : MathGen.sudoku(blanks), n = pz.size, val = pz.sol.map((v, i) => pz.holes.includes(i) ? 0 : v);
   let sel = pz.holes[0], miss = 0;
   const hint = game === 'magic' ? '💡 한 줄에 두 수가 있으면, 15에서 두 수를 빼면 남은 칸의 수예요.' : '💡 한 줄에 세 수가 있으면, 1·2·3·4 가운데 빠진 수가 남은 칸의 수예요.';
@@ -1148,19 +1206,21 @@ function mathLesson(el, L) {
 function mathWorksheet(el, t, key) {
   const s = mStage(t.stage), w = key ? t.wsMore[key] : t.ws, p = Store.profile(), NUM = ['①', '②', '③', '④', '⑤'];
   let qs = [], miss = [], solved = [], first = 0;
-  const lv = t.stage === 'seed' ? 0 : 1;
+  // 수준: 쉬움·보통·어려움·도전 (주제별로 기억. 섞는 워크시트는 고른 수준까지 차례로 섞는다)
+  const lvKey = 'ws_' + t.id + (key ? '_' + key : ''), savedLv = mState().lv[lvKey];
+  let lv = savedLv === undefined ? (w.mix ? 2 : t.stage === 'seed' ? 0 : 1) : savedLv;
   const make = () => {
     let probs, answers;
     if (w.grid) {
       // 마방진·스도쿠: 빈칸 있는 판을 n개, 정답은 작은 판으로 (화면에서는 🧩 퍼즐로 푼다)
-      const pzs = Array.from({ length: w.n }, () => w.grid === 'magic' ? MathGen.magic(3 + (Math.random() < .5 ? 1 : 0)) : MathGen.sudoku(6 + Math.floor(Math.random() * 3)));
+      const pzs = Array.from({ length: w.n }, () => w.grid === 'magic' ? MathGen.magic([2, 3, 5, 6][lv]) : MathGen.sudoku([4, 6, 9, 11][lv]));
       const board = (pz, sol) => `<div class="mws-grid ${w.grid}" style="--n:${pz.size}">${pz.sol.map((v, i) => `<span class="${pz.holes.includes(i) ? (sol ? 'ans' : 'hole') : ''}">${pz.holes.includes(i) && !sol ? '' : v}</span>`).join('')}</div>`;
       probs = pzs.map((pz, i) => `<div class="mws-q"><b>${i + 1}.</b> ${w.grid === 'magic' ? '세 수의 합이 모두 15가 되게 채워요' : '줄마다 1·2·3·4가 한 번씩'}${board(pz)}</div>`);
       answers = pzs.map((pz, i) => `<div class="mws-a"><b>${i + 1}.</b>${board(pz, true)}</div>`);
     } else {
       MathGen.setLevel(lv);
       const seen = new Set(); qs = [];
-      for (let k = 0; qs.length < w.n && k < w.n * 20; k++) { if (w.mix) MathGen.setLevel(qs.length % 3); const q = MathGen.gen[w.gen](...(w.args || [])), key = q.ask + q.show + q.opts.join(); if (!seen.has(key)) { seen.add(key); qs.push(q); } }
+      for (let k = 0; qs.length < w.n && k < w.n * 20; k++) { if (w.mix) MathGen.setLevel(qs.length % (lv + 1)); const q = MathGen.gen[w.gen](...(w.args || [])), key = q.ask + q.show + q.opts.join(); if (!seen.has(key)) { seen.add(key); qs.push(q); } }
       miss = qs.map(() => 0); solved = qs.map(() => false); first = 0;
       probs = qs.map((q, i) => `<div class="mws-q" data-q="${i}"><b>${i + 1}.</b> <span class="mws-ask">${q.ask}</span>${q.show}<div class="mws-opts">${q.opts.map((o, j) => `<button class="mws-o" data-v="${esc(String(o))}">${NUM[j]} ${q.labels ? q.labels[o] : o}</button>`).join('')}</div><div class="mws-help no-print" aria-live="polite"></div></div>`);
       answers = qs.map((q, i) => { const j = q.opts.findIndex(o => String(o) === String(q.ans)); return `<span class="mws-a"><b>${i + 1}.</b> ${NUM[j]}${q.labels ? '' : ` ${q.ans}`}</span>`; });
@@ -1176,11 +1236,13 @@ function mathWorksheet(el, t, key) {
     box.innerHTML = n < qs.length ? `✏️ 화면에서 바로 풀어 봐요 · <b>${n} / ${qs.length}</b>` : `🎉 다 풀었어요! 처음에 맞힌 문제 <b>${first} / ${qs.length}</b>`;
   };
   el.innerHTML = `<div class="wrap sec narrow worksheet-wrap">
-    <div class="no-print row"><a class="link-btn" href="#/math">← 새싹수학</a><button class="btn btn-ghost" data-new>🔄 새 문제</button><button class="btn btn-ghost" data-ans>👀 정답 보기</button><button class="btn btn-primary" data-print>🖨️ 워크시트 인쇄</button></div>
+    <div class="no-print row"><a class="link-btn" href="#/math">← 새싹수학</a><button class="btn btn-ghost" data-new>🔄 새 문제</button></div>
+    <div class="no-print m-levels" role="tablist">${MATH_LEVELS.map(([i, n], k) => `<button role="tab" data-wlv="${k}" class="${k === lv ? 'on' : ''}" aria-selected="${k === lv}">${i} ${n}</button>`).join('')}</div>
+    <div class="no-print row"><button class="btn btn-ghost" data-ans>👀 정답 보기</button><button class="btn btn-primary" data-print>🖨️ 워크시트 인쇄</button></div>
     <p class="no-print fine">화면에서 보기를 눌러 풀 수 있어요. 정답은 화면에서는 가려 두고, 인쇄하거나 PDF로 저장하면 다음 장에 나와요.</p>
     <p class="no-print mws-score" aria-live="polite"></p>
     <article class="worksheet m-ws">
-      <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨 · 새싹수학 워크시트</b><span>${s.icon} ${s.name} 단계 · ${esc(key ? w.title : t.title)}</span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
+      <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨 · 새싹수학 워크시트</b><span>${s.icon} ${s.name} 단계 · ${esc(key ? w.title : t.title)} · <span class="mws-lv">${MATH_LEVELS[lv][1]}</span></span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
       <h3>1. 알아 두어요</h3><p class="mws-sum">${esc(w.sum)}</p>
       <h3>2. 따라 써 보세요</h3>
       <div class="mws-trace ${w.trace.every(x => x.length <= 3) && w.trace.length > 3 ? 'short' : ''}">${w.trace.map(x => `<div class="ws-trace"><span class="dotted">${esc(x)} &nbsp; ${esc(x)} &nbsp; ${esc(x)}</span><span class="line"></span></div>`).join('')}</div>
@@ -1203,6 +1265,11 @@ function mathWorksheet(el, t, key) {
       if (t.stage === 'seed') KoSpeech.say(miss[i] === 1 ? q.hint : MATH_SAY.look);
     }
   };
+  $$('[data-wlv]', el).forEach(b => b.onclick = () => {
+    lv = +b.dataset.wlv; mUpdate(st => { st.lv[lvKey] = lv; }); Speech.sfx.tap();
+    $$('[data-wlv]', el).forEach(x => { const on = +x.dataset.wlv === lv; x.classList.toggle('on', on); x.setAttribute('aria-selected', on); });
+    $('.mws-lv', el).textContent = MATH_LEVELS[lv][1]; make();
+  });
   $('[data-new]', el).onclick = () => { Speech.sfx.tap(); make(); };
   $('[data-ans]', el).onclick = e => { const on = $('.m-ws', el).classList.toggle('show-ans'); e.target.textContent = on ? '🙈 정답 가리기' : '👀 정답 보기'; };
   $('[data-print]', el).onclick = () => { if (w.grid) mMark(t, 'ws'); window.print(); };

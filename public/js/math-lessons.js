@@ -441,6 +441,7 @@ Object.assign(MATH_HINTS, {
 MATH_SAY.big = {
   bundle: '모두 몇 개일까요?', pick: '이 수를 나타낸 그림을 골라요', skip10: '10씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요', skip1: '1씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요',
   placeTens: '이 수에서 십의 자리 숫자는 무엇일까요?', placeOnes: '이 수에서 일의 자리 숫자는 무엇일까요?', compare: '더 큰 수를 골라요', board: '100판의 빈칸에 알맞은 수를 골라요',
+  order3: '가장 큰 수를 골라요',
 };
 MATH_SAY.bundled = '열씩 묶어서 다 셌어요!';
 MATH_VOICE.push(...Object.values(MATH_SAY.big), MATH_SAY.bundled, ...Object.values(MATH_HINTS).filter(h => /묶음|십의 자리|100판/.test(h)));
