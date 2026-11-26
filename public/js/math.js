@@ -156,7 +156,22 @@ const MathGen = (() => {
     return { size: 4, sol: g.flat(), max: 4, holes: shuffle([...Array(16).keys()]).slice(0, blanks) };
   }
   const setLevel = l => { LV = Math.max(0, Math.min(2, l | 0)); };
-  return { gen, magic, sudoku, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, setLevel, get level() { return LV; } };
+  // 같은 문제가 이어서 나오지 않게: 종류마다 최근 8문제를 기억하고, 겹치면 다시 만든다.
+  // 만들 수 있는 문제가 적은 종류(모양 등)는 15번 해도 안 되면 바로 앞 문제와만 다르게 한다
+  const recent = {};
+  const fresh = (name, make, keyOf) => (...args) => {
+    const h = recent[name] = recent[name] || [];
+    let q, key;
+    for (let t = 0; t < 30; t++) {
+      q = make(...args); key = keyOf(q);
+      if (!(t < 15 ? h : h.slice(-1)).includes(key)) break;
+    }
+    h.push(key); if (h.length > 8) h.shift();
+    return q;
+  };
+  for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
+  const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
+  return { gen, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
