@@ -1,7 +1,7 @@
 /* 새싹영어 — 라우터, 헤더, 공용 동작 */
 const App = (() => {
   const main = () => document.getElementById('app');
-  const NAV = [['/', '🏠 홈'], ['/study', '📚 학습하기'], ['/math', '🧮 수학'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
+  const NAV = [['/', '🏠 홈'], ['/study', '🔤 영어'], ['/math', '🧮 수학'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
   // 하위 화면도 해당 메뉴를 켜준다
   const navOf = path => /^\/(study|learn|lesson|sample|speak|stor|wrong|review|certificate|words|free|shop|play|worksheet|leveltest|profiles)/.test(path) ? '/study' : path;
   const next = () => encodeURIComponent(location.hash.slice(1));
@@ -88,7 +88,7 @@ const App = (() => {
       ${u ? `${Store.isAdmin() ? `<a class="hb-link admin-link ${path.startsWith('/admin') ? 'on' : ''}" href="#/admin">${ico('🛠️')} 관리자</a>` : ''}
         <div class="bell-wrap"><button class="icon-btn" id="bell" aria-label="알림 ${unread}개">${ico('🔔')}${unread ? `<i class="badge">${unread > 9 ? '9+' : unread}</i>` : ''}</button><div class="bell-pop" hidden></div></div>
         <a class="hb-link lg-only" href="#/parent">부모페이지</a>
-        ${p ? `<a class="hdr-ava ava-link" href="#/room" aria-label="${esc(p.name)}의 미니룸 가기" title="내 미니룸">${avaFace(p.avatar)}</a><a class="btn btn-primary sm" href="#/study" aria-label="학습하기">📚 <span class="lg-only">학습하기</span> <span class="star-pill">⭐${p.stars || 0}</span></a>` : `<a class="btn btn-primary sm" href="#/profiles">프로필 만들기</a>`}
+        ${p ? `<a class="hdr-ava ava-link" href="#/room" aria-label="${esc(p.name)}의 미니룸 가기" title="내 미니룸">${avaFace(p.avatar)}</a><a class="btn btn-primary sm" href="#/study" aria-label="영어 학습하기">📚 <span class="lg-only">영어 학습</span> <span class="star-pill">⭐${p.stars || 0}</span></a>` : `<a class="btn btn-primary sm" href="#/profiles">프로필 만들기</a>`}
         <button class="hb-link lg-only js-logout">로그아웃</button>`
       : `<a class="hb-link login-link" href="#/login">${ico('🔑')} 로그인</a><a class="btn btn-primary sm" href="#/signup">${ico('🌱')} 무료 체험</a>`}`;
     document.getElementById('themeBtn').onclick = toggleTheme;

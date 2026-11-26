@@ -481,6 +481,14 @@ Views.home = el => {
     </div>
   </section>
 
+  <section class="wrap subject-pick" aria-label="과목 고르기">
+    <h2 class="sec-title">어떤 과목을 할까요?</h2>
+    <div class="subject-grid">
+      <a class="subject-card" href="${u ? '#/study' : '#/sample/A'}" style="--c:#7ed957"><span>🔤</span><b>새싹영어</b><small>알파벳·파닉스부터 문장 말하기까지 · 스토리북 ${STORIES.length}권</small><em>영어 시작하기 →</em></a>
+      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>🧮</span><b>새싹수학 <i class="chip">시험 중</i></b><small>수 세기·모양·규칙·머리셈·마방진·스도쿠</small><em>수학 퍼즐 하러 가기 →</em></a>
+    </div>
+  </section>
+
   <section class="wrap sec">
     <h2 class="sec-title">이런 고민, 있으셨죠?</h2>
     <div class="worry-grid">

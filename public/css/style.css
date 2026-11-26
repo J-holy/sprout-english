@@ -1630,3 +1630,15 @@ a.shop-ava { display: block; }
 .m-pad { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .m-pad .btn { min-width: 54px; font-size: 1.3rem; }
 .m-done h2 { margin: 6px 0; }
+
+/* 홈: 과목 고르기 (영어 · 수학) */
+.subject-pick { padding: 34px 0 6px; }
+.subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.subject-card { display: grid; gap: 6px; padding: 24px; border-radius: 26px; border: var(--bw) solid var(--line); background: color-mix(in srgb, var(--c) 22%, var(--paper)); color: var(--ink); text-decoration: none; box-shadow: var(--shadow); transition: transform .15s; }
+.subject-card:hover { transform: translateY(-4px); }
+.subject-card span { font-size: 3rem; }
+.subject-card b { font-family: var(--title); font-weight: 400; font-size: 1.7rem; display: flex; gap: 8px; align-items: center; }
+.subject-card b .chip { font-size: .8rem; font-style: normal; }
+.subject-card small { color: var(--muted); font-size: .95rem; }
+.subject-card em { font-style: normal; font-weight: 700; color: var(--ink); }
+@media (max-width: 600px) { .subject-grid { grid-template-columns: 1fr; } }
