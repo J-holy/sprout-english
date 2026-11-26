@@ -36,10 +36,33 @@ function mailHtml(parent, kids) {
     <p style="color:#666;font-size:12px">이 메일은 새싹스쿨 학습 서비스 안내예요. 부모페이지 › 설정에서 '주간 리포트 메일'을 끄면 더 보내지 않아요.</p></div>`;
 }
 
+// 성과 기록 (2026-11-26): 실제 성과 숫자(예: 4주 뒤 읽게 된 단어 수)를 보여 주려고, 아이마다 그때까지의 누적 기록을 남긴다
+//   kv 'outcomes' = { '보호자id:아이id': [{ day, lessons, levels, words, mastered, avg, minutes, speak }] } (최근 26번)
+export function snapshot(p, t = Date.now()) {
+  const all = LEVELS.flatMap(lv => (p.progress?.[lv]?.lessons || []).filter(Boolean));
+  const recent = all.filter(l => l.date >= day(t - 6 * 86400000));
+  const srs = Object.values(p.srs || {}), sp = (p.speaking || []).filter(x => x.date >= t - 7 * 86400000);
+  return { day: day(t), lessons: all.length, levels: LEVELS.filter(lv => (p.progress?.[lv]?.lessons || []).filter(Boolean).length >= 10).length,
+    words: srs.length, mastered: srs.filter(c => c.box >= 3).length, avg: recent.length ? Math.round(recent.reduce((a, l) => a + l.score, 0) / recent.length) : null,
+    minutes: Object.values(p.minutes || {}).reduce((a, m) => a + m, 0), speak: sp.length ? Math.round(sp.reduce((a, x) => a + x.score, 0) / sp.length) : null };
+}
+export function recordOutcomes(t = Date.now()) {
+  const out = kv.get('outcomes', {}), d = day(t);
+  for (const u of db.prepare('SELECT id, state FROM users').all())
+    for (const p of (json(u.state, {}).profiles || [])) {
+      const key = `${u.id}:${p.id}`, list = out[key] || [];
+      if (list.length && list[list.length - 1].day === d) list.pop();
+      list.push({ name: p.name, ...snapshot(p, t) }); out[key] = list.slice(-26);
+    }
+  kv.set('outcomes', out);
+}
+
 export async function weeklyJob(t = Date.now()) {
   const k = kst(t);
-  if (k.getUTCDay() !== 0 || k.getUTCHours() !== 19 || !mailReady) return;
+  if (k.getUTCDay() !== 0 || k.getUTCHours() !== 19) return;
   const week = day(t), sent = kv.get('weeklySent', {});
+  if (kv.get('outcomesDay', '') !== week) { recordOutcomes(t); kv.set('outcomesDay', week); }
+  if (!mailReady) return;
   const users = db.prepare("SELECT id, email, parent_name, settings, state FROM users WHERE email IS NOT NULL AND email != ''").all();
   for (const u of users) {
     if (sent[u.id] === week) continue;

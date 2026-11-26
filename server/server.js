@@ -16,7 +16,7 @@ import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, PROMO, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
-import { weeklyJob } from './lib/weekly.js';
+import { weeklyJob, recordOutcomes } from './lib/weekly.js';
 import { sttProvider, checkWav, toPcm16, recognize } from './lib/stt.js';
 import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
 import { backfillMemberNos, addReferral, userByNo, socialDoc, lookupKids, requestFriend, respondFriend, sendMessage, markRead } from './lib/social.js';
@@ -398,6 +398,8 @@ app.delete('/api/reviews/:id', requireUser, (req, res) => {
 
 // ---------- 관리자 ----------
 app.use('/api/admin', requireUser, requireAdmin);
+// 성과 추적: 아이마다 매주(일요일 19시) 남긴 누적 기록. ?now=1 이면 지금 한 번 더 기록한다
+app.get('/api/admin/outcomes', (req, res) => { if (req.query.now) recordOutcomes(); res.json(kv.get('outcomes', {})); });
 app.get('/api/admin/users', (req, res) => {
   res.json(db.prepare('SELECT * FROM users ORDER BY created_at DESC').all().map(u => ({ ...userDoc(u), source: u.source || '', referrals: db.prepare('SELECT COUNT(*) n FROM users WHERE referred_by = ?').get(u.id).n, referralRewards: u.referral_rewards || 0, access: access(u), notifications: undefined })));
 });

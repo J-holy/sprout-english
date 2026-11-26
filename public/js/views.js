@@ -1928,7 +1928,7 @@ const ParentTabs = {
 
 /* ---------- 관리자 콘솔 ---------- */
 Views.admin = async (el, tab) => {
-  const tabs = { users: '👥 회원', reviews: '💬 후기', content: '📚 콘텐츠', system: '🖥️ 시스템' };
+  const tabs = { users: '👥 회원', outcomes: '📈 성과', reviews: '💬 후기', content: '📚 콘텐츠', system: '🖥️ 시스템' };
   tab = tabs[tab] ? tab : 'users';
   el.innerHTML = `<div class="wrap sec"><h1 class="page-title">🛠️ 관리자 콘솔</h1><p class="fine">불러오는 중…</p></div>`;
   let users, stats;
@@ -1951,6 +1951,22 @@ Views.admin = async (el, tab) => {
   AdminTabs[tab]($('.tab-body', el), users, stats);
 };
 const AdminTabs = {
+  // 📈 성과: 아이마다 매주 남긴 누적 기록으로 '첫 기록 → 지금' 변화를 본다 (실제 성과 숫자를 모으려고, 2026-11-26)
+  async outcomes(el) {
+    if (!API.on) { el.innerHTML = '<p class="fine">서버 모드에서만 볼 수 있어요.</p>'; return; }
+    const draw = async now => {
+      const o = await API.req('GET', 'api/admin/outcomes' + (now ? '?now=1' : ''));
+      const rows = Object.values(o).filter(l => l.length).map(l => ({ first: l[0], last: l[l.length - 1], n: l.length })).sort((a, b) => b.last.lessons - a.last.lessons);
+      const d = (a, b, k) => (b[k] ?? 0) - (a[k] ?? 0);
+      el.innerHTML = `<div class="card"><h3>📈 아이별 성과 <small>매주 일요일 19시 기록 · 첫 기록과 최근 기록 비교</small></h3>
+        <div class="row"><button class="btn btn-ghost sm" data-now>지금 한 번 기록하기</button></div>
+        ${rows.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>아이</th><th>기간</th><th>레슨</th><th>마친 레벨</th><th>배운 단어·문장</th><th>완전히 익힘</th><th>최근 7일 정답률</th><th>말하기 점수</th><th>학습 시간</th></tr></thead><tbody>
+        ${rows.map(({ first: a, last: b, n }) => `<tr><th>${esc(b.name || '')}</th><td>${a.day} → ${b.day} (${n}번)</td><td>${b.lessons} <small>(+${d(a, b, 'lessons')})</small></td><td>${b.levels} <small>(+${d(a, b, 'levels')})</small></td><td>${b.words} <small>(+${d(a, b, 'words')})</small></td><td>${b.mastered} <small>(+${d(a, b, 'mastered')})</small></td><td>${b.avg ?? '-'}%</td><td>${b.speak ?? '-'}</td><td>${b.minutes}분 <small>(+${d(a, b, 'minutes')})</small></td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">아직 기록이 없어요. [지금 한 번 기록하기]를 누르면 출발점이 생겨요.</p>'}
+        <p class="fine">4주 뒤 "배운 단어·문장"과 "완전히 익힘"이 늘어난 숫자를 실제 후기·첫 화면 문구에 쓸 수 있어요. 보호자 동의 없이 아이 이름을 밖에 쓰지 마세요.</p></div>`;
+      $('[data-now]', el).onclick = () => draw(true);
+    };
+    await draw(false);
+  },
   users(el, users) {
     const prov = { email: '📧', kakao: '💬', naver: 'N', google: 'G', apple: '🍎' };
     // 가입 경로별 가입 수 (마케팅 링크의 utm_source, 없으면 들어온 사이트). 2026-11-07 전에 가입한 회원은 기록이 없다
