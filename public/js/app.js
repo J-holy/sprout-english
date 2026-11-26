@@ -290,6 +290,14 @@ const App = (() => {
     document.documentElement.dataset.theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const rate = +localStorage.getItem('sprout-rate'); if (rate) { App.rate = rate; Speech.setRate(rate); }
     window.addEventListener('hashchange', route);
+    // 좁은 화면(창을 줄인 PC 포함): 메뉴를 ☰ 단추로 펼치고 접는다. 메뉴를 고르거나 바깥을 누르면 접힌다
+    const head = document.querySelector('.site-header'), menuBtn = document.getElementById('menuBtn');
+    const setMenu = open => { head.classList.toggle('menu-open', open); menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기'); menuBtn.firstElementChild.textContent = open ? '✕' : '☰'; };
+    menuBtn.onclick = e => { e.stopPropagation(); setMenu(!head.classList.contains('menu-open')); };
+    document.getElementById('nav').addEventListener('click', e => { if (e.target.closest('a, button')) setMenu(false); });
+    document.addEventListener('click', e => { if (head.classList.contains('menu-open') && !head.contains(e.target)) setMenu(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && head.classList.contains('menu-open')) { setMenu(false); menuBtn.focus(); } });
+    window.addEventListener('hashchange', () => setMenu(false));
     // 결제·SNS 로그인에서 돌아왔을 때 안내
     const qs = new URLSearchParams((location.hash.split('?')[1]) || '');
     if (qs.get('paid')) { toast('결제가 완료되었어요! 💎'); Lesson.confetti(); }

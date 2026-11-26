@@ -160,6 +160,7 @@ button.chip { cursor: pointer; }
 .earn b { margin-left: auto; font-family: var(--title); font-weight: 400; } .earn small { color: var(--muted); }
 .feat { display: grid; gap: 4px; align-content: start; }
 .feat-ico { font-size: 2.4rem; }
+.feat-ico img.ico { width: 1.5em; height: 1.5em; vertical-align: middle; box-shadow: 0 2px 6px rgba(0, 0, 0, .12); }
 .feat h4 { font-size: 1.3rem; margin: 0; }
 .feat p { margin: 0; color: var(--muted); }
 .trial-steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 26px 0; }
@@ -1578,3 +1579,15 @@ a.shop-ava { display: block; }
 
 /* 가입 동의 칸의 설명 줄 */
 .check small.block { display: block; margin-top: 2px; }
+
+/* 좁은 화면 메뉴 (2026-11-26): 창을 줄인 PC에서는 옆으로 밀 수 없어서, ☰ 단추로 모든 메뉴를 펼친다 */
+.menu-btn { display: none; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 700 .95rem var(--title); cursor: pointer; }
+.menu-btn:hover, .site-header.menu-open .menu-btn { background: var(--sky2); }
+@media (max-width: 900px) {
+  .menu-btn { display: inline-flex; }
+  .site-header .nav { display: none; }
+  .site-header.menu-open .nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; order: 3; flex-basis: 100%; padding: 6px 2px 12px; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+  .site-header.menu-open .nav a, .site-header.menu-open .nav button { justify-content: flex-start; padding: 10px 12px; border: 2px solid var(--line); background: var(--paper); font-size: 1rem; }
+  .site-header.menu-open .nav a.on { background: var(--sky2); }
+}
+@media (max-width: 600px) { .menu-btn { padding: 4px 9px; font-size: .88rem; } }
