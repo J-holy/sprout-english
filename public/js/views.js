@@ -507,7 +507,7 @@ Views.home = el => {
       <div class="curri-head"><span></span><b>${ico('🔤')} 새싹영어</b><b>${ico('🧮')} 새싹수학</b></div>
       ${[['🌰 씨앗', '5~6세쯤', '알파벳 소리 · 파닉스로 단어 읽기', '수 세기 · 세모·네모·동그라미 · 같은 것끼리 · 규칙'],
          ['🌱 새싹', '7~8세쯤', '문장 듣고 말하기 · 묻고 대답하기 · 스토리북', '더하기 · 빼기 · 마방진 · 스도쿠'],
-         ['🌳 나무', '9~10세쯤', '어제 한 일·내 꿈 말하기 (과거·미래) · 긴 이야기 읽기', '분수 · 곱셈 · 도형과 규칙 (준비 중)']]
+         ['🌳 나무', '9~10세쯤', '어제 한 일·내 꿈 말하기 (과거·미래) · 긴 이야기 읽기', '곱셈 · 분수 · 약수와 배수 · 각 · 다각형']]
         .map(([age, t, en, ma]) => `<div class="curri-row"><span class="curri-age"><b>${age}</b><small>${t}</small></span><p><i class="curri-tag">${ico('🔤')} 영어</i>${en}</p><p><i class="curri-tag">${ico('🧮')} 수학</i>${ma}</p></div>`).join('')}
     </div>
     <div class="row-center"><a class="btn btn-ghost" href="#/english">${ico('🔤')} 새싹영어 자세히</a><a class="btn btn-ghost" href="#/math">${ico('🧮')} 새싹수학 자세히</a></div>
