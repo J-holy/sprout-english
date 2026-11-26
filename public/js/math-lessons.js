@@ -154,6 +154,45 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '육각형', say: '육각형' },
     { type: 'quiz', gen: 'poly' }, { type: 'quiz', gen: 'poly' },
   ] },
+  { id: 'seq', stage: 'tree', icon: '🐇', title: '수의 규칙', topic: '등차수열·피보나치수열', steps: [
+    { type: 'learn', viz: { k: 'nseq', items: [2, 4, 6, 8, 10], labels: ['+2', '+2', '+2', '+2'] }, text: '2, 4, 6, 8, 10. 앞 수에 2씩 더해 가는 규칙이 있어요. 같은 수만큼 커지는 규칙을 찾으면 다음 수를 알 수 있어요.' },
+    { type: 'hop', start: 3, step: 3, count: 6, max: 20, text: '3에서 시작해서 3씩 뛰어 세어 봐요. 다음 수를 차례로 눌러요.' },
+    { type: 'learn', viz: { k: 'nseq', items: [1, 1, 2, 3, 5, 8] }, text: '1, 1, 2, 3, 5, 8. 앞의 두 수를 더하면 다음 수가 되는 규칙도 있어요. 이 수의 줄을 피보나치 수열이라고 해요.' },
+    { type: 'write', glyph: '수열', say: '수열' },
+    { type: 'quiz', gen: 'seq' }, { type: 'quiz', gen: 'seq' },
+  ] },
+  { id: 'cipher', stage: 'tree', icon: '🗝️', title: '암호', topic: '암호', steps: [
+    { type: 'learn', viz: { k: 'key' }, text: '글자마다 수를 하나씩 정해 두면 글자를 수로 바꿔 쓸 수 있어요. 정해 둔 약속을 아는 사람만 읽을 수 있는 글을 암호라고 해요.' },
+    { type: 'decode', nums: [6, 3], text: '6과 3을 표에서 찾아, 알맞은 글자를 차례로 눌러 암호를 풀어 봐요.' },
+    { type: 'learn', viz: { k: 'cshift', w: '바다', s: 1 }, text: '약속을 바꾸면 같은 낱말도 다른 암호가 돼요. 글자를 표에서 한 칸씩 뒤로 밀어 쓰면 바다는 사라가 돼요.' },
+    { type: 'decode', nums: [7, 9], text: '이번 암호는 7과 9예요. 무슨 동물일까요?' },
+    { type: 'write', glyph: '암호', say: '암호' },
+    { type: 'quiz', gen: 'cipher' }, { type: 'quiz', gen: 'cipher' },
+  ] },
+  { id: 'masked', stage: 'tree', icon: '🎭', title: '복면산', topic: '복면산', steps: [
+    { type: 'learn', viz: { k: 'eq', rows: ['🍎 + 🍎 = 6'] }, text: '숫자 대신 그림이 가면을 쓰고 있는 셈을 복면산이라고 해요. 같은 그림에는 같은 수가 들어가요. 사과 두 개를 더해 6이니까 사과는 3이에요.' },
+    { type: 'guess', e: '🍌', a: 3, sum: 7, text: '바나나에 어떤 수를 넣으면 맞을까요? 수를 눌러 확인해 봐요.' },
+    { type: 'learn', viz: { k: 'col', rows: ['2🍓', '15', '41'] }, text: '두 자리 셈에서도 가려진 숫자를 찾을 수 있어요. 더하기를 거꾸로 빼기로 바꾸면 돼요. 41에서 15를 빼면 26이니까 딸기는 6이에요.' },
+    { type: 'guess', e: '⭐', a: 8, sum: 15, text: '별에 어떤 수를 넣으면 맞을까요?' },
+    { type: 'write', glyph: '복면산', say: '복면산' },
+    { type: 'quiz', gen: 'masked' }, { type: 'quiz', gen: 'masked' },
+  ] },
+  { id: 'cases', stage: 'tree', icon: '🎲', title: '경우의 수', topic: '경우의 수', steps: [
+    { type: 'learn', viz: { k: 'pick', groups: [['🧢', '👒'], ['👕', '👚']] }, text: '모자 두 개와 윗옷 두 개가 있어요. 하나씩 골라 입는 방법은 몇 가지일까요?' },
+    { type: 'combo', a: ['🧢', '👒'], b: ['👕', '👚'], text: '모자 하나와 윗옷 하나를 눌러서 짝을 지어 봐요. 다른 짝을 모두 찾아요.' },
+    { type: 'learn', viz: { k: 'combo', a: ['🧢', '👒'], b: ['👕', '👚'] }, text: '모자마다 윗옷을 두 가지씩 입을 수 있어서 2 곱하기 2, 네 가지예요. 표를 그려 하나씩 짝지으면 빠뜨리지 않아요. 일어날 수 있는 가짓수를 경우의 수라고 해요.' },
+    { type: 'combo', a: ['🧢', '👒', '🎩'], b: ['👕', '👚'], text: '이번에는 모자가 세 개예요. 짝을 모두 찾아봐요.' },
+    { type: 'write', glyph: '가지', say: '가지' },
+    { type: 'quiz', gen: 'cases' }, { type: 'quiz', gen: 'cases' },
+  ] },
+  { id: 'area', stage: 'tree', icon: '🟦', title: '넓이와 둘레', topic: '평면도형의 측정', steps: [
+    { type: 'learn', viz: { k: 'cells', W: 5, H: 3, rect: [3, 2, 1, 0], nums: true }, text: '넓이는 작은 네모가 몇 개 들어가는지로 잴 수 있어요. 이 모양은 작은 네모 여섯 개만큼 넓어요.' },
+    { type: 'paint', W: 5, H: 4, n: 6, text: '칸을 눌러 넓이가 6인 모양을 칠해 봐요. 칸끼리 붙어 있어야 해요.' },
+    { type: 'learn', viz: { k: 'cells', W: 5, H: 3, rect: [3, 2, 1, 0], edge: true }, text: '둘레는 모양의 바깥 선 길이예요. 작은 선을 하나씩 세면 돼요. 가로 3칸, 세로 2칸인 네모의 둘레는 작은 선 열 개예요.' },
+    { type: 'write', glyph: '넓이', say: '넓이' },
+    { type: 'write', glyph: '둘레', say: '둘레' },
+    { type: 'quiz', gen: 'area' }, { type: 'quiz', gen: 'area' },
+  ] },
 ];
 
 // 단계: 나이 대신 귀여운 이름 (나이는 작게). 씨앗만 무료, 새싹·나무는 새싹수학 플러스(Store.hasMath)
@@ -198,6 +237,16 @@ const MATH_TOPICS = [
     ws: { sum: '직각은 90도예요. 직각보다 작으면 예각, 크면 둔각이에요.', trace: ['직각', '예각', '둔각', '90°'], gen: 'angle', n: 6 } },
   { id: 'poly', stage: 'tree', icon: '🐝', title: '다각형', lessons: ['poly'], game: 'poly',
     ws: { sum: '곧은 선으로만 둘러싸인 도형이 다각형이에요. 변의 수와 꼭짓점의 수는 같아요.', trace: ['변', '꼭짓점', '육각형'], gen: 'poly', n: 6 } },
+  { id: 'seq', stage: 'tree', icon: '🐇', title: '수의 규칙', lessons: ['seq'], game: 'seq',
+    ws: { sum: '같은 수만큼 커지거나, 앞의 두 수를 더하는 것처럼 수의 줄에는 규칙이 있어요. 규칙을 찾으면 다음 수를 알 수 있어요.', trace: ['수열', '+3'], gen: 'seq', n: 8 } },
+  { id: 'cipher', stage: 'tree', icon: '🗝️', title: '암호', lessons: ['cipher'], game: 'cipher',
+    ws: { sum: '글자마다 수를 정해 두면 글자를 수로 바꿔 쓸 수 있어요. 약속을 아는 사람만 읽을 수 있는 글이 암호예요.', trace: ['암호', '약속'], gen: 'cipher', n: 6 } },
+  { id: 'masked', stage: 'tree', icon: '🎭', title: '복면산', lessons: ['masked'], game: 'masked',
+    ws: { sum: '숫자 대신 그림이 가면을 쓴 셈이 복면산이에요. 같은 그림에는 같은 숫자가 들어가요. 더하기를 거꾸로 빼기로 바꿔 찾아요.', trace: ['복면산', '='], gen: 'masked', n: 8 } },
+  { id: 'cases', stage: 'tree', icon: '🎲', title: '경우의 수', lessons: ['cases'], game: 'cases',
+    ws: { sum: '일어날 수 있는 가짓수를 경우의 수라고 해요. 표를 그려 하나씩 짝지으면 빠뜨리지 않고 셀 수 있어요.', trace: ['가지', '경우'], gen: 'cases', n: 6 } },
+  { id: 'area', stage: 'tree', icon: '🟦', title: '넓이와 둘레', lessons: ['area'], game: 'area',
+    ws: { sum: '넓이는 작은 네모가 몇 개 들어가는지, 둘레는 바깥 선이 몇 개인지로 잴 수 있어요.', trace: ['넓이', '둘레'], gen: 'area', n: 6 } },
 ];
 
 // ── 천재 이야기 (① 1분): 옛날 수수께끼·발견을 새싹스쿨이 새로 쓴 짧은 이야기. 책의 문장·그림은 쓰지 않는다
@@ -322,3 +371,40 @@ Object.assign(MATH_HINTS, {
 });
 Object.assign(MATH_SAY, { graphDone: '그래프가 완성됐어요!', pathBest: '가장 짧은 길로 왔어요!', pathLonger: '도착했어요! 더 짧은 길도 찾아볼까요?' });
 MATH_VOICE.push(MATH_SAY.graphDone, MATH_SAY.pathBest, MATH_SAY.pathLonger);
+
+// ── 나무 더하기 (2026-11-27): 수의 규칙 · 암호 · 복면산 · 경우의 수 · 넓이와 둘레 ──
+Object.assign(MATH_STORIES, {
+  seq: { card: { icon: '🐇', name: '피보나치', line: '앞의 두 수를 더했어요' }, pages: [
+    { viz: { k: 'scene', items: ['🏛️', '📜', '🐇'] }, text: '옛날 이탈리아에 피보나치라는 수학자가 있었어요. 어느 날 토끼 수수께끼를 생각했대요.' },
+    { viz: { k: 'scene', items: ['🐇', '🐇', '➡️', '🐇', '🐇', '🐰', '🐰'] }, text: '아기 토끼 한 쌍이 자라 어른이 되면, 달마다 아기 토끼 한 쌍을 낳아요. 그러면 토끼는 몇 쌍이 될까요?' },
+    { viz: { k: 'nseq', items: [1, 1, 2, 3, 5, 8] }, text: '달마다 세어 보니 1, 1, 2, 3, 5, 8. 앞의 두 수를 더하면 다음 수가 되었어요.' },
+    { viz: { k: 'scene', items: ['🌻', '🐚', '🍍'] }, text: '이 수의 줄은 해바라기 씨앗이나 소라 껍데기 무늬에서도 찾을 수 있대요. 우리도 수의 규칙을 찾아볼까요?' },
+  ] },
+  cipher: { card: { icon: '🗝️', name: '카이사르', line: '글자를 몇 칸씩 밀어 썼어요' }, pages: [
+    { viz: { k: 'scene', items: ['🏛️', '⚔️', '✉️'] }, text: '옛날 로마에 카이사르라는 장군이 있었어요. 멀리 있는 부하에게 몰래 편지를 보내야 했대요.' },
+    { viz: { k: 'scene', items: ['✉️', '🕵️', '❓'] }, text: '편지를 누가 가로채 읽으면 큰일이었어요. 그래서 카이사르는 꾀를 냈어요.' },
+    { viz: { k: 'cshift', w: '바다', s: 1 }, text: '글자를 몇 칸씩 밀어서 다른 글자로 바꿔 썼대요. 몇 칸 밀었는지 아는 부하만 편지를 풀 수 있었지요.' },
+    { viz: { k: 'key' }, text: '이렇게 약속을 아는 사람만 읽을 수 있게 바꾼 글을 암호라고 해요. 우리도 암호를 풀어 볼까요?' },
+  ] },
+  masked: { card: { icon: '🎭', name: '퍼즐 작가 듀드니', line: '숫자에 가면을 씌웠어요' }, pages: [
+    { viz: { k: 'scene', items: ['📰', '🧩', '✏️'] }, text: '옛날 영국에 듀드니라는 퍼즐 작가가 있었어요. 사람들을 즐겁게 하는 수수께끼를 날마다 만들었대요.' },
+    { viz: { k: 'eq', rows: ['🍎 + 🍎 = 6'] }, text: '듀드니는 숫자 대신 글자나 그림을 넣은 셈을 냈어요. 숫자가 가면을 쓰고 숨어 있는 셈이지요.' },
+    { viz: { k: 'col', rows: ['2🍓', '15', '41'] }, text: '같은 그림에는 같은 숫자가 들어가요. 거꾸로 빼 보거나, 수를 하나씩 넣어 보면서 가면을 벗겼대요.' },
+    { viz: { k: 'scene', items: ['🎭', '➡️', '🔢'] }, text: '이렇게 가려진 숫자를 찾는 셈을 복면산이라고 해요. 우리도 가면을 벗겨 볼까요?' },
+  ] },
+  cases: { card: { icon: '🎲', name: '파스칼', line: '빠짐없이 세었어요' }, pages: [
+    { viz: { k: 'scene', items: ['✍️', '🎲', '✉️'] }, text: '옛날 프랑스의 파스칼은 친구와 편지를 주고받으며 주사위 놀이 이야기를 했대요.' },
+    { viz: { k: 'scene', items: ['🎲', '🎲'] }, text: '주사위 두 개를 던지면 나올 수 있는 모양이 몇 가지일까? 하나라도 빠뜨리거나 두 번 세면 틀리지요.' },
+    { viz: { k: 'combo', a: ['🧢', '👒'], b: ['👕', '👚'] }, text: '파스칼은 표를 그려 하나씩 짝지으며 빠짐없이 세었대요. 그러면 빠뜨리지도, 두 번 세지도 않아요.' },
+    { viz: { k: 'scene', items: ['🔢', '✅'] }, text: '일어날 수 있는 가짓수를 경우의 수라고 해요. 우리도 빠짐없이 세어 볼까요?' },
+  ] },
+});
+Object.assign(MATH_HINTS, {
+  seq: '앞 수와 뒤 수가 얼마씩 차이 나는지 살펴봐요.',
+  cipher: '표에서 글자 아래의 수를 찾아 차례로 바꿔 봐요.',
+  masked: '더하기를 거꾸로 빼기로 바꿔 보거나, 수를 하나씩 넣어 봐요.',
+  cases: '표를 그려 하나씩 짝지어 빠짐없이 세어 봐요.',
+  area: '넓이는 칠한 칸 수, 둘레는 바깥 선의 수예요. 하나씩 세어 봐요.',
+});
+Object.assign(MATH_SAY, { decoded: '암호를 풀었어요!', painted: '모양을 칠했어요!' });
+MATH_VOICE.push(MATH_SAY.decoded, MATH_SAY.painted, ...MATH_CNT.map(c => `모두 ${c} 가지예요!`));
