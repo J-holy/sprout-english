@@ -1712,3 +1712,9 @@ a.shop-ava { display: block; }
 .plan-subjects button small { font-weight: 400; color: #e65100; }
 .plan-subjects button.on { background: var(--sun, #ffd23f); } .plan-subjects button.on small { color: #8a3b00; }
 .plan-subj-desc { margin: 2px 0 10px; }
+/* 새싹 마스코트: 잎만 살랑살랑 (2026-11-26) */
+.mascot-face.sprout { position: relative; display: inline-block; width: 1.25em; height: 1.25em; animation: none; }
+.mascot-face.sprout img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.mascot-face.sprout .leaves { border-radius: 0; transform-origin: 49.4% 40%; animation: leaf-sway 2.8s ease-in-out infinite; }
+@keyframes leaf-sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .mascot-face.sprout .leaves { animation: none; } }

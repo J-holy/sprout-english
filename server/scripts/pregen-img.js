@@ -753,7 +753,9 @@ const ICONS = {
   '⏳': 'a small wooden hourglass with golden sand, alone on a plain cream background, no scenery', '🤔': 'a little child thinking with one finger on the chin', '👆': 'a small open child hand with the index finger pointing up and the thumb sticking out, all other fingers folded, seen from the palm side, alone on a plain cream background, no scenery',
   '👋': 'a small child hand waving hello',
   // 새싹수학 놀이 (math-*: 이모지가 아닌 이름 열쇠)
-  'math-count': 'three shiny red apples side by side on a plain cream background, nothing else', 'math-shape': 'a red paper triangle, a blue paper square and a yellow paper circle together',
+  'math-count': 'three shiny red apples side by side on a plain cream background, nothing else',
+  // 단계 이름 (씨앗 → 새싹 → 나무)
+  '🌰': 'one small teardrop-shaped brown seed, half buried in a little mound of dark soil, a tiny pale green root curl peeking out at its bottom, much smaller than the soil mound, no leaves, not a fruit, alone on a plain cream background', '🌳': 'one small round green tree with a brown trunk on a little grass mound, alone on a plain cream background', 'math-shape': 'a red paper triangle, a blue paper square and a yellow paper circle together',
   'math-pattern': 'a string of round wooden beads in a repeating pattern of red, blue, red, blue', 'math-mental': 'a glowing yellow light bulb with a small plus sign and a small minus sign beside it',
   'math-magic': 'a square board of nine colorful tiles in three rows with golden sparkles', 'math-sudoku': 'a square puzzle board of sixteen pastel tiles in four rows with a few tiles lifted up',
 };

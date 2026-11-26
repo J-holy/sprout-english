@@ -101,7 +101,8 @@ const Views = {};
 
 /* ---------- 공용 컴포넌트 ---------- */
 const UI = {
-  mascot(text, mood = '🌱') { return `<div class="mascot-say"><span class="mascot-face" aria-hidden="true">${mood}</span><p class="bubble-say">${text}</p></div>`; },
+  // 새싹 마스코트는 흙·줄기(고정) 위에 잎만 살랑살랑 움직인다 (2026-11-26). 다른 표정 이모지는 통통 튄다
+  mascot(text, mood = '🌱') { const face = mood === '🌱' ? '<span class="mascot-face sprout" aria-hidden="true" data-noico><img src="img/i/sprout-base.jpg" alt="" draggable="false"><img class="leaves" src="img/i/sprout-leaves.png" alt="" draggable="false"></span>' : `<span class="mascot-face" aria-hidden="true">${mood}</span>`; return `<div class="mascot-say">${face}<p class="bubble-say">${text}</p></div>`; },
   stageCarousel(id = 'carousel') {
     return `<div class="carousel" id="${id}" tabindex="0" aria-roledescription="carousel">
       <button class="car-nav prev" aria-label="이전 단계">‹</button>
@@ -501,12 +502,12 @@ Views.home = el => {
 
   <section class="band"><div class="wrap sec">
     <h2 class="sec-title">새싹스쿨 교육과정</h2>
-    <p class="sec-desc">나이에 맞춰 영어와 수학을 함께 키워요. 아이마다 레벨 진단으로 출발점이 정해져요.</p>
+    <p class="sec-desc">씨앗에서 새싹, 나무로 자라듯 영어와 수학을 함께 키워요. 아이마다 레벨 진단으로 출발점이 정해져요.</p>
     <div class="curri">
       <div class="curri-head"><span></span><b>${ico('🔤')} 새싹영어</b><b>${ico('🧮')} 새싹수학</b></div>
-      ${[['5~6세', '첫걸음', '알파벳 소리 · 파닉스로 단어 읽기', '수 세기 · 세모·네모·동그라미 · 같은 것끼리 · 규칙'],
-         ['7~8세', '쑥쑥', '문장 듣고 말하기 · 묻고 대답하기 · 스토리북', '더하기 · 빼기 · 마방진 · 스도쿠'],
-         ['9~10세', '튼튼', '어제 한 일·내 꿈 말하기 (과거·미래) · 긴 이야기 읽기', '분수 · 곱셈 · 도형과 규칙 (준비 중)']]
+      ${[['🌰 씨앗', '5~6세쯤', '알파벳 소리 · 파닉스로 단어 읽기', '수 세기 · 세모·네모·동그라미 · 같은 것끼리 · 규칙'],
+         ['🌱 새싹', '7~8세쯤', '문장 듣고 말하기 · 묻고 대답하기 · 스토리북', '더하기 · 빼기 · 마방진 · 스도쿠'],
+         ['🌳 나무', '9~10세쯤', '어제 한 일·내 꿈 말하기 (과거·미래) · 긴 이야기 읽기', '분수 · 곱셈 · 도형과 규칙 (준비 중)']]
         .map(([age, t, en, ma]) => `<div class="curri-row"><span class="curri-age"><b>${age}</b><small>${t}</small></span><p><i class="curri-tag">${ico('🔤')} 영어</i>${en}</p><p><i class="curri-tag">${ico('🧮')} 수학</i>${ma}</p></div>`).join('')}
     </div>
     <div class="row-center"><a class="btn btn-ghost" href="#/english">${ico('🔤')} 새싹영어 자세히</a><a class="btn btn-ghost" href="#/math">${ico('🧮')} 새싹수학 자세히</a></div>

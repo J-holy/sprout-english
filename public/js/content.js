@@ -905,7 +905,7 @@ const pic = html => (PICS.re ? String(html).replace(PICS.re, e => `<img class="p
 const ico = e => PICS.i[e] ? `<img class="ico" src="img/${PICS.i[e]}" alt="" draggable="false">` : e;
 // 글자 속 자주 보이는 이모지도 새싹스쿨 그림으로 (2026-11-26). 화면에 글자가 들어올 때마다 이 목록의 이모지만 바꾼다.
 // 레슨·놀이·미니룸·캐릭터처럼 이모지가 학습 내용이나 물건 자체인 곳, 입력칸·select 안은 건드리지 않는다.
-const AUTO_ICO = ['⭐', '✅', '🎉', '🔊', '🌟', '🎙️', '🏅', '✨', '🎯', '🔥', '💌', '🎟️', '⏳', '🤔', '👆', '👋', '🎁', '📊', '🎓', '🏆', '🌱', '📚', '📖', '🔁', '💎', '🔒', '🔑', '🔔', '🎤', '👪', '🧮', '🔤', '💬', '🙋', '🧪', '🛍️', '💰', '🏠', '🧾', '↩️', '🧭', '📒', '✏️', '🖨️', '🛠️', '⏱️', '🎈', '🃏'];
+const AUTO_ICO = ['⭐', '✅', '🎉', '🔊', '🌟', '🎙️', '🏅', '✨', '🎯', '🔥', '💌', '🎟️', '⏳', '🤔', '👆', '👋', '🎁', '📊', '🎓', '🏆', '🌱', '📚', '📖', '🔁', '💎', '🔒', '🔑', '🔔', '🎤', '👪', '🧮', '🔤', '💬', '🙋', '🧪', '🛍️', '💰', '🏠', '🧾', '↩️', '🧭', '📒', '✏️', '🖨️', '🛠️', '⏱️', '🎈', '🃏', '🌰', '🌳'];
 const AUTO_ICO_SKIP = '.lesson, .gm-board, .gm-fx, .story-art, .game-area, .order-game, .mini-quiz, .mr-stage, .mr-tray, .mr-trybar, .avatar, .avatar-pick, .shop-ava, .try-ava, .si-emoji, .ava-body, .ava-mini, .reader, [data-noico], input, textarea, select, option, script, style, svg';
 const autoIco = (() => {
   let re = null, map = null, obs = null;
