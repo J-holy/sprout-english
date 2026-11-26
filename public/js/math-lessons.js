@@ -50,6 +50,21 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '규칙', say: '규칙' },
     { type: 'quiz', gen: 'pattern' }, { type: 'quiz', gen: 'pattern' },
   ] },
+  { id: 'blocks', stage: 'seed', icon: '🧱', title: '쌓기나무', topic: '쌓기나무', steps: [
+    { type: 'learn', viz: { k: 'blocks', h: [[1]] }, text: '쌓기나무는 반듯한 상자 모양의 나무 조각이에요. 위에서 봐도, 앞에서 봐도, 옆에서 봐도 모두 네모예요.' },
+    { type: 'learn', viz: { k: 'blocks', h: [[3]] }, text: '쌓기나무를 위로 쌓으면 층이 생겨요. 위에 있는 쌓기나무는 아래 쌓기나무가 받치고 있어요.' },
+    { type: 'build', target: [1, 2, 3], text: '한 층, 두 층, 세 층 계단을 쌓아 봐요. 더하기 단추를 누르면 하나씩 올라가요.' },
+    { type: 'learn', viz: { k: 'blocks', h: [[2, 1], [1, 1]] }, text: '뒤에 있는 쌓기나무는 앞에 가려서 다 보이지 않을 때도 있어요. 칸마다 몇 층인지 세어 더하면 모두 몇 개인지 알 수 있어요.' },
+    { type: 'write', glyph: '층', say: '층' },
+    { type: 'quiz', gen: 'blocks' }, { type: 'quiz', gen: 'blocks' },
+  ] },
+  { id: 'table', stage: 'seed', icon: '📊', title: '그림 표 읽기', topic: '표 만들기', steps: [
+    { type: 'learn', viz: { k: 'scene', items: ['🍎', '🍌', '🍎', '🍓', '🍌', '🍎'] }, text: '과일이 섞여 있으면 무엇이 몇 개인지 한눈에 알기 어려워요.' },
+    { type: 'tally', rows: ['🍎', '🍌', '🍓'], items: ['🍎', '🍎', '🍎', '🍌', '🍌', '🍓'], text: '과일을 하나씩 눌러서 표의 제자리로 옮겨 봐요.' },
+    { type: 'learn', viz: { k: 'table', rows: [['🍎', 3], ['🍌', 2], ['🍓', 1]] }, text: '종류별로 한 줄에 모은 것을 표라고 해요. 사과 줄이 가장 길어서, 사과가 가장 많다는 것을 바로 알 수 있어요.' },
+    { type: 'write', glyph: '표', say: '표' },
+    { type: 'quiz', gen: 'table' }, { type: 'quiz', gen: 'table' },
+  ] },
   { id: 'add', stage: 'sprout', icon: 'math-mental', title: '더하기', topic: '머리셈', steps: [
     { type: 'learn', viz: { k: 'add', e: '🍎', a: 2, b: 3 }, text: '사과 두 개와 사과 세 개를 합치면 모두 다섯 개예요. 이렇게 합치는 것을 더하기라고 해요.' },
     { type: 'learn', viz: { k: 'add', e: '⭐', a: 4, b: 1 }, text: '더하기는 플러스 기호로 쓰고, 같다는 등호로 써요. 4 더하기 1은 5예요.' },
@@ -135,6 +150,10 @@ const MATH_TOPICS = [
     ws: { sum: '같은 성질을 가진 것끼리 모은 무리를 집합이라고 해요.', trace: ['집합', '과일', '동물'], gen: 'odd', n: 6 } },
   { id: 'pattern', stage: 'seed', icon: 'math-pattern', title: '규칙 찾기', lessons: ['pattern'], game: 'pattern',
     ws: { sum: '똑같은 차례가 되풀이되는 것을 규칙이라고 해요. 한 묶음을 찾으면 다음을 알 수 있어요.', trace: ['규칙', '다음'], gen: 'pattern', n: 6 } },
+  { id: 'blocks', stage: 'seed', icon: '🧱', title: '쌓기나무', lessons: ['blocks'], game: 'blocks',
+    ws: { sum: '쌓기나무는 칸마다 몇 층인지 세어 더해요. 위에 있는 쌓기나무 아래에는 받치는 쌓기나무가 꼭 있어요.', trace: ['층', '쌓기나무'], gen: 'blocks', n: 6 } },
+  { id: 'table', stage: 'seed', icon: '📊', title: '그림 표', lessons: ['table'], game: 'table',
+    ws: { sum: '섞여 있는 것을 종류별로 한 줄에 모으면 표가 돼요. 표를 보면 무엇이 많고 적은지 한눈에 알 수 있어요.', trace: ['표', '많다', '적다'], gen: 'table', n: 6 } },
   { id: 'addsub', stage: 'sprout', icon: 'math-mental', title: '더하기·빼기', lessons: ['add', 'sub'], game: 'mental',
     ws: { sum: '합치는 것은 더하기(+), 덜어 내는 것은 빼기(−)예요. 같다는 등호(=)로 써요.', trace: ['+', '−', '=', '더하기', '빼기'], gen: 'mental', n: 8 } },
   { id: 'magic', stage: 'sprout', icon: 'math-magic', title: '마방진', lessons: ['magic'], game: 'magic',
@@ -221,3 +240,27 @@ const MATH_VOICE = [
   ...MATH_THINGS.map(([e, n]) => `${n} 몇 ${mUnit(e)}일까요?`), ...Object.values(MATH_SAY.shape), ...Object.values(MATH_SAY.shapeHard),
   MATH_SAY.odd, MATH_SAY.pattern, MATH_SAY.right, MATH_SAY.look, MATH_SAY.sorted, MATH_SAY.wrongBasket, MATH_SAY.extended, MATH_SAY.card,
 ];
+
+// ── 씨앗 더하기 (2026-11-27): 쌓기나무 · 그림 표 읽기 ──
+const MATH_NAMES = { '🍎': '사과', '🍓': '딸기', '🍌': '바나나', '🍇': '포도', '🐶': '강아지', '🐱': '고양이', '🐥': '병아리', '🐟': '물고기' };
+Object.assign(MATH_STORIES, {
+  blocks: { card: { icon: '🧱', name: '탑 쌓는 장인', line: '층마다 세어 더했어요' }, pages: [
+    { viz: { k: 'scene', items: ['⛰️', '🧱', '🛕'] }, text: '옛날 어느 마을에 돌을 반듯하게 다듬어 탑을 쌓는 장인이 있었대요.' },
+    { viz: { k: 'blocks', h: [[1, 1, 1]] }, text: '장인은 맨 아래층에 돌을 나란히 놓았어요. 아래층이 튼튼해야 위층을 올릴 수 있거든요.' },
+    { viz: { k: 'blocks', h: [[3, 2, 1]] }, text: '한 층씩 올릴 때마다 장인은 돌을 몇 개 썼는지 세어 두었어요. 층마다 센 수를 더하면 탑에 든 돌이 모두 몇 개인지 알 수 있었지요.' },
+    { viz: { k: 'blocks', h: [[2, 1], [1, 1]] }, text: '뒤에 숨어서 안 보이는 돌도 꼭 있어요. 위에 돌이 있으면 그 아래에도 받치는 돌이 있거든요. 우리도 쌓기나무를 세어 볼까요?' },
+  ] },
+  table: { card: { icon: '🌧️', name: '비를 재는 관리', line: '비 온 양을 표에 적었어요' }, pages: [
+    { viz: { k: 'scene', items: ['🌧️', '🌾', '🌾', '🏡'] }, text: '옛날 조선에서는 비가 얼마나 오는지가 아주 중요했어요. 비가 알맞게 와야 벼가 잘 자라니까요.' },
+    { viz: { k: 'scene', items: ['🌧️', '🏺', '💧'] }, text: '그래서 비를 받는 그릇을 마을마다 두고, 빗물이 얼마나 고였는지 재었대요.' },
+    { viz: { k: 'table', rows: [['🌸', 2, '봄', '💧'], ['☀️', 5, '여름', '💧'], ['🍂', 3, '가을', '💧'], ['⛄', 1, '겨울', '💧']] }, text: '잰 것을 철마다 표에 차례로 적었어요. 표로 모아 두니 언제 비가 가장 많이 왔는지 한눈에 보였어요.' },
+    { viz: { k: 'table', rows: [['🍎', 3], ['🍌', 2], ['🍓', 1]] }, text: '흩어진 것을 종류별로 모아 표로 만들면 세기도, 견주기도 쉬워요. 우리도 표를 만들어 볼까요?' },
+  ] },
+});
+Object.assign(MATH_HINTS, {
+  blocks: '아래에 숨어 있는 쌓기나무도 있어요. 칸마다 몇 층인지 세어 더해 봐요.',
+  table: '표에서 그 줄을 손가락으로 짚고 세어 봐요.',
+});
+Object.assign(MATH_SAY, { blocksAsk: '쌓기나무는 모두 몇 개일까요?', tableMost: '가장 많은 것은 무엇일까요?', tableLeast: '가장 적은 것은 무엇일까요?', tableDone: '표가 완성됐어요!' });
+MATH_VOICE.push(MATH_SAY.blocksAsk, MATH_SAY.tableMost, MATH_SAY.tableLeast, MATH_SAY.tableDone,
+  ...Object.keys(MATH_NAMES).map(e => `${MATH_NAMES[e]}는 몇 ${mUnit(e)}일까요?`), ...['개', '마리'].map(u => `모두 몇 ${u}일까요?`));

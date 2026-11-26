@@ -1876,3 +1876,23 @@ a.shop-ava { display: block; }
 @media print { .mws-o { border: 0 !important; opacity: 1 !important; text-decoration: none !important; padding: 0 4px; } .mws-help { display: none !important; } }
 .m-ws .mws-ans-page { display: none; } .m-ws.show-ans .mws-ans-page { display: block; }
 @media print { .m-ws .mws-ans-page { display: block !important; } }
+
+/* 새싹수학 씨앗 더하기 (2026-11-27): 쌓기나무 · 그림 표 */
+.m-blocks { height: auto; max-width: 100%; color: var(--ink); }
+.m-hmap-wrap { gap: 16px; align-items: center; }
+.m-hmap { display: grid; grid-template-columns: repeat(var(--c), 34px); border: 2px solid var(--line); }
+.m-hmap span { height: 34px; display: grid; place-items: center; border: 1px solid var(--line); font: 700 1.1rem var(--en); background: var(--paper); color: var(--ink); }
+.m-build { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.m-build-col { display: grid; gap: 4px; justify-items: center; } .m-build-col b { font-family: var(--title); font-weight: 400; }
+.m-build-col .btn { min-width: 52px; }
+.m-table { border-collapse: collapse; margin: 6px auto; font-size: 1.05rem; background: var(--paper); color: var(--ink); }
+.m-table th, .m-table td { border: 2px solid var(--line); padding: 6px 10px; text-align: left; }
+.m-table th { white-space: nowrap; font-weight: 700; } .m-table th .m-pic { width: 1.4em; height: 1.4em; }
+.m-table td b { font: 700 1.3rem var(--en); }
+.m-tpics { display: inline-flex; flex-wrap: wrap; gap: 2px; font-size: 1.5rem; } .m-tpics .m-pic { width: 1.1em; height: 1.1em; }
+.m-table .m-tn { margin-left: 6px; color: var(--grape, #7e57c2); }
+.m-table tr.hi th, .m-table tr.hi td { background: var(--sun-soft, #fff4cc); color: #3a2d4f; }
+.m-table.tally td.m-in { min-width: 140px; font-size: 1.5rem; } .m-table.tally .m-in .m-pic { width: 1.1em; height: 1.1em; }
+.m-table.tally td.m-cnt { font: 700 1.3rem var(--en); text-align: center; min-width: 2.2em; }
+.m-ws .m-table { background: #fff; color: #222; } .m-ws .m-table th, .m-ws .m-table td { border-color: #888; }
+.m-ws .m-blocks { color: #222; max-width: 180px; }
