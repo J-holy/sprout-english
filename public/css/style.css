@@ -1590,7 +1590,18 @@ a.shop-ava { display: block; }
 .site-header.compact.menu-open .nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; order: 3; flex-basis: 100%; padding: 6px 2px 12px; overflow: visible; -webkit-mask-image: none; mask-image: none; }
 .site-header.compact.menu-open .nav a, .site-header.compact.menu-open .nav button { justify-content: flex-start; padding: 10px 12px; border: 2px solid var(--line); background: var(--paper); font-size: 1rem; }
 .site-header.compact.menu-open .nav a.on { background: var(--sky2); }
-.site-header.compact .nav .sm-only { display: inline-flex; }
-@media (max-width: 600px) { .menu-btn { padding: 4px 9px; font-size: .88rem; } }
+.site-header .nav .sm-only { display: none; }
+/* 휴대폰: 윗줄은 로고 · (알림 · 캐릭터 | 무료 체험) · ☰ 한 줄. 별·관리자·낮밤·로그인은 메뉴 안으로 */
+@media (max-width: 600px) {
+  .head-inner { flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; row-gap: 6px; min-height: 0; }
+  .logo { font-size: 1.35rem; }
+  .site-header .userbar { order: 2; margin-left: auto; gap: 6px; }
+  .site-header .menu-btn { order: 3; padding: 0; width: 40px; height: 40px; justify-content: center; font-size: 1.25rem; }
+  .site-header .menu-btn .mb-txt { display: none; }
+  .site-header .nav { order: 4; }
+  .site-header .userbar #themeBtn, .site-header .userbar .admin-link, .site-header .userbar .login-link, .site-header .userbar a.btn[href="#/study"] { display: none; }
+  .site-header.compact.menu-open .nav .sm-only { display: inline-flex; }
+  .site-header.compact.menu-open .nav { grid-template-columns: 1fr 1fr; }
+}
 /* 머리말은 메뉴가 한 줄에 들어가도록 본문보다 넓게 쓴다 (들어가지 않으면 ☰ 메뉴) */
 .site-header .head-inner { width: min(1320px, 100% - 32px); }

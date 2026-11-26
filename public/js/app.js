@@ -73,7 +73,11 @@ const App = (() => {
     const unread = u ? u.notifications.filter(n => !n.read).length : 0;
     // 휴대폰에서는 부모페이지·로그아웃을 메뉴 줄 끝으로 옮긴다 (윗줄이 넘치지 않게)
     document.getElementById('nav').innerHTML = NAV.map(([h, t]) => `<a href="#${h}" class="${navOf(path) === h ? 'on' : ''}">${t.replace(/^(\S+) /, (m, e) => ico(e) + ' ')}</a>`).join('')
-      + (u ? `<a href="#/parent" class="sm-only ${path.startsWith('/parent') ? 'on' : ''}">부모페이지</a><button class="sm-only js-logout">로그아웃</button>` : '');
+      // 휴대폰(.sm-only): 윗줄에서 뺀 별 상점·관리자·부모페이지·낮밤·로그인/로그아웃을 메뉴 안에 둔다
+      + (u ? `${p ? `<a href="#/shop" class="sm-only ${path.startsWith('/shop') ? 'on' : ''}">${ico('🛍️')} 별 상점 ⭐${p.stars || 0}</a>` : ''}${Store.isAdmin() ? `<a href="#/admin" class="sm-only ${path.startsWith('/admin') ? 'on' : ''}">${ico('🛠️')} 관리자</a>` : ''}<a href="#/parent" class="sm-only ${path.startsWith('/parent') ? 'on' : ''}">👪 부모페이지</a>`
+        : `<a href="#/login" class="sm-only">${ico('🔑')} 로그인</a>`)
+      + `<button class="sm-only js-theme" type="button">${document.documentElement.dataset.theme === 'dark' ? '🌞 낮 모드' : '🌙 밤 모드'}</button>`
+      + (u ? '<button class="sm-only js-logout" type="button">↪ 로그아웃</button>' : '');
     // 지금 메뉴가 옆으로 밀려 안 보이면 보이게
     const nav = document.getElementById('nav'), on = nav.querySelector('.on');
     if (on && on.offsetWidth) nav.scrollLeft = Math.max(0, on.offsetLeft - nav.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2);
@@ -87,6 +91,7 @@ const App = (() => {
         <button class="hb-link lg-only js-logout">로그아웃</button>`
       : `<a class="hb-link login-link" href="#/login">${ico('🔑')} 로그인</a><a class="btn btn-primary sm" href="#/signup">${ico('🌱')} 무료 체험</a>`}`;
     document.getElementById('themeBtn').onclick = toggleTheme;
+    document.querySelectorAll('.js-theme').forEach(b => b.onclick = () => { toggleTheme(); refreshHeader(); });
     document.querySelectorAll('.js-logout').forEach(lo => lo.onclick = async () => { await Store.logout(); App.pinOk = false; document.getElementById('mailbox').hidden = true; refreshHeader(); go('/'); });
     const bell = document.getElementById('bell');
     if (bell) bell.onclick = e => {
