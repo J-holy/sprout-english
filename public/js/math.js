@@ -295,14 +295,15 @@ const MathGen = (() => {
           labels: Object.fromEntries(ROUTE.map(([c, nm]) => [nm, `<span class="m-swatch" style="background:${c}"></span>${nm}`])), ans, hint: MATH_HINTS.path,
           explain: `<div class="m-viz">${pathSvg({ W, H, s, g, routes: [{ pts: best, col: '#ffb300' }], nums: Object.fromEntries(best.slice(1, -1).map((p, k) => [p.join(), k + 1])) })}</div><p class="m-eq-num">${order.map((p, i) => `${ROUTE[i][1]} ${p.length - 1}칸`).join(' · ')}</p>` };
       }
-      for (let t = 0; t < 50; t++) {
-        const W = 5 + R(2), H = 4 + R(2), s = [0, H - 1], g = [2 + R(W - 2), R(H - 2)], walls = [];
-        if (LV === 2) while (walls.length < 3) { const k = `${R(W)},${R(H)}`; if (k !== s.join() && k !== g.join() && !walls.includes(k)) walls.push(k); }
+      // 도전: 학교를 멀리 두고 나무를 4~5그루 심어, 나무 때문에 꼭 돌아가야 하는(가장 짧은 길이 2칸 이상 길어지는) 판만 낸다
+      for (let t = 0; t < (LV === 2 ? 3000 : 50); t++) {
+        const W = 5 + R(2), H = 4 + R(2), s = [0, H - 1], g = LV === 2 ? [W - 1 - R(2), R(2)] : [2 + R(W - 2), R(H - 2)], walls = [], nw = 4 + R(2);
+        if (LV === 2) while (walls.length < nw) { const k = `${R(W)},${R(H)}`; if (k !== s.join() && k !== g.join() && !walls.includes(k)) walls.push(k); }
         const p = bfs(W, H, s, g, walls); if (!p) continue;
         const ans = p.length - 1, man = Math.abs(g[0] - s[0]) + Math.abs(g[1] - s[1]);
-        if (LV === 2 && ans === man && t < 30) continue; // 도전은 나무 때문에 돌아가야 하는 판을 먼저
-        return { ask: '집에서 학교까지 가장 짧게 가면 몇 칸일까요?', show: `<div class="m-viz">${pathSvg({ W, H, s, g, walls })}</div>`, opts: nearby(ans, 2, 14, 3), ans, hint: MATH_HINTS.path,
-          explain: `<div class="m-viz">${pathSvg({ W, H, s, g, walls, routes: [{ pts: p, col: '#ffb300' }], nums: Object.fromEntries(p.slice(1, -1).map((q, k) => [q.join(), k + 1])) })}</div><p class="m-eq-num">가장 짧은 길: ${ans}칸</p>` };
+        if (LV === 2 && ans < man + 2 && t < 2999) continue;
+        return { ask: '집에서 학교까지 가장 짧게 가면 몇 칸일까요?', show: `<div class="m-viz">${pathSvg({ W, H, s, g, walls })}</div>`, opts: LV === 2 ? shuffle([ans, man, ...nearby(ans, 2, 14, 4).filter(v => v !== ans && v !== man)].slice(0, 3)) : nearby(ans, 2, 14, 3), ans, hint: MATH_HINTS.path,
+          explain: `<div class="m-viz">${pathSvg({ W, H, s, g, walls, routes: [{ pts: p, col: '#ffb300' }], nums: Object.fromEntries(p.slice(1, -1).map((q, k) => [q.join(), k + 1])) })}</div><p class="m-eq-num">가장 짧은 길: ${ans}칸${ans > man ? ` (나무가 없으면 ${man}칸인데, 나무를 피해 돌아가서 ${ans - man}칸 더 걸어요)` : ''}</p>` };
       }
     },
   };
