@@ -1468,12 +1468,21 @@ Views.stories = el => {
   el.innerHTML = `<div class="wrap sec">
     <h1 class="page-title">📖 스토리북</h1>
     <p class="sec-desc left">모두 ${STORIES.length}권이에요. 🐢 천천히·👆 한 단어씩 들으며 🗣️ 따라 읽어요. 읽다 멈춘 책은 그 쪽부터 이어 읽어요. 처음 읽은 책마다 도장과 ⭐2개!</p>
-    ${STAGES.map(st => `<h3 class="book-stage" style="--c:${st.color}">섬 ${st.id} · ${st.title}</h3>
+    <nav class="stage-jump" aria-label="섬 바로가기">${STAGES.map(st => `<button data-jump="${st.id}" style="--c:${st.color}"><b>섬 ${st.id}</b> ${st.title}</button>`).join('')}</nav>
+    ${STAGES.map(st => `<h3 class="book-stage" id="stage-${st.id}" style="--c:${st.color}">섬 ${st.id} · ${st.title}</h3>
     <div class="book-grid">${STORIES.filter(s => s.stage === st.id).map(s => { const locked = bookNeedsPlus(s), open = !locked && Store.isUnlocked(st.levels[0]), plus = locked || Store.needsPlus(st.levels[0]), at = storyMark(s); return `
       <a class="book ${open ? '' : 'locked'}"${open ? '' : ` data-plus="${plus ? 1 : ''}"`} href="${open ? `#/story/${s.id}` : '#/stories'}" style="--c:${st.color}">
         <span class="cover">${bookCover(s)}${open ? '' : `<i class="cover-lock">${ico(plus ? '💎' : '🔒')}</i>`}</span><b>${esc(s.title)}</b><small>${s.pages.length}쪽${at ? ` · 📑 ${at + 1}쪽부터` : ''}${p.stories[s.id] ? ` · ${p.stories[s.id]}번 읽음 ✅` : ''}</small></a>`; }).join('')}</div>`).join('')}
   </div>`;
   $$('.book.locked', el).forEach(b => b.onclick = e => { e.preventDefault(); b.dataset.plus ? App.upsell() : App.toast('그 섬에 도착하면 열려요 🔒'); });
+  // 섬 바로가기: 스크롤 없이 그 섬의 책장으로 (위 메뉴에 가리지 않게 조금 띄운다). 바로가기 줄은 위 메뉴 바로 아래에 붙어 있다
+  const sj = $('.stage-jump', el), hdr = document.querySelector('.site-header'); if (sj && hdr) sj.style.top = hdr.offsetHeight + 'px';
+  $$('[data-jump]', el).forEach(b => b.onclick = () => {
+    const go = () => { const h = document.getElementById('stage-' + b.dataset.jump); if (!h) return;
+    const top = h.getBoundingClientRect().top + window.scrollY - (document.querySelector('.site-header')?.offsetHeight || 0) - $('.stage-jump', el).offsetHeight - 12;
+    window.scrollTo({ top, behavior: 'instant' }); };
+    go(); setTimeout(go, 350); setTimeout(go, 900); // 책 표지 그림이 늦게 뜨면서 자리가 밀려도 제자리에
+  });
 };
 // 1~2단계에도 플러스로 읽는 책이 있다
 const bookNeedsPlus = s => !!s.plus && !Store.hasPlus();
@@ -1498,6 +1507,7 @@ Views.story = (el, id) => {
       <div class="reader-page"></div>
       <div class="follow-box" hidden aria-live="polite"></div>
       <div class="reader-ctrl">
+        <button class="icon-btn big" data-first aria-label="첫 쪽으로" title="첫 쪽으로">⏮</button>
         <button class="icon-btn big" data-prev aria-label="이전 쪽">◀</button>
         <button class="btn btn-primary" data-read>🔊 읽어주기</button>
         <button class="icon-btn big" data-nextp aria-label="다음 쪽">▶</button>
@@ -1544,6 +1554,7 @@ Views.story = (el, id) => {
     $('.reader-page-no', el).textContent = `${pg + 1} / ${s.pages.length}`;
     $('.reader-dots', el).innerHTML = s.pages.map((_, k) => `<i class="${k === pg ? 'on' : ''}"></i>`).join('');
     $('[data-prev]', el).disabled = pg === 0;
+    $('[data-first]', el).disabled = pg === 0;
     if (auto) later(read, 400);
     // 다음 두 쪽의 그림과 다음 쪽 소리를 미리 받아 둔다 (넘길 때 바로 보이고 바로 읽게)
     const next = s.pages[pg + 1];
@@ -1624,6 +1635,7 @@ Views.story = (el, id) => {
 
   $('[data-read]', el).onclick = () => read();
   $('[data-prev]', el).onclick = () => { if (pg > 0) { pg--; draw(); } };
+  $('[data-first]', el).onclick = () => { if (pg > 0) { pg = 0; draw(); } };
   $('[data-nextp]', el).onclick = () => { pg++; draw(); };
   $$('[data-speed]', el).forEach(b => b.onclick = () => { speed = b.dataset.speed; keep('sprout-story-speed', speed); syncOpts(); read(); });
   followBtn.onclick = () => { follow = !follow; keep('sprout-story-follow', follow ? '1' : '0'); syncOpts(); if (!follow) box.hidden = true; };

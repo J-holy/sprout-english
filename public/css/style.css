@@ -1734,3 +1734,8 @@ a.shop-ava { display: block; }
 .sp-item img.ico { width: 2.1rem; height: 2.1rem; flex: none; }
 .sp-item span { display: grid; } .sp-item small { color: var(--muted, #8a8196); font-size: .82rem; }
 .sp-last { position: absolute; right: 8px; top: 6px; font-style: normal; font-size: .72rem; background: var(--grape, #7e57c2); color: #fff; border-radius: 999px; padding: 1px 7px; }
+/* 스토리북 목록: 섬 바로가기 (2026-11-26) */
+.stage-jump { position: sticky; top: 64px; z-index: 20; display: flex; gap: 8px; overflow-x: auto; padding: 8px 2px 10px; margin: 6px 0 4px; background: var(--sky); scrollbar-width: thin; }
+.stage-jump button { flex: none; border: 3px solid var(--line); border-left: 8px solid var(--c); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: .92rem; cursor: pointer; white-space: nowrap; }
+.stage-jump button b { font-family: var(--title); font-weight: 400; margin-right: 2px; }
+.stage-jump button:hover, .stage-jump button:focus-visible { background: var(--soft); }
