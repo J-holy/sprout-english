@@ -1718,3 +1718,7 @@ a.shop-ava { display: block; }
 .mascot-face.sprout .leaves { border-radius: 0; transform-origin: 49.4% 40%; animation: leaf-sway 2.8s ease-in-out infinite; }
 @keyframes leaf-sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
 @media (prefers-reduced-motion: reduce) { .mascot-face.sprout .leaves { animation: none; } }
+/* 새싹 나무: 단계마다 그린 그림을 원 안에 꽉 차게, 움직이지 않음 (2026-11-26) */
+.tree-pic { overflow: hidden; }
+.tree-pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transform: scale(1.14); }
+.tree-pic.happy:has(img) { animation: none; }

@@ -403,7 +403,7 @@ Views.certificate = (el, stageId) => {
 UI.treeCard = () => {
   const t = Store.tree(), watered = Store.wateredToday();
   return `<div class="card tree-card">
-    <div class="tree-pic ${watered ? 'happy' : ''}" aria-hidden="true">${t.emoji}</div>
+    <div class="tree-pic ${watered ? 'happy' : ''}" aria-hidden="true" data-noico>${PICS.i['tree-' + t.stage] ? `<img src="img/${PICS.i['tree-' + t.stage]}" alt="" draggable="false">` : t.emoji}</div>
     <div class="tree-info"><b>새싹 나무 · ${t.name}</b>
       <div class="rb-bar"><i style="width:${Math.round(t.pct * 100)}%"></i></div>
       <small>${t.next ? `다음 '${t.next.name}' ${t.next.emoji}까지 ${t.toNext}점` : '최고 단계! 🌈'} · 레슨 +10점, 챌린지·스토리·말하기로 더 자라요</small></div>

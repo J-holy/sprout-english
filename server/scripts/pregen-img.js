@@ -754,6 +754,11 @@ const ICONS = {
   '👋': 'a small child hand waving hello',
   // 새싹수학 놀이 (math-*: 이모지가 아닌 이름 열쇠)
   'math-count': 'three shiny red apples side by side on a plain cream background, nothing else',
+  // 새싹 나무 키우기 8단계 (tree-0~7): 같은 작은 풀 언덕 위에서 자라는 모습, 원 안에 다 들어가게
+  'tree-0': 'GROWTH SERIES 1 of 8: a small round grassy mound in the lower middle with one small brown seed lying on top of it, nothing growing yet', 'tree-1': 'GROWTH SERIES 2 of 8: a small round grassy mound in the lower middle with one tiny green sprout with two little round leaves',
+  'tree-2': 'GROWTH SERIES 3 of 8: a small round grassy mound in the lower middle with a young thin green stem with four leaves, knee high', 'tree-3': 'GROWTH SERIES 4 of 8: a small round grassy mound in the lower middle with a little young tree with a thin brown trunk and a small round green crown',
+  'tree-4': 'GROWTH SERIES 5 of 8: a small round grassy mound in the lower middle with a small round green tree covered in pink blossoms', 'tree-5': 'GROWTH SERIES 6 of 8: a small round grassy mound in the lower middle with a big round leafy green tree with a brown trunk',
+  'tree-6': 'GROWTH SERIES 7 of 8: a small round grassy mound in the lower middle with a big round green tree full of small red apples', 'tree-7': 'GROWTH SERIES 8 of 8: a small round grassy mound in the lower middle with a big round green tree full of small red apples and a small soft pastel rainbow arching behind the tree',
   // 단계 이름 (씨앗 → 새싹 → 나무)
   '🌰': 'one small teardrop-shaped brown seed, half buried in a little mound of dark soil, a tiny pale green root curl peeking out at its bottom, much smaller than the soil mound, no leaves, not a fruit, alone on a plain cream background', '🌳': 'one small round green tree with a brown trunk on a little grass mound, alone on a plain cream background', 'math-shape': 'a red paper triangle, a blue paper square and a yellow paper circle together',
   'math-pattern': 'a string of round wooden beads in a repeating pattern of red, blue, red, blue', 'math-mental': 'a glowing yellow light bulb with a small plus sign and a small minus sign beside it',
@@ -766,7 +771,7 @@ const MATH_ART = {
   '🍌': 'one yellow banana', '🍇': 'a bunch of purple grapes', '🌙': 'one yellow crescent moon', '❤️': 'one red heart', '🐱': 'a cute small orange cat sitting',
 };
 if (only !== 's' && !book) for (const [e, label] of Object.entries(ICONS)) {
-  const prompt = `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;
+  const prompt = e.startsWith('tree-') ? `${STYLE}. A small round icon: ${label.replace(/^GROWTH SERIES \d of 8: /, '')}. The whole plant and mound are centered and fit completely inside a circle with a wide empty margin all around, plain soft cream background, no words, no letters.` : `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;
   jobs.push({ kind: 'i', key: e, label, prompt, file: `i/${hash('icon' + e).slice(0, 12)}.jpg` });
 }
 // 아바타: 이모지는 기기마다 모양·크기가 달라 꾸미기가 어긋난다. 캐릭터는 둥근 프로필 그림(a), 꾸미기는 흰 배경을 지운 PNG(x)로 그린다
