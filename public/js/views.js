@@ -485,7 +485,7 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 영어 3분 체험 (가입 없이)</a>
           <a class="btn btn-ghost lg" href="#/math">🧮 수학 퍼즐 해 보기</a>
         </div>
-        <ul class="trust"><li>✅ 영어 ${FREE().name}은 평생 무료</li><li>✅ 수학 퍼즐은 시험 기간 동안 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
+        <ul class="trust"><li>✅ 영어 ${FREE().name}은 평생 무료</li><li>✅ 수학 씨앗 단계(5~6세쯤)는 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
       </div>
       <div class="mini-wrap"><div class="mini-tabs" role="tablist"><button class="on" data-mt="en">${ico('🔤')} 영어 맛보기</button><button data-mt="math">${ico('🧮')} 수학 맛보기</button></div>
         <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div></div>
@@ -496,7 +496,7 @@ Views.home = el => {
     <h2 class="sec-title">어떤 과목을 할까요?</h2>
     <div class="subject-grid">
       <a class="subject-card" href="#/english" style="--c:#7ed957"><span>${ico('🔤')}</span><b>새싹영어</b><small>알파벳·파닉스부터 문장 말하기까지 · 스토리북 ${STORIES.length}권</small><em>새싹영어 보러 가기 →</em></a>
-      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>${ico('🧮')}</span><b>새싹수학 <i class="chip">시험 중</i></b><small>개념 배우고 따라 읽고 쓰기 · 수 세기부터 마방진·스도쿠까지</small><em>새싹수학 보러 가기 →</em></a>
+      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>${ico('🧮')}</span><b>새싹수학 <i class="chip">시험 중</i></b><small>개념 배우기·퍼즐·워크시트 · 수 세기부터 분수·도형까지</small><em>새싹수학 보러 가기 →</em></a>
     </div>
   </section>
 
@@ -570,7 +570,7 @@ Views.home = el => {
     <div class="card cta-card">
       <div class="cta-emoji" aria-hidden="true">🌱🐰🎈</div>
       <h2>오늘 저녁 15분, 아이와 함께 시작해보세요</h2>
-      <p>영어 ${FREE().name}은 평생 무료, 수학은 시험 기간 동안 무료예요. 영어 다음 단계는 7일 동안 무료로 체험할 수 있고, 자동으로 결제되지 않아요.</p>
+      <p>영어 ${FREE().name}은 평생 무료, 수학은 씨앗 단계가 무료예요. 영어 다음 단계는 7일 동안 무료로 체험할 수 있고, 자동으로 결제되지 않아요.</p>
       <div class="row-center"><a class="btn btn-primary lg" href="${cta}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a><a class="btn btn-ghost lg" href="#/pricing">💰 요금·할인 보기</a></div>
     </div>
   </section>`;
