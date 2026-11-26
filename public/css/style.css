@@ -1724,3 +1724,13 @@ a.shop-ava { display: block; }
 .tree-pic.happy:has(img) { animation: none; }
 /* 카카오톡 문의 아이콘 (2026-11-26) */
 .kakao-ico { width: 1.3em; height: 1.3em; vertical-align: -.3em; display: inline-block; }
+/* 상단 학습하기: 과목 고르기 창 (2026-11-26) */
+.study-wrap { position: relative; }
+.study-pop { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 250px; background: var(--paper); border: var(--bw, 3px) solid var(--line); border-radius: 18px; box-shadow: 0 8px 0 var(--line); padding: 10px; display: grid; gap: 6px; text-align: left; }
+.study-pop[hidden] { display: none; }
+.study-pop > b { font-family: var(--title); font-weight: 400; font-size: 1.05rem; padding: 2px 4px; }
+.sp-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; text-decoration: none; color: var(--ink); background: var(--soft); position: relative; }
+.sp-item:hover, .sp-item:focus-visible { background: var(--sun, #ffd23f); }
+.sp-item img.ico { width: 2.1rem; height: 2.1rem; flex: none; }
+.sp-item span { display: grid; } .sp-item small { color: var(--muted, #8a8196); font-size: .82rem; }
+.sp-last { position: absolute; right: 8px; top: 6px; font-style: normal; font-size: .72rem; background: var(--grape, #7e57c2); color: #fff; border-radius: 999px; padding: 1px 7px; }

@@ -55,6 +55,7 @@ const App = (() => {
   function go(path) { location.hash = '#' + path; }
 
   function route() {
+    try { const h = location.hash; if (/^#\/math/.test(h)) localStorage.setItem('lastSubject', 'ma'); else if (/^#\/(study|lesson|learn|stor|review|speak|words|english)/.test(h)) localStorage.setItem('lastSubject', 'en'); } catch (err) { /* 저장소 없음 */ }
     Speech.stop();
     const raw = location.hash.slice(1) || '/';
     const [path, qs] = raw.split('?');
@@ -89,12 +90,25 @@ const App = (() => {
       ${u ? `${Store.isAdmin() ? `<a class="hb-link admin-link ${path.startsWith('/admin') ? 'on' : ''}" href="#/admin">${ico('🛠️')} 관리자</a>` : ''}
         <div class="bell-wrap"><button class="icon-btn" id="bell" aria-label="알림 ${unread}개">${ico('🔔')}${unread ? `<i class="badge">${unread > 9 ? '9+' : unread}</i>` : ''}</button><div class="bell-pop" hidden></div></div>
         <a class="hb-link lg-only" href="#/parent">부모페이지</a>
-        ${p ? `<a class="hdr-ava ava-link" href="#/room" aria-label="${esc(p.name)}의 미니룸 가기" title="내 미니룸">${avaFace(p.avatar)}</a><a class="btn btn-primary sm" href="#/study" aria-label="영어 학습하기">📚 <span class="lg-only">영어 학습</span> <span class="star-pill">⭐${p.stars || 0}</span></a>` : `<a class="btn btn-primary sm" href="#/profiles">프로필 만들기</a>`}
+        ${p ? `<a class="hdr-ava ava-link" href="#/room" aria-label="${esc(p.name)}의 미니룸 가기" title="내 미니룸">${avaFace(p.avatar)}</a><div class="study-wrap"><button class="btn btn-primary sm" id="studyBtn" aria-haspopup="true" aria-expanded="false" aria-label="학습하기: 과목 고르기">📚 <span class="lg-only">학습하기</span> <span class="star-pill">⭐${p.stars || 0}</span></button><div class="study-pop" hidden></div></div>` : `<a class="btn btn-primary sm" href="#/profiles">프로필 만들기</a>`}
         <button class="hb-link lg-only js-logout">로그아웃</button>`
       : `<a class="hb-link login-link" href="#/login">${ico('🔑')} 로그인</a><a class="btn btn-primary sm" href="#/signup">${ico('🌱')} 무료 체험</a>`}`;
     document.getElementById('themeBtn').onclick = toggleTheme;
     document.querySelectorAll('.js-theme').forEach(b => b.onclick = () => { toggleTheme(); refreshHeader(); });
     document.querySelectorAll('.js-logout').forEach(lo => lo.onclick = async () => { await Store.logout(); App.pinOk = false; document.getElementById('mailbox').hidden = true; refreshHeader(); go('/'); });
+    // 학습하기: 영어·수학 중 고르는 작은 창. 마지막으로 공부한 과목이 먼저 (2026-11-26)
+    const sb = document.getElementById('studyBtn');
+    if (sb) sb.onclick = e => {
+      e.stopPropagation();
+      const pop = sb.nextElementSibling;
+      pop.hidden = !pop.hidden; sb.setAttribute('aria-expanded', String(!pop.hidden));
+      if (pop.hidden) return;
+      let last = 'en'; try { last = localStorage.getItem('lastSubject') || 'en'; } catch (err) { /* 저장소 없음 */ }
+      const items = [['en', '#/study', '🔤', '새싹영어', '레슨·스토리북·말하기'], ['ma', '#/math', '🧮', '새싹수학', '개념·퍼즐·워크시트']];
+      if (last === 'ma') items.reverse();
+      pop.innerHTML = `<b>무엇을 공부할까요?</b>${items.map(([k, h, e2, t, d], i) => `<a class="sp-item" href="${h}" data-subj="${k}">${ico(e2)}<span><b>${t}</b><small>${d}</small></span>${i === 0 && k === last ? '<i class="sp-last">이어서</i>' : ''}</a>`).join('')}`;
+      pop.querySelectorAll('.sp-item').forEach(x => x.onclick = () => { pop.hidden = true; });
+    };
     const bell = document.getElementById('bell');
     if (bell) bell.onclick = e => {
       e.stopPropagation();
@@ -107,6 +121,7 @@ const App = (() => {
     };
   }
   document.addEventListener('click', e => { const pop = document.querySelector('.bell-pop'); if (pop && !pop.hidden && !pop.contains(e.target)) pop.hidden = true; });
+  document.addEventListener('click', e => { const pop = document.querySelector('.study-pop'); if (pop && !pop.hidden && !pop.contains(e.target)) pop.hidden = true; });
   document.addEventListener('store:notify', () => refreshHeader());
 
   function toggleTheme() {
