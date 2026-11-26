@@ -1580,14 +1580,17 @@ a.shop-ava { display: block; }
 /* 가입 동의 칸의 설명 줄 */
 .check small.block { display: block; margin-top: 2px; }
 
-/* 좁은 화면 메뉴 (2026-11-26): 창을 줄인 PC에서는 옆으로 밀 수 없어서, ☰ 단추로 모든 메뉴를 펼친다 */
-.menu-btn { display: none; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 700 .95rem var(--title); cursor: pointer; }
+/* 좁은 화면 메뉴 (2026-11-26): 창을 줄인 PC에서는 옆으로 밀 수 없어서, ☰ 단추로 모든 메뉴를 펼친다
+   900px 이하이거나, 그보다 넓어도 메뉴가 한 줄에 다 들어가지 않으면(윈도우 글꼴이 넓을 때) 화면이 .compact 를 붙인다 (app.js fitHeader) */
+.menu-btn { display: none; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 700 .95rem var(--title); cursor: pointer; flex: none; }
 .menu-btn:hover, .site-header.menu-open .menu-btn { background: var(--sky2); }
-@media (max-width: 900px) {
-  .menu-btn { display: inline-flex; }
-  .site-header .nav { display: none; }
-  .site-header.menu-open .nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; order: 3; flex-basis: 100%; padding: 6px 2px 12px; overflow: visible; -webkit-mask-image: none; mask-image: none; }
-  .site-header.menu-open .nav a, .site-header.menu-open .nav button { justify-content: flex-start; padding: 10px 12px; border: 2px solid var(--line); background: var(--paper); font-size: 1rem; }
-  .site-header.menu-open .nav a.on { background: var(--sky2); }
-}
+.site-header.compact .menu-btn { display: inline-flex; }
+.site-header.compact .nav { display: none; }
+.site-header.compact .userbar { margin-left: auto; }
+.site-header.compact.menu-open .nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; order: 3; flex-basis: 100%; padding: 6px 2px 12px; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+.site-header.compact.menu-open .nav a, .site-header.compact.menu-open .nav button { justify-content: flex-start; padding: 10px 12px; border: 2px solid var(--line); background: var(--paper); font-size: 1rem; }
+.site-header.compact.menu-open .nav a.on { background: var(--sky2); }
+.site-header.compact .nav .sm-only { display: inline-flex; }
 @media (max-width: 600px) { .menu-btn { padding: 4px 9px; font-size: .88rem; } }
+/* 머리말은 메뉴가 한 줄에 들어가도록 본문보다 넓게 쓴다 (들어가지 않으면 ☰ 메뉴) */
+.site-header .head-inner { width: min(1320px, 100% - 32px); }

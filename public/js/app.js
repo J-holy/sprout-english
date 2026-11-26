@@ -77,6 +77,7 @@ const App = (() => {
     // 지금 메뉴가 옆으로 밀려 안 보이면 보이게
     const nav = document.getElementById('nav'), on = nav.querySelector('.on');
     if (on && on.offsetWidth) nav.scrollLeft = Math.max(0, on.offsetLeft - nav.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2);
+    if (App.fitHeader) requestAnimationFrame(App.fitHeader);
     document.getElementById('userbar').innerHTML = `
       <button class="icon-btn" id="themeBtn" aria-label="낮/밤 모드 전환" title="낮/밤 모드">${document.documentElement.dataset.theme === 'dark' ? '🌞' : '🌙'}</button>
       ${u ? `${Store.isAdmin() ? `<a class="hb-link admin-link ${path.startsWith('/admin') ? 'on' : ''}" href="#/admin">${ico('🛠️')} 관리자</a>` : ''}
@@ -298,6 +299,20 @@ const App = (() => {
     document.addEventListener('click', e => { if (head.classList.contains('menu-open') && !head.contains(e.target)) setMenu(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && head.classList.contains('menu-open')) { setMenu(false); menuBtn.focus(); } });
     window.addEventListener('hashchange', () => setMenu(false));
+    // 메뉴가 한 줄에 다 들어가는지 재서, 넘치면 ☰ 메뉴로 바꾼다 (창 너비만으로 정하면 윈도우처럼 글꼴이 넓은 곳에서 잘린다)
+    let fitT = 0;
+    const fitHeader = () => {
+      const inner = head.querySelector('.head-inner'), nav = document.getElementById('nav');
+      if (innerWidth <= 900) { head.classList.add('compact'); return; }
+      const open = head.classList.contains('menu-open');
+      head.classList.remove('compact', 'menu-open');
+      const over = nav.scrollWidth > nav.clientWidth + 1 || inner.scrollWidth > inner.clientWidth + 1 || inner.getBoundingClientRect().height > 90;
+      head.classList.toggle('compact', over); if (over && open) head.classList.add('menu-open');
+    };
+    App.fitHeader = fitHeader;
+    window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHeader, 100); });
+    if (document.fonts) document.fonts.ready.then(fitHeader);
+    fitHeader();
     // 결제·SNS 로그인에서 돌아왔을 때 안내
     const qs = new URLSearchParams((location.hash.split('?')[1]) || '');
     if (qs.get('paid')) { toast('결제가 완료되었어요! 💎'); Lesson.confetti(); }
