@@ -24,6 +24,22 @@ const MATH_LESSONS = [
     { type: 'write', glyph: '10', say: '십, 열' },
     { type: 'quiz', gen: 'count', args: [6, 10] }, { type: 'quiz', gen: 'count', args: [6, 10] },
   ] },
+  { id: 'num3', stage: 'seed', icon: '🧺', title: '열씩 묶어 세기', topic: '수의 기원', game: 'big', steps: [
+    { type: 'learn', viz: { k: 'b10', n: 23 }, text: '물건이 많으면 하나씩 세다가 헷갈리기 쉬워요. 열 개씩 묶어 두면 한눈에 셀 수 있어요. 막대 하나가 열 개 한 묶음이에요.' },
+    { type: 'bundle', e: '🍓', n: 23, text: '딸기를 하나씩 눌러 바구니에 담아요. 열 개가 차면 한 묶음이 돼요.' },
+    { type: 'learn', viz: { k: 'b10', n: 34, label: true }, text: '묶음이 세 개, 낱개가 네 개면 삼십사예요. 묶음 수는 앞에, 낱개 수는 뒤에 써요. 앞자리를 십의 자리, 뒷자리를 일의 자리라고 해요.' },
+    { type: 'tens', target: 47, text: '십 묶음과 낱개 단추를 눌러서 사십칠을 만들어 봐요.' },
+    { type: 'write', glyph: '34', say: '삼십사' },
+    { type: 'quiz', gen: 'big', lv: 0 }, { type: 'quiz', gen: 'big', lv: 0 },
+  ] },
+  { id: 'num4', stage: 'seed', icon: '💯', title: '백까지 세기', topic: '수의 기원', game: 'big', steps: [
+    { type: 'learn', viz: { k: 'hund' }, text: '1부터 100까지 수를 열 줄로 늘어놓은 판이에요. 오른쪽으로 한 칸 가면 1이 커지고, 아래로 한 칸 내려가면 10이 커져요.' },
+    { type: 'hop', start: 10, step: 10, count: 10, max: 100, by: 5, text: '10에서 시작해서 10씩 뛰어 세어 봐요. 100까지 가 볼까요?' },
+    { type: 'learn', viz: { k: 'b10', n: 100 }, text: '십 묶음이 열 개 모이면 100, 백이에요. 백은 세 자리 수의 시작이에요.' },
+    { type: 'learn', viz: { k: 'b10cmp', a: 47, b: 52 }, text: '두 수 가운데 어느 쪽이 큰지는 십의 자리부터 봐요. 사십칠과 오십이에서는 십의 자리 5가 4보다 크니까 오십이가 더 커요.' },
+    { type: 'write', glyph: '100', say: '백' },
+    { type: 'quiz', gen: 'big', lv: 1 }, { type: 'quiz', gen: 'big', lv: 2 },
+  ] },
   { id: 'shape', stage: 'seed', icon: 'math-shape', title: '세모·네모·동그라미', topic: '평면도형', steps: [
     { type: 'learn', viz: { k: 'shape', s: 'tri' }, text: '세모는 곧은 선 세 개로 둘러싸여 있고, 뾰족한 곳이 세 군데예요.' },
     { type: 'corners', s: 'tri', text: '세모의 뾰족한 곳을 하나씩 눌러 봐요.' },
@@ -203,8 +219,9 @@ const MATH_STAGES = [
 ];
 // 주제 카드: 개념 레슨(lessons) + 퍼즐(game, MATH_GAMES) + 워크시트(ws: 한 줄 요약 sum, 따라 쓰기 trace, 문제 gen·args)
 const MATH_TOPICS = [
-  { id: 'count', stage: 'seed', icon: 'math-count', title: '수 세기', lessons: ['num1', 'num2'], game: 'count',
-    ws: { sum: '물건을 하나씩 짚으며 세면, 마지막에 말한 수가 모두의 개수예요.', trace: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], gen: 'count', args: [1, 10], n: 8 } },
+  { id: 'count', stage: 'seed', icon: 'math-count', title: '수 세기', lessons: ['num1', 'num2', 'num3', 'num4'], game: 'count', games: ['count', 'big'],
+    ws: { sum: '물건을 하나씩 짚으며 세면, 마지막에 말한 수가 모두의 개수예요.', trace: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], gen: 'count', args: [1, 10], n: 8 } ,
+    wsMore: { big: { title: '큰 수', sum: '열 개씩 묶으면 십 묶음 하나예요. 십 묶음 몇 개와 낱개 몇 개로 큰 수를 나타내요. 십 묶음이 열 개면 100이에요.', trace: ['10', '34', '100'], gen: 'big', n: 8, mix: true } } },
   { id: 'shape', stage: 'seed', icon: 'math-shape', title: '모양', lessons: ['shape'], game: 'shape',
     ws: { sum: '세모는 뾰족한 곳이 셋, 네모는 넷, 동그라미는 뾰족한 곳이 없어요.', trace: ['세모', '네모', '동그라미'], gen: 'shape', n: 6 } },
   { id: 'group', stage: 'seed', icon: '🧺', title: '같은 것끼리', lessons: ['group'], game: 'odd',
@@ -408,3 +425,22 @@ Object.assign(MATH_HINTS, {
 });
 Object.assign(MATH_SAY, { decoded: '암호를 풀었어요!', painted: '모양을 칠했어요!' });
 MATH_VOICE.push(MATH_SAY.decoded, MATH_SAY.painted, ...MATH_CNT.map(c => `모두 ${c} 가지예요!`));
+
+// ── 큰 수 (2026-11-27): 수 세기 주제에 열씩 묶어 세기·백까지 세기·큰 수 퍼즐·큰 수 워크시트 ──
+// 양치기 이야기에 이어지는 쪽 (count-4 ~ count-6)
+MATH_STORIES.count.pages.push(
+  { viz: { k: 'scene', items: ['⛰️', '🐑', '🐑', '🐑', '🐑', '🐑', '🐑'] }, text: '시간이 흘러 양이 아주 많아졌어요. 돌멩이도 너무 많아져서, 주머니가 터질 것 같았대요.' },
+  { viz: { k: 'b10', n: 32 }, text: '아이는 돌멩이 열 개를 끈에 꿰어 한 줄로 묶었어요. 한 줄은 양 열 마리라는 뜻이에요. 줄 세 개와 낱개 두 개면 서른두 마리였지요.' },
+  { viz: { k: 'b10', n: 100 }, text: '줄이 열 개가 되자, 아이는 열 줄을 큰 끈으로 다시 하나로 묶었어요. 양 백 마리였어요. 열씩 묶어 세면 아무리 많아도 셀 수 있었대요.' },
+);
+Object.assign(MATH_HINTS, {
+  big: '막대 하나는 열 개 한 묶음이에요. 묶음부터 세고, 낱개를 이어서 세어 봐요.',
+  bigCompare: '십의 자리 숫자부터 견줘 봐요. 십의 자리가 같으면 일의 자리를 봐요.',
+  bigBoard: '100판에서 오른쪽은 1씩, 아래쪽은 10씩 커져요.',
+});
+MATH_SAY.big = {
+  bundle: '모두 몇 개일까요?', pick: '이 수를 나타낸 그림을 골라요', skip10: '10씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요', skip1: '1씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요',
+  placeTens: '이 수에서 십의 자리 숫자는 무엇일까요?', placeOnes: '이 수에서 일의 자리 숫자는 무엇일까요?', compare: '더 큰 수를 골라요', board: '100판의 빈칸에 알맞은 수를 골라요',
+};
+MATH_SAY.bundled = '열씩 묶어서 다 셌어요!';
+MATH_VOICE.push(...Object.values(MATH_SAY.big), MATH_SAY.bundled, ...Object.values(MATH_HINTS).filter(h => /묶음|십의 자리|100판/.test(h)));

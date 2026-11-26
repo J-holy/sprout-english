@@ -23,15 +23,17 @@ const imgDir = path.join(config.publicDir, 'img', 'ms'), listFile = path.join(co
 const hash = s => crypto.createHash('sha1').update(s).digest('hex');
 
 const STYLE = "Children's picture book illustration, soft watercolor with colored pencil lines, warm gentle pastel colors, rounded friendly shapes, cute and kind, simple uncluttered composition, no text, no letters, no words, no numbers, no signs";
+// 영어 스토리북과 같은 기준(review-detail): 얼굴·표정, 팔·다리·손가락·꼬리 개수와 모양, 행동에 맞는 자세, 쉬운 시점
+const BODY = ' Bodies are drawn correctly: every person has exactly two arms, two legs and two hands with five fingers each, with natural joints and a pose that fits what they are doing; every animal has the right number of legs (four for sheep, rabbits, horses, dogs and turtles), one tail and a natural body; no extra or missing limbs, no merged hands, every held object is held firmly in one hand. Choose the viewpoint that shows the action most clearly, with nobody cut off by the edge of the picture.';
 const FACES = ' Every face is clearly visible with both eyes, nose and mouth in natural places, with a calm plain area behind each head, and each expression fits the moment. Keep the main action in the middle and fully visible. No words, letters, numbers or writing anywhere in the picture.';
 
 // 인물은 한 이야기 안에서 같은 모습으로
 const P = {
   shep: 'a shepherd child about eight years old with short black hair, a simple brown wool tunic and sandals',
-  egy: 'ancient Egyptian rope stretchers: men in white linen kilts with short black hair and bare feet',
+  egy: 'ancient Egyptian rope stretchers: clearly grown-up adult men, tall, with short black hair, short black beards, white linen kilts and bare feet',
   linY: 'young Carl Linnaeus as a cheerful eight-year-old Swedish boy with light blond hair, a blue 18th-century coat and knee breeches',
-  linA: 'Carl Linnaeus as a kind grown-up Swedish scientist with light brown tied-back hair and a blue 18th-century coat',
-  moon: 'a family of early people in simple woven and fur clothes: a mother, a father and two small children',
+  linA: 'Carl Linnaeus as a clearly grown-up man about thirty-five years old, a kind Swedish scientist with an adult face, light brown hair tied back, a blue 18th-century coat',
+  moon: 'a family of early people in simple woven and fur clothes: a grown-up mother and a grown-up father with a short beard, both clearly adults and much taller than the children, and two small children',
   china: 'ancient Chinese people in simple long robes with their hair tied in top knots',
   mason: 'a kind old stonemason with a short gray beard, a cloth headband, a long-sleeved white work shirt and a brown work apron',
   joseon: 'a Joseon-era Korean official in a light blue hanbok robe and a black horsehair gat hat',
@@ -41,11 +43,14 @@ const P = {
   fibo: 'Fibonacci, a friendly medieval Italian scholar with a short dark beard, a red cloth cap and a long dark red robe',
   caes: 'Julius Caesar, a Roman general with short dark hair, a green laurel wreath, a silver breastplate and a red cape',
   dude: 'Henry Dudeney, a cheerful English puzzle writer from the 1900s with a big brown mustache, a waistcoat and rolled-up sleeves',
-  pasc: 'Blaise Pascal, a young French thinker from the 1650s with long wavy brown hair, a plain dark coat and a white collar',
+  pasc: 'Blaise Pascal, a clearly grown-up French man about thirty years old with an adult face, a thin mustache, long wavy brown hair, a plain dark coat and a white collar',
   kids: 'two curious children of about seven, a girl with black hair in two buns and a boy with short brown hair',
 };
 const ART = {
-  'count-0': `${P.shep} walking with a flock of five white sheep down a green grassy hill in the early morning, mountains far behind, the sheep heading out to eat grass`,
+  'count-0': `${P.shep} walking down a green grassy hill in the early morning behind three white sheep that walk one after another in a row, well apart so they do not overlap, each sheep with exactly four legs, mountains far behind`,
+  'count-4': `${P.shep} standing on a green grassy hill in front of a very big flock of white sheep that covers the whole hill behind him; he holds up with both hands a small cloth pouch so full of pebbles that it is bulging and about to burst, and he looks troubled and puzzled`,
+  'count-5': `${P.shep} sitting on the grass, threading ten small round gray pebbles one by one onto a string to make one row; beside him on the grass lie three finished strings of pebbles and two loose pebbles; a few white sheep graze behind him, each with four legs`,
+  'count-6': `${P.shep} standing on the grass and happily lifting up with both hands a big bundle made of ten strings of pebbles tied together with a thick rope, smiling proudly; behind him a wide green meadow with a big flock of white sheep`,
   'shape-0': 'a wide river in ancient Egypt flooding over flat green fields, palm trees and a small mud brick house, the water washing away the little earth walls between the fields, a farmer looking at the flooded field worried',
   'shape-1': `three ${P.egy} walking together across a flat field beside the Nile river, carrying a long coiled rope with big knots tied at equal spaces along it`,
   'shape-2': `seen from high above at an angle: exactly three ${P.egy} standing far apart on a flat sandy field, one on the left, one on the right and one at the back; each man holds one corner of a single long knotted rope and pulls it tight, so the rope lies on the ground as one big clear triangle with three straight sides between the three men; nothing else on the ground`,
@@ -56,7 +61,7 @@ const ART = {
   'magic-3': `${P.kids} in a sunny courtyard of an old Chinese house, smiling and pointing at the shell of a huge friendly turtle; the shell pattern is made of nine rounded patches in three rows of three, with no dots and no marks`,
   'blocks-0': `${P.mason} in a mountain village carefully shaping a square stone block with a chisel, next to a small neat stepped stone tower he is building, a pile of square stone blocks beside him`,
   'table-0': 'green rice paddies in Joseon-era Korea during a gentle summer rain, a farmer in a straw rain cape and a straw hat standing at the edge of the paddy smiling up at the rain, thatched roof houses behind',
-  'table-1': `a grown-up man, ${P.joseon}, about forty years old with a short black beard, standing in a stone courtyard after rain and putting a thin wooden ruler stick straight down into a rain gauge; the rain gauge is a plain straight dark bronze tube like a tall tin can, with no handle and no cup shape, standing upright on a low square stone block; a puddle on the ground`,
+  'table-1': `a grown-up man, ${P.joseon}, about forty years old with a short black beard, standing in a stone courtyard after rain beside a rain gauge; the rain gauge is a plain straight dark bronze tube like a tall tin can, with no handle and no cup shape, standing upright on a low square stone block; with one hand he holds only one thin wooden ruler stick and puts it straight down into the tube, his other hand rests at his side; there is no other stick; a puddle on the ground`,
   'venn-0': `${P.venn} standing in a bright Victorian classroom, smiling at a few children at wooden desks who look curious, a blank dark chalkboard behind him`,
   'venn-3': `${P.venn} in his classroom, smiling and pointing at two big overlapping chalk circles drawn on the dark chalkboard, children at wooden desks raising their hands happily`,
   'graph-0': `${P.play} standing on a busy harbor dock beside tall sailing ships and stacked wooden crates and barrels, writing in an open notebook with a quill pen`,
@@ -70,7 +75,7 @@ const ART = {
   'masked-3': `${P.kids} at a table, each holding up a colorful paper party mask in front of half their face and laughing, wooden puzzle pieces on the table`,
   'cases-0': `${P.pasc} sitting at a wooden desk by candlelight, writing a letter with a feather pen, two small white dice on the desk beside the paper`,
   'cases-1': `${P.kids} at a wooden table watching two big white dice with black dots tumbling across the table, both leaning forward excitedly`,
-  'cases-3': `${P.kids} in front of a tall mirror trying on clothes: the girl wears a red cap and a striped shirt, the boy wears a straw hat and a blue shirt, more caps and shirts lie on a bed behind them`,
+  'cases-3': `${P.kids} in their bedroom trying on clothes, standing side by side facing us and smiling: the girl wears a red cap and a striped shirt, the boy wears a straw hat and a blue shirt; behind them more caps and shirts are spread out on a bed; no mirror`,
 };
 
 const account = config.cf?.accountId || process.env.CF_ACCOUNT_ID, token = config.cf?.aiToken || process.env.CF_AI_TOKEN;
@@ -99,10 +104,12 @@ const writeList = () => fs.writeFileSync(listFile, `// pregen-math-story.js가 �
 let made = 0;
 for (const [key, scene] of Object.entries(ART)) {
   if (only && !only.has(key)) continue;
-  const prompt = `${STYLE}. One single full-page illustration: ${scene}.${FACES}`;
+  const prompt = `${STYLE}. One single full-page illustration: ${scene}.${FACES}${BODY}`;
   if (redo.has(key)) tries[key] = (tries[key] || 0) + 1;
   const h = hash(prompt + (tries[key] || 0)).slice(0, 8), file = `ms/${key}-${h}.jpg`;
   if (list[key] === file && fs.existsSync(path.join(config.publicDir, 'img', file))) continue;
+  // 이미 그려서 검수한 그림은 문구가 바뀌어도 그대로 둔다. 다시 그릴 때는 --redo, 새 장면만 새로 그린다
+  if (list[key] && !redo.has(key) && fs.existsSync(path.join(config.publicDir, 'img', list[key]))) continue;
   const seed = parseInt(hash(key).slice(0, 7), 16) + (tries[key] || 0) * 7919;
   try {
     const buf = await draw(prompt, seed), png = path.join(imgDir, `${key}.tmp.png`), out = path.join(config.publicDir, 'img', file);
