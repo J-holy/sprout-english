@@ -118,12 +118,22 @@ const App = (() => {
       pop.hidden = !pop.hidden;
       if (!pop.hidden) {
         const list = u.notifications.slice(0, 6);
-        pop.innerHTML = `<b>학습알림</b>${list.length ? list.map(n => `<div class="bp-item ${n.read ? '' : 'unread'}">${esc(n.text)}<small>${fmtDate(n.at)}</small></div>`).join('') : '<p class="fine">알림이 없어요.</p>'}<a href="#/parent/alerts">전체 보기 →</a>`;
+        pop.innerHTML = `<div class="bp-head"><b>학습알림</b><button class="icon-btn bp-close" aria-label="알림 닫기">✕</button></div>${list.length ? list.map(n => `<div class="bp-item ${n.read ? '' : 'unread'}">${esc(n.text)}<small>${fmtDate(n.at)}</small></div>`).join('') : '<p class="fine">알림이 없어요.</p>'}<a href="#/parent/alerts">전체 보기 →</a>`;
+        pop.querySelector('.bp-close').onclick = ev => { ev.stopPropagation(); pop.hidden = true; };
+        pop.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { pop.hidden = true; }));
       }
     };
   }
-  document.addEventListener('click', e => { const pop = document.querySelector('.bell-pop'); if (pop && !pop.hidden && !pop.contains(e.target)) pop.hidden = true; });
-  document.addEventListener('click', e => { const pop = document.querySelector('.study-pop'); if (pop && !pop.hidden && !pop.contains(e.target)) pop.hidden = true; });
+  // 알림·학습하기 창: 창 밖 어디를 눌러도 닫힌다. 아이폰은 빈 곳을 누르면 click이 오지 않아서 pointerdown으로도 닫는다
+  const closePops = e => {
+    for (const [sel, btn] of [['.bell-pop', '#bell'], ['.study-pop', '#studyBtn']]) {
+      const pop = document.querySelector(sel), b = document.querySelector(btn);
+      if (pop && !pop.hidden && !pop.contains(e.target) && !(b && b.contains(e.target))) { pop.hidden = true; if (b) b.setAttribute('aria-expanded', 'false'); }
+    }
+  };
+  document.addEventListener('pointerdown', closePops);
+  document.addEventListener('click', closePops);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.bell-pop, .study-pop').forEach(p => { p.hidden = true; }); });
   document.addEventListener('store:notify', () => refreshHeader());
 
   function toggleTheme() {

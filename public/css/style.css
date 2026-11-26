@@ -1743,3 +1743,6 @@ a.shop-ava { display: block; }
 @media (max-width: 640px) {
   .bell-pop, .study-pop { position: fixed; left: 12px; right: 12px; width: auto; top: var(--pop-top, 76px); max-height: calc(100vh - var(--pop-top, 76px) - 16px); overflow-y: auto; z-index: 70; }
 }
+/* 학습알림 창 닫기 버튼 (2026-11-26) */
+.bp-head { display: flex; align-items: center; justify-content: space-between; }
+.bp-close { width: 32px; height: 32px; font-size: 1rem; }
