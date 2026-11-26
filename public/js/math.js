@@ -1014,7 +1014,7 @@ const mReward = () => { if (!Store.profile()) return 0; const got = Store.addSta
 const mGcard = (t, got = true) => { const c = MATH_STORIES[t.id].card; return `<div class="m-gcard ${got ? '' : 'off'}" title="${esc(c.name)}"><span>${got ? c.icon : '❔'}</span><b>${got ? esc(c.name) : esc(t.title)}</b>${got ? `<small>${esc(c.line)}</small>` : ''}</div>`; };
 function mathCardModal(t) {
   Speech.sfx.cheer(); Lesson.confetti(); KoSpeech.say(MATH_SAY.card);
-  App.modal(`<div class="center m-gcard-modal">${mGcard(t)}<h2>천재 카드를 받았어요!</h2><p>「${esc(t.title)}」의 이야기·배우기·생각 놀이·워크시트를 모두 마쳤어요.</p>
+  App.modal(`<div class="center m-gcard-modal">${mGcard(t)}<h2>천재 카드를 받았어요!</h2><p>「${esc(t.title)}」의 이야기·배우기·퍼즐·워크시트를 모두 마쳤어요.</p>
     <p class="fine">모은 천재 카드는 새싹수학 첫 화면에 모여요. 나중에 미니룸 액자에도 걸 수 있게 할게요.</p><div class="row-center"><button class="btn btn-primary" data-close>좋아요!</button></div></div>`);
 }
 // 잠긴 단계(새싹·나무)를 누르면: 새싹수학 플러스 안내
@@ -1046,7 +1046,7 @@ const mHome = () => {
           <div class="m-topic-head"><span class="m-l-ico">${tIco(t)}</span><b>${t.title}</b>${lock(s) ? '<span class="m-lock" aria-label="잠김">🔒</span>' : st.card ? `<span class="m-cardmark" title="천재 카드">${MATH_STORIES[t.id].card.icon}</span>` : all ? '<span>✅</span>' : ''}</div>
           <div class="m-topic-btns">${st.story !== null ? btn(s, `#/math/s_${t.id}`, '📜 이야기', st.story) : ''}${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '배우기'}`, done.includes(l.id))).join('')}${(t.games || [t.game]).map((g, i) => btn(s, `#/math/p_${g}`, `🧩 ${i ? MATH_GAMES[g].title : '생각 놀이'}`, i ? false : st.puzzle)).join('')}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트', st.ws)}${Object.entries(t.wsMore || {}).map(([k, w]) => btn(s, `#/math/w_${t.id}_${k}`, `🖨️ ${w.title} 워크시트`, false)).join('')}</div></div>`;
       }).join('')}</div>`).join('')}
-    <p class="fine">새싹수학은 시험 중이에요. 생각 놀이와 워크시트 문제는 할 때마다 새로 만들어져요. 로그인하면 진행과 천재 카드가 아이별로 저장돼서 다른 기기에서도 이어져요.</p></div>`;
+    <p class="fine">새싹수학은 시험 중이에요. 퍼즐과 워크시트 문제는 할 때마다 새로 만들어져요. 로그인하면 진행과 천재 카드가 아이별로 저장돼서 다른 기기에서도 이어져요.</p></div>`;
 };
 
 Views.math = (el, game) => {
@@ -1312,7 +1312,7 @@ function mathLesson(el, L) {
     Speech.sfx.cheer(); Lesson.confetti(); bar.style.width = '100%'; mMark(tp);
     const more = tp && tp.lessons.find(id => id !== L.id && !mathDone().includes(id));
     area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico('🏆')}</div><h2>「${L.title}」 다 배웠어요!</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : ''}
-      <p>${more ? '다음 배우기도 이어서 해 볼까요?' : '이제 생각 놀이로 해 볼까요?'}</p>
+      <p>${more ? '다음 배우기도 이어서 해 볼까요?' : '이제 퍼즐로 해 볼까요?'}</p>
       <div class="row-center">${more ? `<a class="btn btn-primary" href="#/math/${more}">📖 ${MATH_LESSONS.find(l => l.id === more).title}</a>` : ''}${tp ? `<a class="btn ${more ? 'btn-ghost' : 'btn-primary'}" href="#/math/p_${L.game || tp.game}">🧩 생각 놀이로 해 보기</a>` : ''}</div>
       <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 주제</a><button class="btn btn-ghost" data-again>처음부터 다시</button></div></div>`;
     $('[data-again]', area).onclick = () => mathLesson(el, L);
@@ -1760,7 +1760,7 @@ function mathWorksheet(el, t, key) {
   };
   const score = () => {
     const box = $('.mws-score', el);
-    if (w.grid) { box.innerHTML = `마방진·스도쿠는 <a href="#/math/p_${t.game}">🧩 생각 놀이</a>에서 화면으로 풀 수 있어요. 워크시트는 인쇄해서 풀어요.`; return; }
+    if (w.grid) { box.innerHTML = `마방진·스도쿠는 <a href="#/math/p_${t.game}">🧩 퍼즐</a>에서 화면으로 풀 수 있어요. 워크시트는 인쇄해서 풀어요.`; return; }
     const n = solved.filter(Boolean).length;
     box.innerHTML = n < qs.length ? `✏️ 화면에서 바로 풀어 봐요 · <b>${n} / ${qs.length}</b>` : `🎉 다 풀었어요! 처음에 맞힌 문제 <b>${first} / ${qs.length}</b>`;
   };

@@ -100,10 +100,10 @@ const MATH_LESSONS = [
     { type: 'learn', viz: { k: 'grid', n: 3, vals: [2, 7, 6, 9, 5, 1, 4, 3, 8] }, text: '가운데에는 늘 5가 들어가요. 빈칸이 있으면 같은 줄의 두 수를 더해서 15가 되려면 얼마가 남는지 생각해요.' },
     { type: 'write', glyph: '15', say: '십오' },
     { type: 'quiz', gen: 'mental', args: ['+'] },
-    { type: 'play', game: 'magic', text: '이제 마방진 생각 놀이를 직접 풀어 볼까요?' },
+    { type: 'play', game: 'magic', text: '이제 마방진 퍼즐을 직접 풀어 볼까요?' },
   ] },
   { id: 'sudoku', stage: 'sprout', icon: 'math-sudoku', title: '스도쿠', topic: '스도쿠', steps: [
-    { type: 'learn', viz: { k: 'grid', n: 4, vals: [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1] }, text: '스도쿠는 빈칸에 숫자를 채우는 생각 놀이예요. 가로줄에도, 세로줄에도 같은 숫자가 두 번 들어가면 안 돼요.' },
+    { type: 'learn', viz: { k: 'grid', n: 4, vals: [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1] }, text: '스도쿠는 빈칸에 숫자를 채우는 퍼즐이에요. 가로줄에도, 세로줄에도 같은 숫자가 두 번 들어가면 안 돼요.' },
     { type: 'learn', viz: { k: 'grid', n: 4, vals: [1, 2, 3, 0, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1] }, text: '첫째 줄에는 1, 2, 3이 있으니 빈칸에는 남은 숫자 4가 들어가요.' },
     { type: 'write', glyph: '4', say: '사, 넷' },
     { type: 'play', game: 'sudoku', text: '이제 4×4 스도쿠를 직접 풀어 볼까요?' },

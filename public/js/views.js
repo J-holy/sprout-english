@@ -173,7 +173,7 @@ const UI = {
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
           ${months === 12 ? `<span class="ribbon">${q.promo ? `오픈 기념 특가 · ${promoEndText()}까지` : '가장 인기'}</span>` : ''}
           <h4>${months}개월</h4>
-          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 3: '한 계절 꾸준히 해보기', 6: subj === 'ma' ? '반년 동안 수학 습관 만들기' : `영어는 하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: subj === 'ma' ? '1년 동안 개념부터 생각 놀이까지 꾸준히' : `영어는 하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
+          <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 3: '한 계절 꾸준히 해보기', 6: subj === 'ma' ? '반년 동안 수학 습관 만들기' : `영어는 하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: subj === 'ma' ? '1년 동안 개념부터 퍼즐까지 꾸준히' : `영어는 하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
           <dl>${disc ? `<dt>1개월 요금</dt><dd class="strike">월 ${won(P.list)}</dd>` : ''}
           <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
           ${q.promo ? `<dt>오픈 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
@@ -480,7 +480,7 @@ Views.home = el => {
       <div class="hero-text">
         <span class="eyebrow">5~10세 · 엄마표 공부를 대신해요</span>
         <h1>엄마는 커피 한 잔,<br>아이는 <mark>혼자</mark> 공부 15분</h1>
-        <p>새싹스쿨은 영어와 수학을 아이 혼자 놀이처럼 하는 학교예요. 영어는 레벨 진단으로 매일 할 레슨이 정해지고, 수학은 생각 놀이로 생각하는 힘을 길러요. 부모님은 옆에 앉아 있지 않아도 돼요. 오늘 무엇을 할 수 있게 됐는지는 리포트로 받아요.</p>
+        <p>새싹스쿨은 영어와 수학을 아이 혼자 놀이처럼 하는 학교예요. 영어는 레벨 진단으로 매일 할 레슨이 정해지고, 수학은 퍼즐로 생각하는 힘을 길러요. 부모님은 옆에 앉아 있지 않아도 돼요. 오늘 무엇을 할 수 있게 됐는지는 리포트로 받아요.</p>
         <div class="row">
           <a class="btn btn-primary lg" href="#/sample/A">▶ 영어 3분 체험 (가입 없이)</a>
           <a class="btn btn-ghost lg" href="#/math">🧮 수학 생각 놀이 해 보기</a>
