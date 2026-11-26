@@ -75,7 +75,7 @@ const App = (() => {
     // 휴대폰에서는 부모페이지·로그아웃을 메뉴 줄 끝으로 옮긴다 (윗줄이 넘치지 않게)
     document.getElementById('nav').innerHTML = NAV.map(([h, t]) => `<a href="#${h}" class="${navOf(path) === h ? 'on' : ''}">${t.replace(/^(\S+) /, (m, e) => ico(e) + ' ')}</a>`).join('')
       // 휴대폰(.sm-only): 윗줄에서 뺀 별 상점·관리자·부모페이지·낮밤·로그인/로그아웃을 메뉴 안에 둔다
-      + (u ? `${p ? `<a href="#/shop" class="sm-only ${path.startsWith('/shop') ? 'on' : ''}">${ico('🛍️')} 별 상점 ⭐${p.stars || 0}</a>` : ''}${Store.isAdmin() ? `<a href="#/admin" class="sm-only ${path.startsWith('/admin') ? 'on' : ''}">${ico('🛠️')} 관리자</a>` : ''}<a href="#/parent" class="sm-only ${path.startsWith('/parent') ? 'on' : ''}">👪 부모페이지</a>`
+      + (u ? `${p ? `<a href="#/shop" class="sm-only ${path.startsWith('/shop') ? 'on' : ''}">${ico('🛍️')} 별 상점 ⭐${p.stars || 0}</a>` : ''}${Store.isAdmin() ? `<a href="#/admin" class="sm-only ${path.startsWith('/admin') ? 'on' : ''}">${ico('🛠️')} 관리자</a>` : ''}<a href="#/parent" class="sm-only ${path.startsWith('/parent') ? 'on' : ''}">${ico('👪')} 부모페이지</a>`
         : `<a href="#/login" class="sm-only">${ico('🔑')} 로그인</a>`)
       + `<button class="sm-only js-theme" type="button">${document.documentElement.dataset.theme === 'dark' ? '🌞 낮 모드' : '🌙 밤 모드'}</button>`
       + (u ? '<button class="sm-only js-logout" type="button">↪ 로그아웃</button>' : '');
@@ -171,9 +171,9 @@ const App = (() => {
     const next = STAGES[f.n];
     const got = done ? `<div class="upsell-got"><b>🌱 ${name}가 지금까지 해낸 것</b><p>${f.name} <b>${done}레슨</b> 완료 · ${free.map(s => s.skills.join(' · ')).join(' · ')}</p></div>` : '';
     const nextBox = `<div class="upsell-next" style="--c:${next.color}"><b>➡️ 다음은 ${next.id}단계 '${next.title}'</b><p>${next.desc}</p></div>`;
-    const perks = `<ul class="perks"><li>📚 ${f.plus} ${f.plusWhat} <b>${f.plusLessons}레슨</b></li><li>📖 스토리북 ${STORIES.length - f.books}권 더 (모두 ${STORIES.length}권)</li><li>🔁 망각 곡선 복습 · 📊 영역별 분석 · 🎓 수료증</li></ul>`;
+    const perks = `<ul class="perks"><li>${ico('📚')} ${f.plus} ${f.plusWhat} <b>${f.plusLessons}레슨</b></li><li>${ico('📖')} 스토리북 ${STORIES.length - f.books}권 더 (모두 ${STORIES.length}권)</li><li>${ico('🔁')} 망각 곡선 복습 · ${ico('📊')} 영역별 분석 · ${ico('🎓')} 수료증</li></ul>`;
     if (a.kind === 'free' && a.trialReady) {
-      const m = modal(`<div class="upsell"><div class="auth-logo">🎁</div><h2>${f.plusFrom}부터는 플러스예요</h2>${got}${nextBox}
+      const m = modal(`<div class="upsell"><div class="auth-logo">${ico('🎁')}</div><h2>${f.plusFrom}부터는 플러스예요</h2>${got}${nextBox}
         <p>지금 <b>7일 무료 체험</b>을 시작하면 8단계까지 모든 단계와 스토리북을 써 볼 수 있어요. 카드 등록도 자동결제도 없고, 체험은 한 번만 시작할 수 있어요.</p>${perks}
         <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><button class="btn btn-primary" data-trial>🎁 7일 무료 체험 시작</button></div></div>`);
       const b = m.el.querySelector('[data-trial]');

@@ -484,8 +484,8 @@ Views.home = el => {
   <section class="wrap subject-pick" aria-label="과목 고르기">
     <h2 class="sec-title">어떤 과목을 할까요?</h2>
     <div class="subject-grid">
-      <a class="subject-card" href="${u ? '#/study' : '#/sample/A'}" style="--c:#7ed957"><span>🔤</span><b>새싹영어</b><small>알파벳·파닉스부터 문장 말하기까지 · 스토리북 ${STORIES.length}권</small><em>영어 시작하기 →</em></a>
-      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>🧮</span><b>새싹수학 <i class="chip">시험 중</i></b><small>수 세기·모양·규칙·머리셈·마방진·스도쿠</small><em>수학 퍼즐 하러 가기 →</em></a>
+      <a class="subject-card" href="${u ? '#/study' : '#/sample/A'}" style="--c:#7ed957"><span>${ico('🔤')}</span><b>새싹영어</b><small>알파벳·파닉스부터 문장 말하기까지 · 스토리북 ${STORIES.length}권</small><em>영어 시작하기 →</em></a>
+      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>${ico('🧮')}</span><b>새싹수학 <i class="chip">시험 중</i></b><small>수 세기·모양·규칙·머리셈·마방진·스도쿠</small><em>수학 퍼즐 하러 가기 →</em></a>
     </div>
   </section>
 
@@ -496,7 +496,7 @@ Views.home = el => {
          ['🤷', '집에서 뭘 어떻게 가르쳐야 할지 모르겠어요', '🗺️', '레벨 진단 후 매일 할 레슨이 정해져요. 버튼 하나만 누르면 돼요'],
          ['🗣️', '읽기는 해도 입 밖으로 말을 못 해요', '🎤', '말하면 단어마다 발음을 짚어주고 칭찬해줘요'],
          ['⏰', '바빠서 옆에서 봐줄 시간이 없어요', '📊', '아이 혼자 끝까지 하고, 결과는 부모님 리포트로 받아요']]
-        .map(([a, q, b, ans]) => `<div class="worry card"><p class="w-q"><span>${a}</span>${q}</p><p class="w-a"><span>${b}</span>${ans}</p></div>`).join('')}
+        .map(([a, q, b, ans]) => `<div class="worry card"><p class="w-q"><span>${ico(a)}</span>${q}</p><p class="w-a"><span>${ico(b)}</span>${ans}</p></div>`).join('')}
     </div>
   </section>
 

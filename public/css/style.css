@@ -1642,3 +1642,13 @@ a.shop-ava { display: block; }
 .subject-card small { color: var(--muted); font-size: .95rem; }
 .subject-card em { font-style: normal; font-weight: 700; color: var(--ink); }
 @media (max-width: 600px) { .subject-grid { grid-template-columns: 1fr; } }
+
+/* 새싹스쿨 그림 아이콘·수학 스티커 (2026-11-26) */
+.m-pic { width: 1em; height: 1em; object-fit: contain; vertical-align: middle; display: inline-block; }
+.m-ask .m-pic { width: 1.5em; height: 1.5em; vertical-align: -.35em; }
+.m-opts .m-pic { width: 2.6rem; height: 2.6rem; }
+.auth-logo img.ico { width: 1.3em; height: 1.3em; box-shadow: 0 3px 10px rgba(0,0,0,.12); }
+.subject-card span img.ico { width: 1.4em; height: 1.4em; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+.worry p span img.ico { width: 1.5em; height: 1.5em; vertical-align: middle; }
+.page-title img.ico { width: 1.3em; height: 1.3em; vertical-align: -.25em; }
+.m-seq .m-pic, .m-count .m-pic { width: 1.25em; height: 1.25em; }

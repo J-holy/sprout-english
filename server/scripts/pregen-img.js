@@ -739,6 +739,22 @@ const ICONS = {
   '🐸': 'a happy green frog on a lily pad', '💎': 'a shiny sky blue gem', '🔒': 'a small golden padlock', '🐟': 'a little blue fish next to a fishing hook', '⏱️': 'a red stopwatch', '🧺': 'a woven basket full of fruit',
   // 요금 화면 결제·환불 안내 (2026-11-26)
   '🧾': 'one white paper receipt with a big green check mark and one gold coin beside it', '↩️': 'one curved green arrow carrying a gold coin back into an open pink coin purse',
+  // 새싹스쿨 과목·메뉴 (2026-11-26)
+  '🧮': 'a small wooden abacus with rows of red, yellow, green and blue beads', '🔤': 'three stacked colorful wooden toy blocks with a red apple, a ball and a cat painted on them',
+  '👪': 'a happy mom, dad and small child holding hands', '🎁': 'a gift box wrapped in mint paper with a big red ribbon bow', '📊': 'a little board with three colorful bars growing taller and a gold star on top',
+  '🏆': 'a shiny golden trophy cup with a little green sprout on it', '🎉': 'a party popper bursting with colorful confetti and streamers', '🗺️': 'a folded island treasure map with a red dotted path',
+  '⏰': 'a round red alarm clock with two bells on top', '🗣️': 'a smiling child talking with a big round empty speech bubble', '😩': 'a grumpy little child turning away with arms crossed',
+  '🤷': 'a puzzled young mom shrugging with both hands open', '🎓': 'a black graduation cap with a gold tassel', '💳': 'one mint green plastic payment card with a small gold chip, alone on a plain cream background, no scenery',
+  // 새싹수학 놀이 (math-*: 이모지가 아닌 이름 열쇠)
+  'math-count': 'three shiny red apples side by side on a plain cream background, nothing else', 'math-shape': 'a red paper triangle, a blue paper square and a yellow paper circle together',
+  'math-pattern': 'a string of round wooden beads in a repeating pattern of red, blue, red, blue', 'math-mental': 'a glowing yellow light bulb with a small plus sign and a small minus sign beside it',
+  'math-magic': 'a square board of nine colorful tiles in three rows with golden sparkles', 'math-sudoku': 'a square puzzle board of sixteen pastel tiles in four rows with a few tiles lifted up',
+};
+// 새싹수학 그림 스티커: 세기·규칙 문제에 쓰는 흰 배경을 지운 PNG (열쇠는 'm'+이모지)
+const MATH_ART = {
+  '🍎': 'one red apple with a green leaf', '🐥': 'a cute round yellow baby chick', '⭐': 'one plump yellow star', '🌸': 'one pink five-petal flower', '🚗': 'a small red toy car seen from the side',
+  '🎈': 'one red balloon on a short string', '🐟': 'a small blue fish', '🍓': 'one red strawberry with green leaves', '🐶': 'a cute small light brown puppy sitting', '⚽': 'a black and white soccer ball',
+  '🍌': 'one yellow banana', '🍇': 'a bunch of purple grapes', '🌙': 'one yellow crescent moon', '❤️': 'one red heart', '🐱': 'a cute small orange cat sitting',
 };
 if (only !== 's' && !book) for (const [e, label] of Object.entries(ICONS)) {
   const prompt = `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;
@@ -776,6 +792,10 @@ if (only !== 's' && !book) {
   for (const [e, [label, hole]] of Object.entries(ACC_ART)) {
     const prompt = `${STYLE}. A drawing of ${label}, alone in the center, filling most of the picture, on a plain pure white background, no shadow, no ground, nothing else.`;
     jobs.push({ kind: 'x', key: e, label, prompt, cut: hole ? 'hole' : 'edge', file: `x/${hash('acc' + e).slice(0, 12)}.png` });
+  }
+  for (const [e, label] of Object.entries(MATH_ART)) {
+    const prompt = `${STYLE}. A drawing of ${label}, alone in the center, filling most of the picture, on a plain pure white background, no shadow, no ground, nothing else.`;
+    jobs.push({ kind: 'x', key: 'm' + e, label, prompt, cut: 'edge', file: `x/${hash('math' + e).slice(0, 12)}.png` });
   }
 }
 // 숫자 0~10: 이모지 대신 수채화로 그린 커다란 숫자. STYLE의 'no numbers'를 빼고 숫자 하나만 그리게 한다

@@ -9,11 +9,14 @@ const MATH_GAMES = {
   magic: { icon: '✨', title: '마방진', age: '7~8세', c: '#f06292', hub: '가로·세로·대각선 합이 모두 15' },
   sudoku: { icon: '🔢', title: '4×4 스도쿠', age: '7~8세', c: '#aed581', hub: '줄마다 1·2·3·4가 한 번씩' },
 };
+// 새싹스쿨 그림: 놀이 아이콘(PICS.i['math-…'])과 세기·규칙 스티커(PICS.x['m'+이모지]). 그림이 없으면 이모지
+const mIco = k => PICS.i['math-' + k] ? `<img class="ico" src="img/${PICS.i['math-' + k]}" alt="" draggable="false">` : MATH_GAMES[k].icon;
+const mPic = e => PICS.x['m' + e] ? `<img class="m-pic" src="img/${PICS.x['m' + e]}" alt="" draggable="false">` : e;
 const MathGen = (() => {
   const R = n => Math.floor(Math.random() * n);
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = R(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const nearby = (ans, lo, hi, n = 3) => { const s = new Set([ans]); let k = 0; while (s.size < n && k++ < 50) { const v = ans + (R(5) - 2) || ans + 3; if (v >= lo && v <= hi) s.add(v); } for (let v = lo; s.size < n; v++) s.add(v); return shuffle([...s]); };
-  const THINGS = ['🍎', '🐥', '⭐', '🌸', '🚗', '🎈', '🐟', '🍓', '🐶', '⚽'];
+  const THINGS = [['🍎', '사과는'], ['🐥', '병아리는'], ['⭐', '별은'], ['🌸', '꽃은'], ['🚗', '자동차는'], ['🎈', '풍선은'], ['🐟', '물고기는'], ['🍓', '딸기는'], ['🐶', '강아지는'], ['⚽', '공은']];
   const SHAPES = {
     tri: ['세모', '<polygon points="50,8 94,90 6,90"/>'],
     sq: ['네모', '<rect x="12" y="12" width="76" height="76" rx="4"/>'],
@@ -22,17 +25,17 @@ const MathGen = (() => {
   const COLORS = ['#ff8a65', '#4db6ac', '#9575cd', '#64b5f6', '#f06292', '#ffd54f'];
   const svg = (k, col, rot = 0) => `<svg viewBox="0 0 100 100" class="m-shape" aria-label="${SHAPES[k][0]}"><g fill="${col}" stroke="#3a2d4f" stroke-width="5" transform="rotate(${rot} 50 50)">${SHAPES[k][1]}</g></svg>`;
   const gen = {
-    count() { const n = 1 + R(10), e = THINGS[R(THINGS.length)]; return { ask: `${e}는 몇 개일까요?`, show: `<div class="m-count">${Array(n).fill(`<span>${e}</span>`).join('')}</div>`, opts: nearby(n, 1, 10), ans: n }; },
+    count() { const n = 1 + R(10), [e, name] = THINGS[R(THINGS.length)]; return { ask: `${mPic(e)} ${name} 몇 개일까요?`, show: `<div class="m-count">${Array(n).fill(`<span>${mPic(e)}</span>`).join('')}</div>`, opts: nearby(n, 1, 10), ans: n }; },
     shape() {
       const keys = Object.keys(SHAPES), want = keys[R(3)], cols = shuffle(COLORS);
       const opts = shuffle(keys).map((k, i) => ({ k, html: svg(k, cols[i], k === 'tri' ? [0, 15, -15][R(3)] : R(30)) }));
       return { ask: `${SHAPES[want][0]}를 골라요`, show: '', opts: opts.map(o => o.k), labels: Object.fromEntries(opts.map(o => [o.k, o.html])), ans: want };
     },
     pattern() {
-      const unit = [['A', 'B'], ['A', 'A', 'B'], ['A', 'B', 'C'], ['A', 'B', 'B']][R(4)], pool = shuffle(['🍎', '🍌', '🍇', '⭐', '🌙', '❤️', '🐶', '🐱', '🔺', '🔵']);
+      const unit = [['A', 'B'], ['A', 'A', 'B'], ['A', 'B', 'C'], ['A', 'B', 'B']][R(4)], pool = shuffle(['🍎', '🍌', '🍇', '⭐', '🌙', '❤️', '🐶', '🐱', '🍓', '🐥']);
       const map = { A: pool[0], B: pool[1], C: pool[2] }, seq = Array.from({ length: unit.length * 2 + 2 }, (_, i) => map[unit[i % unit.length]]);
-      const hide = seq.length - 1, ans = seq[hide];
-      return { ask: '빈칸에 올 것을 골라요', show: `<div class="m-seq">${seq.map((x, i) => i === hide ? '<b class="m-q">?</b>' : `<span>${x}</span>`).join('')}</div>`, opts: shuffle([ans, ...[...new Set([map.A, map.B, map.C || pool[3], pool[4]])].filter(v => v !== ans).slice(0, 2)]), ans };
+      const hide = seq.length - 1, ans = seq[hide]; let o;
+      return { ask: '빈칸에 올 것을 골라요', show: `<div class="m-seq">${seq.map((x, i) => i === hide ? '<b class="m-q">?</b>' : `<span>${mPic(x)}</span>`).join('')}</div>`, opts: o = shuffle([ans, ...[...new Set([map.A, map.B, map.C || pool[3], pool[4]])].filter(v => v !== ans).slice(0, 2)]), labels: Object.fromEntries(o.map(v => [v, mPic(v)])), ans };
     },
     mental() {
       const add = R(2) === 0; let a, b, ans;
@@ -60,20 +63,20 @@ Views.math = (el, game) => {
   const reward = () => { if (!p) return 0; const got = Store.addStars(1, 'math', 5); if (got) App.refreshHeader(); return got; };
   if (!game || !MATH_GAMES[game]) {
     el.innerHTML = `<div class="wrap sec">
-      <h1 class="page-title">🧮 새싹수학 <small class="chip">시험 중</small></h1>
+      <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
       ${UI.mascot('수학 퍼즐로 머리를 말랑말랑하게! 한 판에 5문제, 다 맞히면 별을 줄게 (하루 5개까지)')}
       ${[['5~6세', '수와 모양 놀이'], ['7~8세', '셈과 퍼즐']].map(([age, t]) => `<h2 class="sec-sub">${age} <small>${t}</small></h2>
-        <div class="game-grid">${Object.entries(MATH_GAMES).filter(([, d]) => d.age === age).map(([k, d]) => `<a class="game-card" href="#/math/${k}" style="--c:${d.c}"><span>${d.icon}</span><b>${d.title}</b><small>${d.hub}</small></a>`).join('')}</div>`).join('')}
+        <div class="game-grid">${Object.entries(MATH_GAMES).filter(([, d]) => d.age === age).map(([k, d]) => `<a class="game-card" href="#/math/${k}" style="--c:${d.c}"><span>${mIco(k)}</span><b>${d.title}</b><small>${d.hub}</small></a>`).join('')}</div>`).join('')}
       <p class="fine">새싹수학은 시험 중이에요. 문제는 할 때마다 새로 만들어져요.</p></div>`;
     return;
   }
   const d = MATH_GAMES[game];
-  el.innerHTML = `<div class="wrap sec narrow"><a class="link-btn" href="#/math">← 새싹수학</a><h1 class="page-title">${d.icon} ${d.title}</h1><div class="card m-area"></div></div>`;
+  el.innerHTML = `<div class="wrap sec narrow"><a class="link-btn" href="#/math">← 새싹수학</a><h1 class="page-title">${mIco(game)} ${d.title}</h1><div class="card m-area"></div></div>`;
   const area = $('.m-area', el);
   const done = (ok, total) => {
     const all = ok === total, got = all ? reward() : 0;
     if (all) { Speech.sfx.cheer(); Lesson.confetti(); }
-    area.innerHTML = `<div class="center m-done"><div class="auth-logo">${all ? '🏆' : '🌱'}</div><h2>${MathGen.gen[game] ? `${ok} / ${total} 맞혔어요!` : '퍼즐 완성! 🎉'}</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && p ? '<p class="fine">오늘 수학 별은 다 받았어요</p>' : ''}
+    area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico(all ? '🏆' : '🌱')}</div><h2>${MathGen.gen[game] ? `${ok} / ${total} 맞혔어요!` : '퍼즐 완성! 🎉'}</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && p ? '<p class="fine">오늘 수학 별은 다 받았어요</p>' : ''}
       <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 놀이</a><button class="btn btn-primary" data-again>한 판 더</button></div></div>`;
     $('[data-again]', area).onclick = () => Views.math(el, game);
   };
