@@ -745,6 +745,13 @@ const ICONS = {
   '🏆': 'a shiny golden trophy cup with a little green sprout on it', '🎉': 'a party popper bursting with colorful confetti and streamers', '🗺️': 'a folded island treasure map with a red dotted path',
   '⏰': 'a round red alarm clock with two bells on top', '🗣️': 'a smiling child talking with a big round empty speech bubble', '😩': 'a grumpy little child turning away with arms crossed',
   '🤷': 'a puzzled young mom shrugging with both hands open', '🎓': 'a black graduation cap with a gold tassel', '💳': 'one mint green plastic payment card with a small gold chip, alone on a plain cream background, no scenery',
+  // 문장·버튼 속 자주 보이는 이모지 (2026-11-26, app.js autoIco가 글자 대신 그림으로 바꾼다)
+  '⭐': 'one plump shiny yellow star', '✅': 'a round green badge with a white check mark, alone on a plain cream background, no scenery', '🔊': 'a small sky blue loudspeaker horn, the wide round opening facing right, with three curved sound wave lines, alone on a plain cream background, no scenery',
+  '🌟': 'a glowing golden star with little sparkles around it', '🎙️': 'a classic silver microphone with a mesh grill head and a short black handle, alone on a plain cream background, no scenery', '🏅': 'a flat round shiny gold medal disc with a green sprout engraved on it, hanging from a blue V-shaped neck ribbon, alone on a plain cream background, no scenery, not a cup',
+  '👏': 'two small child hands clapping, seen from the side, palms meeting, with little motion lines, alone on a plain cream background, no scenery', '✨': 'three yellow four-pointed sparkles', '🎯': 'a red and white round target with one arrow in the center',
+  '🔥': 'one cute round orange flame', '💌': 'a white envelope with a red heart seal, alone on a plain cream background, no scenery', '🎟️': 'one pink paper ticket with a dotted tear line',
+  '⏳': 'a small wooden hourglass with golden sand, alone on a plain cream background, no scenery', '🤔': 'a little child thinking with one finger on the chin', '👆': 'a small open child hand with the index finger pointing up and the thumb sticking out, all other fingers folded, seen from the palm side, alone on a plain cream background, no scenery',
+  '👋': 'a small child hand waving hello',
   // 새싹수학 놀이 (math-*: 이모지가 아닌 이름 열쇠)
   'math-count': 'three shiny red apples side by side on a plain cream background, nothing else', 'math-shape': 'a red paper triangle, a blue paper square and a yellow paper circle together',
   'math-pattern': 'a string of round wooden beads in a repeating pattern of red, blue, red, blue', 'math-mental': 'a glowing yellow light bulb with a small plus sign and a small minus sign beside it',

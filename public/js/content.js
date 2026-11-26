@@ -903,6 +903,44 @@ function setPics(m) {
 const pic = html => (PICS.re ? String(html).replace(PICS.re, e => `<img class="pic" src="img/${PICS.w[e]}" alt="" draggable="false">`) : html);
 // 메뉴·버튼 아이콘: 그린 그림이 있으면 그림, 없으면 이모지
 const ico = e => PICS.i[e] ? `<img class="ico" src="img/${PICS.i[e]}" alt="" draggable="false">` : e;
+// 글자 속 자주 보이는 이모지도 새싹스쿨 그림으로 (2026-11-26). 화면에 글자가 들어올 때마다 이 목록의 이모지만 바꾼다.
+// 레슨·놀이·미니룸·캐릭터처럼 이모지가 학습 내용이나 물건 자체인 곳, 입력칸·select 안은 건드리지 않는다.
+const AUTO_ICO = ['⭐', '✅', '🎉', '🔊', '🌟', '🎙️', '🏅', '✨', '🎯', '🔥', '💌', '🎟️', '⏳', '🤔', '👆', '👋', '🎁', '📊', '🎓', '🏆', '🌱', '📚', '📖', '🔁', '💎', '🔒', '🔑', '🔔', '🎤', '👪', '🧮', '🔤', '💬', '🙋', '🧪', '🛍️', '💰', '🏠', '🧾', '↩️', '🧭', '📒', '✏️', '🖨️', '🛠️', '⏱️', '🎈', '🃏'];
+const AUTO_ICO_SKIP = '.lesson, .gm-board, .gm-fx, .story-art, .game-area, .order-game, .mini-quiz, .mr-stage, .mr-tray, .mr-trybar, .avatar, .avatar-pick, .shop-ava, .try-ava, .si-emoji, .ava-body, .ava-mini, .reader, [data-noico], input, textarea, select, option, script, style, svg';
+const autoIco = (() => {
+  let re = null, map = null, obs = null;
+  const build = () => {
+    map = new Map(); const keys = [];
+    for (const e of AUTO_ICO) { const k = e.replace(/\uFE0F/g, ''); if (PICS.i[e] || PICS.i[k]) { map.set(k, PICS.i[e] || PICS.i[k]); keys.push(k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); } }
+    re = keys.length ? new RegExp(`(?:${keys.sort((a, b) => b.length - a.length).join('|')})\uFE0F?`, 'gu') : null;
+  };
+  const fix = t => {
+    const p = t.parentElement; if (!p || p.closest(AUTO_ICO_SKIP)) return;
+    const s = t.nodeValue; re.lastIndex = 0; if (!re.test(s)) return; re.lastIndex = 0;
+    const f = document.createDocumentFragment(); let last = 0, m;
+    while ((m = re.exec(s))) {
+      if (m.index > last) f.append(s.slice(last, m.index));
+      const img = document.createElement('img'); img.className = 'ico'; img.src = 'img/' + map.get(m[0].replace(/\uFE0F/g, '')); img.alt = m[0]; img.draggable = false;
+      f.append(img); last = m.index + m[0].length;
+    }
+    if (last < s.length) f.append(s.slice(last));
+    t.replaceWith(f);
+  };
+  const scan = n => {
+    if (!re || !n) return;
+    if (n.nodeType === 3) return fix(n);
+    if (n.nodeType !== 1 || n.closest(AUTO_ICO_SKIP)) return;
+    const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT), list = []; let t;
+    while ((t = w.nextNode())) list.push(t);
+    list.forEach(fix);
+  };
+  return root => {
+    build(); if (!re) return; scan(root);
+    if (obs) return;
+    obs = new MutationObserver(ms => { for (const m of ms) { if (m.type === 'characterData') scan(m.target); else m.addedNodes.forEach(scan); } });
+    obs.observe(root, { childList: true, subtree: true, characterData: true });
+  };
+})();
 // 책장 표지: 책마다 그린 표지, 없으면 이모지
 const bookCover = s => PICS.c[s.id] ? `<img src="img/${PICS.c[s.id]}" alt="" draggable="false">` : s.cover;
 // 캐릭터 얼굴: 그린 둥근 얼굴, 없으면 이모지 (헤더·캐릭터 고르기처럼 꾸미기 없이 작게 보일 때)
