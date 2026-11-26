@@ -1,9 +1,9 @@
 /* 새싹영어 — 라우터, 헤더, 공용 동작 */
 const App = (() => {
   const main = () => document.getElementById('app');
-  const NAV = [['/', '🏠 홈'], ['/study', '🔤 영어'], ['/math', '🧮 수학'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
+  const NAV = [['/', '🏠 홈'], ['/english', '🔤 영어'], ['/math', '🧮 수학'], ['/pricing', '💰 요금·할인'], ['/reviews', '💬 후기'], ['/help', '🙋 도움말']];
   // 하위 화면도 해당 메뉴를 켜준다
-  const navOf = path => /^\/(study|learn|lesson|sample|speak|stor|wrong|review|certificate|words|free|shop|play|worksheet|leveltest|profiles)/.test(path) ? '/study' : path;
+  const navOf = path => /^\/(english|study|learn|lesson|sample|speak|stor|wrong|review(?!s)|certificate|words|free|shop|play|worksheet|leveltest|profiles)/.test(path) ? '/english' : /^\/math/.test(path) ? '/math' : path;
   const next = () => encodeURIComponent(location.hash.slice(1));
 
   // 로그인 + 프로필 + 이용권이 필요한 화면 (관리자는 이용권 검사 통과)
@@ -20,6 +20,7 @@ const App = (() => {
 
   const routes = [
     [/^\/$/, el => Views.home(el)],
+    [/^\/english$/, el => Views.english(el)],
     [/^\/study$/, (el, m, q) => Views.study(el, q)],
     [/^\/curriculum$/, () => go('/study?view=all')],
     [/^\/reviews$/, el => Views.reviews(el)],

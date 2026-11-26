@@ -1674,3 +1674,30 @@ a.shop-ava { display: block; }
 .m-read { font-family: var(--title); font-size: 2rem; line-height: 1.5; margin: 10px auto 4px; color: var(--grape, #7e57c2); }
 .m-say { margin: 6px 0 10px; }
 .m-trace { width: min(100%, 360px); height: auto; aspect-ratio: 360 / 260; touch-action: none; }
+/* 홈: 새싹스쿨 교육과정·공부 방법·맛보기 탭 (2026-11-26) */
+.curri { display: grid; gap: 10px; max-width: 920px; margin: 14px auto 18px; }
+.curri-head, .curri-row { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 10px; align-items: stretch; }
+.curri-head b { text-align: center; font-family: var(--title); font-weight: 400; font-size: 1.2rem; }
+.curri-row { background: var(--paper); border: 3px solid var(--line); border-radius: 18px; padding: 10px; }
+.curri-age { display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--soft); border-radius: 12px; }
+.curri-age b { font-family: var(--title); font-weight: 400; font-size: 1.3rem; } .curri-age small { color: var(--muted, #8a8196); }
+.curri-row p { margin: 0; padding: 8px 10px; line-height: 1.6; }
+.curri-tag { display: none; font-style: normal; font-weight: 700; margin-right: 6px; }
+@media (max-width: 640px) {
+  .curri-head { display: none; }
+  .curri-row { grid-template-columns: 1fr; }
+  .curri-age { flex-direction: row; gap: 8px; padding: 6px; }
+  .curri-tag { display: inline; }
+}
+.flow4 { list-style: none; padding: 0; margin: 14px auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 980px; }
+.flow4 li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 16px 12px; position: relative; }
+.flow4 .g-n { position: absolute; top: 8px; left: 10px; }
+.flow4 .f-e img.ico { width: 3rem; height: 3rem; } .flow4 b { font-family: var(--title); font-weight: 400; font-size: 1.3rem; } .flow4 small { color: var(--muted, #8a8196); }
+@media (max-width: 760px) { .flow4 { grid-template-columns: repeat(2, 1fr); } }
+.mini-wrap { display: flex; flex-direction: column; gap: 8px; }
+.mini-tabs { display: flex; gap: 6px; justify-content: center; }
+.mini-tabs button { border: 3px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+.mini-tabs button.on { background: var(--sun, #ffd23f); }
+.mq-num { font: 700 2rem var(--en); }
+.mini-quiz .m-count { font-size: 1.8rem; gap: 6px; margin: 6px auto; } .mini-quiz .mq-q .m-pic { width: 1.4em; height: 1.4em; vertical-align: -.35em; }
+.en-intro .row { margin: 10px 0; }

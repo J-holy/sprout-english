@@ -475,42 +475,51 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 영어 3분 체험 (가입 없이)</a>
           <a class="btn btn-ghost lg" href="#/math">🧮 수학 퍼즐 해 보기</a>
         </div>
-        <ul class="trust"><li>✅ 영어 ${FREE().name}은 평생 무료</li><li>✅ 수학 퍼즐은 시험 기간 동안 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li><li>✅ 영어 스토리북 ${STORIES.length}권을 또박또박 읽어줘요</li></ul>
+        <ul class="trust"><li>✅ 영어 ${FREE().name}은 평생 무료</li><li>✅ 수학 퍼즐은 시험 기간 동안 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
       </div>
-      <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div>
+      <div class="mini-wrap"><div class="mini-tabs" role="tablist"><button class="on" data-mt="en">${ico('🔤')} 영어 맛보기</button><button data-mt="math">${ico('🧮')} 수학 맛보기</button></div>
+        <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div></div>
     </div>
   </section>
 
   <section class="wrap subject-pick" aria-label="과목 고르기">
     <h2 class="sec-title">어떤 과목을 할까요?</h2>
     <div class="subject-grid">
-      <a class="subject-card" href="${u ? '#/study' : '#/sample/A'}" style="--c:#7ed957"><span>${ico('🔤')}</span><b>새싹영어</b><small>알파벳·파닉스부터 문장 말하기까지 · 스토리북 ${STORIES.length}권</small><em>영어 시작하기 →</em></a>
-      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>${ico('🧮')}</span><b>새싹수학 <i class="chip">시험 중</i></b><small>수 세기·모양·규칙·머리셈·마방진·스도쿠</small><em>수학 퍼즐 하러 가기 →</em></a>
+      <a class="subject-card" href="#/english" style="--c:#7ed957"><span>${ico('🔤')}</span><b>새싹영어</b><small>알파벳·파닉스부터 문장 말하기까지 · 스토리북 ${STORIES.length}권</small><em>새싹영어 보러 가기 →</em></a>
+      <a class="subject-card" href="#/math" style="--c:#64b5f6"><span>${ico('🧮')}</span><b>새싹수학 <i class="chip">시험 중</i></b><small>개념 배우고 따라 읽고 쓰기 · 수 세기부터 마방진·스도쿠까지</small><em>새싹수학 보러 가기 →</em></a>
     </div>
+  </section>
+
+  <section class="band"><div class="wrap sec">
+    <h2 class="sec-title">새싹스쿨 교육과정</h2>
+    <p class="sec-desc">나이에 맞춰 영어와 수학을 함께 키워요. 아이마다 레벨 진단으로 출발점이 정해져요.</p>
+    <div class="curri">
+      <div class="curri-head"><span></span><b>${ico('🔤')} 새싹영어</b><b>${ico('🧮')} 새싹수학</b></div>
+      ${[['5~6세', '첫걸음', '알파벳 소리 · 파닉스로 단어 읽기', '수 세기 · 세모·네모·동그라미 · 같은 것끼리 · 규칙'],
+         ['7~8세', '쑥쑥', '문장 듣고 말하기 · 묻고 대답하기 · 스토리북', '더하기 · 빼기 · 마방진 · 스도쿠'],
+         ['9~10세', '튼튼', '어제 한 일·내 꿈 말하기 (과거·미래) · 긴 이야기 읽기', '분수 · 곱셈 · 도형과 규칙 (준비 중)']]
+        .map(([age, t, en, ma]) => `<div class="curri-row"><span class="curri-age"><b>${age}</b><small>${t}</small></span><p><i class="curri-tag">${ico('🔤')} 영어</i>${en}</p><p><i class="curri-tag">${ico('🧮')} 수학</i>${ma}</p></div>`).join('')}
+    </div>
+    <div class="row-center"><a class="btn btn-ghost" href="#/english">${ico('🔤')} 새싹영어 자세히</a><a class="btn btn-ghost" href="#/math">${ico('🧮')} 새싹수학 자세히</a></div>
+  </div></section>
+
+  <section class="wrap sec">
+    <h2 class="sec-title">하루 15분, 이렇게 공부해요</h2>
+    <ol class="flow4">
+      ${[['📖', '배우기', '그림과 소리로 새 내용을 만나요'], ['🗣️', '따라 하기', '듣고 따라 말하고, 읽고, 써 봐요'], ['🎯', '확인하기', '문제와 놀이로 스스로 확인해요'], ['📊', '복습·리포트', '틀린 것은 다시 나오고, 부모님은 리포트로 봐요']]
+        .map(([e, t, d], k) => `<li class="card"><span class="g-n">${k + 1}</span><span class="f-e">${ico(e)}</span><b>${t}</b><small>${d}</small></li>`).join('')}
+    </ol>
   </section>
 
   <section class="wrap sec">
     <h2 class="sec-title">이런 고민, 있으셨죠?</h2>
     <div class="worry-grid">
-      ${[['😩', '영어만 하자고 하면 도망가요', '🎈', '게임·스티커·별 모으기로 아이가 먼저 하자고 해요'],
-         ['🤷', '집에서 뭘 어떻게 가르쳐야 할지 모르겠어요', '🗺️', '레벨 진단 후 매일 할 레슨이 정해져요. 버튼 하나만 누르면 돼요'],
-         ['🗣️', '읽기는 해도 입 밖으로 말을 못 해요', '🎤', '말하면 단어마다 발음을 짚어주고 칭찬해줘요'],
+      ${[['😩', '공부하자고 하면 도망가요', '🎈', '게임·스티커·별 모으기로 아이가 먼저 하자고 해요'],
+         ['🤷', '집에서 뭘 어떻게 가르쳐야 할지 모르겠어요', '🗺️', '나이와 레벨에 맞춰 매일 할 것이 정해져요. 버튼 하나만 누르면 돼요'],
          ['⏰', '바빠서 옆에서 봐줄 시간이 없어요', '📊', '아이 혼자 끝까지 하고, 결과는 부모님 리포트로 받아요']]
         .map(([a, q, b, ans]) => `<div class="worry card"><p class="w-q"><span>${ico(a)}</span>${q}</p><p class="w-a"><span>${ico(b)}</span>${ans}</p></div>`).join('')}
     </div>
   </section>
-
-  <section class="band"><div class="wrap sec">
-    <h2 class="sec-title">꾸준히 하면 이렇게 자라요</h2>
-    <p class="sec-desc">눌러서 아이가 하게 될 말을 들어보세요.</p>
-    <ol class="grow">
-      ${[['🔤', '알파벳 소리', '대소문자와 첫소리를 알아요', 'A is for apple.'], ['🐱', '단어 읽기', '파닉스로 처음 보는 단어도 읽어요', 'c, a, t. cat!'],
-         ['💬', '문장 말하기', '묻고 대답하며 대화해요', 'My name is Mia. I am seven.'], ['📖', '내 이야기', '어제 한 일, 내 꿈을 영어로 말해요', 'Yesterday I went to the park. I will be a doctor.']]
-        .map(([e, t, d, say], k) => `<li><button class="grow-step" data-say="${esc(say)}"><span class="g-n">${k + 1}</span><span class="g-e">${e}</span><b>${t}</b><small>${d}</small><em>🔊 “${esc(say)}”</em></button></li>`).join('')}
-    </ol>
-    <p class="center fine">8단계 26레벨 · 레슨 ${TOTAL_LESSONS}개 · 하루 1레슨(주 5일)이면 ${durationText(studyWeeks(TOTAL_LESSONS))}, 하루 2레슨이면 ${durationText(studyWeeks(TOTAL_LESSONS, 2))} 과정</p>
-    <div class="center"><a class="btn btn-ghost" href="#/study">📚 학습 내용 자세히 보기</a></div>
-  </div></section>
 
   <section class="wrap sec two-col">
     <div>
@@ -532,13 +541,6 @@ Views.home = el => {
     </div>
   </section>
 
-  <section class="band"><div class="wrap sec two-col">
-    <div class="card speak-demo" id="speakDemo"></div>
-    <div>${UI.mascot('마이크 버튼을 누르고 따라 말해봐! 단어마다 초록·노랑·빨강으로 알려줄게.', '🌱')}
-      <h3 class="sec-sub">AI 발음 코치, 지금 해보세요</h3>
-      <p class="sec-desc left">아이 목소리에 맞춰 너그럽게 채점해서 자신감부터 키워요.</p></div>
-  </div></section>
-
   <section class="wrap sec two-col">
     <div>
       <h2 class="sec-title left">부모님들의 ‘매우 좋아요’ 후기</h2>
@@ -558,13 +560,86 @@ Views.home = el => {
     <div class="card cta-card">
       <div class="cta-emoji" aria-hidden="true">🌱🐰🎈</div>
       <h2>오늘 저녁 15분, 아이와 함께 시작해보세요</h2>
-      <p>${FREE().name}은 평생 무료예요. 다음 단계는 7일 동안 무료로 체험할 수 있고, 자동으로 결제되지 않아요.</p>
+      <p>영어 ${FREE().name}은 평생 무료, 수학은 시험 기간 동안 무료예요. 영어 다음 단계는 7일 동안 무료로 체험할 수 있고, 자동으로 결제되지 않아요.</p>
       <div class="row-center"><a class="btn btn-primary lg" href="${cta}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a><a class="btn btn-ghost lg" href="#/pricing">💰 요금·할인 보기</a></div>
     </div>
   </section>`;
 
-  $$('[data-say]', el).forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
   UI.miniQuiz($('#miniQuiz', el));
+  $$('[data-mt]', el).forEach(t => t.onclick = () => {
+    $$('[data-mt]', el).forEach(x => x.classList.toggle('on', x === t));
+    (t.dataset.mt === 'math' ? UI.miniMath : UI.miniQuiz)($('#miniQuiz', el));
+  });
+};
+
+// 홈 히어로 수학 맛보기: 그림 세기 3문제 (새싹수학 MathGen)
+UI.miniMath = box => {
+  let n = 0, right = 0;
+  const draw = () => {
+    if (!document.body.contains(box)) return;
+    if (n >= 3) {
+      box.innerHTML = `<span class="sticker-label">수학 맛보기</span><div class="mq-done anim-in"><div class="mq-big">${right === 3 ? '🏆' : '🌟'}</div>
+        <h3>${right}개 맞혔어요!</h3><p>개념을 배우고, 따라 읽고, 따라 써 본 다음 문제로 확인해요.</p>
+        <a class="btn btn-primary full" href="#/math">🧮 새싹수학 하러 가기</a><button class="link-btn" data-again>다시 풀기</button></div>`;
+      $('[data-again]', box).onclick = () => { n = 0; right = 0; draw(); };
+      if (right >= 2) Lesson.confetti();
+      return;
+    }
+    const q = MathGen.gen.count(1, 6);
+    box.innerHTML = `<span class="sticker-label">수학 맛보기 ${n + 1}/3</span><p class="mq-q">${q.ask}</p>${q.show}
+      <div class="mq-opts">${q.opts.map(o => `<button class="mq-opt mq-num" data-v="${o}">${o}</button>`).join('')}</div><p class="mq-fb" aria-live="polite"></p>`;
+    $$('.mq-opt', box).forEach(b => b.onclick = () => {
+      const ok = +b.dataset.v === q.ans;
+      $$('.mq-opt', box).forEach(x => { x.disabled = true; if (+x.dataset.v === q.ans) x.classList.add('right'); });
+      if (!ok) b.classList.add('wrong'); else right++;
+      ok ? Speech.sfx.correct() : Speech.sfx.wrong();
+      $('.mq-fb', box).textContent = ok ? '정답! 👏' : `아쉬워요! 정답은 ${q.ans}`;
+      setTimeout(() => { n++; draw(); }, 1300);
+    });
+  };
+  draw();
+};
+
+// 새싹영어 소개: 홈에서 옮겨 온 영어 자세한 설명 (자라는 단계, AI 발음 코치, 영어 고민)
+Views.english = el => {
+  const u = Store.user(), p = Store.profile();
+  const start = u ? (p ? '#/study' : '#/profiles') : '#/sample/A';
+  el.innerHTML = `
+  <section class="wrap sec en-intro">
+    <h1 class="page-title">${ico('🔤')} 새싹영어</h1>
+    <p class="sec-desc left">알파벳 소리부터 과거·미래 시제로 내 이야기를 말하기까지, 8단계 26레벨을 아이 혼자 놀이처럼 해요. 레벨 진단으로 출발점을 찾고, 매일 할 레슨이 정해져요.</p>
+    <div class="row"><a class="btn btn-primary lg" href="${start}">${u ? '📚 영어 학습하러 가기' : '▶ 3분 체험 (가입 없이)'}</a><a class="btn btn-ghost lg" href="#/leveltest">🧪 무료 레벨 진단</a>${u ? '' : '<a class="btn btn-ghost lg" href="#/study">📚 학습 내용 보기</a>'}</div>
+    <ul class="trust"><li>✅ ${FREE().name}(${FREE().range})은 평생 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 스토리북 ${STORIES.length}권을 또박또박 읽어줘요</li></ul>
+  </section>
+  <section class="band"><div class="wrap sec">
+    <h2 class="sec-title">꾸준히 하면 이렇게 자라요</h2>
+    <p class="sec-desc">눌러서 아이가 하게 될 말을 들어보세요.</p>
+    <ol class="grow">
+      ${[['🔤', '알파벳 소리', '대소문자와 첫소리를 알아요', 'A is for apple.'], ['🐱', '단어 읽기', '파닉스로 처음 보는 단어도 읽어요', 'c, a, t. cat!'],
+         ['💬', '문장 말하기', '묻고 대답하며 대화해요', 'My name is Mia. I am seven.'], ['📖', '내 이야기', '어제 한 일, 내 꿈을 영어로 말해요', 'Yesterday I went to the park. I will be a doctor.']]
+        .map(([e, t, d, say], k) => `<li><button class="grow-step" data-say="${esc(say)}"><span class="g-n">${k + 1}</span><span class="g-e">${e}</span><b>${t}</b><small>${d}</small><em>🔊 “${esc(say)}”</em></button></li>`).join('')}
+    </ol>
+    <p class="center fine">8단계 26레벨 · 레슨 ${TOTAL_LESSONS}개 · 하루 1레슨(주 5일)이면 ${durationText(studyWeeks(TOTAL_LESSONS))}, 하루 2레슨이면 ${durationText(studyWeeks(TOTAL_LESSONS, 2))} 과정</p>
+    <div class="center"><a class="btn btn-ghost" href="#/study">📚 학습 내용 자세히 보기</a></div>
+  </div></section>
+
+  <section class="band"><div class="wrap sec two-col">
+    <div class="card speak-demo" id="speakDemo"></div>
+    <div>${UI.mascot('마이크 버튼을 누르고 따라 말해봐! 단어마다 초록·노랑·빨강으로 알려줄게.', '🌱')}
+      <h3 class="sec-sub">AI 발음 코치, 지금 해보세요</h3>
+      <p class="sec-desc left">아이 목소리에 맞춰 너그럽게 채점해서 자신감부터 키워요.</p></div>
+  </div></section>
+
+  <section class="wrap sec">
+    <h2 class="sec-title">영어, 이런 고민 있으셨죠?</h2>
+    <div class="worry-grid">
+      ${[['🗣️', '읽기는 해도 입 밖으로 말을 못 해요', '🎤', '말하면 단어마다 발음을 짚어주고 칭찬해줘요'],
+         ['🤷', '엄마가 영어를 몰라서 봐줄 수가 없어요', '🔊', '모든 단어와 문장을 원어민 AI 목소리로 들려줘요'],
+         ['😩', '외워도 금방 잊어버려요', '🔁', '틀린 것과 오래된 것은 망각 곡선에 맞춰 다시 나와요']]
+        .map(([a, q, b, ans]) => `<div class="worry card"><p class="w-q"><span>${ico(a)}</span>${q}</p><p class="w-a"><span>${ico(b)}</span>${ans}</p></div>`).join('')}
+    </div>
+  </section>`;
+  $$('[data-say]', el).forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
   Views.speakWidget($('#speakDemo', el), ['I like apples.', 'This is a cat.', 'How are you?', 'I will be a doctor.'], false);
 };
 
