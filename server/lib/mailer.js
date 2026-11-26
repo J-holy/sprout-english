@@ -26,3 +26,9 @@ export async function sendCodeMail(to, code) {
       <p style="color:#666;font-size:13px">본인이 요청하지 않았다면 이 메일을 무시하세요.</p></div>`,
   });
 }
+
+// 일반 안내 메일 (주간 리포트 등). SMTP가 없으면 보내지 않는다
+export async function sendMailTo(to, subject, html) {
+  if (!transport) return;
+  await transport.sendMail({ from: m.from, to, subject, html, text: html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() });
+}

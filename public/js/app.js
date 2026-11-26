@@ -157,11 +157,28 @@ const App = (() => {
     if (r.grow) { Lesson.confetti(); toast(`🌳 새싹 나무가 '${r.grow.name}'(으)로 자랐어요!`); setTimeout(route, 1200); } else toast('💧 쑥쑥! 새싹 나무가 좋아해요 (+5점)');
   }
 
-  // 무료 사용자가 3단계 이상을 누르면: 플러스 안내
+  // 무료 사용자가 플러스 단계를 누르면: 아이가 무료 단계에서 해낸 것을 보여 주고, 체험을 아직 안 했으면 7일 체험을, 했으면 플러스를 권한다
   function upsell() {
-    const m = modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>3단계부터는 플러스예요</h2>
-      <p>1~2단계(알파벳·파닉스)는 지금처럼 <b>평생 무료</b>로 계속할 수 있어요.</p>
-      <ul class="perks"><li>📚 3~8단계 문장·대화·과거·미래 <b>210레슨</b></li><li>📖 스토리북 ${STORIES.length - FREE_BOOKS}권 더 (모두 ${STORIES.length}권)</li><li>🔁 망각 곡선 복습 · 📊 영역별 분석 · 🎓 수료증</li><li>💸 <b>월 ${won(lowestMonthly())}</b>부터${promoOn() ? ` (1년 특가, ${promoEndText()}까지)` : ''} · 하루 약 ${won(Math.round(lowestMonthly() / 30 / 10) * 10)}</li><li>🎟️ 첫 결제 ${Math.round(WELCOME_RATE * 100)}% 쿠폰 · 한 번만 결제, 자동결제 없음</li></ul>
+    const f = FREE(), a = Store.access(), p = Store.profile(), name = p ? esc(p.name) + (GEN.hasBatchim(p.name) ? '이' : '') : '아이';
+    const free = STAGES.slice(0, f.n), done = p ? free.flatMap(s => s.levels).reduce((n, lv) => n + Store.lessonsDone(lv), 0) : 0;
+    const next = STAGES[f.n];
+    const got = done ? `<div class="upsell-got"><b>🌱 ${name}가 지금까지 해낸 것</b><p>${f.name} <b>${done}레슨</b> 완료 · ${free.map(s => s.skills.join(' · ')).join(' · ')}</p></div>` : '';
+    const nextBox = `<div class="upsell-next" style="--c:${next.color}"><b>➡️ 다음은 ${next.id}단계 '${next.title}'</b><p>${next.desc}</p></div>`;
+    const perks = `<ul class="perks"><li>📚 ${f.plus} ${f.plusWhat} <b>${f.plusLessons}레슨</b></li><li>📖 스토리북 ${STORIES.length - f.books}권 더 (모두 ${STORIES.length}권)</li><li>🔁 망각 곡선 복습 · 📊 영역별 분석 · 🎓 수료증</li></ul>`;
+    if (a.kind === 'free' && a.trialReady) {
+      const m = modal(`<div class="upsell"><div class="auth-logo">🎁</div><h2>${f.plusFrom}부터는 플러스예요</h2>${got}${nextBox}
+        <p>지금 <b>7일 무료 체험</b>을 시작하면 8단계까지 모든 단계와 스토리북을 써 볼 수 있어요. 카드 등록도 자동결제도 없고, 체험은 한 번만 시작할 수 있어요.</p>${perks}
+        <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><button class="btn btn-primary" data-trial>🎁 7일 무료 체험 시작</button></div></div>`);
+      const b = m.el.querySelector('[data-trial]');
+      b.onclick = async () => {
+        b.disabled = true;
+        try { await Store.startTrial(); m.close(); Speech.sfx.cheer(); Lesson.confetti(); toast('🎁 7일 무료 체험이 시작됐어요! 다음 단계로 가 볼까요?'); refreshHeader(); route(); }
+        catch (e) { b.disabled = false; toast(e.message || '체험을 시작하지 못했어요. 잠시 후 다시 해 주세요.'); }
+      };
+      return m;
+    }
+    const m = modal(`<div class="upsell"><div class="auth-logo">💎</div><h2>${f.plusFrom}부터는 플러스예요</h2>${got}${nextBox}
+      <p>${f.range}(${f.name})는 지금처럼 <b>평생 무료</b>로 계속할 수 있어요.</p>${perks}
       <div class="row-center"><button class="btn btn-ghost" data-close>나중에</button><a class="btn btn-primary" href="#/pricing" data-close>💎 플러스 보기</a></div></div>`);
     return m;
   }
@@ -189,10 +206,12 @@ const App = (() => {
       <dt>총 결제 금액</dt><dd class="total">${won(q.total)}</dd>
       <dt>결제 방식</dt><dd>한 번만 결제 · 자동결제 없음 · 끝나기 3일 전 알림</dd></dl>
       ${methods.length ? methods.map(k => `<p class="fine">${PAY_NOTE[k]}</p>`).join('') : '<p class="fine">⚠️ 데모 결제예요. 실제 카드 결제는 일어나지 않아요.</p>'}
-      <p class="fine">한 번만 결제하는 이용권이에요. 이용 기간이 끝나도 자동으로 다시 결제되지 않고, 계속 이용하려면 이용권을 다시 구매하면 돼요. 결제 후 7일 이내이고 플러스 학습(3단계 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 결제 관련 문의·이의신청은 고객센터(010-5117-1247, support@saessakschool.co.kr)로 해 주세요. 자세한 내용은 <a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5·6조에 있어요.</p>
+      <p class="fine">한 번만 결제하는 이용권이에요. 이용 기간이 끝나도 자동으로 다시 결제되지 않고, 계속 이용하려면 이용권을 다시 구매하면 돼요. 결제 후 7일 이내이고 플러스 학습(${FREE().plusFrom} 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 결제 관련 문의·이의신청은 고객센터(010-5117-1247, support@saessakschool.co.kr)로 해 주세요. 자세한 내용은 <a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5·6조에 있어요.</p>
+      <label class="check pay-agree"><input type="checkbox" data-agree> (필수) 위 상품·결제·환불 안내를 확인했고, 결제 후 플러스 학습을 시작하면 청약철회(전액 환불)가 제한되는 것에 동의해요</label>
       <div class="row-center pay-buttons"><button class="btn btn-ghost" data-close>취소</button>${methods.length ? methods.map(k => PAY_BTN[k]).join('') : '<button class="btn btn-primary" data-ok="card">데모 결제하기</button>'}</div>`);
     const btns = [...m.el.querySelectorAll('[data-ok]')];
     btns.forEach(ok => ok.onclick = async () => {
+      if (!m.el.querySelector('[data-agree]').checked) return toast('결제 안내를 확인하고 동의에 체크해 주세요.');
       if (preparing) return toast('결제 연동을 준비하고 있어요. 곧 결제할 수 있어요.');
       const label = ok.textContent;
       btns.forEach(b => b.disabled = true); ok.textContent = '처리 중…';

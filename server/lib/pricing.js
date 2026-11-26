@@ -2,7 +2,10 @@
 import { db, now, json } from './db.js';
 import { config } from './env.js';
 
-// 화면(public/js/data.js)과 같은 값. 1~2단계는 평생 무료, 3단계부터 플러스.
+// 화면(public/js/data.js)과 같은 값. 무료 범위는 가입한 날로 정한다 (2026-11-26):
+//   FREE2_BEFORE 전에 가입한 회원은 1~2단계, 그 뒤 가입한 회원은 1단계만 평생 무료. 나머지는 플러스
+export const FREE2_BEFORE = Date.parse('2026-11-27T00:00:00+09:00');
+export const freeLevelsOf = createdAt => new Set(createdAt && createdAt < FREE2_BEFORE ? ['A', 'B', 'C', 'D', 'E'] : ['A', 'B']);
 // 2026-11-12 1개월 29,900원 → 19,900원. 6개월 10%, 12개월 20% 할인, 두 자녀는 한 자녀의 약 1.5배 (예전 비율 그대로)
 // 2026-11-19 3개월 상품 추가(5% 할인). 카카오페이 정산 기준(서비스 기간 3개월 이하)에 맞는 상품
 export const PLANS = {

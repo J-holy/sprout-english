@@ -162,17 +162,17 @@ const Store = (() => {
     return { needSignup: true };
   }
   // 가입 마무리 (이메일 인증 또는 SNS 이후)
-  async function completeSignup({ provider, email, parentName, marketing, referrer }) {
+  async function completeSignup({ provider, email, parentName, marketing, voice, referrer }) {
     if (API.on) {
       let source = '';
       try { const o = JSON.parse(localStorage.getItem('sprout-src') || 'null'); if (o && Date.now() - o.at < 30 * 864e5) source = o.s; } catch {}
-      await API.req('POST', 'api/auth/complete', { parentName, terms: true, age: true, marketing: !!marketing, source, referrer: String(referrer || '').trim() });
+      await API.req('POST', 'api/auth/complete', { parentName, terms: true, age: true, marketing: !!marketing, voice: !!voice, source, referrer: String(referrer || '').trim() });
       await loadMe(); return user();
     }
     email = normEmail(email);
     if (provider === 'email') { if (!codes[email] || !codes[email].verified) throw new Error('이메일 인증을 먼저 완료해 주세요.'); delete codes[email]; }
     if (db.users[email]) { startLocalSession(email); return user(); }
-    const u = createLocalUser({ email, parentName, provider }); u.settings.marketing = !!marketing; save(); return u;
+    const u = createLocalUser({ email, parentName, provider }); u.settings.marketing = !!marketing; u.settings.voice = !!voice; save(); return u;
   }
   const pendingSignup = () => API.req('GET', 'api/auth/pending');
   // 로컬 모드 SNS 데모: 이메일로 로그인/가입 판단
@@ -217,8 +217,13 @@ const Store = (() => {
     const u = user();
     const p = normalizeProfile({ id: uid(), name, age, avatar, createdAt: Date.now() });
     u.profiles.push(p); u.activeProfile = p.id;
-    if (!u.trialStart) u.trialStart = Date.now();
     save(); return p;
+  }
+  // 7일 체험 시작 (한 번만)
+  async function startTrial() {
+    const u = user(); if (!u || u.trialStart) return false;
+    if (API.on) { const r = await API.req('POST', 'api/me/trial'); u.trialStart = r.trialStart || Date.now(); } else u.trialStart = Date.now();
+    save(); return true;
   }
   function selectProfile(id) { user().activeProfile = id; save(); }
   function removeProfile(id) {
@@ -237,10 +242,11 @@ const Store = (() => {
     if (m && m.until > now) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - now) / DAY) };
     // 베타 기간에는 모두 전체 단계를 쓴다 (체험이 더 길면 체험 기준)
     const beta = API.on && API.cfg.betaUntil > now ? API.cfg.betaUntil : 0;
-    const trialEnd = u.trialStart ? u.trialStart + 7 * DAY + (u.trialBonus || 0) : now + 7 * DAY;
+    // 7일 체험은 아이가 처음 플러스 단계에 들어갈 때 보호자가 시작한다 (가입하자마자 흘러가 버리지 않게, 2026-11-26)
+    const trialEnd = u.trialStart ? u.trialStart + 7 * DAY + (u.trialBonus || 0) : 0;
     const end = Math.max(trialEnd, beta);
     if (end > now) return { ok: true, kind: 'trial', daysLeft: Math.ceil((end - now) / DAY), beta: beta >= trialEnd };
-    return { ok: true, kind: 'free' }; // 체험이 끝나도 1~2단계는 평생 무료
+    return { ok: true, kind: 'free', trialReady: !u.trialStart }; // 체험이 끝나도 무료 단계는 평생 무료
   }
   function bestCoupon() {
     const u = user(); if (!u) return null;
@@ -688,7 +694,7 @@ const Store = (() => {
     get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, kidsPlan, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
-    levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
+    startTrial, levelProgress, lessonsDone, isUnlocked, hasPlus, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,

@@ -444,6 +444,7 @@ main.focus { min-height: 100vh; }
 .score-pill { display: inline-block; padding: 2px 18px; border-radius: 14px; font-size: 1.4rem; color: #fff; font-family: var(--en); font-weight: 700; border: var(--bw) solid var(--line); }
 .score-pill.small { font-size: .9rem; padding: 0 10px; border-width: 2px; }
 .score-pill.good { background: var(--grass); } .score-pill.mid { background: var(--mid); } .score-pill.low { background: var(--bad); }
+.score-pill.soft { background: var(--sky, #64b5f6); font-family: inherit; font-size: 1.1rem; }
 .heard { color: var(--muted); font-size: .92rem; }
 .mic.rec { background: var(--berry); color: #fff; animation: pulse 1s infinite; }
 .lesson-feedback { position: fixed; left: 0; right: 0; bottom: 0; padding: 18px max(16px, calc(50% - 390px)); display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; z-index: 15; animation: slideup .25s ease; border-top: var(--bw) solid var(--line); }
@@ -841,6 +842,10 @@ body.in-lesson .demo-banner { display: none; }
 .pay-terms dd { text-align: left; }
 .upsell { text-align: center; display: grid; gap: 10px; } .upsell h2 { justify-content: center; margin: 0; } .upsell p { margin: 0; }
 .upsell .perks { text-align: left; }
+.upsell-got, .upsell-next { text-align: left; padding: 10px 12px; border-radius: 14px; }
+.upsell-got { background: rgba(126, 217, 87, .16); }
+.upsell-next { background: color-mix(in srgb, var(--c) 18%, transparent); border-left: 5px solid var(--c); }
+.upsell-got p, .upsell-next p { margin: 4px 0 0; font-size: .92rem; }
 .price-table td small { color: var(--muted); }
 
 /* ---------- ⚡ 레슨 중간 챌린지 ---------- */
@@ -1570,3 +1575,6 @@ a.shop-ava { display: block; }
 .try-ava-btns { display: flex; gap: 6px; }
 /* 착용한 꾸미기는 혼자 움직이지 않는다 (효과만 반짝인다). 미니룸에서는 보는 방향에 맞는 그림만 바꾼다 */
 :is(.avatar.big, .avatar.huge) .acc:not(.acc-fx), :is(.avatar.big, .avatar.huge) .acc-wand::after { animation: none; }
+
+/* 가입 동의 칸의 설명 줄 */
+.check small.block { display: block; margin-top: 2px; }

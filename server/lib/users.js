@@ -17,13 +17,13 @@ export function newMemberNo() {
   }
 }
 
-export function createUser({ email, parentName, provider, providerUid, marketing, source }) {
+export function createUser({ email, parentName, provider, providerUid, marketing, voice, source }) {
   return tx(() => {
     const uid = id(), t = now();
     const role = email && config.adminEmails.includes(email) ? 'admin' : 'parent';
     db.prepare(`INSERT INTO users (id, email, parent_name, role, created_at, last_login, marketing, customer_key, settings, source, member_no)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uid, email || null, parentName, role, t, t, marketing ? 1 : 0, 'cus_' + crypto.randomBytes(12).toString('hex'),
-      JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing }), source || null, newMemberNo());
+      JSON.stringify({ notify: true, remindTime: '19:00', pin: '', lastRemind: null, gentle: true, marketing: !!marketing, voice: !!voice }), source || null, newMemberNo());
     db.prepare('INSERT INTO identities (provider, provider_uid, user_id, created_at) VALUES (?, ?, ?, ?)').run(provider, providerUid || email, uid, t);
     db.prepare('INSERT INTO coupons (id, user_id, name, rate, welcome, expires_at) VALUES (?, ?, ?, ?, 1, ?)').run(id(), uid, '웰컴쿠폰', 0.2, t + 10 * DAY);
     notify(uid, '🎉 가입을 환영해요! 쿠폰함에 웰컴쿠폰이 발급되었어요.', 'coupon');
@@ -92,8 +92,9 @@ export function access(u) {
   if (m && m.until > t) return { ok: true, kind: 'member', daysLeft: Math.ceil((m.until - t) / DAY) };
   // 베타 기간에는 모두 전체 단계를 쓴다 (체험이 더 길면 체험 기준)
   const beta = config.betaUntil > t ? config.betaUntil : 0;
-  const trialEnd = u.trial_start ? u.trial_start + 7 * DAY + (u.trial_bonus || 0) : t + 7 * DAY;
+  // 7일 체험은 아이가 처음 플러스 단계에 들어갈 때 보호자가 시작한다 (POST /api/me/trial, 2026-11-26)
+  const trialEnd = u.trial_start ? u.trial_start + 7 * DAY + (u.trial_bonus || 0) : 0;
   const end = Math.max(trialEnd, beta);
-  // 체험이 끝나도 1~2단계는 평생 무료로 계속 쓴다
-  return end > t ? { ok: true, kind: 'trial', daysLeft: Math.ceil((end - t) / DAY), beta: beta >= trialEnd } : { ok: true, kind: 'free' };
+  // 체험이 끝나도 무료 단계는 평생 무료로 계속 쓴다
+  return end > t ? { ok: true, kind: 'trial', daysLeft: Math.ceil((end - t) / DAY), beta: beta >= trialEnd } : { ok: true, kind: 'free', trialReady: !u.trial_start };
 }

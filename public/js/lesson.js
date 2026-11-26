@@ -635,7 +635,9 @@ const Lesson = (() => {
       const finish = r => {
         el.querySelectorAll('button').forEach(b => b.disabled = true);
         mic.classList.remove('rec'); mic.textContent = '✅ 완료';
-        done(r.score >= passMark(), q, `<div class="fb-answer">${coach(r)}</div>`);
+        // 말해 본 아이는 틀림으로 치지 않는다: 어린아이 목소리는 기계가 잘못 알아듣는 일이 많아서, 점수가 낮아도 '연습했어요'로 넘어간다 (2026-11-26)
+        done(true, q, `<div class="fb-answer">${r.score >= passMark() ? coach(r) : '🌱 끝까지 말해 봤어요! 원어민 소리를 한 번 더 듣고 넘어가요.'}</div>`);
+        if (r.score < passMark()) Speech.speakLater(q.target, 400, { slow: true });
       };
       if (mic) mic.onclick = async () => {
         // 마이크가 실제로 켜진 뒤에 "말해요"를 보여준다 (먼저 말하면 첫 단어가 잘린다)
@@ -649,7 +651,10 @@ const Lesson = (() => {
           if (R.recordSpeech && Store.profile()) Store.recordSpeaking(q.target, r.score);
           const spans = el.querySelectorAll('.speak-target span');
           r.words.forEach((w, k) => { if (spans[k]) spans[k].className = w.ok === 1 ? 'ok' : w.ok ? 'mid' : 'no'; });
-          res.innerHTML = `<div class="score-pill ${r.score >= 80 ? 'good' : r.score >= 60 ? 'mid' : 'low'}">${r.score}점</div><div class="heard">들은 말: "${esc(r.heard)}"</div>`;
+          // 통과 점수보다 낮으면 점수와 빨간 표시 대신 '한 번 더 들어 볼까?'로 안내하고 천천히 들려준다 (기계가 잘못 들었을 수도 있다)
+          res.innerHTML = r.score >= pass ? `<div class="score-pill ${r.score >= 80 ? 'good' : 'mid'}">${r.score}점</div><div class="heard">들은 말: "${esc(r.heard)}"</div>`
+            : `<div class="score-pill soft">🌱 한 번 더 들어 볼까?</div>`;
+          if (r.score < pass) { el.querySelectorAll('.speak-target span').forEach(sp => sp.className = ''); Speech.speak(q.target, { slow: true }); }
           // 만점이면 바로 넘어간다. 통과는 했지만 만점이 아니면 바로 넘기지 않고 "다시 말하기"와 "다음으로"를 고르게 한다 (2026-11 요청)
           if (r.score >= 100 || tries >= MAX_TRIES) return finish(best);
           if (r.score >= pass) {
@@ -660,7 +665,7 @@ const Lesson = (() => {
               mic.after(next);
             }
           } else {
-            res.innerHTML += `<div class="hint">${coach(r)} (${MAX_TRIES - tries}번 더 해볼 수 있어요)</div>`;
+            res.innerHTML += `<div class="hint">천천히 들어 보고 따라 말해 봐요. (${MAX_TRIES - tries}번 더 해볼 수 있어요)</div>`;
           }
         } catch (e) {
           res.innerHTML = `<div class="hint mic-hint">${esc(Speech.micHelp(e.message))}${e.detail ? ` <small class="fine">(${esc(e.detail)})</small>` : ''}</div>`;

@@ -418,7 +418,10 @@ const Speech = (() => {
     return null; // iPhone은 공유 버튼 › Safari로 열기
   }
   // 음성 인식을 쓸 수 없는 이유 (쓸 수 있으면 '')
+  // 보호자 동의: 로그인한 계정은 부모가 말하기 연습(음성 인식)에 동의해야 마이크를 쓴다
+  const voiceOk = () => { const u = typeof Store !== 'undefined' && Store.user && Store.user(); return !u || !!(u.settings && u.settings.voice); };
   function unsupportedReason() {
+    if (!voiceOk()) return '부모님이 부모페이지 › 설정에서 "말하기 연습 음성 인식 사용"을 켜면 말하기 점수를 받을 수 있어요. 지금은 듣고 따라 말해요.';
     if (webSpeechOk()) return '';
     if (env.iosApp) return '홈 화면 앱에서는 로그인하면 말하기 점수를 받을 수 있어요. 지금은 Safari에서 열어 주세요.';
     if (!env.secure) return '보안 연결(https)이 아니라 마이크를 쓸 수 없어요. https:// 주소로 열어 주세요.';
@@ -527,7 +530,7 @@ const Speech = (() => {
 
   return {
     speak, speakLater, stop, listen, score, sfx, preload,
-    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return webSpeechOk() || (sttOn && canRecord()); },
+    get canSpeak() { return !!synth || !!(neural.server || neural.manifest); }, get canListen() { return voiceOk() && (webSpeechOk() || (sttOn && canRecord())); },
     env, externalUrl, unsupportedReason, micHelp, micPermission, askMic,
     // 서버/정적 AI 음성 연결 (App.init에서 호출)
     configure({ server, manifest, stt, ulaw }) { neural = { server: !!server, manifest: manifest || null }; sttOn = !!stt; sttUlaw = !!ulaw; },

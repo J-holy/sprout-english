@@ -16,6 +16,7 @@ import { smsMode, sendCodeMessage } from './lib/sms.js';
 import { PROVIDERS, enabledProviders } from './lib/oauth.js';
 import { PLANS, PROMO, validPlan, quote, kidsOf } from './lib/pricing.js';
 import { ttsProvider, cleanText, validText, getSpeech, ttsStats, cacheFile } from './lib/tts.js';
+import { weeklyJob } from './lib/weekly.js';
 import { sttProvider, checkWav, toPcm16, recognize } from './lib/stt.js';
 import { publicKey as pushKey, saveSub, removeSub, sendToUser, reminderJob } from './lib/push.js';
 import { backfillMemberNos, addReferral, userByNo, socialDoc, lookupKids, requestFriend, respondFriend, sendMessage, markRead } from './lib/social.js';
@@ -70,6 +71,8 @@ app.get('/api/tts', wrap(async (req, res) => {
 // 브라우저에 음성 인식이 없는 기기(아이패드·아이폰 Chrome 등)는 녹음한 WAV를 보내 채점한다. 로그인한 사용자만, 시간당 횟수 제한.
 app.post('/api/stt', requireUser, express.raw({ type: ['audio/wav', 'application/octet-stream'], limit: '700kb' }), wrap(async (req, res) => {
   if (!sttProvider()) return bad(res, '음성 인식이 설정되지 않았어요.', 404);
+  // 아이 목소리는 보호자가 말하기 연습(음성 인식)에 동의한 계정만 받는다 (가입 때 선택 동의, 부모페이지 설정에서 켜고 끔)
+  if (!json(req.user.settings, {}).voice) return bad(res, '부모님이 부모페이지 설정에서 말하기 연습을 켜면 쓸 수 있어요.', 403);
   const hint = cleanText(req.query.text);
   if (hint && !validText(hint)) return bad(res, '읽을 수 없는 문장이에요.');
   if (!checkWav(req.body)) return bad(res, '녹음 파일을 읽을 수 없어요.');
@@ -114,8 +117,13 @@ app.put('/api/me/state', requireUser, (req, res) => {
   if (state.length > 1_800_000) return bad(res, '저장할 학습 기록이 너무 커요.');
   const prevSettings = json(req.user.settings, {});
   const nextSettings = settings && typeof settings === 'object' ? { ...prevSettings, ...settings } : prevSettings;
-  db.prepare('UPDATE users SET state = ?, settings = ?, marketing = ?, trial_start = COALESCE(trial_start, ?) WHERE id = ?')
-    .run(state, JSON.stringify(nextSettings), nextSettings.marketing ? 1 : 0, profiles.length ? now() : null, req.user.id);
+  db.prepare('UPDATE users SET state = ?, settings = ?, marketing = ? WHERE id = ?')
+    .run(state, JSON.stringify(nextSettings), nextSettings.marketing ? 1 : 0, req.user.id);
+  res.json({ ok: true, trialStart: getUser(req.user.id).trial_start });
+});
+// 7일 체험 시작: 아이가 처음 플러스 단계에 들어갈 때 보호자가 누른다. 한 번만 시작된다
+app.post('/api/me/trial', requireUser, (req, res) => {
+  db.prepare('UPDATE users SET trial_start = COALESCE(trial_start, ?) WHERE id = ?').run(now(), req.user.id);
   res.json({ ok: true, trialStart: getUser(req.user.id).trial_start });
 });
 // ---------- 웹 푸시 (매일 학습 시간 알림) ----------
@@ -253,7 +261,7 @@ app.get('/api/auth/pending', (req, res) => {
 app.post('/api/auth/complete', (req, res) => {
   const p = unsign(parseCookies(req).pending);
   if (!p) return bad(res, '가입 정보가 만료되었어요. 처음부터 다시 해 주세요.');
-  const { parentName, terms, age, marketing } = req.body || {};
+  const { parentName, terms, age, marketing, voice } = req.body || {};
   // 가입 경로는 영문·숫자·점·밑줄·하이픈만, 40자까지 (화면이 utm_source나 들어온 사이트 이름을 보낸다)
   const source = /^[\w.-]{1,40}$/.test(String(req.body?.source || '')) ? String(req.body.source).toLowerCase() : null;
   const referrer = /^\d{7}$/.test(String(req.body?.referrer || '').trim()) ? String(req.body.referrer).trim() : '';
@@ -263,7 +271,7 @@ app.post('/api/auth/complete', (req, res) => {
   if (!terms || !age) return bad(res, '필수 항목에 동의해 주세요.');
   let u = p.email ? getUserByEmail(p.email) : null;
   if (u) linkIdentity(u.id, p.provider, p.uid);
-  else { u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, source }); if (referrer) addReferral(u.id, referrer); }
+  else { u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, voice: !!voice, source }); if (referrer) addReferral(u.id, referrer); }
   clearCookie(res, 'pending');
   startSession(req, res, u.id);
   res.json({ ok: true });
@@ -516,6 +524,7 @@ app.use((err, req, res, next) => {
 setInterval(cleanupSessions, 3600000).unref();
 setInterval(() => renewalJob().catch(err => console.error('[자동갱신]', err.message)), 3600000).unref();
 setInterval(() => reminderJob().catch(err => console.error('[학습알림]', err.message)), 60000).unref();
+setInterval(() => weeklyJob().catch(err => console.error('[주간 리포트]', err.message)), 600000).unref();
 setTimeout(() => renewalJob().catch(err => console.error('[자동갱신]', err.message)), 15000).unref();
 
 const server = app.listen(config.port, config.host, () => {
