@@ -165,11 +165,79 @@ const mOpen = stage => mStage(stage).free || Store.hasMath();
 const mTopicOf = ({ lesson, game, topic }) => MATH_TOPICS.find(t => t.id === topic || (lesson && t.lessons.includes(lesson)) || (game && t.game === game));
 const tIco = t => t.icon.startsWith('math-') ? (PICS.i[t.icon] ? `<img class="ico" src="img/${PICS.i[t.icon]}" alt="" draggable="false">` : '🧮') : ico(t.icon);
 const mPid = () => (Store.profile() || {}).id || 'guest';
-const mathDoneKey = () => 'math-done-' + mPid();
-const mathDone = () => { try { return JSON.parse(localStorage.getItem(mathDoneKey()) || '[]'); } catch { return []; } };
-const mathMarkDone = id => { try { const d = mathDone(); if (!d.includes(id)) localStorage.setItem(mathDoneKey(), JSON.stringify([...d, id])); } catch {} };
-// 주제별 진행 { 주제: { story, puzzle, ws, card } } (기기별 저장 — 레슨은 mathDone)
-const mProg = () => { try { return JSON.parse(localStorage.getItem('math-prog-' + mPid()) || '{}'); } catch { return {}; } };
+// ── 수학 진행 저장 (2026-11-27) ──
+// { done: [배운 레슨 id], prog: { 주제: { story, puzzle, ws, card } }, lv: { 퍼즐: 0~2 } }
+// 로그인한 아이는 프로필(p.math)에 넣어 영어 진행처럼 서버로 오간다(PUT api/me/state, 서버 변경 없음). 아이마다 따로.
+// 기기에도 늘 같은 내용을 남긴다(로그인 전 체험·서버가 꺼졌을 때). 둘이 다르면 합친다: 한 것은 모두 남기고 지우지 않는다
+const M_EMPTY = () => ({ done: [], prog: {}, lv: {} });
+const mLocalKey = () => 'math-state-' + mPid();
+function mLocal() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(mLocalKey()) || 'null'); } catch {}
+  if (s) return s;
+  // 예전 기기 저장(math-done-·math-prog-<아이>, math-lv-<퍼즐>)을 처음 한 번 옮겨 온다
+  s = M_EMPTY();
+  try {
+    s.done = JSON.parse(localStorage.getItem('math-done-' + mPid()) || '[]');
+    s.prog = JSON.parse(localStorage.getItem('math-prog-' + mPid()) || '{}');
+    for (const g of Object.keys(MATH_GAMES)) { const v = localStorage.getItem('math-lv-' + g); if (v !== null) s.lv[g] = +v; }
+  } catch {}
+  return s;
+}
+function mMerge(a, b) {
+  const out = M_EMPTY();
+  out.done = [...new Set([...(a.done || []), ...(b.done || [])])];
+  for (const t of new Set([...Object.keys(a.prog || {}), ...Object.keys(b.prog || {})])) {
+    const x = (a.prog || {})[t] || {}, y = (b.prog || {})[t] || {}, cards = [x.card, y.card].filter(Boolean).sort();
+    out.prog[t] = {};
+    for (const k of ['story', 'puzzle', 'ws']) if (x[k] || y[k]) out.prog[t][k] = 1;
+    if (cards[0]) out.prog[t].card = cards[0]; // 먼저 받은 날
+  }
+  out.lv = { ...(b.lv || {}), ...(a.lv || {}) }; // 난이도는 고른 것이라 프로필(a) 쪽을 먼저
+  return out;
+}
+// 지금 아이의 수학 진행 (읽기). 프로필과 기기 기록이 다르면 합쳐서 양쪽에 다시 적는다
+function mState() {
+  const p = Store.profile(), local = mLocal();
+  if (!p) return local;
+  const merged = mMerge(p.math || M_EMPTY(), local), js = JSON.stringify(merged);
+  if (JSON.stringify(p.math || null) !== js) { p.math = merged; Store.persist(); }
+  try { if (localStorage.getItem(mLocalKey()) !== js) localStorage.setItem(mLocalKey(), js); } catch {}
+  return merged;
+}
+// 바꾸기: fn(state)로 고친 뒤 프로필(서버로 감)과 기기에 적는다
+function mUpdate(fn) {
+  const s = mState(); fn(s);
+  const p = Store.profile();
+  if (p) { p.math = s; Store.persist(); }
+  try { localStorage.setItem(mLocalKey(), JSON.stringify(s)); } catch {}
+  return s;
+}
+// 다른 기기에서 한 수학 진행을 서버에서 가져와 합친다: 수학 화면에 들어올 때(30초에 한 번)와 창이 다시 보일 때.
+// 저장은 프로필 전체를 덮어쓰므로, 오래 열어 둔 창이 예전 기록으로 덮지 않게 먼저 합쳐 둔다
+let mPulledAt = 0;
+async function mPull(force) {
+  if (!API.on || !Store.user() || (!force && Date.now() - mPulledAt < 30000)) return false;
+  mPulledAt = Date.now();
+  try {
+    const me = await API.req('GET', 'api/me'); let changed = false;
+    for (const sp of me.profiles || []) {
+      const lp = Store.user() && Store.user().profiles.find(p => p.id === sp.id);
+      if (!lp || !sp.math) continue;
+      const m = mMerge(lp.math || M_EMPTY(), sp.math);
+      if (JSON.stringify(m) !== JSON.stringify(lp.math || null)) { lp.math = m; changed = true; }
+    }
+    if (changed) Store.persist();
+    return changed;
+  } catch { return false; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  mPull(true).then(ch => { if (ch && location.hash === '#/math') App.route(); });
+});
+const mathDone = () => mState().done;
+const mathMarkDone = id => mUpdate(s => { if (!s.done.includes(id)) s.done.push(id); });
+const mProg = () => mState().prog;
 const mSteps = t => {
   const pr = mProg()[t.id] || {}, done = mathDone();
   return { story: MATH_STORIES[t.id] ? !!pr.story : null, lesson: t.lessons.every(l => done.includes(l)), puzzle: !!pr.puzzle, ws: !!pr.ws, card: pr.card || null };
@@ -177,15 +245,14 @@ const mSteps = t => {
 // 단계를 마쳤다고 적고, 천재 카드가 있는 주제에서 ①~④를 다 마쳤으면 카드를 준다
 function mMark(t, step) {
   if (!t) return;
-  try {
-    const all = mProg(), pr = all[t.id] = all[t.id] || {};
+  let got = false;
+  mUpdate(s => {
+    const pr = s.prog[t.id] = s.prog[t.id] || {};
     if (step) pr[step] = 1;
-    const s = mSteps(t);
-    let got = false;
-    if (MATH_STORIES[t.id] && !pr.card && pr.story && s.lesson && pr.puzzle && pr.ws) { pr.card = new Date().toISOString().slice(0, 10); got = true; }
-    localStorage.setItem('math-prog-' + mPid(), JSON.stringify(all));
-    if (got) setTimeout(() => mathCardModal(t), 900);
-  } catch {}
+    const lesson = t.lessons.every(l => s.done.includes(l));
+    if (MATH_STORIES[t.id] && !pr.card && pr.story && lesson && pr.puzzle && pr.ws) { pr.card = new Date().toISOString().slice(0, 10); got = true; }
+  });
+  if (got) setTimeout(() => mathCardModal(t), 900);
 }
 const mReward = () => { if (!Store.profile()) return 0; const got = Store.addStars(1, 'math', 5); if (got) App.refreshHeader(); return got; };
 const mGcard = (t, got = true) => { const c = MATH_STORIES[t.id].card; return `<div class="m-gcard ${got ? '' : 'off'}" title="${esc(c.name)}"><span>${got ? c.icon : '❔'}</span><b>${got ? esc(c.name) : esc(t.title)}</b>${got ? `<small>${esc(c.line)}</small>` : ''}</div>`; };
@@ -223,7 +290,7 @@ const mHome = () => {
           <div class="m-topic-head"><span class="m-l-ico">${tIco(t)}</span><b>${t.title}</b>${lock(s) ? '<span class="m-lock" aria-label="잠김">🔒</span>' : st.card ? `<span class="m-cardmark" title="천재 카드">${MATH_STORIES[t.id].card.icon}</span>` : all ? '<span>✅</span>' : ''}</div>
           <div class="m-topic-btns">${st.story !== null ? btn(s, `#/math/s_${t.id}`, '📜 이야기', st.story) : ''}${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '배우기'}`, done.includes(l.id))).join('')}${btn(s, `#/math/p_${t.game}`, '🧩 퍼즐', st.puzzle)}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트', st.ws)}</div></div>`;
       }).join('')}</div>`).join('')}
-    <p class="fine">새싹수학은 시험 중이에요. 퍼즐과 워크시트 문제는 할 때마다 새로 만들어져요. 진행과 천재 카드는 이 기기에 저장돼요.</p></div>`;
+    <p class="fine">새싹수학은 시험 중이에요. 퍼즐과 워크시트 문제는 할 때마다 새로 만들어져요. 로그인하면 진행과 천재 카드가 아이별로 저장돼서 다른 기기에서도 이어져요.</p></div>`;
 };
 
 Views.math = (el, game) => {
@@ -241,6 +308,7 @@ Views.math = (el, game) => {
   if (!pzKey || !MATH_GAMES[pzKey]) {
     el.innerHTML = mHome();
     $$('[data-lock]', el).forEach(b => b.onclick = () => mathUpsell(b.dataset.lock));
+    mPull().then(ch => { if (ch && location.hash === '#/math') App.route(); });
     return;
   }
   mathPuzzle(el, pzKey);
@@ -263,12 +331,12 @@ const mHelp = (q, miss) => !q.hint ? '' : `<p class="m-hint">💡 ${esc(q.hint)}
 
 // ③ 퍼즐: 쉬움·보통·도전. 한 판 5문제, 처음에 다 맞히면 별
 function mathPuzzle(el, game) {
-  const d = MATH_GAMES[game], topic = mTopicOf({ game }), lvKey = 'math-lv-' + game;
-  let lv = (() => { try { const v = localStorage.getItem(lvKey); return v === null ? (d.stage === 'seed' ? 0 : 1) : +v; } catch { return 0; } })();
+  const d = MATH_GAMES[game], topic = mTopicOf({ game }), saved = mState().lv[game];
+  let lv = saved === undefined ? (d.stage === 'seed' ? 0 : 1) : saved;
   el.innerHTML = `<div class="wrap sec narrow"><a class="link-btn" href="#/math">← 새싹수학</a><h1 class="page-title">${mIco(game)} ${d.title}</h1>
     <div class="m-levels" role="tablist">${MATH_LEVELS.map(([i, n], k) => `<button role="tab" data-lv="${k}" class="${k === lv ? 'on' : ''}" aria-selected="${k === lv}">${i} ${n}</button>`).join('')}</div><div class="card m-area"></div></div>`;
   const area = $('.m-area', el);
-  $$('[data-lv]', el).forEach(b => b.onclick = () => { try { localStorage.setItem(lvKey, b.dataset.lv); } catch {} Speech.sfx.tap(); mathPuzzle(el, game); });
+  $$('[data-lv]', el).forEach(b => b.onclick = () => { mUpdate(st => { st.lv[game] = +b.dataset.lv; }); Speech.sfx.tap(); mathPuzzle(el, game); });
   const done = (ok, total) => {
     const all = ok === total, got = all ? mReward() : 0;
     if (all) { Speech.sfx.cheer(); Lesson.confetti(); }
