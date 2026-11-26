@@ -110,9 +110,28 @@ app.post('/api/social/read', requireUser, social(req => { markRead(req.user.id, 
 // ---------- 내 정보 / 학습 기록 동기화 ----------
 app.get('/api/me', (req, res) => res.json(req.user ? userDoc(req.user) : { loggedIn: false }));
 
+// 수학 진행은 기기마다 따로 쌓이므로, 저장할 때 서버에 있던 기록과 합친다 (지우지 않음, 화면의 mMerge와 같은 규칙)
+function mergeMath(next, prev) {
+  if (!prev || typeof prev !== 'object') return next;
+  if (!next || typeof next !== 'object') return prev;
+  const out = { done: [...new Set([...(Array.isArray(next.done) ? next.done : []), ...(Array.isArray(prev.done) ? prev.done : [])])], prog: {}, lv: { ...(prev.lv || {}), ...(next.lv || {}) } };
+  const np = next.prog || {}, pp = prev.prog || {};
+  for (const t of new Set([...Object.keys(np), ...Object.keys(pp)])) {
+    const x = np[t] || {}, y = pp[t] || {}, cards = [x.card, y.card].filter(Boolean).sort();
+    out.prog[t] = {};
+    for (const k of ['story', 'puzzle', 'ws']) if (x[k] || y[k]) out.prog[t][k] = 1;
+    if (cards[0]) out.prog[t].card = cards[0];
+  }
+  return out;
+}
 app.put('/api/me/state', requireUser, (req, res) => {
   const { profiles, activeProfile, worksheets, settings } = req.body || {};
   if (!Array.isArray(profiles) || profiles.length > 10) return bad(res, '프로필 정보가 올바르지 않아요.');
+  const prevProfiles = json(req.user.state, {}).profiles || [];
+  for (const pr of profiles) {
+    const old = pr && prevProfiles.find(o => o && o.id === pr.id);
+    if (old && old.math) pr.math = mergeMath(pr.math, old.math);
+  }
   const state = JSON.stringify({ profiles, activeProfile: activeProfile || null, worksheets: worksheets && typeof worksheets === 'object' ? worksheets : {} });
   if (state.length > 1_800_000) return bad(res, '저장할 학습 기록이 너무 커요.');
   const prevSettings = json(req.user.settings, {});
