@@ -59,16 +59,16 @@ const MathGen = (() => {
   const gen = {
     count(lo, hi) {
       if (lo == null) [lo, hi] = [[1, 5], [1, 10], [6, 15]][LV];
-      const n = lo + R(hi - lo + 1), [e, name] = MATH_THINGS[R(MATH_THINGS.length)], say = `${name} 몇 개일까요?`;
+      const n = lo + R(hi - lo + 1), [e, name] = MATH_THINGS[R(MATH_THINGS.length)], u = mUnit(e), say = `${name} 몇 ${u}일까요?`;
       return { ask: `${mPic(e)} ${say}`, say, show: `<div class="m-count">${Array(n).fill(`<span>${mPic(e)}</span>`).join('')}</div>`, opts: nearby(n, Math.max(1, lo - 2), hi + 2), ans: n, hint: H.count,
-        explain: `<div class="m-count">${Array.from({ length: n }, (_, k) => `<span class="m-num">${mPic(e)}<i>${k + 1}</i></span>`).join('')}</div><p class="m-eq-num">모두 ${n}개</p>` };
+        explain: `<div class="m-count">${Array.from({ length: n }, (_, k) => `<span class="m-num">${mPic(e)}<i>${k + 1}</i></span>`).join('')}</div><p class="m-eq-num">모두 ${n}${u}</p>` };
     },
     shape() {
       const keys = Object.keys(SHAPES), want = keys[R(3)], cols = shuffle(COLORS);
       const rotOf = k => LV === 0 ? 0 : k === 'tri' ? [0, 15, -15, 180][R(4)] : R(LV === 2 ? 45 : 30);
       const opts = shuffle(keys).map((k, i) => ({ k, html: svg(k, cols[i], rotOf(k)) })), say = (LV === 2 ? MATH_SAY.shapeHard : MATH_SAY.shape)[want];
       return { ask: say, say, show: '', opts: opts.map(o => o.k), labels: Object.fromEntries(opts.map(o => [o.k, o.html])), ans: want, hint: H.shape,
-        explain: `<div class="m-viz m-shapes">${svg(want, '#ffd54f')}</div><p class="m-eq-num">${SHAPES[want][0]} · 뾰족한 곳 ${SHAPES[want][2]}개</p>` };
+        explain: `<div class="m-viz m-shapes">${svg(want, '#ffd54f')}</div><p class="m-eq-num">${SHAPES[want][0]} · 뾰족한 곳 ${SHAPES[want][2]}군데</p>` };
     },
     pattern() {
       const units = [[['A', 'B']], [['A', 'A', 'B'], ['A', 'B', 'C'], ['A', 'B', 'B']], [['A', 'B', 'B', 'C'], ['A', 'A', 'B', 'B'], ['A', 'B', 'C', 'C']]][LV];
@@ -539,7 +539,7 @@ function mathLesson(el, L) {
       $$('.m-tapi', area).forEach(b => b.onclick = () => {
         if (b.classList.contains('on')) return;
         c++; b.classList.add('on'); b.insertAdjacentHTML('beforeend', `<i>${c}</i>`); Speech.sfx.tap(); KoSpeech.say(MATH_NATIVE[c - 1]); out.textContent = c;
-        if (c === st.n) { out.textContent = `모두 ${c}개!`; ready(nb, `모두 ${MATH_CNT[c - 1]} 개예요!`); }
+        if (c === st.n) { const u = mUnit(st.e); out.textContent = `모두 ${c}${u}!`; ready(nb, `모두 ${MATH_CNT[c - 1]} ${u}예요!`); }
       });
     } else if (st.type === 'corners') {
       // 뾰족한 곳(꼭짓점) 누르기

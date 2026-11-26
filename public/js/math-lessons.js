@@ -16,9 +16,10 @@ const MATH_LESSONS = [
     { type: 'quiz', gen: 'count', args: [1, 5] }, { type: 'quiz', gen: 'count', args: [1, 5] },
   ] },
   { id: 'num2', stage: 'seed', icon: 'm🐥', title: '수 세기 6~10', topic: '수의 기원', steps: [
-    { type: 'learn', viz: { k: 'count', e: '🐥', n: 7 }, text: '다섯보다 많으면 다섯 개를 먼저 묶어 세고, 남은 것을 이어서 세면 쉬워요.' },
+    { type: 'learn', viz: { k: 'count', e: '🐥', n: 7 }, text: '다섯보다 많으면 다섯 마리를 먼저 묶어 세고, 남은 것을 이어서 세면 쉬워요.' },
     { type: 'tap', e: '🐥', n: 8, text: '병아리를 하나씩 눌러서 세어 봐요. 다섯 다음에는 여섯이에요.' },
     { type: 'learn', viz: { k: 'count', e: '🍓', n: 10 }, text: '10은 십, 열이라고 읽어요. 손가락을 모두 펴면 열 개예요.' },
+    { type: 'learn', viz: { k: 'count', e: '🚗', n: 3 }, text: '무엇을 세느냐에 따라 수 뒤에 붙이는 말이 달라요. 사과나 공은 한 개, 두 개. 강아지나 병아리 같은 동물은 한 마리, 두 마리. 자동차는 한 대, 두 대. 꽃은 한 송이, 두 송이라고 세요.' },
     { type: 'write', glyph: '7', say: '칠, 일곱' },
     { type: 'write', glyph: '10', say: '십, 열' },
     { type: 'quiz', gen: 'count', args: [6, 10] }, { type: 'quiz', gen: 'count', args: [6, 10] },
@@ -202,6 +203,10 @@ const MATH_HINTS = {
 };
 // 씨앗 문제·조작 놀이에서 읽어 주는 말 (pregen-tts-ko.js가 함께 음성을 만든다)
 const MATH_THINGS = [['🍎', '사과는'], ['🐥', '병아리는'], ['⭐', '별은'], ['🌸', '꽃은'], ['🚗', '자동차는'], ['🎈', '풍선은'], ['🐟', '물고기는'], ['🍓', '딸기는'], ['🐶', '강아지는'], ['⚽', '공은']];
+// 세는 말(단위): 동물은 마리, 탈것은 대, 꽃은 송이, 나머지 물건은 개
+const MATH_UNIT = { '🐥': '마리', '🐶': '마리', '🐱': '마리', '🐟': '마리', '🐰': '마리', '🚗': '대', '🚲': '대', '🌸': '송이', '🌷': '송이' };
+const mUnit = e => MATH_UNIT[e] || '개';
+const MATH_UNITS = ['개', '마리', '대', '송이'];
 const MATH_NATIVE = ['하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열하나', '열둘', '열셋', '열넷', '열다섯'];
 const MATH_CNT = ['한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
 const MATH_SAY = {
@@ -212,7 +217,7 @@ const MATH_SAY = {
   extended: '규칙을 찾았어요!', card: '천재 카드를 받았어요!',
 };
 const MATH_VOICE = [
-  ...MATH_NATIVE, ...MATH_CNT.map(c => `모두 ${c} 개예요!`), '뾰족한 곳이 세 군데예요!', '뾰족한 곳이 네 군데예요!',
-  ...MATH_THINGS.map(([, n]) => `${n} 몇 개일까요?`), ...Object.values(MATH_SAY.shape), ...Object.values(MATH_SAY.shapeHard),
+  ...MATH_NATIVE, ...MATH_UNITS.flatMap(u => MATH_CNT.map(c => `모두 ${c} ${u}예요!`)), '뾰족한 곳이 세 군데예요!', '뾰족한 곳이 네 군데예요!',
+  ...MATH_THINGS.map(([e, n]) => `${n} 몇 ${mUnit(e)}일까요?`), ...Object.values(MATH_SAY.shape), ...Object.values(MATH_SAY.shapeHard),
   MATH_SAY.odd, MATH_SAY.pattern, MATH_SAY.right, MATH_SAY.look, MATH_SAY.sorted, MATH_SAY.wrongBasket, MATH_SAY.extended, MATH_SAY.card,
 ];
