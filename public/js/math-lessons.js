@@ -249,7 +249,7 @@ const MATH_TOPICS = [
     ws: { sum: '넓이는 작은 네모가 몇 개 들어가는지, 둘레는 바깥 선이 몇 개인지로 잴 수 있어요.', trace: ['넓이', '둘레'], gen: 'area', n: 6 } },
 ];
 
-// ── 천재 이야기 (① 1분): 옛날 수수께끼·발견을 새싹스쿨이 새로 쓴 짧은 이야기. 책의 문장·그림은 쓰지 않는다
+// ── 수학 이야기 (① 1분): 옛날 수수께끼·발견을 새싹스쿨이 새로 쓴 짧은 이야기. 책의 문장·그림은 쓰지 않는다
 // 그림(viz)은 mathViz: scene{items} · pair{a,b,n} · rope · count · seq · group · shape · grid
 const MATH_STORIES = {
   count: { card: { icon: '🪨', name: '돌멩이 양치기', line: '하나에 하나씩 짝지어 세었어요' }, pages: [

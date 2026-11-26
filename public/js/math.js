@@ -1,6 +1,6 @@
 /* 새싹수학 (시험, 2026-11-26)
  * 「천재들이 만든 수학퍼즐」의 주제 이름과 개념만 참고하고, 이야기·설명·문제는 모두 새로 쓰거나 화면이 매번 새로 만든다 (docs/MATH-TOPICS.md)
- * 주제 카드 하나 = 10분 놀이: ① 천재 이야기 → ② 개념 배우기(눌러 보고 옮겨 보기) → ③ 퍼즐(쉬움·보통·도전) → ④ 워크시트(화면·인쇄) → ⑤ 별과 천재 카드
+ * 주제 카드 하나 = 10분 놀이: ① 수학 이야기 → ② 개념 배우기(눌러 보고 옮겨 보기) → ③ 퍼즐(쉬움·보통·도전) → ④ 워크시트(화면·인쇄) → ⑤ 별과 천재 카드
  * 틀리면 정답을 바로 보여 주지 않는다: 1번 틀리면 힌트 한 줄, 2번 틀리면 그림 풀이. 시간 제한은 없다 */
 const MATH_GAMES = {
   count: { icon: '🍎', title: '수 세기', stage: 'seed', c: '#ff8a65', hub: '그림을 세어 몇 개인지 골라요' },
@@ -583,7 +583,7 @@ const mHome = () => {
   return `<div class="wrap sec">
     <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
     <div class="m-intro">
-      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>천재 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>퍼즐</b> 쉬움·보통·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
+      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>퍼즐</b> 쉬움·보통·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
       <div class="card m-intro-card"><b>단계</b><p>${MATH_STAGES.map(s => `${s.icon} <b>${s.name}</b> <small>${s.age}</small> ${MATH_TOPICS.filter(t => t.stage === s.id).map(t => t.title).join('·')}${s.free ? ' <i class="chip">무료</i>' : ''}`).join('<br>')}</p></div>
       <div class="card m-intro-card"><b>부모님께</b><p>틀리면 정답을 바로 보여 주지 않아요. 한 번 틀리면 힌트, 두 번 틀리면 그림 풀이를 보여 줘요. 시간 제한은 없어요. 워크시트는 인쇄하면 다음 장에 정답이 있어요. 새싹·나무 단계는 <a href="#/pricing">새싹수학 플러스</a>예요.</p></div>
     </div>
@@ -756,7 +756,7 @@ function mathViz(v) {
     case 'pick': return `<div class="m-viz m-pick">${v.groups.map(g => `<span>${g.map(mPic).join('')}</span>`).join('')}</div>`;
     case 'combo': return `<div class="m-viz">${MathGen.comboGrid(v.a, v.b)}</div>`;
     case 'cells': return `<div class="m-viz">${MathGen.cellsSvg({ W: v.W, H: v.H, cells: v.cells || MathGen.rectCells(...v.rect), nums: v.nums, edge: v.edge })}</div>`;
-    // 천재 이야기 그림
+    // 수학 이야기 그림
     case 'scene': return `<div class="m-viz m-scene">${v.items.map(x => `<span>${mPic(x)}</span>`).join('')}</div>`;
     case 'pair': return `<div class="m-viz m-pair"><div>${Array.from({ length: v.n }, (_, k) => `<span class="${v.miss && k >= v.n - v.miss ? 'm-away' : ''}">${mPic(v.a)}</span>`).join('')}</div><div class="m-links">${'<i></i>'.repeat(v.n)}</div><div>${row(v.b, v.n)}</div></div>`;
     case 'rope': {
@@ -807,17 +807,19 @@ const mWireSay = area => {
   $$('[data-ko-slow]', area).forEach(b => b.onclick = () => KoSpeech.say(b.dataset.koSlow, { slow: true }));
 };
 
-// ① 천재 이야기: 그림 + 한국어 음성, 3~4장
+// ① 수학 이야기: 그림 + 한국어 음성, 3~4장
 function mathStory(el, t) {
   const S = MATH_STORIES[t.id], first = t.lessons[0];
   let i = 0;
-  el.innerHTML = `<div class="wrap sec narrow"><a class="link-btn" href="#/math">← 새싹수학</a><h1 class="page-title">📜 ${esc(t.title)} · 천재 이야기</h1>
+  el.innerHTML = `<div class="wrap sec narrow"><a class="link-btn" href="#/math">← 새싹수학</a><h1 class="page-title">📜 ${esc(t.title)} · 수학 이야기</h1>
     <div class="lesson-progress m-lprog"><div class="bar"></div></div><div class="card m-area m-story"></div></div>`;
   const area = $('.m-area', el), bar = $('.m-lprog .bar', el);
   const show = () => {
     const pg = S.pages[i], last = i === S.pages.length - 1;
     bar.style.width = `${Math.round((i + 1) / S.pages.length * 100)}%`;
-    area.innerHTML = `<p class="m-prog">${i + 1} / ${S.pages.length}</p>${mathViz(pg.viz)}<p class="m-text">${esc(pg.text)}</p>${mSayBtns(pg.text)}
+    // 장면 쪽은 그린 그림(pregen-math-story.js), 수학 도해 쪽은 그대로 mathViz
+    const pic = typeof MATH_STORY_PICS !== 'undefined' && MATH_STORY_PICS[`${t.id}-${i}`];
+    area.innerHTML = `<p class="m-prog">${i + 1} / ${S.pages.length}</p>${pic ? `<div class="m-story-pic"><img src="img/${pic}" alt="" draggable="false"></div>` : mathViz(pg.viz)}<p class="m-text">${esc(pg.text)}</p>${mSayBtns(pg.text)}
       <div class="row-center">${i ? '<button class="btn btn-ghost" data-prev>← 앞으로</button>' : ''}${last ? `<a class="btn btn-primary" href="#/math/${first}">📖 배우러 가기</a>` : '<button class="btn btn-primary" data-next>다음 →</button>'}</div>`;
     mWireSay(area); KoSpeech.say(pg.text);
     const nx = $('[data-next]', area), pv = $('[data-prev]', area);

@@ -1816,7 +1816,7 @@ a.shop-ava { display: block; }
 .m-ws .m-count > span { background: #fff; border: 1.5px solid #bbb; }
 .m-ws .m-count, .m-ws .m-viz.m-count { margin: 2px 0; }
 
-/* 새싹수학 10분 놀이 (2026-11-26 밤): 천재 이야기 · 조작 배우기 · 퍼즐 3단계 · 힌트/그림 풀이 · 화면 워크시트 · 천재 카드 */
+/* 새싹수학 10분 놀이 (2026-11-26 밤): 수학 이야기 · 조작 배우기 · 퍼즐 3단계 · 힌트/그림 풀이 · 화면 워크시트 · 천재 카드 */
 .m-topic-btns .btn.m-ok { border-color: var(--grass, #7cb342); }
 .m-cardmark { font-size: 1.5rem; }
 .m-cards { padding: 12px 16px; margin: 4px 0 6px; }
@@ -1948,3 +1948,7 @@ a.shop-ava { display: block; }
 .m-paint .m-wcell.on { background: #81d4fa; border-color: #0277bd; }
 .m-ws .m-nseq > span, .m-ws .m-nseq > .m-q { background: #fff; color: #222; font-size: 1.1rem; } .m-ws .m-key th, .m-ws .m-key td { background: #fff; color: #222; }
 .m-ws .m-cells { max-width: 200px; } .m-ws .m-col, .m-ws .m-eqbig { font-size: 1.3rem; }
+
+/* 새싹수학 수학 이야기 그림 (pregen-math-story.js) */
+.m-story-pic { margin: 4px auto 10px; max-width: 560px; }
+.m-story-pic img { display: block; width: 100%; aspect-ratio: 768 / 480; object-fit: cover; border-radius: 16px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
