@@ -9,6 +9,10 @@ import { config } from '../lib/env.js';
 
 // 2026-11-26: Neural2-A → Chirp3-HD-Aoede (더 자연스럽고, 읽는 속도는 비슷하다)
 const VOICE = process.env.GOOGLE_TTS_VOICE_KO || 'ko-KR-Chirp3-HD-Aoede';
+// 해 보기를 다 마쳤을 때 칭찬하는 말은 아이들이 좋아할 밝은 목소리로 (2026-11-27 사용자가 후보 6개 중 Zephyr를 골랐다)
+const CHEER_VOICE = 'ko-KR-Chirp3-HD-Zephyr';
+const CHEER = new Set(['미션을 모두 해냈어요! 이제 마음대로 해 봐요.']);
+const voiceOf = t => CHEER.has(t) ? CHEER_VOICE : VOICE;
 const dir = path.join(config.publicDir, 'audio', 'ko');
 fs.mkdirSync(dir, { recursive: true });
 const ctx = {}; vm.createContext(ctx);
@@ -52,15 +56,15 @@ const man = fs.existsSync(manPath) ? JSON.parse(fs.readFileSync(manPath, 'utf8')
 // 파일 이름에 목소리가 들어가므로, 목소리를 바꾸면 이름이 달라진 문장은 다시 만든다
 // 2026-11-27: 속도 0.9 → 1.0 (0.9에서는 낱말이 늘어지고 짧은 말이 빠지거나 문장 사이가 1초 넘게 쉬었다)
 const RATE = 1.0;
-const fname = t => crypto.createHash('sha256').update(VOICE + '|' + RATE + '|' + speak(t)).digest('hex').slice(0, 16) + '.m4a';
+const fname = t => crypto.createHash('sha256').update(voiceOf(t) + '|' + RATE + '|' + speak(t)).digest('hex').slice(0, 16) + '.m4a';
 const todo = [...texts].filter(t => !COUNT_WORDS.includes(t)).filter(t => man[t] !== fname(t) || !fs.existsSync(path.join(dir, man[t])));
 console.log(`문장 ${texts.size}개 중 만들 것 ${todo.length}개 (목소리 ${VOICE})`);
 if (process.argv.includes('--show')) for (const t of texts) if (speak(t) !== t) console.log(t, '\n  →', speak(t));
 if (process.argv.includes('--dry')) process.exit(0);
-const synth = async (text, markup = false) => {
+const synth = async (text, markup = false, voice = VOICE) => {
   const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(process.env.GOOGLE_TTS_API_KEY)}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(30000),
-    body: JSON.stringify({ input: markup ? { markup: text } : { text }, voice: { languageCode: 'ko-KR', name: VOICE }, audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 24000, speakingRate: RATE, volumeGainDb: 8 } }),
+    body: JSON.stringify({ input: markup ? { markup: text } : { text }, voice: { languageCode: 'ko-KR', name: voice }, audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 24000, speakingRate: RATE, volumeGainDb: 8 } }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`${r.status} ${(j.error && j.error.message || '').slice(0, 120)}`);
@@ -78,7 +82,7 @@ const save = (a, f) => {
   execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac', '-b', '64000', tmp, path.join(dir, f)]); fs.unlinkSync(tmp);
 };
 for (const t of todo) {
-  try { save(pcm(await synth(speak(t))), fname(t)); man[t] = fname(t); }
+  try { save(pcm(await synth(speak(t), false, voiceOf(t))), fname(t)); man[t] = fname(t); }
   catch (err) { console.log('실패', t, err.message); }
 }
 // 세는 낱말: '하나, 둘, … 열다섯.'을 한 번에 읽힌 뒤 쉼(0.12초 넘는 무음)마다 잘라 낱말 하나씩 저장한다
