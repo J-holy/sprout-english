@@ -44,7 +44,7 @@ const MM = (() => {
       if (lv === 3) {
         const [name, n, ans] = AXES[R(AXES.length)];
         return { ask: `${name}에는 대칭축이 몇 개 있을까요?`, show: `<div class="m-viz">${MathGen.polySvg(n, '#ce93d8', 0)}</div>`, opts: shuffle([ans, ...shuffle([1, 2, 3, 4, 5, 6, 8].filter(v => v !== ans)).slice(0, 2)]), ans, hint: MATH_HINTS.sym,
-          explain: `<div class="m-viz">${MathGen.polySvg(n, '#ffd54f', 0)}</div><p class="m-eq-num">꼭짓점에서 마주 보는 곳으로 접으면 ${ans}가지 방법으로 꼭 맞아요 → ${ans}개</p>` };
+          explain: `<div class="m-viz">${MathGen.polySvg(n, '#ffd54f', 0)}</div><p class="m-eq-num">반으로 접어 꼭 맞는 선을 모두 찾으면 ${ans}개예요. 변과 각이 모두 같은 도형은 변의 수만큼 대칭축이 있어요.</p>` };
       }
       const axis = lv === 2 ? 'h' : 'v', W = lv === 0 ? 4 : 6, H = lv === 0 ? 4 : axis === 'h' ? 6 : 5, n = lv === 0 ? 3 : lv === 1 ? 5 : 6;
       let half, right, wrong1, wrong2;
@@ -68,10 +68,10 @@ const MM = (() => {
     },
     // 소수: 쉬움 색칠한 조각 → 0.□, 보통 1.□ · 0.1이 몇 개, 어려움 수직선, 도전 크기 비교·덧셈
     dec() {
-      const lv = LV(), f = n => (n / 10).toFixed(1);
+      const lv = LV(), f = n => n % 10 ? (n / 10).toFixed(1) : String(n / 10); // 0.1이 열 개면 1.0이 아니라 1
       if (lv === 0 || (lv === 1 && R(2))) {
         const n = lv === 0 ? 1 + R(9) : 11 + R(9), ans = f(n);
-        const o = shuffle([ans, ...shuffle([f(n + 1), f(n - 1), f(n % 10 ? (Math.floor(n / 10) * 10 + 10 - n % 10) : n + 2), String(n % 10 || n)].filter(v => v !== ans && +v > 0)).slice(0, 2)]);
+        const o = shuffle([ans, ...shuffle([...new Set([f(n + 1), f(n - 1), f(n % 10 ? (Math.floor(n / 10) * 10 + 10 - n % 10) : n + 2), String(n % 10 || n)])].filter(v => v !== ans && +v > 0)).slice(0, 2)]);
         return { ask: '색칠한 부분을 소수로 나타내면 얼마일까요?', show: decSvg(n), opts: o, ans, hint: MATH_HINTS.dec, explain: `${decSvg(n)}<p class="m-eq-num">0.1이 ${n}개 → ${ans}</p>` };
       }
       if (lv === 1) {

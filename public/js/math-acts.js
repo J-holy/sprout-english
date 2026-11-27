@@ -296,7 +296,7 @@ function mathAct(el, t) {
   };
   MATH_ACTS.angle = {
     missions: [
-      { text: '빨간 손잡이를 잡고 돌려서 각을 벌렸다 오므렸다 해 봐요. 그다음 쭉 펴서 일직선을 만들어요.', ok: d => d === 180, win: '쭉 편 일직선은 180도예요. 이것보다 크게는 못 벌려요.' },
+      { text: '빨간 손잡이를 잡고 돌려서 각을 벌렸다 오므렸다 해 봐요. 그다음 쭉 펴서 일직선을 만들어요.', ok: d => d === 180, win: '쭉 편 일직선은 180도예요. 직각 두 개만큼이에요.' },
       { text: '공책 모서리처럼 반듯한 직각을 만들어 봐요.', ok: d => d === 90, win: '직각 완성! 직각은 90도예요.' },
       { text: '직각보다 작은 각, 예각을 만들어 봐요.', ok: d => d > 5 && d < 85, win: d => `${d}도는 직각보다 작으니까 예각이에요.` },
       { text: '직각보다 크고 일직선보다 작은 각, 둔각을 만들어 봐요.', ok: d => d > 95 && d < 175, win: d => `${d}도는 직각보다 크니까 둔각이에요.` },
@@ -411,10 +411,10 @@ function mathAct(el, t) {
   const RW = 6, CL = 8;
   MATH_ACTS.mul = {
     missions: [
-      { text: '사탕을 3줄에 4개씩 놓아 봐요. 3줄 4번째 칸을 누르면 돼요.', ok: (r, c) => r === 3 && c === 4 && '3 × 4 = 12! 4개씩 3줄이면 12개예요.' },
-      { text: '🔄 돌려 보기를 눌러서 4줄에 3개씩으로 바꿔 봐요. 사탕은 몇 개가 될까요?', ok: (r, c, turned) => r === 4 && c === 3 && turned && '4 × 3 = 12, 그대로 12개! 순서를 바꿔 곱해도 같아요.' },
+      { text: '사탕을 3줄에 4개씩 놓아 봐요. 3줄 4번째 칸을 누르면 돼요.', ok: (r, c) => r === 3 && c === 4 && '4 × 3 = 12! 4개씩 3줄이면 12개예요.' },
+      { text: '🔄 돌려 보기를 눌러서 4줄에 3개씩으로 바꿔 봐요. 사탕은 몇 개가 될까요?', ok: (r, c, turned) => r === 4 && c === 3 && turned && '3 × 4 = 12, 그대로 12개! 순서를 바꿔 곱해도 같아요.' },
       { text: '사탕 12개를 똑같은 줄로 놓는 방법을 세 가지 찾아봐요.', twelve: true },
-      { text: '5줄에 6개씩 놓아 봐요. 모두 몇 개일까요?', ok: (r, c) => r === 5 && c === 6 && '5 × 6 = 30! 6씩 5번 뛰어 세면 6, 12, 18, 24, 30.' },
+      { text: '5줄에 6개씩 놓아 봐요. 모두 몇 개일까요?', ok: (r, c) => r === 5 && c === 6 && '6 × 5 = 30! 6씩 5번 뛰어 세면 6, 12, 18, 24, 30.' },
     ],
     free: { text: '칸을 눌러 마음대로 곱셈을 만들어 봐요.' },
     mount(box, m, api) {
@@ -424,12 +424,12 @@ function mathAct(el, t) {
       const g = $('.m-act-arr', box), eq = $('.m-act-eq', box);
       const draw = () => {
         g.innerHTML = Array.from({ length: RW * CL }, (_, k) => { const y = Math.floor(k / CL), x = k % CL, on = y < r && x < c; return `<button class="m-arr ${on ? 'on' : ''}" data-y="${y}" data-x="${x}" aria-label="${y + 1}줄 ${x + 1}개">${on ? '🍬' : ''}</button>`; }).join('');
-        eq.innerHTML = r && c ? `${r}줄 × ${c}개 = <b>${r * c}</b>개` : '칸을 눌러 봐요';
+        eq.innerHTML = r && c ? `${c}개씩 ${r}줄 · ${c} × ${r} = <b>${r * c}</b>개` : '칸을 눌러 봐요';
         $$('.m-arr', g).forEach(b => b.onclick = () => { r = +b.dataset.y + 1; c = +b.dataset.x + 1; turned = false; Speech.sfx.tap(); draw(); judge(); });
       };
       const judge = () => {
         if (m.twelve) {
-          if (r * c === 12) found.add(`${r} × ${c}`);
+          if (r * c === 12) found.add(`${c} × ${r}`);
           const list = [...found].join(', ');
           return found.size >= 3 ? api.done(`${list}! 모두 12개예요. 12는 여러 가지 곱셈으로 만들 수 있어요.`) : api.status(found.size ? `찾은 방법: ${list}` : r && c ? `${r * c}개예요. 12개가 되게 해 봐요` : ' ');
         }
@@ -456,7 +456,7 @@ function mathAct(el, t) {
   };
   MATH_ACTS.area = {
     missions: [
-      { text: '칸 6개를 이어 칠해서 넓이가 6인 모양을 만들어 봐요.', ok: s => s.a === 6 && `넓이 6! 둘레는 ${s.per}이에요.` },
+      { text: '칸 6개를 이어 칠해서 넓이가 6인 모양을 만들어 봐요.', ok: s => s.a === 6 && `넓이 6! 둘레는 ${mJo(s.per, '이에요', '예요')}.` },
       { text: '넓이가 4이고 둘레가 8인 모양을 만들어 봐요.', ok: s => s.a === 4 && s.per === 8 && '정사각형이에요! 넓이 4, 둘레 8.' },
       { text: '이번에는 넓이는 4 그대로, 둘레가 10인 모양을 만들어 봐요.', ok: s => s.a === 4 && s.per === 10 && '넓이는 같아도 모양에 따라 둘레가 달라져요!' },
       { text: '둘레가 12인 직사각형을 만들어 봐요.', ok: s => s.rect && s.per === 12 && `넓이 ${s.a}, 둘레 12인 직사각형! 다른 직사각형도 있을까요?` },
