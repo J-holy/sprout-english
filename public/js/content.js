@@ -809,21 +809,35 @@ const nameOf = l => LETTER_NAMES[l.toUpperCase()] || l;
 const LETTER_RHYME = ['BCDEGPTVZ', 'AHJK', 'IY', 'MN', 'FLSX', 'QUW'];
 const soundAlike = (a, b) => LETTER_RHYME.some(g => g.includes(a.toUpperCase()) && g.includes(b.toUpperCase()));
 const letterOthers = (ans, n) => shuffle(LETTERS.map(l => l.letter).filter(l => l !== ans && !soundAlike(l, ans))).slice(0, n);
-// 스토리북 '천천히' 읽기의 마디: 쉼표·마침표에서, 아니면 3단어마다 끊는다 (마지막에 한 단어만 남지 않게).
+// 스토리북 '천천히' 읽기의 마디: 쉼표·마침표에서 끊고, 그 사이가 길면(7단어 이상) 뜻이 끊기는 자리에서만 나눈다.
+// 2026-11-27: 예전에는 3단어마다 끊어서 'It is on / the table', 'I wear my / green raincoat'처럼 말덩이 중간에서 쉬었다.
+//   이제는 전치사·접속사 앞('The cat sat back / on the mat')에서 나누고, 관사·소유격·전치사·be동사로 마디가 끝나지 않게 한다.
 // 화면과 AI 음성 미리 만들기가 같은 마디를 쓴다. 단어 번호 묶음을 돌려준다.
+// 나누는 자리 우선순위: ① 전치사·접속사 앞 ② 주어와 서술어 사이(will·is 앞) ③ 동사와 목적어 사이(a·the·my 앞). 없으면 나누지 않는다.
+const CHUNK_TIERS = [
+  /^(on|in|at|with|for|from|under|over|into|onto|near|behind|by|after|before|around|across|through|past|toward|inside|outside|about|without|to|and|but|or|so|because|when|then|where|who|if|than|like)$/i,
+  /^(will|can|is|are|was|were|has|have|had|does|do|did|must|should|could|would)$/i,
+  /^(a|an|the|my|your|his|her|its|our|their|this|that|these|those|some|lots|many|every|all)$/i,
+];
+// 마디가 이 말로 끝나면 뒷말과 떨어져 어색하다 (관사·소유격·전치사·be동사·주어 대명사 등)
+const CHUNK_NO_END = /^(a|an|the|my|your|his|her|its|our|their|this|that|these|those|some|many|much|lots|to|of|in|on|at|with|for|from|by|under|over|into|about|very|so|too|as|and|or|but|is|am|are|was|were|be|can|will|do|does|did|not|i|we|you|he|she|it|they|let's|let|has|have|had|thank)$/i;
+// 마디가 이 말로 시작하면 앞말과 떨어져 어색하다 (목적어 대명사·동사에 붙는 말)
+const CHUNK_NO_START = /^(it|me|him|them|us|you|up|down|off|out|back|of|as|too|one|away)$/i;
 function storyChunks(text) {
-  const ws = text.split(' '), groups = []; let cur = [];
-  ws.forEach((w, k) => {
-    cur.push(k);
-    const left = ws.length - k - 1;
-    if (/[,.!?]$/.test(w) || (cur.length >= 3 && left !== 1) || left === 0) { groups.push(cur); cur = []; }
-  });
-  // 마디가 관사로 끝나면('I heard a') AI 음성이 a를 '에이'로 강하게 읽어서, 관사는 다음 마디 앞으로 옮긴다 ('I heard' / 'a big dog')
-  for (let i = 0; i < groups.length - 1; i++) {
-    const g = groups[i], last = g[g.length - 1];
-    if (g.length > 1 && /^(a|an|the)$/i.test(ws[last])) groups[i + 1].unshift(g.pop());
-  }
-  return groups;
+  const ws = text.split(' '), segs = []; let cur = [];
+  ws.forEach((w, k) => { cur.push(k); if (/[,.!?]["']?$/.test(w) || k === ws.length - 1) { segs.push(cur); cur = []; } });
+  const bare = k => ws[k].replace(/[^A-Za-z']/g, '');
+  const split = seg => {
+    if (seg.length <= 6) return [seg];
+    const mid = seg.length / 2, ok = p => p >= 2 && seg.length - p >= 2 && !CHUNK_NO_END.test(bare(seg[p - 1])) && !CHUNK_NO_START.test(bare(seg[p]));
+    for (const re of CHUNK_TIERS) {
+      const c = [];
+      for (let p = 1; p < seg.length; p++) if (ok(p) && re.test(bare(seg[p]))) c.push(p);
+      if (c.length) { const p = c.reduce((a, b) => Math.abs(b - mid) < Math.abs(a - mid) ? b : a); return [...split(seg.slice(0, p)), ...split(seg.slice(p))]; }
+    }
+    return [seg];
+  };
+  return segs.flatMap(split);
 }
 // 스토리북에서 단어 하나를 읽을 소리: 'A cat sat'의 A는 관사라서 'a'(어)로, 'A is for apple'의 A만 글자 이름(에이)으로
 const isLetterLine = text => /^[A-Z] is for |ends with [A-Z]\.?$/.test(text);
