@@ -31,7 +31,7 @@ function mathAct(el, t) {
     let ok = false;
     const api = {
       status: s => { out.textContent = s || ' '; },
-      done: line => { out.textContent = line; if (ok || !nb) return; ok = true; nb.disabled = false; Speech.sfx.correct(); setTimeout(() => KoSpeech.say(line), 400); },
+      done: (line, say) => { out.textContent = line; if (ok || !nb) return; ok = true; nb.disabled = false; Speech.sfx.correct(); setTimeout(() => KoSpeech.say(say || line), 400); },
       undo: () => { if (!nb) return; ok = false; nb.disabled = true; },
     };
     const mount = () => { ok = false; if (nb) nb.disabled = true; out.textContent = ' '; A.mount($('.m-act-box', area), m, api); };
@@ -431,7 +431,7 @@ function mathAct(el, t) {
         if (m.twelve) {
           if (r * c === 12) found.add(`${c} × ${r}`);
           const list = [...found].join(', ');
-          return found.size >= 3 ? api.done(`${list}! 모두 12개예요. 12는 여러 가지 곱셈으로 만들 수 있어요.`) : api.status(found.size ? `찾은 방법: ${list}` : r && c ? `${r * c}개예요. 12개가 되게 해 봐요` : ' ');
+          return found.size >= 3 ? api.done(`${list}! 모두 12개예요. 12는 여러 가지 곱셈으로 만들 수 있어요.`, '세 가지 모두 찾았어요! 모두 12개예요. 12는 여러 가지 곱셈으로 만들 수 있어요.') : api.status(found.size ? `찾은 방법: ${list}` : r && c ? `${r * c}개예요. 12개가 되게 해 봐요` : ' ');
         }
         const w = m.ok && r && c && m.ok(r, c, turned);
         if (w) api.done(w); else if (m.ok) api.status(' ');

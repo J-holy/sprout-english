@@ -19,10 +19,10 @@ for (const L of ctx.MATH_LESSONS) for (const s of L.steps) { if (s.text) texts.a
 for (const st of Object.values(ctx.MATH_STORIES || {})) for (const pg of st.pages) texts.add(pg.text);
 for (const h of Object.values(ctx.MATH_HINTS || {})) texts.add(h);
 for (const v of ctx.MATH_VOICE || []) texts.add(v);
-// 🤲 해 보기: 미션 문장(text·say)과 칭찬·안내 한 줄 중 글자가 정해진 것 (수가 바뀌어 들어가는 문장은 기기 목소리)
+// 🤲 해 보기: 미션 문장(text·say)과 칭찬 한 줄(api.done·win·ok의 && '…') 중 글자가 정해진 것 (수가 바뀌어 들어가는 문장은 기기 목소리)
 for (const f of fs.readdirSync(path.join(config.publicDir, 'js')).filter(f => /^math-(acts\d*|more)\.js$/.test(f))) {
   const src = fs.readFileSync(path.join(config.publicDir, 'js', f), 'utf8');
-  for (const m of src.matchAll(/(?:\b(?:text|say): |api\.done\(|KoSpeech\.say\()'((?:[^'\\]|\\.)*[가-힣](?:[^'\\]|\\.)*)'/g)) texts.add(m[1].replace(/\\'/g, "'"));
+  for (const m of src.matchAll(/(?:\b(?:text|say|win): |api\.done\((?:`[^`]*`, )?|KoSpeech\.say\(|&& )'((?:[^'\\]|\\.)*[가-힣](?:[^'\\]|\\.)*)'/g)) texts.add(m[1].replace(/\\'/g, "'"));
 }
 // 하나~열다섯: 한 번에 이어 센 소리에서 잘라 쓴다 (낱말 하나씩 만들면 높낮이가 제각각이고 앞에 무음이 붙는다)
 const COUNT_WORDS = ['하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열하나', '열둘', '열셋', '열넷', '열다섯'];
