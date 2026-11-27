@@ -461,6 +461,8 @@ const Speech = (() => {
     return d[m][n];
   }
   const sim = (a, b) => 1 - lev(a, b) / Math.max(a.length, b.length, 1);
+  const stem = w => w.replace(/(ies|es|s|ed|ing)$/, '');
+  const same = (a, b) => !!b && a.length >= 3 && b.length >= 3 && stem(a) === stem(b);
 
   // 알파벳 한 글자는 이름 소리로 받아써도 맞게 본다 ('J is for juice'를 'Jay is for juice'로 적었다)
   const LETTER_SOUNDS = { a: 'eh hey', c: 'sea si', g: 'gee ji', h: 'age eich', i: 'aye', j: 'jae jey', l: 'ell elle', o: 'owe', p: 'pea',
@@ -477,10 +479,12 @@ const Speech = (() => {
     let hi = 0;
     for (const tw of words) {
       let best = 0, bestJ = -1;
-      for (let j = hi; j < Math.min(H.length, hi + 3); j++) {
-        const s = Math.max(...spellings(tw.w).map(v => sim(v, H[j]))); if (s > best) { best = s; bestJ = j; }
+      for (let j = hi; j < Math.min(H.length, hi + 4); j++) {
+        const s = Math.max(...spellings(tw.w).map(v => same(v, H[j]) ? 1 : sim(v, H[j]))); if (s > best) { best = s; bestJ = j; }
       }
-      if (best >= 0.99) tw.ok = 1; else if (best >= 0.6) tw.ok = 0.5;
+      // 끝소리(-s·-ed·-ing)만 다르거나 긴 낱말이 한두 글자만 다르면 맞게 본다: 아이패드·아이폰의 서버 받아쓰기(작은 Whisper)는
+      //   'apples'를 'apple'로 적는 일이 많아서, 아이가 바르게 읽어도 만점이 안 나와 두세 번 다시 말해야 했다 (2026-11-27 제보)
+      if (best >= 0.99 || (tw.w.length >= 5 && best >= 0.8)) tw.ok = 1; else if (best >= 0.6) tw.ok = 0.5;
       if (tw.ok) hi = bestJ + 1;
     }
     const score = Math.round(words.reduce((s, w) => s + w.ok, 0) / Math.max(words.length, 1) * 100);
