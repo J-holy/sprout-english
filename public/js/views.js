@@ -1942,9 +1942,15 @@ const ParentTabs = {
     draw();
   },
   alerts(el, u) {
-    el.innerHTML = `<div class="card"><div class="sw-head"><h3>학습알림 ${u.notifications.length}건</h3></div>
-      <p class="fine">카톡 연동 없이 여기에서 모든 알림을 볼 수 있어요. 브라우저 알림은 설정 탭에서 켜요.</p>
-      ${u.notifications.length ? `<ul class="noti-list">${u.notifications.map(n => `<li class="${n.read ? '' : 'unread'}"><p>${esc(n.text)}</p><small>${fmtDate(n.at)}</small></li>`).join('')}</ul>` : UI.empty('🔕', '아직 알림이 없어요.')}</div>`;
+    const draw = () => {
+      el.innerHTML = `<div class="card"><div class="sw-head"><h3>학습알림 ${u.notifications.length}건</h3>${u.notifications.length ? '<button type="button" class="btn btn-ghost sm" id="notiClear">🗑️ 모두 지우기</button>' : ''}</div>
+      <p class="fine">카톡 연동 없이 여기에서 모든 알림을 볼 수 있어요. 필요 없는 알림은 ✕로 지울 수 있어요. 브라우저 알림은 설정 탭에서 켜요.</p>
+      ${u.notifications.length ? `<ul class="noti-list">${u.notifications.map(n => `<li class="${n.read ? '' : 'unread'}"><div><p>${esc(n.text)}</p><small>${fmtDate(n.at)}</small></div><button type="button" class="noti-del" data-nid="${esc(n.id)}" aria-label="이 알림 지우기">✕</button></li>`).join('')}</ul>` : UI.empty('🔕', '아직 알림이 없어요.')}</div>`;
+      el.querySelectorAll('.noti-del').forEach(b => b.onclick = () => { Store.deleteNotification(b.dataset.nid); draw(); });
+      const clr = el.querySelector('#notiClear');
+      if (clr) clr.onclick = () => { if (confirm('학습알림을 모두 지울까요?')) { Store.deleteNotification(); draw(); } };
+    };
+    draw();
     Store.markAllRead(); App.refreshHeader();
   },
   member(el, u) {

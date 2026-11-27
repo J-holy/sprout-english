@@ -159,14 +159,22 @@ app.post('/api/push/test', requireUser, wrap(async (req, res) => {
 }));
 
 app.post('/api/me/notifications', requireUser, (req, res) => {
-  const { text, kind } = req.body || {};
+  const { text, kind, id: nid } = req.body || {};
   if (!text || typeof text !== 'string') return bad(res, '알림 내용이 없어요.');
   if (!rateLimit('noti:' + req.user.id, 60, 3600000)) return bad(res, '알림이 너무 많아요.', 429);
-  notify(req.user.id, text, String(kind || 'info').slice(0, 20));
+  notify(req.user.id, text, String(kind || 'info').slice(0, 20), nid);
   res.json({ ok: true });
 });
 app.post('/api/me/notifications/read', requireUser, (req, res) => {
   db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id); res.json({ ok: true });
+});
+// 학습알림 지우기: { id } 하나, { all: true } 모두
+app.post('/api/me/notifications/delete', requireUser, (req, res) => {
+  const { id: nid, all } = req.body || {};
+  if (all === true) db.prepare('DELETE FROM notifications WHERE user_id = ?').run(req.user.id);
+  else if (typeof nid === 'string' && nid) db.prepare('DELETE FROM notifications WHERE user_id = ? AND id = ?').run(req.user.id, nid);
+  else return bad(res, '지울 알림이 없어요.');
+  res.json({ ok: true });
 });
 app.delete('/api/me', requireUser, (req, res) => {
   // 탈퇴하면 카카오페이 정기결제 번호도 해지한다

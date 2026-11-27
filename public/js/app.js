@@ -116,12 +116,23 @@ const App = (() => {
       document.documentElement.style.setProperty('--pop-top', Math.round(document.querySelector('.site-header').getBoundingClientRect().bottom + 8) + 'px'); // 휴대폰: 위 메뉴 바로 아래
       const pop = bell.nextElementSibling; const sp = document.querySelector('.study-pop'); if (sp) { sp.hidden = true; document.getElementById('studyBtn')?.setAttribute('aria-expanded', 'false'); } // 학습하기 창과 동시에 열리지 않게
       pop.hidden = !pop.hidden;
-      if (!pop.hidden) {
+      // 알림 창: 알림마다 ✕로 지우고, 모두 지우기도 있다. 지운 뒤에도 창은 열어 둔 채 다시 그린다
+      const setBadge = () => {
+        const n = u.notifications.filter(x => !x.read).length, b = bell.querySelector('.badge');
+        bell.setAttribute('aria-label', `알림 ${n}개`);
+        if (b) { b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
+      };
+      const drawPop = () => {
         const list = u.notifications.slice(0, 6);
-        pop.innerHTML = `<div class="bp-head"><b>학습알림</b><button class="icon-btn bp-close" aria-label="알림 닫기">✕</button></div>${list.length ? list.map(n => `<div class="bp-item ${n.read ? '' : 'unread'}">${esc(n.text)}<small>${fmtDate(n.at)}</small></div>`).join('') : '<p class="fine">알림이 없어요.</p>'}<a href="#/parent/alerts">전체 보기 →</a>`;
+        pop.innerHTML = `<div class="bp-head"><b>학습알림</b>${list.length ? '<button type="button" class="link-btn bp-clear">모두 지우기</button>' : ''}<button class="icon-btn bp-close" aria-label="알림 닫기">✕</button></div>${list.length ? list.map(n => `<div class="bp-item ${n.read ? '' : 'unread'}"><span>${esc(n.text)}<small>${fmtDate(n.at)}</small></span><button type="button" class="noti-del" data-nid="${esc(n.id)}" aria-label="이 알림 지우기">✕</button></div>`).join('') : '<p class="fine">알림이 없어요.</p>'}<a href="#/parent/alerts">전체 보기 →</a>`;
         pop.querySelector('.bp-close').onclick = ev => { ev.stopPropagation(); pop.hidden = true; };
         pop.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { pop.hidden = true; }));
-      }
+        const after = () => { drawPop(); setBadge(); };
+        pop.querySelectorAll('.noti-del').forEach(b => b.onclick = ev => { ev.stopPropagation(); Store.deleteNotification(b.dataset.nid); after(); });
+        const clr = pop.querySelector('.bp-clear');
+        if (clr) clr.onclick = ev => { ev.stopPropagation(); if (confirm('학습알림을 모두 지울까요?')) { Store.deleteNotification(); after(); } };
+      };
+      if (!pop.hidden) drawPop();
     };
   }
   // 알림·학습하기 창: 창 밖 어디를 눌러도 닫힌다. 아이폰은 빈 곳을 누르면 click이 오지 않아서 pointerdown으로도 닫는다

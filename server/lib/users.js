@@ -46,8 +46,10 @@ export function linkIdentity(uid, provider, providerUid) {
   db.prepare('INSERT OR IGNORE INTO identities (provider, provider_uid, user_id, created_at) VALUES (?, ?, ?, ?)').run(provider, providerUid, uid, now());
 }
 
-export function notify(uid, text, kind = 'info') {
-  db.prepare('INSERT INTO notifications (id, user_id, text, kind, at) VALUES (?, ?, ?, ?, ?)').run(id(), uid, String(text).slice(0, 300), kind, now());
+export function notify(uid, text, kind = 'info', nid = null) {
+  // 화면에서 만든 알림 번호를 그대로 쓰면 새로고침 전에도 그 알림을 지울 수 있다 (번호가 겹치면 새 번호)
+  const ok = typeof nid === 'string' && /^[\w-]{8,40}$/.test(nid) && !db.prepare('SELECT 1 FROM notifications WHERE id = ?').get(nid);
+  db.prepare('INSERT INTO notifications (id, user_id, text, kind, at) VALUES (?, ?, ?, ?, ?)').run(ok ? nid : id(), uid, String(text).slice(0, 300), kind, now());
   // 사용자당 최근 100개만 보관
   db.prepare(`DELETE FROM notifications WHERE user_id = ? AND id NOT IN (SELECT id FROM notifications WHERE user_id = ? ORDER BY at DESC LIMIT 100)`).run(uid, uid);
 }

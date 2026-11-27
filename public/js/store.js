@@ -617,9 +617,10 @@ const Store = (() => {
   // ---------- 알림 ----------
   function notify(text, kind = 'info', push = false) {
     const u = user(); if (!u) return;
-    u.notifications.unshift({ id: uid(), text, kind, at: Date.now(), read: false });
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : uid() + uid();
+    u.notifications.unshift({ id, text, kind, at: Date.now(), read: false });
     u.notifications = u.notifications.slice(0, 100);
-    if (API.on) API.req('POST', 'api/me/notifications', { text, kind }).catch(() => {}); else save();
+    if (API.on) API.req('POST', 'api/me/notifications', { text, kind, id }).catch(() => {}); else save();
     // 이 기기가 서버 알림(웹 푸시)을 받으면 화면 알림은 띄우지 않는다 (같은 알림이 두 번 오지 않게)
     if (push && u.settings.notify && 'Notification' in window && Notification.permission === 'granted' && !(typeof Push !== 'undefined' && Push.isOn())) {
       try { new Notification('새싹스쿨 학습알림', { body: text.replace(/^\S+\s/, '') }); } catch (e) { /* ignore */ }
@@ -630,6 +631,12 @@ const Store = (() => {
     const u = user(); if (!u) return;
     u.notifications.forEach(n => n.read = true);
     if (API.on) API.req('POST', 'api/me/notifications/read', {}).catch(() => {}); else save();
+  }
+  // 학습알림 지우기: id 하나, 또는 id 없이 부르면 모두
+  function deleteNotification(id) {
+    const u = user(); if (!u) return;
+    u.notifications = id ? u.notifications.filter(n => n.id !== id) : [];
+    if (API.on) API.req('POST', 'api/me/notifications/delete', id ? { id } : { all: true }).catch(() => {}); else save();
   }
   function checkReminder() {
     const u = user(); const p = profile(); if (!u || !p || !u.settings.notify) return;
@@ -721,6 +728,6 @@ const Store = (() => {
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
-    notify, markAllRead, checkReminder, addReview, reviews, deleteReview, Admin, Social, setTheme, exportData, importData, persist, hash,
+    notify, markAllRead, deleteNotification, checkReminder, addReview, reviews, deleteReview, Admin, Social, setTheme, exportData, importData, persist, hash,
   };
 })();
