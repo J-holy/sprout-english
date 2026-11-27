@@ -60,5 +60,12 @@ const MATH_STORY_PICS = {
  "poly-0": "ms/poly-0-5ec62a8a.jpg",
  "area-0": "ms/area-0-41d712fd.jpg",
  "area-3": "ms/area-3-3e7be331.jpg",
- "div-0": "ms/div-0-fd9738c5.jpg"
+ "div-0": "ms/div-0-fd9738c5.jpg",
+ "big-0": "ms/big-0-eafc329f.jpg",
+ "big-1": "ms/big-1-9d4a690b.jpg",
+ "sym-0": "ms/sym-0-2f2f459e.jpg",
+ "dec-0": "ms/dec-0-87f8cc59.jpg",
+ "vol-0": "ms/vol-0-02c7bdca.jpg",
+ "vol-1": "ms/vol-1-2a6da427.jpg",
+ "vol-2": "ms/vol-2-167e10df.jpg"
 };
