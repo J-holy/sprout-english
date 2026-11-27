@@ -29,8 +29,10 @@ const mFrame = (cells, cls = '') => `<div class="m-tf ${cls}">${cells.map((c, i)
 // ── 수 세기 · 10 짝꿍수: 10칸 틀에 빨강·파랑 구슬을 채워 10을 만든다 ──
 MATH_ACTS.count = {
   missions: [
+    { text: '칸을 눌러 빨간 구슬을 5개 놓아 봐요.', red: 0, ok: (r, b) => r === 5 && b === 0 && '5개! 다섯 칸 한 줄이 꽉 찼어요.' },
     { text: '칸을 눌러 빨간 구슬을 7개 놓아 봐요.', red: 0, ok: (r, b) => r === 7 && b === 0 && '7개! 다섯 칸 한 줄을 채우고 둘을 더 놓았어요.' },
     { text: '빨간 구슬이 7개 있어요. 파란 구슬로 빈칸을 채워 10을 만들어 봐요. 몇 개가 더 필요할까요?', red: 7, ok: (r, b) => r + b === 10 && '빨강 7개와 파랑 3개를 더하면 10! 7과 3은 10 짝꿍이에요.' },
+    { text: '빨간 구슬이 8개 있어요. 파란 구슬로 10을 만들어 봐요.', red: 8, ok: (r, b) => r + b === 10 && '8과 2는 10 짝꿍이에요!' },
     { text: '이번에는 빨간 구슬이 4개예요. 파란 구슬로 10을 만들어 봐요.', red: 4, ok: (r, b) => r + b === 10 && '4와 6은 10 짝꿍이에요!' },
     { text: '빨강과 파랑으로 10칸을 가득 채워서, 10 짝꿍을 네 가지 찾아봐요.', pairs: true },
   ],
@@ -67,10 +69,11 @@ MATH_ACTS.count = {
 // ── 큰 수 세기: 십 묶음과 낱개를 놓아 수를 만들고, 낱개 열 개를 묶어 십 묶음으로 바꾼다 ──
 MATH_ACTS.big = {
   missions: [
-    { text: '십 묶음과 낱개를 눌러 놓아서 35를 만들어 봐요.', t: 0, o: 0, goal: 35 },
-    { text: '낱개가 열네 개나 있어요. 낱개 열 개를 한 묶음으로 묶으면 모두 얼마인지 보여요.', t: 1, o: 14, goal: 24, tie: true },
-    { text: '60을 만들어 봐요. 낱개는 몇 개가 필요할까요?', t: 0, o: 0, goal: 60 },
-    { text: '십 묶음을 하나씩 더해서 100을 만들어 봐요.', t: 7, o: 0, goal: 100 },
+    { text: '십 묶음과 낱개를 눌러 놓아서 35를 만들어 봐요.', t: 0, o: 0, goal: 35, win: '35! 십 묶음 3개와 낱개 5개예요.' },
+    { text: '60을 만들어 봐요. 낱개는 몇 개가 필요할까요?', t: 0, o: 0, goal: 60, win: '60! 십 묶음 6개, 낱개는 하나도 없어요.' },
+    { text: '낱개가 열네 개나 있어요. 낱개 열 개를 한 묶음으로 묶으면 모두 얼마인지 보여요.', t: 1, o: 14, goal: 24, tie: true, win: '낱개 열 개를 묶었더니 십 묶음 2개와 낱개 4개, 24예요!' },
+    { text: '십 묶음 2개와 낱개 열일곱 개가 있어요. 낱개를 묶어서 모두 얼마인지 알아봐요.', t: 2, o: 17, goal: 37, tie: true, win: '낱개 열 개를 묶었더니 십 묶음 3개와 낱개 7개, 37이에요!' },
+    { text: '십 묶음을 하나씩 더해서 100을 만들어 봐요.', t: 7, o: 0, goal: 100, win: '십 묶음 열 개면 100, 백이에요! 세 자리 수의 시작이에요.' },
   ],
   free: { text: '십 묶음과 낱개를 마음대로 놓으며 수를 만들어 봐요.', t: 0, o: 0, open: true },
   mount(box, m, api) {
@@ -85,9 +88,7 @@ MATH_ACTS.big = {
       $('.m-act-eq', box).innerHTML = `십 묶음 <b>${t}</b>개 · 낱개 <b>${o}</b>개 → <b>${o >= 10 ? '?' : n}</b>`;
       tieB.disabled = o < 10;
       if (m.open) return api.status(o >= 10 ? '낱개가 열 개 넘었어요. 묶어 봐요!' : ' ');
-      if (n === m.goal && o < 10) api.done(m.goal === 100 ? '십 묶음 열 개면 100, 백이에요! 세 자리 수의 시작이에요.'
-        : m.tie ? '낱개 열 개를 묶었더니 십 묶음 2개와 낱개 4개, 24예요!'
-        : `${m.goal}! 십 묶음 ${t}개${o ? `와 낱개 ${o}개` : ', 낱개는 하나도 없어요'}.`);
+      if (n === m.goal && o < 10) api.done(m.win);
       else { api.undo(); api.status(o >= 10 ? '낱개가 열 개 넘었어요. 열 개를 묶어 봐요.' : ' '); }
     };
     $$('[data-d]', box).forEach(b => b.onclick = () => {
@@ -105,8 +106,11 @@ MATH_ACTS.shape = {
   missions: [
     { text: '물건을 눌러서 같은 모양 바구니에 넣어 봐요.', sort: true, bins: [{ k: 'tri', label: '🔺 세모' }, { k: 'sq', label: '🟦 네모' }, { k: 'ci', label: '🟠 동그라미' }],
       items: [['🍕', 'tri'], ['⛺', 'tri'], ['🍙', 'tri'], ['📦', 'sq'], ['🖼️', 'sq'], ['📱', 'sq'], ['⚽', 'ci'], ['🍪', 'ci'], ['🕒', 'ci']].map(([e, k]) => ({ e, k })), win: '모두 넣었어요! 뾰족한 곳이 셋이면 세모, 넷이면 네모, 없으면 동그라미예요.' },
+    { text: '이번에는 네모와 동그라미예요. 물건을 같은 모양 바구니에 넣어 봐요.', sort: true, bins: [{ k: 'sq', label: '🟦 네모' }, { k: 'ci', label: '🟠 동그라미' }],
+      items: [['🔲', 'sq'], ['🧇', 'sq'], ['🟩', 'sq'], ['🍩', 'ci'], ['🪙', 'ci'], ['🌕', 'ci']].map(([e, k]) => ({ e, k })), win: '모두 넣었어요! 뾰족한 곳이 넷이면 네모, 없으면 동그라미예요.' },
     { text: '점을 차례로 눌러 세모(삼각형)를 만들어 봐요. 처음 점을 다시 누르면 닫혀요.', geo: 3 },
     { text: '이번에는 네모(사각형)를 만들어 봐요.', geo: 4 },
+    { text: '뾰족한 곳이 다섯 개인 오각형을 만들어 봐요. 처음 점을 다시 누르면 닫혀요.', geo: 5 },
   ],
   free: { text: '점을 이어 마음대로 모양을 만들어 봐요.', geo: 0 },
   mount(box, m, api) {
@@ -120,11 +124,13 @@ MATH_ACTS.group = {
   missions: [
     { text: '과일은 과일 바구니에, 동물은 동물 바구니에 넣어 봐요.', bins: [{ k: 'f', label: '🧺 과일' }, { k: 'a', label: '🏠 동물' }], items: [['🍎', 'f'], ['🍌', 'f'], ['🍇', 'f'], ['🐶', 'a'], ['🐱', 'a'], ['🐥', 'a'], ['🍓', 'f'], ['🐰', 'a']].map(([e, k]) => ({ e, k })), win: '같은 성질끼리 모은 무리를 집합이라고 해요!' },
     { text: '하늘을 나는 것과 물에 사는 것으로 나눠 봐요.', bins: [{ k: 's', label: '☁️ 하늘' }, { k: 'w', label: '🌊 물' }], items: [['🐦', 's'], ['🦋', 's'], ['✈️', 's'], ['🐟', 'w'], ['🐙', 'w'], ['🐳', 'w'], ['🦅', 's'], ['🐠', 'w']].map(([e, k]) => ({ e, k })) },
+    { text: '땅에서 달리는 탈것과 물에 뜨는 탈것으로 나눠 봐요.', bins: [{ k: 'l', label: '🛣️ 땅' }, { k: 'w', label: '🌊 물' }], items: [['🚗', 'l'], ['🚌', 'l'], ['🚲', 'l'], ['🚂', 'l'], ['⛵', 'w'], ['🚤', 'w'], ['🛳️', 'w']].map(([e, k]) => ({ e, k })), win: '땅에서 달리는 것과 물에 뜨는 것으로 나눴어요!' },
+    { text: '과일과 채소로 나눠 봐요.', bins: [{ k: 'f', label: '🧺 과일' }, { k: 'v', label: '🥬 채소' }], items: [['🍎', 'f'], ['🍌', 'f'], ['🍇', 'f'], ['🍑', 'f'], ['🥕', 'v'], ['🥦', 'v'], ['🥒', 'v'], ['🍆', 'v']].map(([e, k]) => ({ e, k })), win: '과일 무리와 채소 무리로 나눴어요!' },
     { text: '이번에는 세 무리예요. 탈것, 몸에 걸치는 것, 먹을 것으로 나눠 봐요.', bins: [{ k: 'v', label: '🚗 탈것' }, { k: 'c', label: '👕 걸치는 것' }, { k: 'f', label: '🍞 먹을 것' }], items: [['🚲', 'v'], ['🚌', 'v'], ['🚀', 'v'], ['🧢', 'c'], ['👗', 'c'], ['🧦', 'c'], ['🍔', 'f'], ['🍩', 'f'], ['🥕', 'f']].map(([e, k]) => ({ e, k })) },
   ],
   mount(box, m, api) { mSortMount(box, m, api); },
 };
-MATH_ACTS.group.free = MATH_ACTS.group.missions[2];
+MATH_ACTS.group.free = MATH_ACTS.group.missions[4];
 
 // ── 규칙 찾기: 구슬 줄에 규칙대로 다음 구슬을 꿴다 ──
 (() => {
@@ -132,10 +138,12 @@ MATH_ACTS.group.free = MATH_ACTS.group.missions[2];
   const bead = k => `<i class="m-bead ${k}"></i>`;
   MATH_ACTS.pattern = {
     missions: [
-      { text: '규칙을 찾아 다음 구슬 네 개를 꿰어 봐요.', unit: 'ry' },
-      { text: '이번 규칙은 조금 길어요. 다음 구슬을 꿰어 봐요.', unit: 'rrb' },
-      { text: '세 가지 색이 돌아가요. 다음 구슬을 꿰어 봐요.', unit: 'ybg' },
-      { text: '이 규칙도 찾아봐요.', unit: 'gbb' },
+      { text: '규칙을 찾아 다음 구슬 네 개를 꿰어 봐요.', unit: 'ry', win: '규칙대로 꿰었어요! 빨강, 노랑이 한 묶음이에요.' },
+      { text: '이번 규칙은 조금 길어요. 다음 구슬을 꿰어 봐요.', unit: 'rrb', win: '규칙대로 꿰었어요! 빨강, 빨강, 파랑이 한 묶음이에요.' },
+      { text: '세 가지 색이 돌아가요. 다음 구슬을 꿰어 봐요.', unit: 'ybg', win: '규칙대로 꿰었어요! 노랑, 파랑, 초록이 한 묶음이에요.' },
+      { text: '이 규칙도 찾아봐요.', unit: 'gbb', win: '규칙대로 꿰었어요! 초록, 파랑, 파랑이 한 묶음이에요.' },
+      { text: '구슬 네 개가 한 묶음이에요. 다음 구슬을 꿰어 봐요.', unit: 'rryy', win: '규칙대로 꿰었어요! 빨강, 빨강, 노랑, 노랑이 한 묶음이에요.' },
+      { text: '마지막 규칙이에요. 어디서부터 다시 되풀이되는지 찾아봐요.', unit: 'rgbg', win: '규칙대로 꿰었어요! 빨강, 초록, 파랑, 초록이 한 묶음이에요.' },
     ],
     free: { text: '내 규칙을 정해 구슬을 꿰어 봐요.', open: true },
     mount(box, m, api) {
@@ -150,7 +158,7 @@ MATH_ACTS.group.free = MATH_ACTS.group.missions[2];
         const want = m.unit[(shown.length + add.length) % m.unit.length];
         if (k !== want) { Speech.sfx.wrong(); return api.status(`앞에서 ${[...m.unit].map(x => C[x]).join(', ')} 차례가 되풀이돼요. 몇 번째인지 세어 봐요`); }
         add.push(k); Speech.sfx.tap(); draw();
-        if (add.length === need) api.done(`규칙대로 꿰었어요! ${[...m.unit].map(x => C[x]).join(', ')}이 한 묶음이에요.`); else api.status(' ');
+        if (add.length === need) api.done(m.win); else api.status(' ');
       });
       if (m.open) $('[data-back]', box).onclick = () => { add.pop(); draw(); };
       draw();
@@ -161,8 +169,11 @@ MATH_ACTS.group.free = MATH_ACTS.group.missions[2];
 // ── 그림 표: 흩어진 물건을 눌러 표의 제 줄로 옮기고, 표를 보고 답한다 ──
 MATH_ACTS.table = {
   missions: [
-    { text: '과일을 하나씩 눌러 표에 옮겨 봐요. 다 옮기면 가장 많은 과일을 눌러요.', kinds: ['🍎', '🍌', '🍓'], ask: 'max' },
-    { text: '동물을 표에 옮겨 봐요. 다 옮기면 가장 적은 동물을 눌러요.', kinds: ['🐶', '🐱', '🐰', '🐥'], ask: 'min' },
+    { text: '과일을 하나씩 눌러 표에 옮겨 봐요. 다 옮기면 가장 많은 과일을 눌러요.', kinds: ['🍎', '🍌', '🍓'], ask: 'max', win: '맞아요! 줄이 가장 긴 과일이 가장 많아요.' },
+    { text: '탈것을 표에 옮겨 봐요. 다 옮기면 가장 많은 탈것을 눌러요.', kinds: ['🚗', '🚌', '🚲'], ask: 'max', win: '맞아요! 줄이 가장 긴 탈것이 가장 많아요.' },
+    { text: '채소를 표에 옮겨 봐요. 다 옮기면 가장 적은 채소를 눌러요.', kinds: ['🥕', '🥦', '🥒'], ask: 'min', win: '맞아요! 줄이 가장 짧은 채소가 가장 적어요.' },
+    { text: '동물을 표에 옮겨 봐요. 다 옮기면 가장 적은 동물을 눌러요.', kinds: ['🐶', '🐱', '🐰', '🐥'], ask: 'min', win: '맞아요! 줄이 가장 짧은 동물이 가장 적어요.' },
+    { text: '과일 네 가지를 표에 옮겨 봐요. 다 옮기면 가장 많은 과일을 눌러요.', kinds: ['🍎', '🍌', '🍓', '🍇'], ask: 'max', win: '맞아요! 네 줄 가운데 가장 긴 줄이 가장 많아요.' },
   ],
   free: { text: '과일을 표에 옮기며 세어 봐요.', kinds: ['🍎', '🍌', '🍓', '🍇'] },
   mount(box, m, api) {
@@ -182,7 +193,7 @@ MATH_ACTS.table = {
       api.status(m.ask === 'max' ? '가장 많은 줄을 눌러요' : '가장 적은 줄을 눌러요');
       $$('tr', tb).forEach(r => r.onclick = () => {
         const i = +r.dataset.r, t = m.ask === 'max' ? Math.max(...got) : Math.min(...got);
-        if (got[i] === t) { r.classList.add('hi'); api.done(`맞아요! ${m.kinds[i]} ${got[i]}${mUnit(m.kinds[i])}, 줄이 ${m.ask === 'max' ? '가장 길어요' : '가장 짧아요'}.`); }
+        if (got[i] === t) { r.classList.add('hi'); api.done(`맞아요! ${m.kinds[i]} ${got[i]}${mUnit(m.kinds[i])}, 줄이 ${m.ask === 'max' ? '가장 길어요' : '가장 짧아요'}.`, m.win); }
         else { Speech.sfx.wrong(); api.status('줄의 길이를 견주어 봐요'); }
       });
     };
@@ -271,13 +282,17 @@ MATH_ACTS.addsub = {
 // ── 마방진: 수 카드를 눌러 빈칸에 놓으면 줄마다 합이 바로 보인다. 모든 줄이 15면 완성 ──
 MATH_ACTS.magic = {
   missions: [
-    { text: '수 카드를 누르고 빈칸을 눌러 넣어 봐요. 가로·세로·대각선의 합이 모두 15가 되게요.', holes: 3 },
+    { text: '수 카드를 빈칸에 끌어 놓거나, 카드를 누르고 빈칸을 눌러 넣어요. 가로·세로·대각선의 합이 모두 15가 되게요.', holes: 2 },
+    { text: '이번에는 빈칸이 세 개예요. 줄마다 합이 15가 되게 넣어 봐요.', holes: 3 },
     { text: '빈칸이 더 많아요. 합이 15가 안 되는 줄을 보고 카드를 바꿔 봐요.', holes: 5 },
+    { text: '빈칸이 여섯 개예요. 빨간 합을 보며 카드를 바꿔 봐요.', holes: 6 },
     { text: '가운데 5만 남았어요. 1부터 9까지 모두 넣어 마방진을 완성해 봐요.', holes: 8 },
   ],
   free: { text: '1부터 9까지 마음대로 넣으며 합을 견주어 봐요.', holes: 9, open: true },
   mount(box, m, api) {
-    const q = MathGen.magic(m.holes === 9 ? 8 : m.holes), g = q.sol.map((v, i) => q.holes.includes(i) || m.holes === 9 ? null : v), giv = g.map(v => v !== null);
+    const q = MathGen.magic(m.holes === 9 ? 8 : m.holes);
+    if (m.holes === 8) q.holes = [0, 1, 2, 3, 5, 6, 7, 8];
+    const g = q.sol.map((v, i) => q.holes.includes(i) || m.holes === 9 ? null : v), giv = g.map(v => v !== null);
     let pool = m.holes === 9 ? [1, 2, 3, 4, 5, 6, 7, 8, 9] : q.holes.map(i => q.sol[i]).sort((a, b) => a - b), sel = null;
     if (m.holes === 9) g.fill(null), giv.fill(false);
     box.innerHTML = `<div class="m-act-magic"></div><div class="row-center m-act-pool"></div>`;
@@ -309,7 +324,7 @@ MATH_ACTS.magic = {
 
 // ── 스도쿠: 칸을 고르고 수를 눌러 넣는다. 같은 줄·같은 굵은 네모에 겹치면 빨갛게 ──
 MATH_ACTS.sudoku = {
-  missions: [{ text: '빈칸을 누르고 아래 수를 골라 넣어요. 가로줄·세로줄·굵은 네모에 1, 2, 3, 4가 한 번씩!', holes: 5 }, { text: '빈칸이 더 많아요. 겹치는 수(빨강)가 없게 채워 봐요.', holes: 8 }, { text: '도전! 빈칸이 열 개예요.', holes: 10 }],
+  missions: [{ text: '빈칸을 누르고 아래 수를 골라 넣어요. 가로줄·세로줄·굵은 네모에 1, 2, 3, 4가 한 번씩!', holes: 3 }, { text: '빈칸이 다섯 개예요. 줄마다 빠진 수를 찾아 넣어요.', holes: 5 }, { text: '빈칸이 더 많아요. 겹치는 수(빨강)가 없게 채워 봐요.', holes: 8 }, { text: '도전! 빈칸이 열 개예요.', holes: 10 }, { text: '마지막 도전! 빈칸이 열두 개예요. 확실한 칸부터 채워요.', holes: 12 }],
   free: { text: '빈칸이 많은 스도쿠를 풀어 봐요.', holes: 11 },
   mount(box, m, api) {
     const q = MathGen.sudoku(m.holes), g = q.sol.map((v, i) => q.holes.includes(i) ? 0 : v), giv = g.map(Boolean);
@@ -332,6 +347,9 @@ MATH_ACTS.venn = {
   missions: [
     { text: '물건을 누르고, 들어갈 곳을 눌러요. 과일이면서 빨간 것은 겹친 곳이에요.', A: '과일', B: '빨간', items: ['🍎', '🍓', '🍌', '🍋', '🦀', '🚒', '🐸'] },
     { text: '이번에는 동물과 노란 것이에요.', A: '동물', B: '노란', items: ['🐥', '🦀', '🐸', '🍌', '🚕', '🍋', '🍎'] },
+    { text: '동물과 초록색 것으로 나눠 봐요.', A: '동물', B: '초록', items: ['🐸', '🐥', '🦀', '🍏', '🍌', '🚒'] },
+    { text: '이번에는 탈것과 빨간 것이에요.', A: '탈것', B: '빨간', items: ['🚒', '🚕', '🍎', '🍓', '🦀', '🍌', '🐸'] },
+    { text: '마지막이에요. 과일과 노란 것으로 나눠 봐요. 물건이 많으니 하나씩 따져 봐요.', A: '과일', B: '노란', items: ['🍌', '🍋', '🍎', '🍓', '🍒', '🐥', '🚕', '🐸'] },
   ],
   free: { text: '과일과 초록색 것으로 나눠 봐요.', A: '과일', B: '초록', items: ['🍏', '🐸', '🍎', '🍌', '🐥', '🚒'] },
   mount(box, m, api) {
@@ -366,8 +384,11 @@ MATH_ACTS.venn = {
 // ── 막대그래프: 조사한 수만큼 칸을 눌러 막대를 세우고, 그래프를 읽는다 ──
 MATH_ACTS.graph = {
   missions: [
-    { text: '친구들이 좋아하는 과일을 조사했어요. 칸을 눌러 수만큼 막대를 세워 봐요. 다 세우면 가장 많은 것을 눌러요.', kinds: ['🍎', '🍌', '🍓', '🍇'], ask: 'max' },
-    { text: '좋아하는 동물로 막대그래프를 만들어 봐요. 다 세우면 가장 적은 것을 눌러요.', kinds: ['🐶', '🐱', '🐰'], ask: 'min' },
+    { text: '친구들이 좋아하는 과일을 조사했어요. 칸을 눌러 수만큼 막대를 세워 봐요. 다 세우면 가장 많은 것을 눌러요.', kinds: ['🍎', '🍌', '🍓', '🍇'], ask: 'max', win: '맞아요! 가장 긴 막대가 가장 많아요. 그래프로 보니 한눈에 알 수 있어요.' },
+    { text: '좋아하는 동물로 막대그래프를 만들어 봐요. 다 세우면 가장 적은 것을 눌러요.', kinds: ['🐶', '🐱', '🐰'], ask: 'min', win: '맞아요! 가장 짧은 막대가 가장 적어요. 그래프로 보니 한눈에 알 수 있어요.' },
+    { text: '타고 싶은 탈것을 조사했어요. 막대를 세우고 가장 많은 것을 눌러요.', kinds: ['🚗', '🚌', '🚲'], ask: 'max', win: '맞아요! 가장 긴 막대가 가장 많이 고른 탈것이에요.' },
+    { text: '좋아하는 채소로 막대그래프를 만들어 봐요. 다 세우면 가장 적은 것을 눌러요.', kinds: ['🥕', '🥦', '🥒', '🍆'], ask: 'min', win: '맞아요! 가장 짧은 막대가 가장 적게 고른 채소예요.' },
+    { text: '동물 네 가지로 막대그래프를 만들어 봐요. 다 세우면 가장 많은 것을 눌러요.', kinds: ['🐶', '🐱', '🐰', '🐥'], ask: 'max', win: '맞아요! 네 막대 가운데 가장 긴 막대가 가장 많아요.' },
   ],
   free: { text: '칸을 눌러 마음대로 막대그래프를 만들어 봐요.', kinds: ['🍎', '🍌', '🍓', '🍇'], open: true },
   mount(box, m, api) {
@@ -382,7 +403,7 @@ MATH_ACTS.graph = {
       $$('.m-bar-k', v).forEach(b => b.onclick = () => {
         if (!asking) return;
         const i = +b.dataset.k, t = m.ask === 'max' ? Math.max(...h) : Math.min(...h);
-        if (h[i] === t) api.done(`맞아요! ${m.kinds[i]} 막대가 ${m.ask === 'max' ? '가장 길어요' : '가장 짧아요'}. 그래프로 보니 한눈에 알 수 있어요.`); else { Speech.sfx.wrong(); api.status('막대 길이를 견주어 봐요'); }
+        if (h[i] === t) api.done(`맞아요! ${m.kinds[i]} 막대가 ${m.ask === 'max' ? '가장 길어요' : '가장 짧아요'}. 그래프로 보니 한눈에 알 수 있어요.`, m.win); else { Speech.sfx.wrong(); api.status('막대 길이를 견주어 봐요'); }
       });
       if (m.open) return api.status(' ');
       asking = h.every((v2, i) => v2 === n[i]);
@@ -398,9 +419,11 @@ MATH_ACTS.graph = {
   const bfs = (walls, s, g) => { const d = { [s]: 0 }, q = [s]; while (q.length) { const v = q.shift(); const x = v % W, y = Math.floor(v / W); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy, w = ny * W + nx; if (nx < 0 || ny < 0 || nx >= W || ny >= H || walls.includes(w) || w in d) continue; d[w] = d[v] + 1; q.push(w); } } return d[g]; };
   MATH_ACTS.path = {
     missions: [
-      { text: '🏠 집에서 출발해요. 옆 칸을 차례로 눌러 🏫 학교까지 가장 짧게 가 봐요.', walls: [] },
+      { text: '🏠 집에서 출발해요. 옆 칸을 차례로 눌러 🏫 학교까지 가장 짧게 가 봐요.', walls: [], win: '7걸음, 가장 짧은 길이에요! 가로 4칸과 세로 3칸을 더한 수예요.' },
       { text: '가장 짧은 길은 하나만 있을까요? 다른 가장 짧은 길을 하나 더 찾아봐요.', walls: [], two: true },
-      { text: '🌳 나무가 있는 칸은 못 지나가요. 가장 짧은 길로 가 봐요.', walls: [10, 12, 7, 3] },
+      { text: '🌳 나무가 있는 칸은 못 지나가요. 가장 짧은 길로 가 봐요.', walls: [6, 7, 8], win: '7걸음, 가장 짧은 길이에요! 나무를 피해도 걸음 수는 그대로예요.' },
+      { text: '나무가 여기저기 있어요. 가장 짧은 길을 찾아봐요.', walls: [10, 12, 7, 3], win: '7걸음, 가장 짧은 길이에요! 가로 4칸과 세로 3칸을 더한 수예요.' },
+      { text: '이번에는 나무를 빙 돌아가야 해요. 가장 짧은 길은 몇 걸음일까요?', walls: [3, 8, 13, 16], win: '9걸음, 가장 짧은 길이에요! 나무를 돌아가느라 두 걸음 더 걸었어요.' },
     ],
     free: { text: '마음대로 길을 걸어 봐요.', walls: [8, 12], open: true },
     mount(box, m, api) {
@@ -421,7 +444,7 @@ MATH_ACTS.graph = {
           if (n > best) return api.status(`${n}걸음에 도착! 그런데 ${best}걸음 길이 있어요. 처음부터 다시 해 봐요`);
           found.add(p.join());
           if (m.two) return found.size >= 2 ? api.done(`${best}걸음 길을 두 가지 찾았어요! 학교 쪽으로만 가면 모두 가장 짧은 길이에요.`) : (api.status(`${best}걸음! 처음부터 눌러 다른 길로도 가 봐요`), setTimeout(() => { p = [s]; draw(); }, 900));
-          api.done(`${best}걸음, 가장 짧은 길이에요! 가로 ${W - 1}칸과 세로 ${H - 1}칸을 더한 수예요.`);
+          api.done(m.win);
         });
       };
       $('[data-back]', box).onclick = () => { if (p.length > 1) p.pop(); Speech.sfx.tap(); draw(); api.status(`${p.length - 1}걸음`); };
@@ -434,8 +457,14 @@ MATH_ACTS.graph = {
 (() => {
   const RULES = { '+2': x => x + 2, '+3': x => x + 3, '+5': x => x + 5, '×2': x => x * 2, '×3': x => x * 3, '−1': x => x - 1 };
   MATH_ACTS.fbox = {
-    missions: [{ text: '상자에 수를 넣어 봐요. 나오는 수를 보고 상자의 규칙을 맞혀요.', rule: '+3' }, { text: '이번 상자는 어떤 규칙일까요? 여러 수를 넣어 봐요.', rule: '×2' }, { text: '마지막 상자예요. 규칙을 찾아봐요.', rule: '+5' }],
-    free: { text: '아무 수나 넣어 보며 상자를 관찰해 봐요.', rule: '×3', open: true },
+    missions: [
+      { text: '상자에 수를 넣어 봐요. 나오는 수를 보고 상자의 규칙을 맞혀요.', rule: '+2', win: '맞아요! 넣은 수에 2를 더하는 상자예요.' },
+      { text: '이번 상자도 수를 넣어 보며 규칙을 찾아봐요.', rule: '+3', win: '맞아요! 넣은 수에 3을 더하는 상자예요. 늘 같은 규칙으로 바꾸는 것을 함수라고 해요.' },
+      { text: '이번 상자는 수가 작아져요. 어떤 규칙일까요?', rule: '−1', win: '맞아요! 넣은 수에서 1을 빼는 상자예요.' },
+      { text: '이번 상자는 어떤 규칙일까요? 여러 수를 넣어 봐요.', rule: '×2', win: '맞아요! 넣은 수에 2를 곱하는 상자예요.' },
+      { text: '마지막 상자예요. 1, 2, 3을 차례로 넣어 보며 규칙을 찾아봐요.', rule: '×3', win: '맞아요! 넣은 수에 3을 곱하는 상자예요. 1을 넣으면 3, 2를 넣으면 6이에요.' },
+    ],
+    free: { text: '아무 수나 넣어 보며 상자를 관찰해 봐요.', rule: '+5', open: true },
     mount(box, m, api) {
       const rows = [], opts = MathGen.shuffle([m.rule, ...MathGen.shuffle(Object.keys(RULES).filter(k => k !== m.rule)).slice(0, 3)]);
       box.innerHTML = `<div class="m-act-fbox"><span class="m-fb-in">?</span><span class="m-fb-box">🎩</span><span class="m-fb-out">?</span></div><div class="row-center m-act-pool">${[1, 2, 3, 4, 5, 6].map(n => `<button class="m-card" data-n="${n}">${n}</button>`).join('')}</div><table class="m-act-io"></table><div class="row-center m-act-guess" hidden>${opts.map(o => `<button class="btn btn-ghost sm" data-g="${o}">${o}</button>`).join('')}</div>`;
@@ -446,7 +475,7 @@ MATH_ACTS.graph = {
         $('.m-fb-in', box).textContent = x; $('.m-fb-out', box).textContent = '…'; Speech.sfx.tap();
         setTimeout(() => { $('.m-fb-out', box).textContent = y; if (!rows.some(r => r[0] === x)) rows.push([x, y]); rows.sort((a, c) => a[0] - c[0]); draw(); if (!m.open && rows.length >= 2) { gs.hidden = false; api.status('규칙을 알겠으면 아래에서 골라요'); } }, 450);
       });
-      $$('[data-g]', box).forEach(b => b.onclick = () => { if (b.dataset.g === m.rule) api.done(`맞아요! 넣은 수에 ${m.rule} 하는 상자예요. 늘 같은 규칙으로 바꾸는 것을 함수라고 해요.`); else { Speech.sfx.wrong(); api.status('표의 넣은 수와 나온 수를 견주어 봐요'); } });
+      $$('[data-g]', box).forEach(b => b.onclick = () => { if (b.dataset.g === m.rule) api.done(m.win); else { Speech.sfx.wrong(); api.status('표의 넣은 수와 나온 수를 견주어 봐요'); } });
       draw(); api.status('수 카드를 눌러 상자에 넣어요');
     },
   };
@@ -454,7 +483,13 @@ MATH_ACTS.graph = {
 
 // ── 누가 무엇을 가졌을까: 단서를 읽고 표의 칸을 눌러 ✗와 ○를 적는다 ──
 MATH_ACTS.logic = {
-  missions: [{ text: '단서를 읽고 표의 칸을 눌러 ✗(아니에요)와 ○(맞아요)를 적어요. 누가 무엇을 가졌는지 ○로 찾아봐요.' }, { text: '새 단서예요. 표를 채워 누가 무엇을 가졌는지 찾아봐요.' }],
+  missions: [
+    { text: '단서를 읽고 표의 칸을 눌러 ✗(아니에요)와 ○(맞아요)를 적어요. 누가 무엇을 가졌는지 ○로 찾아봐요.', win: '맞아요! 단서로 하나씩 지워 나가면 찾을 수 있어요.' },
+    { text: '새 단서예요. 표를 채워 누가 무엇을 가졌는지 찾아봐요.', win: '맞아요! 단서로 하나씩 지워 나가면 찾을 수 있어요.' },
+    { text: '이번에는 ✗부터 적어 봐요. 한 줄에 ✗가 두 개면 남은 칸이 ○예요.', win: '맞아요! ✗를 먼저 적으면 남은 칸이 ○로 보여요.' },
+    { text: '또 새 단서예요. 한 물건은 한 사람만 가졌어요. 세로줄도 살펴봐요.', win: '맞아요! 가로줄과 세로줄에 ○가 하나씩 들어갔어요.' },
+    { text: '마지막 단서예요. 표를 끝까지 채워 모두 찾아봐요.', win: '맞아요! 단서 두 개로 세 사람을 모두 찾았어요.' },
+  ],
   free: { text: '단서로 표를 채워 봐요.' },
   mount(box, m, api) {
     const sol = MathGen.shuffle([0, 1, 2]), F = MathGen.FR, I = MathGen.IT, who = mR(3), others = [0, 1, 2].filter(i => i !== who);
@@ -467,7 +502,7 @@ MATH_ACTS.logic = {
       tb.innerHTML = `<tr><th></th>${I.map(([e]) => `<th>${mPic(e)}</th>`).join('')}</tr>${F.map(([e], i) => `<tr><th>${mPic(e)}</th>${I.map((_, j) => `<td><button class="m-lc" data-i="${i}" data-j="${j}">${['', '✗', '○'][t[i][j]]}</button></td>`).join('')}</tr>`).join('')}`;
       $$('.m-lc', tb).forEach(b => b.onclick = () => { const i = +b.dataset.i, j = +b.dataset.j; t[i][j] = (t[i][j] + 1) % 3; Speech.sfx.tap(); draw(); });
       const os = t.map(r => r.indexOf(2)), ok = t.every((r, i) => r.filter(x => x === 2).length === 1 && os[i] === sol[i]);
-      if (ok) api.done(`${F.map(([e], i) => `${e} ${I[sol[i]][0]}`).join(', ')}! 단서로 하나씩 지워 나가면 찾을 수 있어요.`);
+      if (ok) api.done(`${F.map(([e], i) => `${e} ${I[sol[i]][0]}`).join(', ')}! 단서로 하나씩 지워 나가면 찾을 수 있어요.`, m.win);
       else api.status(t.flat().filter(x => x === 2).length === 3 ? '○ 자리가 단서와 맞는지 다시 읽어 봐요' : '한 사람은 하나만 가졌어요. 줄마다 ○는 하나예요');
     };
     draw();

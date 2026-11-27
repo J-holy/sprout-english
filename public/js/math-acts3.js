@@ -3,10 +3,12 @@
 // ── 약수와 배수: 사탕을 접시에 똑같이 나눠 약수를 찾고, 수판에 배수를 칠한다 ──
 MATH_ACTS.factor = {
   missions: [
-    { text: '사탕 12개를 접시에 똑같이 나눠요. 접시 수를 바꿔 가며, 남는 사탕 없이 나눠지는 접시 수를 모두 찾아봐요.', n: 12 },
-    { text: '이번에는 사탕 18개예요. 남김없이 나눠지는 접시 수를 모두 찾아봐요.', n: 18 },
-    { text: '수판에서 3의 배수를 모두 눌러 칠해 봐요. 3, 6, 9… 3씩 뛰어요.', mul: 3 },
-    { text: '파란 칸은 2의 배수예요. 3의 배수이기도 한 수(공배수)를 모두 눌러 봐요.', both: [2, 3] },
+    { text: '사탕 8개를 접시에 똑같이 나눠요. 접시 수를 바꿔 가며, 남는 사탕 없이 나눠지는 접시 수를 모두 찾아봐요.', n: 8, win: '1, 2, 4, 8! 모두 8의 약수예요. 남김없이 나누는 수를 약수라고 해요.' },
+    { text: '이번에는 사탕 12개예요. 남김없이 나눠지는 접시 수를 모두 찾아봐요.', n: 12, win: '1, 2, 3, 4, 6, 12! 모두 12의 약수예요.' },
+    { text: '이번에는 사탕 18개예요. 남김없이 나눠지는 접시 수를 모두 찾아봐요.', n: 18, win: '1, 2, 3, 6, 9, 18! 모두 18의 약수예요.' },
+    { text: '수판에서 5의 배수를 모두 눌러 칠해 봐요. 5, 10, 15… 5씩 뛰어요.', mul: 5, win: '5, 10, 15 … 30! 5에 1, 2, 3…을 곱한 수가 5의 배수예요.' },
+    { text: '이번에는 3의 배수를 모두 눌러 칠해 봐요. 3씩 뛰어요.', mul: 3, win: '3, 6, 9 … 30! 3에 1, 2, 3…을 곱한 수가 3의 배수예요.' },
+    { text: '파란 칸은 2의 배수예요. 3의 배수이기도 한 수(공배수)를 모두 눌러 봐요.', both: [2, 3], win: '6, 12, 18, 24, 30! 2와 3의 공배수예요. 가장 작은 공배수는 6이에요.' },
   ],
   free: { text: '사탕 24개를 여러 접시에 나눠 봐요.', n: 24, open: true },
   mount(box, m, api) {
@@ -22,7 +24,7 @@ MATH_ACTS.factor = {
         if (!r) found.add(k);
         $('.m-act-chips', box).innerHTML = [...found].sort((a, b) => a - b).map(x => `<span class="chip">${x}</span>`).join('');
         if (m.open) return api.status(r ? ' ' : `${mJo(k, '은', '는')} ${m.n}의 약수예요`);
-        if (ds.every(d => found.has(d))) api.done(`${ds.join(', ')}! 모두 ${m.n}의 약수예요. 남김없이 나누는 수를 약수라고 해요.`);
+        if (ds.every(d => found.has(d))) api.done(m.win);
         else api.status(`찾은 약수 ${found.size}개 / ${ds.length}개`);
       };
       $$('[data-c]', box).forEach(b => b.onclick = () => { const v = k + +b.dataset.c; if (v < 1 || v > m.n) return Speech.sfx.wrong(); k = v; Speech.sfx.tap(); draw(); });
@@ -35,9 +37,9 @@ MATH_ACTS.factor = {
       v.innerHTML = Array.from({ length: N }, (_, i) => { const x = i + 1; return `<button class="m-hn ${on.has(x) ? 'on' : ''} ${m.both && x % 2 === 0 ? 'two' : ''}" data-x="${x}">${x}</button>`; }).join('');
       $$('.m-hn', v).forEach(b => b.onclick = () => {
         const x = +b.dataset.x;
-        if (!want.includes(x)) { Speech.sfx.wrong(); return api.status(m.mul ? `${mJo(x, '은', '는')} 3씩 뛰어 닿지 않아요` : `${mJo(x, '은', '는')} 2와 3으로 모두 나누어떨어지나요?`); }
+        if (!want.includes(x)) { Speech.sfx.wrong(); return api.status(m.mul ? `${mJo(x, '은', '는')} ${m.mul}씩 뛰어 닿지 않아요` : `${mJo(x, '은', '는')} 2와 3으로 모두 나누어떨어지나요?`); }
         on.add(x); Speech.sfx.tap(); draw();
-        if (want.every(w => on.has(w))) api.done(m.mul ? '3, 6, 9 … 30! 3에 1, 2, 3…을 곱한 수가 3의 배수예요.' : '6, 12, 18, 24, 30! 2와 3의 공배수예요. 가장 작은 공배수는 6이에요.');
+        if (want.every(w => on.has(w))) api.done(m.win);
         else api.status(`${on.size}개 칠했어요`);
       });
     };
@@ -48,9 +50,11 @@ MATH_ACTS.factor = {
 // ── 수의 규칙: 앞 탑들의 규칙을 보고 마지막 탑을 직접 쌓는다 ──
 MATH_ACTS.seq = {
   missions: [
-    { text: '탑이 규칙대로 높아져요. ➕ ➖로 마지막 탑을 쌓아 봐요.', s: [2, 4, 6, 8], win: '2씩 커져요! 2, 4, 6, 8, 10.' },
-    { text: '이번 규칙은 무엇일까요? 마지막 탑을 쌓아 봐요.', s: [1, 4, 7, 10], win: '3씩 커져요! 1, 4, 7, 10, 13.' },
+    { text: '탑이 규칙대로 높아져요. ➕ ➖로 마지막 탑을 쌓아 봐요.', s: [1, 2, 3, 4], win: '1씩 커져요! 1, 2, 3, 4, 5.' },
+    { text: '이번 탑은 얼마씩 높아질까요? 마지막 탑을 쌓아 봐요.', s: [2, 4, 6, 8], win: '2씩 커져요! 2, 4, 6, 8, 10.' },
     { text: '홀수 탑이에요. 다음 탑을 쌓아 봐요.', s: [1, 3, 5, 7], win: '홀수는 2씩 커져요! 다음은 9.' },
+    { text: '이번 규칙은 무엇일까요? 마지막 탑을 쌓아 봐요.', s: [1, 4, 7, 10], win: '3씩 커져요! 1, 4, 7, 10, 13.' },
+    { text: '이번에는 탑이 낮아져요. 마지막 탑을 쌓아 봐요.', s: [12, 10, 8, 6], win: '2씩 작아져요! 12, 10, 8, 6, 4.' },
     { text: '앞의 두 탑을 더하면 다음 탑이 돼요. 마지막 탑을 쌓아 봐요.', s: [1, 1, 2, 3, 5], win: '3 + 5 = 8! 앞의 두 수를 더하는 이 수열을 피보나치 수열이라고 해요.' },
   ],
   free: { text: '내 규칙으로 탑을 쌓아 봐요.', s: [], open: true },
@@ -71,9 +75,11 @@ MATH_ACTS.seq = {
 // ── 암호: 암호표를 눌러 숫자를 글자로, 글자를 숫자로 바꾼다 ──
 MATH_ACTS.cipher = {
   missions: [
-    { text: '암호 6, 3을 풀어 봐요. 암호표에서 6과 3의 글자를 차례로 눌러요.', code: [6, 3] },
-    { text: '암호 14, 5는 무슨 동물일까요? 글자를 눌러 풀어 봐요.', code: [14, 5] },
-    { text: '이번에는 거꾸로! "사자"를 암호로 바꿔요. 글자 아래 숫자를 차례로 눌러요.', word: '사자' },
+    { text: '암호 6, 3을 풀어 봐요. 암호표에서 6과 3의 글자를 차례로 눌러요.', code: [6, 3], win: '바다! 암호를 풀었어요.' },
+    { text: '암호 14, 5는 무슨 동물일까요? 글자를 눌러 풀어 봐요.', code: [14, 5], win: '하마! 암호를 풀었어요.' },
+    { text: '세 글자 암호예요. 6, 2, 2는 무슨 과일일까요?', code: [6, 2, 2], win: '바나나! 같은 숫자는 같은 글자예요.' },
+    { text: '이번에는 거꾸로! "가나다"를 암호로 바꿔요. 글자 아래 숫자를 차례로 눌러요.', word: '가나다', win: '가나다는 1, 2, 3이에요! 표의 차례대로 숫자가 이어져요.' },
+    { text: '"사자"를 암호로 바꿔 봐요. 글자를 표에서 찾아 아래 숫자를 눌러요.', word: '사자', win: '사자는 7, 9예요! 약속을 아는 사람만 읽을 수 있어요.' },
   ],
   free: { text: '내 비밀 낱말을 암호로 만들어 봐요. 글자를 누르면 숫자가 나와요.', open: true },
   mount(box, m, api) {
@@ -83,7 +89,7 @@ MATH_ACTS.cipher = {
     const draw = () => {
       $('.m-act-slots', box).innerHTML = m.open ? `<span class="m-slot">${got.map(k => SY[k]).join('') || '?'}</span><span class="m-slot">${got.map(k => k + 1).join(' · ') || '?'}</span>` : goal.map((_, i) => `<span class="m-slot">${got[i] === undefined ? '?' : m.word ? got[i] + 1 : SY[got[i]]}</span>`).join('');
       if (m.open) return api.status(got.length ? '친구에게 숫자만 알려 주면 비밀 편지가 돼요' : ' ');
-      if (got.length === goal.length) { if (got.every((k, i) => k + 1 === goal[i])) api.done(m.word ? `${m.word} → ${goal.join(' · ')}! 약속을 아는 사람만 읽을 수 있어요.` : `${goal.map(n => SY[n - 1]).join('')}! 암호를 풀었어요.`); else api.status('표에서 숫자와 글자를 다시 맞춰 봐요'); }
+      if (got.length === goal.length) { if (got.every((k, i) => k + 1 === goal[i])) api.done(m.win); else api.status('표에서 숫자와 글자를 다시 맞춰 봐요'); }
       else api.status(' ');
     };
     $$('[data-k]', box).forEach(b => b.onclick = () => { if (!m.open && got.length >= goal.length) return; got.push(+b.dataset.k); Speech.sfx.tap(); draw(); });
@@ -95,9 +101,11 @@ MATH_ACTS.cipher = {
 // ── 복면산: 그림마다 수를 정해 ➕➖로 바꾸면 식이 바로 계산된다. 모든 식이 맞으면 성공 ──
 MATH_ACTS.masked = {
   missions: [
-    { text: '같은 그림에는 같은 수가 들어가요. ➕ ➖로 🍎의 수를 바꿔 식을 맞춰 봐요.', v: ['🍎'], eqs: [[['🍎', '🍎'], '+', 8]] },
-    { text: '두 식이 모두 맞게 🍎과 🍌의 수를 찾아봐요.', v: ['🍎', '🍌'], eqs: [[['🍎', '🍌'], '+', 9], [['🍌', '🍎'], '-', 1]] },
-    { text: '🍓 셋을 더하면 12예요. 🍇까지 찾아봐요.', v: ['🍓', '🍇'], eqs: [[['🍓', '🍓', '🍓'], '+', 12], [['🍓', '🍇'], '+', 10]] },
+    { text: '같은 그림에는 같은 수가 들어가요. ➕ ➖로 🍎의 수를 바꿔 식을 맞춰 봐요.', v: ['🍎'], eqs: [[['🍎', '🍎'], '+', 8]], win: '사과는 4! 4와 4를 더하면 8이에요.' },
+    { text: '두 식이 모두 맞게 🍑와 🍒의 수를 찾아봐요.', v: ['🍑', '🍒'], eqs: [[['🍑', '🍒'], '+', 8], [['🍑', '🍒'], '-', 2]], win: '복숭아는 5, 체리는 3! 두 식이 모두 맞아요.' },
+    { text: '두 식이 모두 맞게 🍎와 🍌의 수를 찾아봐요.', v: ['🍎', '🍌'], eqs: [[['🍎', '🍌'], '+', 9], [['🍌', '🍎'], '-', 1]], win: '사과는 4, 바나나는 5! 가려진 수를 찾았어요.' },
+    { text: '🍓 셋을 더하면 12예요. 🍇까지 찾아봐요.', v: ['🍓', '🍇'], eqs: [[['🍓', '🍓', '🍓'], '+', 12], [['🍓', '🍇'], '+', 10]], win: '딸기는 4, 포도는 6! 먼저 찾은 수로 다음 수를 찾았어요.' },
+    { text: '마지막 도전! 두 식이 모두 맞는 수를 찾아봐요.', v: ['🍎', '🍌'], eqs: [[['🍎', '🍎', '🍌'], '+', 11], [['🍎', '🍌'], '-', 1]], win: '사과는 4, 바나나는 3! 사과가 바나나보다 1 커요.' },
   ],
   free: { text: '그림의 수를 마음대로 바꿔 봐요.', v: ['🍎', '🍌'], eqs: [[['🍎', '🍌'], '+', null], [['🍎', '🍌'], '-', null]], open: true },
   mount(box, m, api) {
@@ -108,7 +116,7 @@ MATH_ACTS.masked = {
       m.v.forEach(e => { $(`[data-v="${e}"]`, box).textContent = val[e]; });
       $('.m-act-eqs', box).innerHTML = m.eqs.map(q => { const r = calc(q), ok = q[2] === null || r === q[2]; return `<p class="${q[2] !== null && ok ? 'ok' : ''}">${q[0].join(` ${q[1] === '-' ? '−' : '+'} `)} = ${q[2] ?? '?'} <small>→ ${q[0].map(e => val[e]).join(` ${q[1] === '-' ? '−' : '+'} `)} = <b>${r}</b> ${q[2] === null ? '' : ok ? '✅' : ''}</small></p>`; }).join('');
       if (m.open) return api.status(' ');
-      if (m.eqs.every(q => calc(q) === q[2])) api.done(`${m.v.map(e => `${e} = ${val[e]}`).join(', ')}! 가려진 수를 찾았어요.`); else api.status(' ');
+      if (m.eqs.every(q => calc(q) === q[2])) api.done(`${m.v.map(e => `${e} = ${val[e]}`).join(', ')}! 가려진 수를 찾았어요.`, m.win); else api.status(' ');
     };
     $$('[data-c]', box).forEach(b => b.onclick = () => { const e = b.dataset.e, n = val[e] + +b.dataset.c; if (n < 0 || n > 9) return Speech.sfx.wrong(); val[e] = n; Speech.sfx.tap(); draw(); });
     draw();
@@ -118,14 +126,17 @@ MATH_ACTS.masked = {
 // ── 경우의 수: 옷을 맞춰 입혀 보고, 동물을 줄 세워 보며 빠짐없이 센다 ──
 MATH_ACTS.cases = {
   missions: [
-    { text: '윗옷 하나와 아래옷 하나를 골라 입혀 봐요. 서로 다른 옷차림을 모두 찾아봐요.', dress: true },
-    { text: '동물 셋을 한 줄로 세워요. 동물을 차례로 눌러 줄을 세우고, 다른 순서를 모두 찾아봐요.', line: ['🐶', '🐱', '🐰'] },
+    { text: '윗옷 하나와 아래옷 하나를 골라 입혀 봐요. 서로 다른 옷차림을 모두 찾아봐요.', dress: true, t: 2, win: '윗옷 2가지 × 아래옷 2가지 = 4가지! 빠짐없이 찾았어요.' },
+    { text: '이번에는 윗옷이 세 가지예요. 옷차림은 모두 몇 가지일까요?', dress: true, win: '윗옷 3가지 × 아래옷 2가지 = 6가지! 표로 정리하면 빠짐없이 셀 수 있어요.' },
+    { text: '동물 둘을 한 줄로 세워요. 동물을 차례로 눌러 줄을 세우고, 다른 순서를 모두 찾아봐요.', line: ['🐶', '🐱'], win: '2가지! 앞뒤를 바꾸면 다른 순서예요.' },
+    { text: '동물 셋을 줄 세우는데, 강아지가 맨 앞이에요. 순서는 몇 가지일까요?', line: ['🐶', '🐱', '🐰'], first: '🐶', win: '2가지! 맨 앞이 정해지면 뒤의 둘만 바꾸면 돼요.' },
+    { text: '이제 동물 셋을 마음대로 줄 세워요. 다른 순서를 모두 찾아봐요.', line: ['🐶', '🐱', '🐰'], win: '6가지! 첫째 자리 3가지 × 둘째 자리 2가지 × 셋째 자리 1가지예요.' },
   ],
   free: { text: '옷을 마음대로 입혀 봐요.', dress: true, open: true },
   mount(box, m, api) {
     const found = new Set();
     if (m.dress) {
-      const T = [['🟥', '빨강'], ['🟦', '파랑'], ['🟨', '노랑']], B = [['👖', '긴바지'], ['🩳', '반바지']];
+      const T = [['🟥', '빨강'], ['🟦', '파랑'], ['🟨', '노랑']].slice(0, m.t || 3), B = [['👖', '긴바지'], ['🩳', '반바지']];
       let t = null, b = null;
       box.innerHTML = `<div class="m-act-row"><div class="m-act-side"><small>윗옷</small>${T.map(([e, n], i) => `<button class="btn btn-ghost sm" data-t="${i}">${e} ${n}</button>`).join('')}</div><div class="m-act-kid"></div><div class="m-act-side"><small>아래옷</small>${B.map(([e, n], i) => `<button class="btn btn-ghost sm" data-b="${i}">${e} ${n}</button>`).join('')}</div></div><table class="m-act-combo"></table>`;
       const draw = () => {
@@ -134,23 +145,25 @@ MATH_ACTS.cases = {
         if (t !== null && b !== null) found.add(`${t}${b}`);
         $('.m-act-combo', box).innerHTML = `<tr><th></th>${B.map(([e]) => `<th>${e}</th>`).join('')}</tr>${T.map(([e], i) => `<tr><th>${e}</th>${B.map((_, j) => `<td>${found.has(`${i}${j}`) ? '✅' : ''}</td>`).join('')}</tr>`).join('')}`;
         if (m.open) return api.status(`${found.size}가지 입어 봤어요`);
-        if (found.size === 6) api.done('윗옷 3가지 × 아래옷 2가지 = 6가지! 표로 정리하면 빠짐없이 셀 수 있어요.'); else api.status(`${found.size}가지 찾았어요`);
+        if (found.size === T.length * B.length) api.done(m.win); else api.status(`${found.size}가지 찾았어요`);
       };
       $$('[data-t]', box).forEach(x => x.onclick = () => { t = +x.dataset.t; Speech.sfx.tap(); draw(); });
       $$('[data-b]', box).forEach(x => x.onclick = () => { b = +x.dataset.b; Speech.sfx.tap(); draw(); });
       return draw();
     }
     let row = [];
+    const n = m.line.length, all = m.first ? [1, 1, 2, 6][n - 1] : [1, 2, 6, 24][n - 1];
     box.innerHTML = `<div class="row-center m-act-pool">${m.line.map(e => `<button class="m-card" data-e="${e}">${e}</button>`).join('')}</div><div class="m-act-slots"></div><div class="m-act-chips"></div>`;
     const draw = () => {
-      $('.m-act-slots', box).innerHTML = [0, 1, 2].map(i => `<span class="m-slot">${row[i] || (i + 1) + '번'}</span>`).join('');
+      $('.m-act-slots', box).innerHTML = [...Array(n).keys()].map(i => `<span class="m-slot">${row[i] || (i + 1) + '번'}</span>`).join('');
       $$('[data-e]', box).forEach(x => x.disabled = row.includes(x.dataset.e));
       $('.m-act-chips', box).innerHTML = [...found].map(s => `<span class="chip">${s}</span>`).join('');
-      if (found.size === 6) api.done('6가지! 첫째 자리 3가지 × 둘째 자리 2가지 × 셋째 자리 1가지예요.'); else api.status(`${found.size}가지 찾았어요`);
+      if (found.size === all) api.done(m.win); else api.status(`${found.size}가지 찾았어요`);
     };
     $$('[data-e]', box).forEach(x => x.onclick = () => {
+      if (m.first && !row.length && x.dataset.e !== m.first) { Speech.sfx.wrong(); return api.status(`맨 앞에는 ${m.first}가 서요`); }
       row.push(x.dataset.e); Speech.sfx.tap();
-      if (row.length === 3) { const k = row.join(''); if (found.has(k)) api.status('이미 찾은 순서예요'); found.add(k); draw(); setTimeout(() => { row = []; draw(); }, 700); return; }
+      if (row.length === n) { const k = row.join(''); if (found.has(k)) api.status('이미 찾은 순서예요'); found.add(k); draw(); setTimeout(() => { row = []; draw(); }, 700); return; }
       draw();
     });
     draw();
@@ -160,9 +173,11 @@ MATH_ACTS.cases = {
 // ── 저울 맞추기: 추를 눌러 저울에 올리고 내리며, 상자의 무게를 찾는다 ──
 MATH_ACTS.balance = {
   missions: [
-    { text: '📦 상자는 몇일까요? 추를 눌러 오른쪽 접시에 올려 저울을 맞춰 봐요. 올린 추를 누르면 내려와요.', box: 5, n: 1 },
-    { text: '이번 상자도 무게를 찾아봐요.', box: 7, n: 1 },
-    { text: '똑같은 상자 두 개예요. 저울을 맞추고, 상자 하나의 무게를 알아봐요.', box: 4, n: 2 },
+    { text: '📦 상자는 얼마일까요? 추를 눌러 오른쪽 접시에 올려 저울을 맞춰 봐요. 올린 추를 누르면 내려와요.', box: 4, n: 1, win: '저울이 맞았어요! 상자는 4예요.' },
+    { text: '이번 상자도 무게를 찾아봐요.', box: 5, n: 1, win: '저울이 맞았어요! 상자는 5예요.' },
+    { text: '추 여러 개를 함께 올려서 이번 상자의 무게를 찾아봐요.', box: 7, n: 1, win: '저울이 맞았어요! 상자는 7이에요.' },
+    { text: '똑같은 상자 두 개예요. 저울을 맞추고, 상자 하나의 무게를 알아봐요.', box: 4, n: 2, win: '상자 두 개가 8이니까, 상자 하나는 4예요!' },
+    { text: '마지막 도전! 똑같은 상자 세 개예요. 상자 하나는 얼마일까요?', box: 3, n: 3, win: '상자 세 개가 9니까, 상자 하나는 3이에요!' },
   ],
   free: { text: '추를 마음대로 올려 봐요.', box: 6, n: 1, open: true },
   mount(box, m, api) {
@@ -173,7 +188,7 @@ MATH_ACTS.balance = {
       MathGen.scaleSet($('.m-act-scale', box), '<span class="m-sbox">📦</span>'.repeat(m.n), right.map((w, i) => `<button class="m-weight" data-r="${i}">${w}</button>`).join(''), MathGen.tiltOf(L, R));
       $$('[data-r]', box).forEach(b => b.onclick = () => { right.splice(+b.dataset.r, 1); Speech.sfx.tap(); draw(); });
       if (m.open) return api.status(`오른쪽 ${R}`);
-      if (R === L) api.done(m.n > 1 ? `상자 두 개가 ${mJo(L, '이니까', '니까')}, 상자 하나는 ${L} ÷ 2 = ${mJo(m.box, '이에요', '예요')}!` : `저울이 맞았어요! 상자는 ${mJo(m.box, '이에요', '예요')}.`);
+      if (R === L) api.done(m.win);
       else api.status(R > L ? `오른쪽 ${R} · 오른쪽이 무거워요` : `오른쪽 ${R} · 왼쪽이 무거워요`);
     };
     $$('[data-w]', box).forEach(b => b.onclick = () => { if (right.length >= 8) return Speech.sfx.wrong(); right.push(+b.dataset.w); Speech.sfx.tap(); draw(); });
@@ -184,17 +199,19 @@ MATH_ACTS.balance = {
 // ── 다른 묶음으로 세기: 막대를 그어 5씩 묶고, 로마 숫자 카드를 놓아 수를 만든다 ──
 MATH_ACTS.base = {
   missions: [
-    { text: '✏️ 긋기를 눌러 막대를 그어요. 다섯 번째 막대는 비스듬히 묶어요. 13을 만들어 봐요.', tally: 13 },
-    { text: '로마 숫자 카드를 눌러 8을 만들어 봐요. I는 1, V는 5, X는 10이에요.', roman: 8 },
-    { text: '로마 숫자로 14를 만들어 봐요.', roman: 14 },
-    { text: '로마 숫자로 9를 만들어 봐요. 큰 수 앞의 작은 수는 빼요.', roman: 9 },
+    { text: '✏️ 긋기를 눌러 막대를 그어요. 다섯 번째 막대는 비스듬히 묶어요. 13을 만들어 봐요.', tally: 13, win: '13! 5씩 묶음 2개와 3개예요. 묶으면 세기 쉬워요.' },
+    { text: '로마 숫자 카드를 눌러 8을 만들어 봐요. I는 1, V는 5, X는 10이에요.', roman: 8, win: '8이에요! V(5)에 I(1)을 세 개 더해요.' },
+    { text: '로마 숫자로 4를 만들어 봐요. 큰 수 앞의 작은 수는 빼요.', roman: 4, win: '4예요! V(5) 앞의 I(1)은 빼서 4예요.' },
+    { text: '로마 숫자로 9를 만들어 봐요. 4를 만든 방법을 떠올려 봐요.', roman: 9, win: '9예요! X(10) 앞의 I(1)은 빼서 9예요.' },
+    { text: '로마 숫자로 14를 만들어 봐요.', roman: 14, win: '14예요! X(10) 뒤에 4를 붙여요.' },
+    { text: '마지막 도전! 로마 숫자로 19를 만들어 봐요.', roman: 19, win: '19예요! X(10) 뒤에 9를 붙여요.' },
   ],
   free: { text: '로마 숫자 카드를 마음대로 놓아 봐요.', roman: 0, open: true },
   mount(box, m, api) {
     if (m.tally) {
       let n = 0;
       box.innerHTML = `<div class="m-act-tal"></div><p class="m-act-eq"></p><div class="row-center"><button class="btn btn-ghost sm" data-c="-1">➖</button><button class="btn btn-ghost" data-c="1">✏️ 긋기</button></div>`;
-      const draw = () => { $('.m-act-tal', box).innerHTML = MathGen.tally(n); $('.m-act-eq', box).innerHTML = `5 묶음 <b>${Math.floor(n / 5)}</b>개와 <b>${n % 5}</b> → <b>${n}</b>`; if (n === m.tally) api.done('13! 5씩 묶음 2개와 3개예요. 묶으면 세기 쉬워요.'); else api.status(' '); };
+      const draw = () => { $('.m-act-tal', box).innerHTML = MathGen.tally(n); $('.m-act-eq', box).innerHTML = `5 묶음 <b>${Math.floor(n / 5)}</b>개와 <b>${n % 5}</b> → <b>${n}</b>`; if (n === m.tally) api.done(m.win); else api.status(' '); };
       $$('[data-c]', box).forEach(b => b.onclick = () => { const v = n + +b.dataset.c; if (v < 0 || v > 30) return; n = v; Speech.sfx.tap(); draw(); });
       return draw();
     }
@@ -205,7 +222,7 @@ MATH_ACTS.base = {
       const ok = s && s === MathGen.roman(val(s));
       $('.m-act-roman', box).innerHTML = `<b>${s || '?'}</b> = ${s ? (ok ? val(s) : '바른 로마 숫자가 아니에요') : ''}`;
       if (m.open) return api.status(' ');
-      if (s === MathGen.roman(m.roman)) api.done(`${s} = ${m.roman}! ${m.roman === 9 ? 'X(10) 앞의 I(1)은 빼서 9예요.' : m.roman === 14 ? 'X(10) + IV(4) = 14예요.' : 'V(5) + III(3) = 8이에요.'}`); else api.status(' ');
+      if (s === MathGen.roman(m.roman)) api.done(`${s} = ${m.win}`, m.win); else api.status(' ');
     };
     $$('[data-r]', box).forEach(b => b.onclick = () => { s = b.dataset.r ? (s + b.dataset.r).slice(0, 8) : s.slice(0, -1); Speech.sfx.tap(); draw(); });
     draw();
@@ -219,8 +236,10 @@ MATH_ACTS.base = {
   MATH_ACTS.pento = {
     missions: [
       { text: '조각을 눌러 고르고, 🔄 ↔️로 모양을 바꾼 다음 판의 칸을 눌러 놓아요. 두 조각으로 판을 빈틈없이 채워 봐요.', W: 5, H: 2, ps: ['L', 'L'] },
+      { text: '이번에는 똑같은 조각 두 개예요. 하나를 돌려서 판을 채워 봐요.', W: 5, H: 2, ps: ['P', 'P'] },
       { text: '세 조각으로 판을 채워 봐요.', W: 5, H: 3, ps: ['L', 'P', 'V'] },
       { text: '다른 세 조각으로도 채워 봐요.', W: 5, H: 3, ps: ['P', 'U', 'Y'] },
+      { text: '마지막 도전! 네 조각으로 큰 판을 빈틈없이 채워 봐요.', W: 5, H: 4, ps: ['L', 'P', 'U', 'Y'] },
     ],
     mount(box, m, api) {
       const g = Array(m.W * m.H).fill(-1), shapes = m.ps.map(k => MathGen.pNorm(P[k])), used = m.ps.map(() => false);
@@ -317,9 +336,11 @@ MATH_ACTS.base = {
 // ── 고르게 나누기(평균): 높은 탑의 블록을 눌러 낮은 탑으로 옮겨 키를 똑같이 맞춘다 ──
 MATH_ACTS.avg = {
   missions: [
-    { text: '탑을 눌러 맨 위 블록을 들고, 다른 탑을 눌러 옮겨요. 세 탑의 높이를 똑같이 맞춰 봐요.', h: [5, 1, 3] },
-    { text: '네 탑을 똑같이 맞춰 봐요.', h: [6, 2, 4, 4] },
-    { text: '이번에도 똑같이 맞춰 봐요. 몇 층씩이 될까요?', h: [7, 3, 2] },
+    { text: '탑을 눌러 맨 위 블록을 들고, 다른 탑을 눌러 옮겨요. 두 탑의 높이를 똑같이 맞춰 봐요.', h: [4, 2], win: '모두 3층! 똑같이 고르게 나눴어요.' },
+    { text: '이번에는 세 탑의 높이를 똑같이 맞춰 봐요.', h: [5, 1, 3], win: '모두 3층! 똑같이 고르게 나눈 수를 평균이라고 해요.' },
+    { text: '네 탑을 똑같이 맞춰 봐요.', h: [6, 2, 4, 4], win: '모두 4층! 16층을 네 탑에 고르게 나누면 4층씩이에요.' },
+    { text: '이번에도 똑같이 맞춰 봐요. 몇 층씩이 될까요?', h: [7, 3, 2], win: '모두 4층! 12층을 세 탑에 고르게 나누면 4층씩이에요.' },
+    { text: '마지막 도전! 탑이 다섯 개예요. 몇 층씩이 될까요?', h: [1, 6, 3, 5, 5], win: '모두 4층! 20층을 다섯 탑에 고르게 나누면 4층씩이에요.' },
   ],
   free: { text: '블록을 옮기며 놀아 봐요.', h: [8, 2, 5, 1], open: true },
   mount(box, m, api) {
@@ -335,7 +356,7 @@ MATH_ACTS.avg = {
         else { h[i]++; hand = null; }
         Speech.sfx.tap(); draw();
       });
-      if (!m.open && hand === null && h.every(x => x === avg)) api.done(`모두 ${avg}층! 똑같이 고르게 나눈 수를 평균이라고 해요. ${m.h.reduce((a, b) => a + b, 0)} ÷ ${h.length} = ${avg}.`); else if (!m.open) api.status(' ');
+      if (!m.open && hand === null && h.every(x => x === avg)) api.done(m.win); else if (!m.open) api.status(' ');
     };
     draw();
   },
@@ -344,9 +365,11 @@ MATH_ACTS.avg = {
 // ── 수 쪼개기: 곱셈 나무를 직접 키운다. 쪼갤 수 있는 수를 누르고 곱셈 짝을 고른다 ──
 MATH_ACTS.split = {
   missions: [
-    { text: '12를 눌러 두 수의 곱으로 쪼개 봐요. 더 쪼갤 수 없는 수(소수)만 남을 때까지 쪼개요.', n: 12 },
-    { text: '18도 끝까지 쪼개 봐요.', n: 18 },
-    { text: '30을 쪼개 봐요. 어떤 짝으로 먼저 쪼개도 끝은 같을까요?', n: 30 },
+    { text: '8을 눌러 두 수의 곱으로 쪼개 봐요. 더 쪼갤 수 없는 수(소수)만 남을 때까지 쪼개요.', n: 8, win: '8 = 2 × 2 × 2! 소수 2만 세 번 곱했어요.' },
+    { text: '12도 끝까지 쪼개 봐요.', n: 12, win: '12 = 2 × 2 × 3! 소수의 곱으로 나타냈어요.' },
+    { text: '18도 끝까지 쪼개 봐요.', n: 18, win: '18 = 2 × 3 × 3! 소수의 곱으로 나타냈어요.' },
+    { text: '30을 쪼개 봐요. 어떤 짝으로 먼저 쪼개도 끝은 같을까요?', n: 30, win: '30 = 2 × 3 × 5! 어떤 짝으로 먼저 쪼개도 끝은 같아요.' },
+    { text: '마지막 도전! 48을 끝까지 쪼개 봐요.', n: 48, win: '48 = 2 × 2 × 2 × 2 × 3! 2가 네 번, 3이 한 번이에요.' },
   ],
   free: { text: '36을 여러 방법으로 쪼개 봐요.', n: 36, open: true },
   mount(box, m, api) {
@@ -359,7 +382,7 @@ MATH_ACTS.split = {
       $('.m-act-pairs', box).innerHTML = pairs.map(([a, b]) => `<button class="btn btn-ghost sm" data-p="${a},${b}">${a} × ${b}</button>`).join('');
       $$('.m-ft[data-i]', box).forEach(b => b.onclick = () => { const i = +b.dataset.i; if (MathGen.isPrime(last[i])) { Speech.sfx.wrong(); return api.status(`${mJo(last[i], '은', '는')} 1과 자기 자신으로만 나눠지는 소수예요. 더 못 쪼개요`); } sel = i; Speech.sfx.tap(); draw(); api.status('어떤 두 수의 곱으로 쪼갤까요?'); });
       $$('[data-p]', box).forEach(b => b.onclick = () => { const [a, c] = b.dataset.p.split(',').map(Number); rows.push(last.flatMap((x, i) => i === sel ? [a, c] : [x]).sort((p, q) => p - q)); sel = null; Speech.sfx.tap(); draw(); });
-      if (last.every(x => MathGen.isPrime(x))) { const s = `${m.n} = ${last.join(' × ')}`; if (m.open) api.status(`${s}! 위로 돌아가 다른 짝으로도 해 봐요`); else api.done(`${s}! 소수의 곱으로 나타냈어요. 어떤 순서로 쪼개도 결과는 같아요.`); }
+      if (last.every(x => MathGen.isPrime(x))) { const s = `${m.n} = ${last.join(' × ')}`; if (m.open) api.status(`${s}! 위로 돌아가 다른 짝으로도 해 봐요`); else api.done(m.win); }
       else if (sel === null) api.status('쪼갤 수(초록이 아닌 수)를 눌러요');
     };
     draw();
@@ -369,9 +392,11 @@ MATH_ACTS.split = {
 // ── 나눗셈: 접시를 눌러 사탕을 하나씩 나눠 주고, 봉지에 똑같이 담는다 ──
 MATH_ACTS.div = {
   missions: [
-    { text: '사탕 12개를 접시 3개에 똑같이 나눠요. 접시를 눌러 사탕을 하나씩 놓아요.', n: 12, k: 3 },
-    { text: '사탕 14개를 접시 4개에 똑같이 나눠요. 남는 사탕은 어떻게 될까요?', n: 14, k: 4 },
-    { text: '사탕 15개를 한 봉지에 3개씩 담아요. 사탕을 눌러 봉지에 넣어요. 봉지는 몇 개가 될까요?', n: 15, bag: 3 },
+    { text: '사탕 6개를 접시 2개에 똑같이 나눠요. 접시를 눌러 사탕을 하나씩 놓아요.', n: 6, k: 2, win: '6 ÷ 2 = 3! 한 접시에 3개씩이에요.' },
+    { text: '사탕 12개를 접시 3개에 똑같이 나눠요. 접시를 눌러 사탕을 하나씩 놓아요.', n: 12, k: 3, win: '12 ÷ 3 = 4! 한 접시에 4개씩이에요.' },
+    { text: '사탕 15개를 한 봉지에 3개씩 담아요. 사탕을 눌러 봉지에 넣어요. 봉지는 몇 개가 될까요?', n: 15, bag: 3, win: '15 ÷ 3 = 5! 3개씩 담으면 봉지 5개예요.' },
+    { text: '사탕 20개를 한 봉지에 5개씩 담아요. 봉지는 몇 개가 될까요?', n: 20, bag: 5, win: '20 ÷ 5 = 4! 5개씩 담으면 봉지 4개예요.' },
+    { text: '사탕 14개를 접시 4개에 똑같이 나눠요. 남는 사탕은 어떻게 될까요?', n: 14, k: 4, win: '14 ÷ 4 = 3, 나머지 2! 똑같이 더 나눌 수 없는 2개가 나머지예요.' },
   ],
   free: { text: '사탕 20개를 마음대로 나눠 봐요.', n: 20, k: 4, open: true },
   mount(box, m, api) {
@@ -385,7 +410,7 @@ MATH_ACTS.div = {
         const full = bags.filter(b => b === m.bag).length;
         $('.m-act-eq', box).innerHTML = `봉지 <b>${full}</b>개 꽉 참`;
         $$('.m-candy', box).forEach(c => c.onclick = () => { pile--; bags[bags.length - 1]++; if (bags[bags.length - 1] === m.bag && pile) bags.push(0); Speech.sfx.tap(); draw(); });
-        if (!pile) api.done(`${m.n} ÷ ${m.bag} = ${m.n / m.bag}! ${m.bag}개씩 담으면 봉지 ${m.n / m.bag}개예요.`); else api.status(`남은 사탕 ${pile}개`);
+        if (!pile) api.done(m.win); else api.status(`남은 사탕 ${pile}개`);
       };
       return draw();
     }
@@ -398,7 +423,7 @@ MATH_ACTS.div = {
       const same = pl.every(c => c === pl[0]), q = Math.floor(m.n / m.k), r = m.n % m.k;
       $('.m-act-eq', box).innerHTML = `접시마다 ${pl.join(' · ')}`;
       if (m.open) return api.status(pile ? `남은 사탕 ${pile}개` : ' ');
-      if (same && pile < m.k && pl[0] === q) api.done(r ? `${m.n} ÷ ${m.k} = ${q}, 나머지 ${r}! 똑같이 더 나눌 수 없는 ${r}개가 나머지예요.` : `${m.n} ÷ ${m.k} = ${q}! 한 접시에 ${q}개씩이에요.`);
+      if (same && pile < m.k && pl[0] === q) api.done(m.win);
       else if (!same && pile < m.k && pl.reduce((a, b) => a + b, 0) === m.n - pile) api.status('접시마다 사탕 수가 달라요. 처음부터 똑같이 나눠 봐요');
       else api.status(`남은 사탕 ${pile}개`);
     };
