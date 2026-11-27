@@ -1213,7 +1213,7 @@ const KoSpeech = (() => {
   const device = (text, slow, onEnd) => {
     if (!synth) return onEnd && onEnd();
     // 기기 목소리도 아이에게 무섭지 않게: 여자 목소리(Yuna·Sora·Google 등)를 먼저 고르고 높고 밝게
-    const ko = synth.getVoices().filter(x => /^ko/i.test(x.lang)), u = new SpeechSynthesisUtterance(text), v = ko.find(x => /yuna|sora|heami|sunhi|female|여|google/i.test(x.name)) || ko[0];
+    const ko = synth.getVoices().filter(x => /^ko/i.test(x.lang)), u = new SpeechSynthesisUtterance(text.replace(/\s*\+\s*/g, ' 더하기 ').replace(/\s*×\s*/g, ' 곱하기 ')), v = ko.find(x => /yuna|sora|heami|sunhi|female|여|google/i.test(x.name)) || ko[0];
     if (v) u.voice = v; u.lang = 'ko-KR'; u.pitch = 1.5; u.rate = slow ? 0.75 : 1; u.onend = () => onEnd && onEnd(); synth.speak(u);
   };
   const say = (text, { slow, onEnd } = {}) => {
