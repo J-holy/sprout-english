@@ -46,14 +46,19 @@ const mPic = e => PICS.x['m' + e] ? `<img class="m-pic" src="img/${PICS.x['m' + 
 const mDots = (n, cls = '') => `<span class="m-dot ${cls}"></span>`.repeat(n);
 // 끌어 놓기 (2026-11-27): 그림을 손가락·마우스로 끌어 놓을 곳에 놓는다. 짧게 누르면 예전처럼 누르기(click)로 고른다
 //   find(x, y, ghost) → 놓을 곳(요소) 또는 null · drop(놓을 곳) → 들어갔으면 true, 아니면 false(그림이 제자리로 돌아간다)
+// 2026-11-27 고침: ① 끄는 그림이 남아 화면을 따라다녔다 → 손을 뗀 소식을 문서 전체에서 받고, 새로 끌거나 화면이 바뀌면 남은 그림을 지운다
+//   ② 놓아도 안 들어갔다 → 놓을 곳의 click을 '끈 뒤 따라오는 click 버리기'가 먼저 막고 있었다. 놓기를 먼저 하고, 진짜 손가락 click만 버린다
+const mGhostClear = () => document.querySelectorAll('.m-ghost').forEach(g => g.remove());
+window.addEventListener('hashchange', mGhostClear);
 function mDrag(el, { find, drop }) {
   el.style.touchAction = 'none';
   el.addEventListener('pointerdown', e => {
-    if (e.button > 0) return;
-    const sx = e.clientX, sy = e.clientY, r0 = el.getBoundingClientRect(); let ghost = null, over = null;
-    try { el.setPointerCapture(e.pointerId); } catch {}
+    if (e.button > 0 || !e.isPrimary) return;
+    mGhostClear();
+    const id = e.pointerId, sx = e.clientX, sy = e.clientY, r0 = el.getBoundingClientRect(); let ghost = null, over = null;
     const mark = t => { if (t === over) return; if (over && over.classList) over.classList.remove('m-over'); over = t; if (over && over.classList) over.classList.add('m-over'); };
     const move = ev => {
+      if (ev.pointerId !== id) return;
       const dx = ev.clientX - sx, dy = ev.clientY - sy;
       if (!ghost) {
         if (Math.hypot(dx, dy) < 8) return;
@@ -61,20 +66,26 @@ function mDrag(el, { find, drop }) {
         ghost.style.cssText = `position:fixed;left:${r0.left}px;top:${r0.top}px;width:${r0.width}px;height:${r0.height}px;margin:0;pointer-events:none;z-index:1000`;
         document.body.appendChild(ghost); el.classList.add('m-dragging');
       }
+      ev.preventDefault();
       ghost.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
       mark(find(ev.clientX, ev.clientY, ghost));
     };
     const end = ev => {
-      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', end); el.removeEventListener('pointercancel', end);
+      if (ev.pointerId !== id) return;
+      document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', end); document.removeEventListener('pointercancel', end);
       if (!ghost) return; // 짧게 누름 → 아래 click이 예전처럼 처리한다
-      const t = ev.type === 'pointerup' ? find(ev.clientX, ev.clientY, ghost) : null; mark(null); el.classList.remove('m-dragging');
-      // 끈 다음 따라오는 click은 한 번 버린다 (그래야 '고르기'가 다시 되지 않는다)
-      const kill = k => { k.stopPropagation(); k.preventDefault(); }; window.addEventListener('click', kill, { capture: true, once: true }); setTimeout(() => window.removeEventListener('click', kill, { capture: true }), 350);
-      const ok = t ? drop(t) : false, g = ghost;
-      if (ok) return g.remove();
+      const g = ghost; let ok = false;
+      try {
+        const t = ev.type === 'pointerup' ? find(ev.clientX, ev.clientY, g) : null; mark(null); el.classList.remove('m-dragging');
+        ok = t ? !!drop(t) : false;
+      } catch (err) { console.error(err); }
+      // 끈 다음 손가락이 만드는 진짜 click은 한 번 버린다 (그래야 '고르기'가 다시 되지 않는다). drop 안의 t.click()은 막지 않는다
+      const kill = k => { if (!k.isTrusted) return; k.stopPropagation(); k.preventDefault(); window.removeEventListener('click', kill, true); };
+      window.addEventListener('click', kill, true); setTimeout(() => window.removeEventListener('click', kill, true), 400);
+      if (ok || !g.isConnected) return g.remove();
       g.style.transition = 'transform .25s ease'; g.style.transform = 'translate(0, 0)'; setTimeout(() => g.remove(), 260);
     };
-    el.addEventListener('pointermove', move); el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    document.addEventListener('pointermove', move, { passive: false }); document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
   });
 }
 // 손가락 아래에서 sel에 맞는 요소 찾기 (끄는 그림은 pointer-events:none이라 그 밑이 잡힌다)
