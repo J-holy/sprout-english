@@ -67,5 +67,6 @@ const MATH_STORY_PICS = {
  "dec-0": "ms/dec-0-87f8cc59.jpg",
  "vol-0": "ms/vol-0-02c7bdca.jpg",
  "vol-1": "ms/vol-1-2a6da427.jpg",
- "vol-2": "ms/vol-2-167e10df.jpg"
+ "vol-2": "ms/vol-2-167e10df.jpg",
+ "angle-0": "ms/angle-0-8b0bec4b.jpg"
 };
