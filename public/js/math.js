@@ -1790,7 +1790,7 @@ function mathWorksheet(el, t, key) {
       <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨 · 새싹수학 워크시트</b><span>${s.icon} ${s.name} 단계 · ${esc(key ? w.title : t.title)} · <span class="mws-lv">${MATH_LEVELS[lv][1]}</span></span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>
       <h3>1. 알아 두어요</h3><p class="mws-sum">${esc(w.sum)}</p>
       <h3>2. 따라 써 보세요</h3>
-      <div class="mws-trace ${w.trace.every(x => x.length <= 3) && w.trace.length > 3 ? 'short' : ''}">${w.trace.map(x => `<div class="ws-trace"><span class="dotted">${esc(x)} &nbsp; ${esc(x)} &nbsp; ${esc(x)}</span><span class="line"></span></div>`).join('')}</div>
+      ${w.concept ? `<div class="mws-trace concept">${w.concept.map(x => `<div class="ws-trace"><span class="dotted">${esc(x)}</span><span class="line"></span><span class="line"></span></div>`).join('')}</div>` : `<div class="mws-trace ${w.trace.every(x => x.length <= 3) && w.trace.length > 3 ? 'short' : ''}">${w.trace.map(x => `<div class="ws-trace"><span class="dotted">${esc(x)} &nbsp; ${esc(x)} &nbsp; ${esc(x)}</span><span class="line"></span></div>`).join('')}</div>`}
       <h3>3. 문제를 풀어요 <small>${w.grid ? '' : '알맞은 것에 ○ 해요'}</small></h3>
       <div class="mws-probs ${w.grid ? 'grids' : ''}"></div>
       <footer>참 잘했어요! 스티커를 붙여요 → ☐</footer>

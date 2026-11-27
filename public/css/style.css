@@ -2203,3 +2203,7 @@ button.m-ft { cursor: pointer; } .m-ft.pr { background: #c8e6c9; border-color: #
 :root[data-theme="dark"] .plan-card dd small { color: #7ee09a; }
 :root[data-theme="dark"] .plan-fit { color: #b9a6ff; }
 :root[data-theme="dark"] .link-btn { color: #b9a6ff; } :root[data-theme="dark"] .site-footer .link-btn { color: #0f3a1d; }
+/* 워크시트 개념 따라 쓰기: 한 줄 문장을 연한 글씨로 한 번, 아래 빈 줄에 혼자 한 번 */
+.mws-trace.concept .dotted { font-size: 1.55rem; letter-spacing: 1px; white-space: normal; word-break: keep-all; line-height: 1.5; }
+.mws-trace.concept .ws-trace { margin-bottom: 10px; }
+@media print { .mws-trace.concept .dotted { font-size: 20pt; } }
