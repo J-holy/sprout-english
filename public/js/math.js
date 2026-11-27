@@ -199,7 +199,9 @@ const MathGen = (() => {
   const distMap = (W, H, s, walls = []) => { const d = { [s.join()]: 0 }, q = [s]; while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [0, -1], [-1, 0], [0, 1]]) { const nx = x + dx, ny = y + dy, k = nx + ',' + ny; if (nx < 0 || ny < 0 || nx >= W || ny >= H || walls.includes(k) || k in d) continue; d[k] = d[x + ',' + y] + 1; q.push([nx, ny]); } } return d; };
   // ── 나무 더하기 그림 (2026-11-27) ──
   // 수의 줄: items(수, '?'는 빈칸), labels = 수 사이에 적을 차이(+3 등), hi = 칠할 칸
-  const nseq = (items, labels = [], hi = -1) => `<div class="m-nseq">${items.map((v, i) => `${i ? `<i class="m-diff">${labels[i - 1] || ''}</i>` : ''}${v === '?' ? '<b class="m-q">?</b>' : `<span class="${i === hi ? 'hi' : ''}">${v}</span>`}`).join('')}</div>`;
+  // 빼기·더하기 버튼 줄: 줄마다 [− 이름] [+ 이름], 더하기는 왼쪽·빼기는 오른쪽, 네 버튼 크기 같음. 줄 위에 그림과 이름
+  const pmRows = (rows, attr) => `<div class="m-pm">${rows.map(([k, name, ic]) => `<div class="m-pm-row"><p class="m-pm-lab">${ic ? `<i class="m-${ic} m-pm-ic"></i>` : ''}${name}</p><button class="btn btn-ghost m-pm-b" ${attr(k, '+')} aria-label="${name} 하나 더하기"><b>+</b> ${name}</button><button class="btn btn-ghost m-pm-b" ${attr(k, '-')} aria-label="${name} 하나 빼기"><b>−</b> ${name}</button></div>`).join('')}</div>`;
+  const nseq = (items, labels = [], hi = -1) => `<div class="m-nseq">${items.map((v, i) => (c => i ? `<i class="m-nstep"><i class="m-diff">${labels[i - 1] || ''}</i>${c}</i>` : c)(v === '?' ? '<b class="m-q">?</b>' : `<span class="${i === hi ? 'hi' : ''}">${v}</span>`)).join('')}</div>`;
   // 암호 표: 가~하 14글자에 1~14
   const SYL = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '파', '하'];
   const keyTable = (hi = []) => `<div class="m-key">${[0, 7].map(o => `<table><tr>${SYL.slice(o, o + 7).map((c, i) => `<th class="${hi.includes(o + i) ? 'hi' : ''}">${c}</th>`).join('')}</tr><tr>${SYL.slice(o, o + 7).map((_, i) => `<td class="${hi.includes(o + i) ? 'hi' : ''}">${o + i + 1}</td>`).join('')}</tr></table>`).join('')}</div>`;
@@ -978,7 +980,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
+  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -1618,8 +1620,7 @@ function mathLesson(el, L) {
       let t = 0, o = 0;
       const T = Math.floor(st.target / 10), O = st.target % 10;
       area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><p class="m-bignum">${st.target}</p><div class="m-viz m-tens-view"></div>
-        <div class="m-build"><div class="m-build-col"><b>십 묶음</b><button class="btn btn-ghost sm" data-t="1" aria-label="십 묶음 하나 더">➕</button><button class="btn btn-ghost sm" data-t="-1" aria-label="십 묶음 하나 빼기">➖</button></div>
-        <div class="m-build-col"><b>낱개</b><button class="btn btn-ghost sm" data-o="1" aria-label="낱개 하나 더">➕</button><button class="btn btn-ghost sm" data-o="-1" aria-label="낱개 하나 빼기">➖</button></div></div>
+        ${MathGen.pmRows([['t', '십 묶음', 'rod'], ['o', '낱개', 'one']], (k, s) => `data-${k}="${s}1"`)}
         <p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
       KoSpeech.say(st.text);
       const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-tens-view', area); nb.onclick = next;

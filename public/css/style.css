@@ -82,7 +82,11 @@ main { min-height: 70vh; outline: none; }
 .badge { position: absolute; top: -2px; right: -2px; background: var(--berry); color: #fff; font-style: normal; font-size: .68rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; border: 2px solid var(--line); }
 .bell-wrap { position: relative; }
 .bell-pop { position: absolute; right: 0; top: 46px; width: 300px; background: var(--paper); border: var(--bw) solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; z-index: 30; display: grid; gap: 8px; }
-.bp-item { font-size: .9rem; padding: 8px 10px; border-radius: 12px; background: var(--soft); display: grid; }
+.bp-item { font-size: .9rem; padding: 8px 6px 8px 10px; border-radius: 12px; background: var(--soft); display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: start; }
+.bp-item > span { display: grid; }
+.noti-del { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: .95rem; cursor: pointer; }
+.noti-del:hover, .noti-del:focus-visible { background: var(--paper); color: var(--ink); }
+.bp-clear { margin-left: auto; margin-right: 6px; font-size: .82rem; }
 .bp-item.unread { border-left: 5px solid var(--berry); }
 .bp-item small, .noti-list small { color: var(--muted); font-size: .76rem; }
 body.in-lesson .site-header, body.in-lesson .site-footer { display: none; }
@@ -614,7 +618,8 @@ main.focus { min-height: 100vh; }
 .cal span.today { outline: 3px solid var(--grape); }
 .prog-row { display: grid; grid-template-columns: 130px 1fr 50px; gap: 10px; align-items: center; margin: 8px 0; font-size: .92rem; }
 .noti-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.noti-list li { padding: 10px 14px; border-radius: 14px; background: var(--soft); }
+.noti-list li { padding: 10px 6px 10px 14px; border-radius: 14px; background: var(--soft); display: flex; align-items: flex-start; gap: 8px; }
+.noti-list li > div { flex: 1; min-width: 0; }
 .noti-list li.unread { border-left: 5px solid var(--berry); }
 .noti-list p { margin: 0; }
 .summary { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; }
@@ -1918,9 +1923,19 @@ a.shop-ava { display: block; }
 
 /* 새싹수학 나무 더하기 (2026-11-27): 수의 규칙 · 암호 · 복면산 · 경우의 수 · 넓이와 둘레 */
 .m-nseq { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; margin: 6px auto; }
-.m-nseq > span, .m-nseq > .m-q { min-width: 2.4em; height: 2.4em; padding: 0 6px; display: inline-grid; place-items: center; border: 3px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: 700 1.4rem var(--en); }
-.m-nseq > span.hi { background: #ffe082; color: #3a2d4f; border-color: #ffb300; }
+.m-nseq span, .m-nseq .m-q { min-width: 2.4em; height: 2.4em; padding: 0 6px; display: inline-grid; place-items: center; border: 3px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: 700 1.4rem var(--en); }
+.m-nseq span.hi { background: #ffe082; color: #3a2d4f; border-color: #ffb300; }
 .m-diff { font: 700 .85rem var(--en); color: var(--grape, #7e57c2); font-style: normal; }
+.m-nstep { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-style: normal; }
+@media (max-width: 420px) { .m-nseq span, .m-nseq .m-q { min-width: 2em; height: 2em; font-size: 1.15rem; padding: 0 4px; } .m-hopn { font-size: .95rem; height: 40px; } }
+/* 빼기·더하기 버튼 줄 (십 묶음·낱개): 더하기 왼쪽, 빼기 오른쪽, 네 버튼 같은 크기 */
+.m-pm { display: grid; gap: 12px; width: 100%; max-width: 360px; margin: 12px auto 0; }
+.m-pm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.m-pm-lab { grid-column: 1 / -1; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--title); font-size: 1.1rem; }
+.m-pm-b { min-height: 60px; padding: 8px 6px; font-size: 1.15rem; white-space: nowrap; justify-content: center; }
+.m-pm-b b { font-size: 1.6rem; line-height: 1; margin-right: 4px; }
+.m-pm-ic.m-rod { height: 34px; width: 10px; background: repeating-linear-gradient(to bottom, #ffb74d 0 6px, #3a2d4f 6px 7px); }
+.m-pm-ic.m-one { width: 14px; height: 12px; }
 .m-key { display: grid; gap: 4px; justify-content: center; } .m-key table { border-collapse: collapse; }
 .m-key th, .m-key td { border: 2px solid var(--line); width: 2.2em; height: 1.9em; text-align: center; background: var(--paper); color: var(--ink); }
 .m-key th { font-size: 1.15rem; } .m-key td { font: 700 1rem var(--en); color: var(--muted, #8a8196); }
@@ -1941,12 +1956,12 @@ a.shop-ava { display: block; }
 .m-orders > span { padding: 3px 8px; border: 2px solid var(--line); border-radius: 10px; font: 700 1.2rem var(--en); background: var(--paper); color: var(--ink); }
 .m-cards-n { gap: 8px; } .m-cards-n span { width: 1.8em; height: 2.4em; display: grid; place-items: center; border: 3px solid var(--line); border-radius: 8px; background: #fff; color: #3a2d4f; font: 700 1.6rem var(--en); }
 .m-combo-pick { display: grid; gap: 10px; justify-items: center; } .m-combo-pick > div { display: flex; gap: 10px; }
-.m-hop { display: grid; grid-template-columns: repeat(7, 46px); gap: 4px; justify-content: center; margin: 6px auto; }
-.m-hopn { height: 44px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font: 700 1.05rem var(--en); cursor: pointer; }
+.m-hop { display: grid; grid-template-columns: repeat(7, minmax(0, 46px)); gap: 4px; justify-content: center; margin: 6px auto; max-width: 100%; }
+.m-hopn { min-width: 0; padding: 0; height: 44px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font: 700 1.05rem var(--en); cursor: pointer; }
 .m-hopn.on { background: #c5e1a5; border-color: #7cb342; }
 .m-cells { height: auto; max-width: 100%; }
 .m-paint .m-wcell.on { background: #81d4fa; border-color: #0277bd; }
-.m-ws .m-nseq > span, .m-ws .m-nseq > .m-q { background: #fff; color: #222; font-size: 1.1rem; } .m-ws .m-key th, .m-ws .m-key td { background: #fff; color: #222; }
+.m-ws .m-nseq span, .m-ws .m-nseq .m-q { background: #fff; color: #222; font-size: 1.1rem; } .m-ws .m-key th, .m-ws .m-key td { background: #fff; color: #222; }
 .m-ws .m-cells { max-width: 200px; } .m-ws .m-col, .m-ws .m-eqbig { font-size: 1.3rem; }
 
 /* 새싹수학 수학 이야기 그림 (pregen-math-story.js) */

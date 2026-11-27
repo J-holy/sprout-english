@@ -79,7 +79,7 @@ MATH_ACTS.big = {
   mount(box, m, api) {
     let t = m.t, o = m.o;
     box.innerHTML = `<div class="m-act-big"></div><p class="m-act-eq"></p>
-      <div class="row-center"><button class="btn btn-ghost sm" data-d="t-">➖ 묶음</button><button class="btn btn-ghost" data-d="t+">➕ 십 묶음</button><button class="btn btn-ghost" data-d="o+">➕ 낱개</button><button class="btn btn-ghost sm" data-d="o-">➖ 낱개</button></div>
+      ${MathGen.pmRows([['t', '십 묶음', 'rod'], ['o', '낱개', 'one']], (k, s) => `data-d="${k}${s}"`)}
       <div class="row-center"><button class="btn btn-primary sm" data-tie>🎀 낱개 열 개 묶기</button></div>`;
     const tieB = $('[data-tie]', box);
     const draw = () => {
