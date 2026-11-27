@@ -194,7 +194,18 @@ const MathGen = (() => {
   const fbox = (pairs, last, rev = false, lab = '') => `<div class="m-fbox"><div class="m-fbox-hat">🎩 마술 상자${lab ? ` <b>${lab}</b>` : ''}</div><table class="m-ftab"><tr><th>넣은 수</th>${pairs.map(p => `<td>${p[0]}</td>`).join('')}${last ? `<td class="q">${rev ? '?' : last[0]}</td>` : ''}</tr><tr><th>나온 수</th>${pairs.map(p => `<td>${p[1]}</td>`).join('')}${last ? `<td class="q">${rev ? last[1] : '?'}</td>` : ''}</tr></table></div>`;
   // 저울: 'B' 상자, 'T' 세모 추, 수는 무게 추
   const sItem = x => x === 'B' ? '<span class="m-sbox">📦</span>' : x === 'T' ? '<span class="m-sbox">🔺</span>' : `<span class="m-weight">${x}</span>`;
-  const scale = (left, right, tilt = 0) => `<div class="m-scale" style="--tilt:${tilt}deg"><div class="m-beam"><div class="m-pan">${left.map(sItem).join('')}</div><div class="m-pan">${right.map(sItem).join('')}</div></div><div class="m-post">▲</div></div>`;
+  // 진짜 저울처럼: 막대는 가운데를 축으로 기울고, 접시는 막대 끝에 매달려 똑바로 선 채 오르내린다
+  // 기울기는 무게 차이에 따라 부드럽게 커지다가 15도쯤에서 멈춘다(tanh). 같은 화면에서 다시 그릴 때는 scaleSet으로 바꿔야 움직임이 보인다
+  const scaleVars = t => `--tilt:${t.toFixed(2)}deg;--dy:${(Math.sin(t * Math.PI / 180) * 100).toFixed(1)}px`;
+  const scaleHtml = (lh, rh, tilt = 0) => `<div class="m-scale" style="${scaleVars(tilt)}"><div class="m-post"></div><div class="m-beam"></div><div class="m-hang l"><i></i><div class="m-pan">${lh}</div></div><div class="m-hang r"><i></i><div class="m-pan">${rh}</div></div></div>`;
+  const scale = (left, right, tilt = 0) => scaleHtml(left.map(sItem).join(''), right.map(sItem).join(''), tilt);
+  const tiltOf = (L, Rt) => 15 * Math.tanh((Rt - L) / 4);
+  const scaleSet = (el, lh, rh, tilt) => {
+    let sc = el.querySelector('.m-scale');
+    if (!sc) { el.innerHTML = scaleHtml(lh, rh, 0); sc = el.querySelector('.m-scale'); void sc.offsetWidth; }
+    const pans = sc.querySelectorAll('.m-pan'); pans[0].innerHTML = lh; pans[1].innerHTML = rh;
+    requestAnimationFrame(() => { sc.style.cssText = scaleVars(tilt); });
+  };
   // 칸 모양(폴리오미노): cells = [[x, y]]
   const pNorm = c => { const mx = Math.min(...c.map(p => p[0])), my = Math.min(...c.map(p => p[1])); return c.map(([x, y]) => [x - mx, y - my]).sort((a, b) => a[1] - b[1] || a[0] - b[0]); };
   const pKey = c => pNorm(c).map(p => p.join(',')).join(';');
@@ -912,7 +923,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
+  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -1581,8 +1592,8 @@ function mathLesson(el, L) {
       const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-scale-view', area); nb.onclick = next;
       view.innerHTML = MathGen.scale(st.left, st.right);
       $$('[data-n]', area).forEach(b => b.onclick = () => {
-        const n = +b.dataset.n, L = sumOf(st.left, n), Rt = sumOf(st.right, n), tilt = Math.max(-14, Math.min(14, (Rt - L) * 3));
-        view.innerHTML = MathGen.scale(st.left.map(x => x === 'B' ? n : x), st.right.map(x => x === 'B' ? n : x), tilt);
+        const n = +b.dataset.n, L = sumOf(st.left, n), Rt = sumOf(st.right, n);
+        MathGen.scaleSet(view, st.left.map(x => MathGen.sItem(x === 'B' ? n : x)).join(''), st.right.map(x => MathGen.sItem(x === 'B' ? n : x)).join(''), MathGen.tiltOf(L, Rt));
         if (L === Rt) { out.textContent = `📦 = ${n} · 저울이 반듯해요! ⚖️`; ready(nb, MATH_SAY.balanced); }
         else { out.textContent = `📦 = ${n} → ${L > Rt ? '상자 쪽이 무거워요' : '상자 쪽이 가벼워요'}`; Speech.sfx.wrong(); nb.disabled = true; }
       });

@@ -169,8 +169,8 @@ MATH_ACTS.balance = {
     const W = [1, 2, 3, 5], right = [], L = m.box * m.n;
     box.innerHTML = `<div class="m-act-scale"></div><div class="row-center m-act-pool">${W.map(w => `<button class="m-weight m-act-w" data-w="${w}">${w}</button>`).join('')}</div>`;
     const draw = () => {
-      const R = right.reduce((a, b) => a + b, 0), tilt = R === L ? 0 : R > L ? 8 : -8;
-      $('.m-act-scale', box).innerHTML = `<div class="m-scale" style="--tilt:${tilt}deg"><div class="m-beam"><div class="m-pan">${'<span class="m-sbox">📦</span>'.repeat(m.n)}</div><div class="m-pan">${right.map((w, i) => `<button class="m-weight" data-r="${i}">${w}</button>`).join('')}</div></div><div class="m-post">▲</div></div>`;
+      const R = right.reduce((a, b) => a + b, 0);
+      MathGen.scaleSet($('.m-act-scale', box), '<span class="m-sbox">📦</span>'.repeat(m.n), right.map((w, i) => `<button class="m-weight" data-r="${i}">${w}</button>`).join(''), MathGen.tiltOf(L, R));
       $$('[data-r]', box).forEach(b => b.onclick = () => { right.splice(+b.dataset.r, 1); Speech.sfx.tap(); draw(); });
       if (m.open) return api.status(`오른쪽 ${R}`);
       if (R === L) api.done(m.n > 1 ? `상자 두 개가 ${mJo(L, '이니까', '니까')}, 상자 하나는 ${L} ÷ 2 = ${mJo(m.box, '이에요', '예요')}!` : `저울이 맞았어요! 상자는 ${mJo(m.box, '이에요', '예요')}.`);
