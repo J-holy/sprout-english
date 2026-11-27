@@ -1716,7 +1716,7 @@ a.shop-ava { display: block; }
 .mini-wrap { display: flex; flex-direction: column; gap: 8px; }
 .mini-tabs { display: flex; gap: 6px; justify-content: center; }
 .mini-tabs button { border: 3px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 700; cursor: pointer; }
-.mini-tabs button.on { background: var(--sun, #ffd23f); }
+.mini-tabs button.on { background: var(--sun, #ffd23f); color: #3f2d46; }
 .mq-num { font: 700 2rem var(--en); }
 .mini-quiz .m-count { font-size: 1.8rem; gap: 6px; margin: 6px auto; } .mini-quiz .mq-q .m-pic { width: 1.4em; height: 1.4em; vertical-align: -.35em; }
 .en-intro .row { margin: 10px 0; }
@@ -1729,7 +1729,7 @@ a.shop-ava { display: block; }
 .plan-subjects { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px 0 4px; }
 .plan-subjects button { border: 3px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 8px 18px; font: inherit; font-weight: 700; cursor: pointer; }
 .plan-subjects button small { font-weight: 400; color: #e65100; }
-.plan-subjects button.on { background: var(--sun, #ffd23f); } .plan-subjects button.on small { color: #8a3b00; }
+.plan-subjects button.on { background: var(--sun, #ffd23f); color: #3f2d46; } .plan-subjects button.on small { color: #8a3b00; }
 .plan-subj-desc { margin: 2px 0 10px; }
 /* 새싹 마스코트: 잎만 살랑살랑 (2026-11-26) */
 .mascot-face.sprout { position: relative; display: inline-block; width: 1.25em; height: 1.25em; animation: none; }
@@ -2185,3 +2185,21 @@ button.m-ft { cursor: pointer; } .m-ft.pr { background: #c8e6c9; border-color: #
 .m-dec-p.on { background: #8d6e63; }
 .m-vol-ctl { display: grid; gap: 6px; justify-content: center; } .m-vol-ctl b { min-width: 3em; text-align: right; } .m-vol-ctl span { min-width: 1.6em; text-align: center; font: 700 1.3rem var(--en); }
 .m-act-vol svg { max-width: 100%; height: auto; }
+
+/* ---------- 가시성 정리 (2026-11-27 레이아웃 검수) ---------- */
+/* 초록 푸터 위 보라 링크는 거의 안 보여서 진한 초록 밑줄 글로 */
+.site-footer a, .site-footer .link-btn { color: #0f3a1d; text-decoration: underline; text-underline-offset: 3px; }
+.site-footer .fine, .site-footer .fine.biz { color: #0f3a1d; }
+/* 분홍 딱지 위 흰 글자: 분홍을 진하게 */
+.sticker-label, .ribbon { background: #d6365f; }
+/* 흰 카드 위 연두 할인 표시 */
+.plan-card dd small { color: #1f7a3a; }
+/* 결제 조건(dt·dd 두 칸)은 휴대폰에서 한 칸으로: dd가 너무 좁아 한 줄에 서너 글자씩 끊겼다 */
+@media (max-width: 560px) { .summary.pay-terms { grid-template-columns: 1fr; gap: 2px 0; } .summary.pay-terms dd { margin: 0 0 10px; } }
+/* 요금표 할인 표시: 분홍 글자·분홍 딱지를 진하게 */
+.plan-card .hot, .price-table .hot, dd.hot { color: #c2264f; } .pct { background: #d6365f; }
+/* 어두운 화면: 진하게 바꾼 분홍·초록 글자는 어두운 카드 위에서 다시 밝게 */
+:root[data-theme="dark"] .plan-card .hot, :root[data-theme="dark"] .price-table .hot, :root[data-theme="dark"] dd.hot { color: #ff8fa8; }
+:root[data-theme="dark"] .plan-card dd small { color: #7ee09a; }
+:root[data-theme="dark"] .plan-fit { color: #b9a6ff; }
+:root[data-theme="dark"] .link-btn { color: #b9a6ff; } :root[data-theme="dark"] .site-footer .link-btn { color: #0f3a1d; }
