@@ -29,8 +29,8 @@ const mFrame = (cells, cls = '') => `<div class="m-tf ${cls}">${cells.map((c, i)
 MATH_ACTS.count = {
   missions: [
     { text: '칸을 눌러 빨간 구슬을 7개 놓아 봐요.', red: 0, ok: (r, b) => r === 7 && b === 0 && '7개! 다섯 칸 한 줄을 채우고 둘을 더 놓았어요.' },
-    { text: '빨간 구슬이 7개 있어요. 파란 구슬로 빈칸을 채워 10을 만들어 봐요. 몇 개가 더 필요할까요?', red: 7, ok: (r, b) => r + b === 10 && `빨강 7개와 파랑 ${b}개를 더하면 10! 7과 3은 10 짝꿍이에요.` },
-    { text: '이번에는 빨간 구슬이 4개예요. 파란 구슬로 10을 만들어 봐요.', red: 4, ok: (r, b) => r + b === 10 && `4와 ${mJo(b, '은', '는')} 10 짝꿍이에요!` },
+    { text: '빨간 구슬이 7개 있어요. 파란 구슬로 빈칸을 채워 10을 만들어 봐요. 몇 개가 더 필요할까요?', red: 7, ok: (r, b) => r + b === 10 && '빨강 7개와 파랑 3개를 더하면 10! 7과 3은 10 짝꿍이에요.' },
+    { text: '이번에는 빨간 구슬이 4개예요. 파란 구슬로 10을 만들어 봐요.', red: 4, ok: (r, b) => r + b === 10 && '4와 6은 10 짝꿍이에요!' },
     { text: '빨강과 파랑으로 10칸을 가득 채워서, 10 짝꿍을 네 가지 찾아봐요.', pairs: true },
   ],
   free: { text: '구슬을 마음대로 놓으며 10 짝꿍을 찾아봐요.', pairs: true, open: true },
@@ -38,7 +38,8 @@ MATH_ACTS.count = {
     const c = Array(10).fill(0), fixed = m.red || 0, found = new Set();
     for (let i = 0; i < fixed; i++) c[i] = 1;
     let col = m.pairs ? 1 : fixed ? 2 : 1;
-    box.innerHTML = `${m.pairs ? '<div class="row-center m-act-pal"><button class="btn btn-ghost sm on" data-col="1"><i class="m-bead r"></i> 빨강</button><button class="btn btn-ghost sm" data-col="2"><i class="m-bead b"></i> 파랑</button></div>' : ''}<div class="m-act-tf"></div><p class="m-act-eq"></p><div class="m-act-chips"></div>`;
+    box.innerHTML = `${m.pairs ? '<div class="row-center m-act-pal"><button class="btn btn-ghost sm on" data-col="1"><i class="m-bead r"></i> 빨강</button><button class="btn btn-ghost sm" data-col="2"><i class="m-bead b"></i> 파랑</button></div>' : ''}<div class="m-act-tf"></div><p class="m-act-eq"></p><div class="row-center"><button class="btn btn-ghost sm" data-clear>🧽 칸 비우기</button></div><div class="m-act-chips"></div>`;
+    $('[data-clear]', box).onclick = () => { for (let i = fixed; i < 10; i++) c[i] = 0; Speech.sfx.tap(); draw(); };
     const v = $('.m-act-tf', box), eq = $('.m-act-eq', box), chips = $('.m-act-chips', box);
     const draw = () => {
       v.innerHTML = mFrame(c);
@@ -52,12 +53,48 @@ MATH_ACTS.count = {
       if (m.pairs) {
         if (r + b === 10 && r && b) found.add(r);
         chips.innerHTML = [...found].sort((x, y) => x - y).map(k => `<span class="chip">${k} + ${10 - k}</span>`).join('');
-        if (found.size >= 4) api.done(`10 짝꿍을 ${found.size}가지 찾았어요! 1과 9, 2와 8, 3과 7, 4와 6, 5와 5.`); else api.status(found.size ? `${found.size}가지 찾았어요. 빨강 수를 바꿔 또 찾아봐요` : '10칸을 빨강과 파랑으로 가득 채워요');
+        if (found.size >= 4) api.done('10 짝꿍을 네 가지 넘게 찾았어요! 1과 9, 2와 8, 3과 7, 4와 6, 5와 5.'); else api.status(found.size ? `${['한', '두', '세'][found.size - 1]} 가지 찾았어요. 빨강 수를 바꿔 또 찾아봐요` : '10칸을 빨강과 파랑으로 가득 채워요');
         return;
       }
       const w = m.ok && m.ok(r, b); if (w) api.done(w); else api.status(' ');
     };
     $$('[data-col]', box).forEach(b => b.onclick = () => { col = +b.dataset.col; $$('[data-col]', box).forEach(x => x.classList.toggle('on', x === b)); Speech.sfx.tap(); });
+    draw();
+  },
+};
+
+// ── 큰 수 세기: 십 묶음과 낱개를 놓아 수를 만들고, 낱개 열 개를 묶어 십 묶음으로 바꾼다 ──
+MATH_ACTS.big = {
+  missions: [
+    { text: '십 묶음과 낱개를 눌러 놓아서 35를 만들어 봐요.', t: 0, o: 0, goal: 35 },
+    { text: '낱개가 열네 개나 있어요. 낱개 열 개를 한 묶음으로 묶으면 모두 얼마인지 보여요.', t: 1, o: 14, goal: 24, tie: true },
+    { text: '60을 만들어 봐요. 낱개는 몇 개가 필요할까요?', t: 0, o: 0, goal: 60 },
+    { text: '십 묶음을 하나씩 더해서 100을 만들어 봐요.', t: 7, o: 0, goal: 100 },
+  ],
+  free: { text: '십 묶음과 낱개를 마음대로 놓으며 수를 만들어 봐요.', t: 0, o: 0, open: true },
+  mount(box, m, api) {
+    let t = m.t, o = m.o;
+    box.innerHTML = `<div class="m-act-big"></div><p class="m-act-eq"></p>
+      <div class="row-center"><button class="btn btn-ghost sm" data-d="t-">➖ 묶음</button><button class="btn btn-ghost" data-d="t+">➕ 십 묶음</button><button class="btn btn-ghost" data-d="o+">➕ 낱개</button><button class="btn btn-ghost sm" data-d="o-">➖ 낱개</button></div>
+      <div class="row-center"><button class="btn btn-primary sm" data-tie>🎀 낱개 열 개 묶기</button></div>`;
+    const tieB = $('[data-tie]', box);
+    const draw = () => {
+      const n = t * 10 + o;
+      $('.m-act-big', box).innerHTML = `<div class="m-b10"><span class="m-rods">${'<i class="m-rod"></i>'.repeat(t)}</span>${o ? `<span class="m-ones${o >= 10 ? ' many' : ''}">${'<i class="m-one"></i>'.repeat(o)}</span>` : ''}</div>`;
+      $('.m-act-eq', box).innerHTML = `십 묶음 <b>${t}</b>개 · 낱개 <b>${o}</b>개 → <b>${o >= 10 ? '?' : n}</b>`;
+      tieB.disabled = o < 10;
+      if (m.open) return api.status(o >= 10 ? '낱개가 열 개 넘었어요. 묶어 봐요!' : ' ');
+      if (n === m.goal && o < 10) api.done(m.goal === 100 ? '십 묶음 열 개면 100, 백이에요! 세 자리 수의 시작이에요.'
+        : m.tie ? '낱개 열 개를 묶었더니 십 묶음 2개와 낱개 4개, 24예요!'
+        : `${m.goal}! 십 묶음 ${t}개${o ? `와 낱개 ${o}개` : ', 낱개는 하나도 없어요'}.`);
+      else { api.undo(); api.status(o >= 10 ? '낱개가 열 개 넘었어요. 열 개를 묶어 봐요.' : ' '); }
+    };
+    $$('[data-d]', box).forEach(b => b.onclick = () => {
+      const d = b.dataset.d;
+      if (d === 't+' && t < 10) t++; else if (d === 't-' && t > 0) t--; else if (d === 'o+' && o < 19) o++; else if (d === 'o-' && o > 0) o--; else return;
+      Speech.sfx.tap(); draw();
+    });
+    tieB.onclick = () => { if (o < 10 || t >= 10) return; o -= 10; t++; Speech.sfx.correct(); draw(); };
     draw();
   },
 };

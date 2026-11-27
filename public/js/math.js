@@ -1165,10 +1165,13 @@ const KoSpeech = (() => {
     if (!text) return;
     const f = man && man[text];
     if (!f) return device(text, slow, onEnd);
-    cur = new Audio('audio/ko/' + f); cur.playbackRate = slow ? 0.75 : 1; cur.onended = () => onEnd && onEnd();
+    // 미리 받아 둔 소리가 있으면 그것을 처음부터 다시 튼다 (눌러 세기에서 누르자마자 읽게)
+    cur = cache[f] || new Audio('audio/ko/' + f); cur.currentTime = 0; cur.playbackRate = slow ? 0.75 : 1; cur.onended = () => onEnd && onEnd();
     cur.play().catch(() => device(text, slow, onEnd));
   };
-  return { say, stop };
+  const cache = {};
+  const preload = list => { const go = () => list.forEach(t => { const f = man && man[t]; if (f && !cache[f]) { const a = new Audio('audio/ko/' + f); a.preload = 'auto'; a.load(); cache[f] = a; } }); man ? go() : setTimeout(go, 800); };
+  return { say, stop, preload };
 })();
 
 function mathViz(v) {
@@ -1332,7 +1335,7 @@ function mathLesson(el, L) {
     } else if (st.type === 'tap') {
       // 하나씩 눌러 세기: 누를 때마다 번호가 붙고 수를 읽어 준다
       area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-tap">${Array.from({ length: st.n }, (_, k) => `<button class="m-tapi" data-k="${k}" aria-label="${k + 1}번째">${mPic(st.e)}</button>`).join('')}</div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
-      KoSpeech.say(st.text);
+      KoSpeech.say(st.text); KoSpeech.preload(MATH_NATIVE.slice(0, st.n));
       const nb = $('[data-next]', area), out = $('.m-tapn', area); let c = 0; nb.onclick = next;
       $$('.m-tapi', area).forEach(b => b.onclick = () => {
         if (b.classList.contains('on')) return;
@@ -1343,7 +1346,7 @@ function mathLesson(el, L) {
       // 뾰족한 곳(꼭짓점) 누르기
       const P = st.s === 'tri' ? [[50, 8], [94, 90], [6, 90]] : [[12, 12], [88, 12], [88, 88], [12, 88]];
       area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz"><svg viewBox="-12 -12 124 124" class="m-corners" aria-label="뾰족한 곳 누르기"><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="${st.s === 'tri' ? '#ff8a65' : '#64b5f6'}" stroke="#3a2d4f" stroke-width="5" stroke-linejoin="round"/>${P.map(([x, y], k) => `<g class="cn" data-k="${k}" role="button" tabindex="0"><circle cx="${x}" cy="${y}" r="13" fill="#fff" stroke="#3a2d4f" stroke-width="3"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="700"></text></g>`).join('')}</svg></div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
-      KoSpeech.say(st.text);
+      KoSpeech.say(st.text); KoSpeech.preload(MATH_NATIVE.slice(0, st.n));
       const nb = $('[data-next]', area), out = $('.m-tapn', area); let c = 0; nb.onclick = next;
       $$('.cn', area).forEach(g => g.onclick = g.onkeydown = e => {
         if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
