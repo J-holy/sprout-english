@@ -160,7 +160,7 @@ const App = (() => {
   function modal(html) {
     const m = document.getElementById('modal');
     m.innerHTML = `<div class="modal-card" role="dialog" aria-modal="true">${html}</div>`;
-    m.hidden = false;
+    m.hidden = false; m.dataset.hash = location.hash;
     const close = () => { m.hidden = true; m.innerHTML = ''; document.removeEventListener('keydown', onKey); };
     const onKey = e => { if (e.key === 'Escape') close(); };
     m.onclick = e => { if (e.target === m || e.target.closest('[data-close]')) close(); };
@@ -333,6 +333,8 @@ const App = (() => {
     document.addEventListener('click', e => { if (head.classList.contains('menu-open') && !head.contains(e.target)) setMenu(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && head.classList.contains('menu-open')) { setMenu(false); menuBtn.focus(); } });
     window.addEventListener('hashchange', () => setMenu(false));
+    // 다른 화면으로 가면 앞 화면에서 연 안내창은 닫는다 (안 닫으면 새 화면 위에 그대로 남아 가렸다). 새 화면이 바로 연 창은 둔다
+    window.addEventListener('hashchange', () => { const m = document.getElementById('modal'); if (!m.hidden && m.dataset.hash !== location.hash) setTimeout(() => { if (!m.hidden && m.dataset.hash !== location.hash) { m.hidden = true; m.innerHTML = ''; } }, 0); });
     // 메뉴가 한 줄에 다 들어가는지 재서, 넘치면 ☰ 메뉴로 바꾼다 (창 너비만으로 정하면 윈도우처럼 글꼴이 넓은 곳에서 잘린다)
     let fitT = 0;
     const fitHeader = () => {
