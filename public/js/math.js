@@ -1230,7 +1230,7 @@ function mathViz(v) {
     case 'cells': return `<div class="m-viz">${MathGen.cellsSvg({ W: v.W, H: v.H, cells: v.cells || MathGen.rectCells(...v.rect), nums: v.nums, edge: v.edge })}</div>`;
     // 수학 이야기 그림
     case 'scene': return `<div class="m-viz m-scene">${v.items.map(x => `<span>${mPic(x)}</span>`).join('')}</div>`;
-    case 'pair': return `<div class="m-viz m-pair"><div>${Array.from({ length: v.n }, (_, k) => `<span class="${v.miss && k >= v.n - v.miss ? 'm-away' : ''}">${mPic(v.a)}</span>`).join('')}</div><div class="m-links">${'<i></i>'.repeat(v.n)}</div><div>${row(v.b, v.n)}</div></div>`;
+    case 'pair': return `<div class="m-viz m-pair">${Array.from({ length: v.n }, (_, k) => `<span class="m-pcol"><span class="${v.miss && k >= v.n - v.miss ? 'm-away' : ''}">${mPic(v.a)}</span><i></i><span>${mPic(v.b)}</span></span>`).join('')}</div>`;
     case 'rope': {
       if (!v.tri) return `<div class="m-viz"><svg viewBox="0 0 260 70" class="m-rope" aria-label="매듭 밧줄"><path d="M12 35 Q130 62 248 35" stroke="#a1887f" stroke-width="6" fill="none" stroke-linecap="round"/>${Array.from({ length: 12 }, (_, k) => { const t = (k + .5) / 12, x = 12 * (1 - t) ** 2 + 260 * (1 - t) * t + 248 * t * t, y = 35 + 54 * (1 - t) * t; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#6d4c41"/>`; }).join('')}</svg></div>`;
       const P = [[130, 18], [232, 170], [28, 170]], knots = [];

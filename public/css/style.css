@@ -1670,7 +1670,7 @@ a.shop-ava { display: block; }
 .m-groups { gap: 18px; } .m-ring { display: inline-flex; gap: 4px; padding: 8px 14px; border: 3px dashed var(--grape, #7e57c2); border-radius: 999px; }
 .m-ring .m-pic { width: 1.2em; height: 1.2em; }
 .m-grid.show { margin: 6px auto 12px; } .m-grid.show .m-cell { display: grid; place-items: center; cursor: default; }
-.m-text { font-size: 1.25rem; line-height: 1.7; margin: 8px auto 6px; max-width: 34em; }
+.m-text { font-size: 1.25rem; line-height: 1.7; margin: 8px auto 6px; max-width: min(34em, 100%); overflow-wrap: anywhere; word-break: keep-all; }
 .m-read { font-family: var(--title); font-size: 2rem; line-height: 1.5; margin: 10px auto 4px; color: var(--grape, #7e57c2); }
 .m-say { margin: 6px 0 10px; }
 .m-trace { width: min(100%, 360px); height: auto; aspect-ratio: 360 / 260; touch-action: none; }
@@ -1848,8 +1848,8 @@ a.shop-ava { display: block; }
 .m-dots { gap: 2px; max-width: 360px; } .m-dots b { font-size: 1.6rem; color: var(--grape, #7e57c2); margin: 0 6px; }
 .m-dgrid { display: grid; grid-template-columns: repeat(var(--c), auto); gap: 0; justify-content: center; }
 .m-scene { font-size: 3rem; gap: 14px; } .m-scene .m-pic { width: 1.1em; height: 1.1em; }
-.m-pair { display: grid; gap: 4px; font-size: 2.2rem; } .m-pair > div { display: flex; gap: 10px; justify-content: center; }
-.m-pair .m-links { gap: 10px; } .m-pair .m-links i { width: 1.25em; height: 18px; border-left: 3px dotted var(--muted, #8a8196); margin-left: .6em; }
+.m-pair { flex-wrap: nowrap; gap: clamp(4px, 2vw, 12px); font-size: clamp(1.6rem, 8vw, 2.2rem); max-width: 100%; }
+.m-pair .m-pcol { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; } .m-pair .m-pcol i { width: 0; height: 22px; border-left: 3px dotted var(--muted, #8a8196); }
 .m-away { opacity: .2; }
 .m-rope { width: min(100%, 300px); height: auto; } .m-rope.tri { width: min(100%, 260px); }
 .m-tap { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 440px; margin: 8px auto; }
