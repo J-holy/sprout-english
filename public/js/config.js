@@ -5,6 +5,8 @@
  */
 const CONFIG = {
   ADMIN_EMAILS: ['admin@sprout.test'],
+  // 운영자 검수용 계정(2026-11-27): 진도와 상관없이 모든 레벨·스토리북이 열린다. 관리자 권한은 없다. 로그인은 서버의 QA_EMAIL·QA_CODE
+  QA_EMAILS: ['saessak@saessak.co.kr'],
   AUTH_PROVIDERS: {
     kakao: { label: '카카오로 시작하기', icon: '💬' },
     naver: { label: '네이버로 시작하기', icon: 'N' },

@@ -2161,3 +2161,19 @@ button.m-ft { cursor: pointer; } .m-ft.pr { background: #c8e6c9; border-color: #
   .m-act-bars { grid-template-columns: 20px repeat(var(--c), 44px); } .m-bar { width: 44px; }
 }
 :root[data-theme="dark"] .m-tf { background: #3a3324; } :root[data-theme="dark"] .m-tfc { background: #2b2838; }
+/* 홈 수학 맛보기: 그림 보기(모양·무리·똑같은 모양)와 문제 그림 */
+.mq-show { width: 100%; display: flex; justify-content: center; } .mq-show:empty { display: none; }
+.mq-show .m-viz, .mq-show .m-count, .mq-show .m-seq { font-size: 1.7rem; margin: 2px auto; }
+.mq-show svg { max-width: 100%; height: auto; max-height: 150px; }
+.mq-opt.mq-pic { display: flex; align-items: center; justify-content: center; padding: 6px; font-size: 2.4rem; }
+.mq-opt.mq-pic svg, .mq-opt.mq-pic img { max-width: 86%; max-height: 86%; width: auto; height: auto; }
+.mq-fb svg, .mq-fb img { height: 1.8em; width: auto; vertical-align: middle; }
+/* 새 주제 해 보기 (선대칭·소수·부피, 2026-11-27) */
+.m-act-sym { display: flex; justify-content: center; } .m-act-sym svg { max-width: 100%; height: auto; cursor: pointer; touch-action: manipulation; }
+.m-sym, .m-dec, .m-line { max-width: 100%; height: auto; }
+.m-dec-bars { display: grid; gap: 10px; justify-content: center; margin: 6px auto; }
+.m-dec-bar { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; width: min(330px, 86vw); padding: 4px; border: 2px solid #3a2d4f; border-radius: 8px; background: #fff8e1; }
+.m-dec-p { aspect-ratio: 1 / 1.3; border: 1.5px solid #8d6e63; border-radius: 4px; background: #fff8e1; cursor: pointer; padding: 0; }
+.m-dec-p.on { background: #8d6e63; }
+.m-vol-ctl { display: grid; gap: 6px; justify-content: center; } .m-vol-ctl b { min-width: 3em; text-align: right; } .m-vol-ctl span { min-width: 1.6em; text-align: center; font: 700 1.3rem var(--en); }
+.m-act-vol svg { max-width: 100%; height: auto; }

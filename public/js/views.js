@@ -582,28 +582,34 @@ Views.home = el => {
   });
 };
 
-// 홈 히어로 수학 맛보기: 그림 세기 3문제 (새싹수학 MathGen)
+// 홈 히어로 수학 맛보기: 여러 주제에서 쉬운 문제 3개를 골라 낸다 (새싹수학 MathGen, 매번 다른 주제 조합)
+// 네 무리(세기 · 모양 · 규칙과 무리 · 셈) 중 세 무리에서 하나씩: 비슷한 문제가 연달아 나오지 않게
+const MINI_MATH = [[() => MathGen.gen.count(1, 8), () => MathGen.gen.table(), () => MathGen.gen.blocks()], [() => MathGen.gen.shape(), () => MathGen.gen.same()], [() => MathGen.gen.pattern(), () => MathGen.gen.odd()], [() => MathGen.gen.mental('+'), () => MathGen.gen.mental('-')]];
 UI.miniMath = box => {
-  let n = 0, right = 0;
+  let n = 0, right = 0, picks = [];
+  const deal = () => { picks = MathGen.shuffle(MINI_MATH).slice(0, 3).map(g => g[Math.floor(Math.random() * g.length)]); };
+  deal();
   const draw = () => {
     if (!document.body.contains(box)) return;
     if (n >= 3) {
       box.innerHTML = `<span class="sticker-label">수학 맛보기</span><div class="mq-done anim-in"><div class="mq-big">${right === 3 ? '🏆' : '🌟'}</div>
         <h3>${right}개 맞혔어요!</h3><p>개념을 배우고, 따라 읽고, 따라 써 본 다음 문제로 확인해요.</p>
         <a class="btn btn-primary full" href="#/math">🧮 새싹수학 하러 가기</a><button class="link-btn" data-again>다시 풀기</button></div>`;
-      $('[data-again]', box).onclick = () => { n = 0; right = 0; draw(); };
+      $('[data-again]', box).onclick = () => { n = 0; right = 0; deal(); draw(); };
       if (right >= 2) Lesson.confetti();
       return;
     }
-    const q = MathGen.gen.count(1, 6);
-    box.innerHTML = `<span class="sticker-label">수학 맛보기 ${n + 1}/3</span><p class="mq-q">${q.ask}</p>${q.show}
-      <div class="mq-opts">${q.opts.map(o => `<button class="mq-opt mq-num" data-v="${o}">${o}</button>`).join('')}</div><p class="mq-fb" aria-live="polite"></p>`;
+    const lv = MathGen.level; MathGen.setLevel(0); const q = picks[n](); MathGen.setLevel(lv);
+    const lab = o => q.labels ? q.labels[o] : esc(String(o)), cols = Math.min(q.opts.length, 4);
+    box.innerHTML = `<span class="sticker-label">수학 맛보기 ${n + 1}/3</span><p class="mq-q">${q.ask}</p><div class="mq-show">${q.show}</div>
+      <div class="mq-opts" style="grid-template-columns:repeat(${cols},1fr)">${q.opts.map((o, i) => `<button class="mq-opt${q.labels ? ' mq-pic' : ' mq-num'}" data-i="${i}">${lab(o)}</button>`).join('')}</div><p class="mq-fb" aria-live="polite"></p>`;
+    const isAns = x => String(q.opts[+x.dataset.i]) === String(q.ans);
     $$('.mq-opt', box).forEach(b => b.onclick = () => {
-      const ok = +b.dataset.v === q.ans;
-      $$('.mq-opt', box).forEach(x => { x.disabled = true; if (+x.dataset.v === q.ans) x.classList.add('right'); });
+      const ok = isAns(b);
+      $$('.mq-opt', box).forEach(x => { x.disabled = true; if (isAns(x)) x.classList.add('right'); });
       if (!ok) b.classList.add('wrong'); else right++;
       ok ? Speech.sfx.correct() : Speech.sfx.wrong();
-      $('.mq-fb', box).textContent = ok ? '정답! 👏' : `아쉬워요! 정답은 ${q.ans}`;
+      $('.mq-fb', box).innerHTML = ok ? '정답! 👏' : `아쉬워요! 정답은 ${lab(q.ans)}`;
       setTimeout(() => { n++; draw(); }, 1300);
     });
   };
@@ -1448,7 +1454,7 @@ Views.result = (root, { score, correct, total, again, next, nextLabel, sample, s
 
 /* ---------- AI 말하기 ---------- */
 Views.speak = el => {
-  const p = Store.profile(), cur = Store.isAdmin() ? 'Z' : Store.currentLevel();
+  const p = Store.profile(), cur = Store.isAdmin() || Store.isQA() ? 'Z' : Store.currentLevel();
   const pool = ALL_LEVELS.slice(0, ALL_LEVELS.indexOf(cur) + 1).flatMap(lv => Gen.levelItems(lv).flatMap(it => it.letter ? it.words.map(([w]) => letterLine(it, w)) : [it.a || it.en]));
   const recent = p.speaking.slice(0, 8);
   const avg = recent.length ? Math.round(recent.reduce((s, x) => s + x.score, 0) / recent.length) : null;

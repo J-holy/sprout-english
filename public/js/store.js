@@ -120,6 +120,7 @@ const Store = (() => {
   // ---------- 계정 / 인증 ----------
   const user = () => (db.session && db.users[db.session]) || null;
   const isAdmin = (u = user()) => !!u && (u.role === 'admin' || (!API.on && CONFIG.ADMIN_EMAILS.map(normEmail).includes(u.email)));
+  const isQA = (u = user()) => !!u && (CONFIG.QA_EMAILS || []).map(normEmail).includes(normEmail(u.email || ''));
   const exists = email => !!db.users[normEmail(email)];
   const providerReady = p => API.on ? !!(API.cfg.providers || {})[p] : true;
 
@@ -331,6 +332,7 @@ const Store = (() => {
   function isUnlocked(lv, p = profile()) {
     if (isAdmin()) return true;
     if (needsPlus(lv)) return false;
+    if (isQA()) return true; // 검수 계정: 멤버십이 있으면 진도와 상관없이 모두 열기
     if (!p) return lv === 'A';
     const i = ALL_LEVELS.indexOf(lv), start = ALL_LEVELS.indexOf(p.startLevel);
     if (i <= start) return true;
@@ -715,7 +717,7 @@ const Store = (() => {
     get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, kidsPlan, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
-    startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, hasPlus, hasMath, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
+    startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, isQA, hasPlus, hasMath, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,
