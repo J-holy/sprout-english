@@ -44,6 +44,41 @@ const MATH_LEVELS = [['🌱', '쉬움'], ['🌿', '보통'], ['💪', '어려움
 const mIco = k => PICS.i['math-' + k] ? `<img class="ico" src="img/${PICS.i['math-' + k]}" alt="" draggable="false">` : ico(MATH_GAMES[k].icon);
 const mPic = e => PICS.x['m' + e] ? `<img class="m-pic" src="img/${PICS.x['m' + e]}" alt="" draggable="false">` : e;
 const mDots = (n, cls = '') => `<span class="m-dot ${cls}"></span>`.repeat(n);
+// 끌어 놓기 (2026-11-27): 그림을 손가락·마우스로 끌어 놓을 곳에 놓는다. 짧게 누르면 예전처럼 누르기(click)로 고른다
+//   find(x, y, ghost) → 놓을 곳(요소) 또는 null · drop(놓을 곳) → 들어갔으면 true, 아니면 false(그림이 제자리로 돌아간다)
+function mDrag(el, { find, drop }) {
+  el.style.touchAction = 'none';
+  el.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    const sx = e.clientX, sy = e.clientY, r0 = el.getBoundingClientRect(); let ghost = null, over = null;
+    try { el.setPointerCapture(e.pointerId); } catch {}
+    const mark = t => { if (t === over) return; if (over && over.classList) over.classList.remove('m-over'); over = t; if (over && over.classList) over.classList.add('m-over'); };
+    const move = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (!ghost) {
+        if (Math.hypot(dx, dy) < 8) return;
+        ghost = el.cloneNode(true); ghost.classList.add('m-ghost'); ghost.removeAttribute('data-i'); ghost.removeAttribute('data-j');
+        ghost.style.cssText = `position:fixed;left:${r0.left}px;top:${r0.top}px;width:${r0.width}px;height:${r0.height}px;margin:0;pointer-events:none;z-index:1000`;
+        document.body.appendChild(ghost); el.classList.add('m-dragging');
+      }
+      ghost.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
+      mark(find(ev.clientX, ev.clientY, ghost));
+    };
+    const end = ev => {
+      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', end); el.removeEventListener('pointercancel', end);
+      if (!ghost) return; // 짧게 누름 → 아래 click이 예전처럼 처리한다
+      const t = ev.type === 'pointerup' ? find(ev.clientX, ev.clientY, ghost) : null; mark(null); el.classList.remove('m-dragging');
+      // 끈 다음 따라오는 click은 한 번 버린다 (그래야 '고르기'가 다시 되지 않는다)
+      const kill = k => { k.stopPropagation(); k.preventDefault(); }; window.addEventListener('click', kill, { capture: true, once: true }); setTimeout(() => window.removeEventListener('click', kill, { capture: true }), 350);
+      const ok = t ? drop(t) : false, g = ghost;
+      if (ok) return g.remove();
+      g.style.transition = 'transform .25s ease'; g.style.transform = 'translate(0, 0)'; setTimeout(() => g.remove(), 260);
+    };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  });
+}
+// 손가락 아래에서 sel에 맞는 요소 찾기 (끄는 그림은 pointer-events:none이라 그 밑이 잡힌다)
+const mAt = (x, y, sel, root = document) => { const h = document.elementFromPoint(x, y), t = h && h.closest(sel); return t && root.contains(t) ? t : null; };
 
 const MathGen = (() => {
   const R = n => Math.floor(Math.random() * n);
@@ -1389,6 +1424,8 @@ function mathLesson(el, L) {
           if (!$$('.m-sorti', area).length) { msg.textContent = '🎉 다 모았어요!'; ready(nb, MATH_SAY.sorted); }
         } else { bk.classList.remove('shake'); void bk.offsetWidth; bk.classList.add('shake'); Speech.sfx.wrong(); KoSpeech.say(MATH_SAY.wrongBasket); msg.textContent = '다른 바구니예요. 다시 생각해 봐요.'; }
       });
+      // 끌어서 바구니에 놓아도 된다
+      $$('.m-sorti', area).forEach(b => mDrag(b, { find: (x, y) => mAt(x, y, '.m-basket', area), drop: bk => { b.click(); bk.click(); return !b.isConnected; } }));
     } else if (st.type === 'extend') {
       // 규칙 이어 채우기: 빈칸을 앞에서부터 차례로 채운다
       const seq = Array.from({ length: st.shown + st.blanks }, (_, k) => st.unit[k % st.unit.length]);
@@ -1428,6 +1465,10 @@ function mathLesson(el, L) {
         Speech.sfx.tap(); KoSpeech.say(MATH_NATIVE[cnt[r] - 1]);
         if (!$$('.m-sorti', area).length) ready(nb, MATH_SAY.tableDone);
       });
+      // 끌어서 표의 줄에 놓아도 된다. 다른 줄이면 제자리로
+      $$('.m-sorti', area).forEach(b => mDrag(b, { find: (x, y) => mAt(x, y, 'tr[data-r]', area), drop: tr => {
+        if (+tr.dataset.r === st.rows.indexOf(b.dataset.e)) { b.click(); return true; }
+        Speech.sfx.wrong(); tr.classList.remove('shake'); void tr.offsetWidth; tr.classList.add('shake'); return false; } }));
     } else if (st.type === 'bars') {
       // 막대그래프 만들기: 표를 보고 ➕·➖로 막대 높이를 맞춘다
       const h = st.rows.map(() => 0);

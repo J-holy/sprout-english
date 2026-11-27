@@ -229,7 +229,11 @@ MATH_ACTS.base = {
       const draw = () => {
         $('.m-act-pb', box).innerHTML = g.map((v, i) => `<button class="m-pc" data-i="${i}" style="${v >= 0 ? `background:${COL[v]}` : ''}"></button>`).join('');
         $('.m-act-tray2', box).innerHTML = shapes.map((c, j) => used[j] ? '' : `<button class="m-ptray ${j === sel ? 'sel' : ''}" data-j="${j}">${MathGen.pSvg(c, COL[j], 16)}</button>`).join('') || '<small>다 놓았어요</small>';
-        $$('.m-ptray', box).forEach(b => b.onclick = () => { sel = +b.dataset.j; Speech.sfx.tap(); draw(); });
+        $$('.m-ptray', box).forEach(b => { b.onclick = () => { sel = +b.dataset.j; Speech.sfx.tap(); draw(); };
+          // 끌어서 판에 놓아도 된다: 끄는 조각의 맨 윗줄 왼쪽 칸이 닿은 판의 칸에 놓인다
+          mDrag(b, { find: (x, y, gh) => { const j = +b.dataset.j, [ax, ay] = shapes[j][0], r = $('svg', gh).getBoundingClientRect(), k = r.width / (Math.max(...shapes[j].map(p => p[0])) * 16 + 20);
+            return mAt(r.left + (2 + ax * 16 + 8) * k, r.top + (2 + ay * 16 + 8) * k, '.m-pc', box); },
+            drop: c => { const j = +b.dataset.j, n = used.filter(Boolean).length; if (g[+c.dataset.i] >= 0) return false; sel = j; c.click(); if (used.filter(Boolean).length === n) draw(); return used[j]; } }); });
         $$('.m-pc', box).forEach(b => b.onclick = () => {
           const i = +b.dataset.i;
           if (g[i] >= 0) { const j = g[i]; g.forEach((v, k) => { if (v === j) g[k] = -1; }); used[j] = false; sel = j; Speech.sfx.tap(); api.undo(); return draw(); }
@@ -242,7 +246,7 @@ MATH_ACTS.base = {
       };
       $('[data-rot]', box).onclick = () => { if (sel === null) return; shapes[sel] = MathGen.pRot(shapes[sel]); Speech.sfx.tap(); draw(); };
       $('[data-flip]', box).onclick = () => { if (sel === null) return; shapes[sel] = MathGen.pFlip(shapes[sel]); Speech.sfx.tap(); draw(); };
-      draw(); api.status('조각의 맨 윗줄 왼쪽 칸이 누른 칸에 놓여요');
+      draw(); api.status('조각을 끌어서 판에 놓아요. 조각을 고른 다음 판의 칸을 눌러도 돼요');
     },
   };
   MATH_ACTS.pento.free = { text: '세 조각으로 판을 채워 봐요.', W: 5, H: 3, ps: ['F' in P ? 'F' : 'P', 'U', 'Y'] };

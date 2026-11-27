@@ -11,7 +11,8 @@ function mSortMount(box, m, api, why) {
   const draw = () => {
     pile.innerHTML = left.length ? left.map(it => `<button class="m-sort-it ${sel === it.i ? 'sel' : ''}" data-i="${it.i}" aria-label="${it.name || it.e}">${it.e}</button>`).join('') : '<small>다 넣었어요!</small>';
     $$('.m-sort-bin', box).forEach(b => { $('span', b).innerHTML = (placed[b.dataset.b] || []).join(''); });
-    $$('.m-sort-it', pile).forEach(b => b.onclick = () => { sel = +b.dataset.i; Speech.sfx.tap(); draw(); api.status('어느 바구니에 넣을까요?'); });
+    $$('.m-sort-it', pile).forEach(b => { b.onclick = () => { sel = +b.dataset.i; Speech.sfx.tap(); draw(); api.status('어느 바구니에 넣을까요?'); };
+      mDrag(b, { find: (x, y) => mAt(x, y, '.m-sort-bin', box), drop: bin => { const n = left.length; sel = +b.dataset.i; bin.click(); if (left.length === n) draw(); return left.length < n; } }); });
   };
   $$('.m-sort-bin', box).forEach(b => b.onclick = () => {
     if (sel === null) return api.status('먼저 물건을 눌러요');
@@ -20,7 +21,7 @@ function mSortMount(box, m, api, why) {
     left.splice(k, 1); (placed[it.k] = placed[it.k] || []).push(it.e); sel = null; Speech.sfx.tap(); draw();
     if (!left.length) api.done(m.win || '모두 제자리에 넣었어요!'); else api.status(`${left.length}개 남았어요`);
   });
-  draw(); api.status('물건을 누르고, 넣을 바구니를 눌러요');
+  draw(); api.status('물건을 끌어서 바구니에 놓아요. 눌러서 고른 다음 바구니를 눌러도 돼요');
 }
 // 10칸 틀: cells = 0 빈칸 · 1 빨강 · 2 파랑 · 3 덜어 냄(✗)
 const mFrame = (cells, cls = '') => `<div class="m-tf ${cls}">${cells.map((c, i) => `<button class="m-tfc" data-c="${i}" aria-label="${['빈칸', '빨간 구슬', '파란 구슬', '덜어 낸 구슬'][c]}">${c === 1 ? '<i class="r"></i>' : c === 2 ? '<i class="b"></i>' : c === 3 ? '<i class="x"></i>' : ''}</button>`).join('')}</div>`;
@@ -172,7 +173,9 @@ MATH_ACTS.table = {
     const draw = () => {
       sc.innerHTML = items.filter(x => x.on).map(x => `<button class="m-sort-it" data-j="${x.j}">${m.kinds[x.k]}</button>`).join('') || '<small>다 옮겼어요!</small>';
       tb.innerHTML = m.kinds.map((e, i) => `<tr data-r="${i}"><th>${e}</th><td>${`<span>${e}</span>`.repeat(got[i])}</td><td class="n">${got[i]}</td></tr>`).join('');
-      $$('.m-sort-it', sc).forEach(b => b.onclick = () => { const it = items[+b.dataset.j]; it.on = false; got[it.k]++; Speech.sfx.tap(); draw(); });
+      $$('.m-sort-it', sc).forEach(b => { b.onclick = () => { const it = items[+b.dataset.j]; it.on = false; got[it.k]++; Speech.sfx.tap(); draw(); };
+        // 끌어서 표의 줄에 놓아도 된다. 다른 줄이면 제자리로
+        mDrag(b, { find: (x, y) => mAt(x, y, 'tr[data-r]', tb), drop: tr => { const it = items[+b.dataset.j]; if (+tr.dataset.r === it.k) { b.onclick(); return true; } Speech.sfx.wrong(); api.status(`${m.kinds[it.k]} 줄에 놓아요`); return false; } }); });
       const left = items.filter(x => x.on).length;
       if (left) return api.status(`${left}개 남았어요`);
       if (!m.ask) return api.status('다 옮겼어요! 무엇이 가장 많은가요?');
@@ -287,7 +290,9 @@ MATH_ACTS.magic = {
         ${[0, 1, 2].map(r => `<span></span>${[0, 1, 2].map(cc => { const i = r * 3 + cc; return `<button class="m-mg ${giv[i] ? 'giv' : ''}" data-i="${i}">${g[i] ?? ''}</button>`; }).join('')}${tag(r)}`).join('')}
         <span></span>${[3, 4, 5].map(tag).join('')}<span></span>`;
       p.innerHTML = pool.map((n, j) => `<button class="m-card ${sel === j ? 'sel' : ''}" data-j="${j}">${n}</button>`).join('') || '<small>카드를 다 넣었어요</small>';
-      $$('.m-card', p).forEach(b => b.onclick = () => { sel = +b.dataset.j; Speech.sfx.tap(); draw(); });
+      $$('.m-card', p).forEach(b => { b.onclick = () => { sel = +b.dataset.j; Speech.sfx.tap(); draw(); };
+        // 끌어서 빈칸에 놓아도 된다
+        mDrag(b, { find: (x, y) => mAt(x, y, '.m-mg', v), drop: c => { const i = +c.dataset.i; if (giv[i] || g[i] !== null) { Speech.sfx.wrong(); api.status('빈칸에 놓아요'); return false; } sel = +b.dataset.j; c.click(); return true; } }); });
       $$('.m-mg', v).forEach(b => b.onclick = () => {
         const i = +b.dataset.i; if (giv[i]) return Speech.sfx.wrong();
         if (g[i] !== null) { pool.push(g[i]); pool.sort((a, b2) => a - b2); g[i] = null; sel = null; }
@@ -336,7 +341,16 @@ MATH_ACTS.venn = {
     const draw = () => {
       $('.m-sort-items', box).innerHTML = left.map((e, i) => `<button class="m-sort-it ${sel === i ? 'sel' : ''}" data-i="${i}">${e}</button>`).join('') || '<small>다 넣었어요!</small>';
       $('.m-act-venn', box).innerHTML = MathGen.vennSvg(m.A, m.B, placed);
-      $$('.m-sort-it', box).forEach(b => b.onclick = () => { sel = +b.dataset.i; Speech.sfx.tap(); draw(); });
+      $$('.m-sort-it', box).forEach(b => { b.onclick = () => { sel = +b.dataset.i; Speech.sfx.tap(); draw(); };
+        mDrag(b, { find: spot, drop: t => { const n = left.length; sel = +b.dataset.i; t.click(); if (left.length === n) draw(); return left.length < n; } }); });
+    };
+    // 끌어서 놓은 곳: 그림의 동그라미 안(왼쪽·겹친 곳·오른쪽·바깥) 또는 아래 단추
+    const spot = (x, y) => {
+      const btn = mAt(x, y, '[data-r]', box); if (btn) return btn;
+      const svg = $('.m-act-venn svg', box), r = svg && svg.getBoundingClientRect();
+      if (!r || x < r.left || x > r.right || y < r.top || y > r.bottom) return null;
+      const vx = (x - r.left) / r.width * 320, vy = (y - r.top) / r.height * 210, inA = Math.hypot(vx - 120, vy - 108) <= 80, inB = Math.hypot(vx - 200, vy - 108) <= 80;
+      return $(`[data-r="${inA ? (inB ? 'ab' : 'a') : inB ? 'b' : 'o'}"]`, box);
     };
     $$('[data-r]', box).forEach(b => b.onclick = () => {
       if (sel === null) return api.status('먼저 물건을 눌러요');
@@ -345,7 +359,7 @@ MATH_ACTS.venn = {
       placed.push({ e, r }); left.splice(sel, 1); sel = null; Speech.sfx.tap(); draw();
       if (!left.length) api.done('다 넣었어요! 두 무리에 모두 드는 것은 겹친 곳에 있어요.'); else api.status(`${left.length}개 남았어요`);
     });
-    draw(); api.status('물건을 누르고 들어갈 곳을 눌러요');
+    draw(); api.status('물건을 끌어서 들어갈 곳에 놓아요. 눌러서 고른 다음 아래 단추를 눌러도 돼요');
   },
 };
 

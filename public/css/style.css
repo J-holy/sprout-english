@@ -2207,3 +2207,8 @@ button.m-ft { cursor: pointer; } .m-ft.pr { background: #c8e6c9; border-color: #
 .mws-trace.concept .dotted { font-size: 1.55rem; letter-spacing: 1px; white-space: normal; word-break: keep-all; line-height: 1.5; }
 .mws-trace.concept .ws-trace { margin-bottom: 10px; }
 @media print { .mws-trace.concept .dotted { font-size: 20pt; } }
+/* 수학 끌어 놓기 (2026-11-27): 끄는 동안 화면이 밀리지 않게, 끄는 그림·놓을 곳 표시 */
+.m-sort-it, .m-sorti, .m-card, .m-ptray { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.m-ghost { opacity: .92; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .25)); cursor: grabbing; }
+.m-dragging { opacity: .35; }
+.m-over { outline: 4px solid #ffb300 !important; outline-offset: 2px; background-color: color-mix(in srgb, #ffb300 16%, transparent); }
