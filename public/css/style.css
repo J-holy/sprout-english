@@ -2033,14 +2033,16 @@ a.shop-ava { display: block; }
 .m-ws .m-tower i { background: #fff; } .m-ws .m-node > b, .m-ws .m-leaf { background: #fff; color: #222; } .m-ws .m-plate { background: #fff; }
 
 /* 새싹수학 '해 보기' (2026-11-27): 직접 쌓기·옮기기·그리기·벌리기 */
-.m-act-ask { font-size: 1.15rem; }
-.m-act-box { display: grid; gap: 12px; justify-items: center; margin: 8px 0 4px; }
-.m-act-row { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.m-act-ask { font-size: 1.15rem; overflow-wrap: anywhere; word-break: keep-all; }
+.m-act-box { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; justify-items: center; margin: 8px 0 4px; min-width: 0; }
+.m-act { min-width: 0; overflow-x: hidden; } .m-act-box > * { max-width: 100%; }
+.m-act-row { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; width: 100%; min-width: 0; }
+.m-act-row > .m-act-view { width: auto; flex: 0 1 auto; min-width: 0; }
 .m-act-side { display: grid; gap: 4px; justify-items: center; text-align: center; }
 .m-act-side small, .m-act-goal b { color: var(--muted, #6b6780); font-size: .85rem; }
 .m-act-goal { display: grid; justify-items: center; gap: 4px; padding: 8px 12px; border: 2px dashed #d1c4e9; border-radius: 14px; }
 .m-act-goal .m-blocks { width: 150px !important; height: auto; }
-.m-act-view { display: flex; justify-content: center; max-width: 100%; }
+.m-act-view { display: flex; justify-content: center; width: 100%; max-width: 100%; }
 .m-act-view .m-blocks { max-width: 100%; height: auto; }
 .m-front { height: auto; color: var(--ink); }
 .m-bgrid { display: grid; grid-template-columns: repeat(3, 54px); gap: 5px; padding: 6px; background: #fff8e1; border-radius: 12px; }
@@ -2052,14 +2054,14 @@ a.shop-ava { display: block; }
 .m-act-match { touch-action: manipulation; }
 .m-act-hand { margin: 0; text-align: center; color: var(--muted, #6b6780); }
 .m-stk { display: inline-block; width: 22px; height: 6px; margin: 0 2px; border-radius: 3px; background: #e0b07a; box-shadow: 4px 0 0 -1px #d84315 inset; vertical-align: middle; }
-.m-act-fig { width: min(300px, 80vw); height: auto; touch-action: none; user-select: none; }
-.m-act-ang { width: min(420px, 92vw); height: auto; color: var(--ink); touch-action: none; user-select: none; cursor: grab; }
+.m-act-fig { width: 100%; max-width: 300px; height: auto; touch-action: none; user-select: none; }
+.m-act-ang { width: 100%; max-width: 420px; height: auto; color: var(--ink); touch-action: none; user-select: none; cursor: grab; }
 .m-act-knob { cursor: grab; }
 .m-act-deg { margin: 0; font-size: 1.2rem; text-align: center; } .m-act-deg b { font: 700 1.6rem var(--en); color: #e64a19; margin-right: 6px; }
-.m-act-pizza { width: min(240px, 62vw); height: auto; } .m-slice { cursor: pointer; } .m-slice:hover { filter: brightness(.97); }
+.m-act-pie { flex: 1 1 200px; } .m-act-pizza { width: 100%; max-width: 240px; height: auto; } .m-slice { cursor: pointer; } .m-slice:hover { filter: brightness(.97); }
 .m-act-fr .m-fr { font-size: 2.2rem; color: #e64a19; }
 .m-act-n { min-width: 4.5em; text-align: center; font-family: var(--title); font-weight: 400; }
-.m-act-dots { width: min(300px, 82vw); height: auto; color: var(--ink); } .m-pdot { cursor: pointer; }
+.m-act-dots { width: 100%; max-width: 300px; height: auto; color: var(--ink); } .m-pdot { cursor: pointer; }
 .m-act-arr { display: grid; grid-template-columns: repeat(var(--c), minmax(0, 40px)); gap: 4px; max-width: 100%; }
 .m-arr { aspect-ratio: 1; min-width: 0; border: 2px solid #e0e0e0; border-radius: 8px; background: #fafafa; font-size: 1.2rem; padding: 0; cursor: pointer; line-height: 1; }
 .m-arr.on { background: #fce4ec; border-color: #f06292; }
