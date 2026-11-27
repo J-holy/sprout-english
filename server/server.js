@@ -199,11 +199,20 @@ const checkCode = (key, code) => {
 };
 
 // 결제사(토스) 심사원이 쓰는 계정: .env의 REVIEW_EMAIL로 들어오면 REVIEW_CODE(숫자 6자리)가 인증코드가 된다
-const reviewEmail = email => !!config.review.email && email === config.review.email && /^\d{6}$/.test(config.review.code);
+// 운영자 검수용 계정도 같은 방식: .env의 QA_EMAIL로 들어오면 QA_CODE(숫자 6자리)가 인증코드가 된다
+const fixedCode = email => [config.review, config.qa].find(r => r.email && email === r.email && /^\d{6}$/.test(r.code))?.code;
+const reviewEmail = email => !!fixedCode(email);
 const reviewCheck = (email, code) => {
   if (!rateLimit('review:' + email, 10, 600000)) return '입력 횟수를 넘었어요. 잠시 후 다시 시도해 주세요.';
-  const a = Buffer.from(hashCode(email, code)), b = Buffer.from(hashCode(email, config.review.code));
+  const a = Buffer.from(hashCode(email, code)), b = Buffer.from(hashCode(email, fixedCode(email)));
   return crypto.timingSafeEqual(a, b) ? null : '인증코드가 맞지 않아요.';
+};
+// 검수용 계정은 로그인·가입할 때마다 영어·수학 플러스를 10년 열어 둔다 (결제 기록은 남기지 않는다)
+const qaGrant = u => {
+  if (!u || !config.qa.email || u.email !== config.qa.email) return;
+  const until = now() + 3650 * DAY;
+  db.prepare(`INSERT INTO memberships (user_id, kids, months, since, until, auto_renew, monthly, granted, subject) VALUES (?, 'two', 120, ?, ?, 0, 0, 1, 'both')
+    ON CONFLICT(user_id) DO UPDATE SET until = excluded.until, granted = 1, auto_renew = 0, subject = 'both', kids = 'two'`).run(u.id, now(), until);
 };
 
 // ---------- 이메일 인증코드 로그인/가입 ----------
@@ -230,7 +239,7 @@ app.post('/api/auth/email/verify', (req, res) => {
   const wrong = reviewEmail(email) ? reviewCheck(email, code) : checkCode(email, code);
   if (wrong) return bad(res, wrong);
   const u = getUserByEmail(email);
-  if (u) { linkIdentity(u.id, 'email', email); startSession(req, res, u.id); return res.json({ status: 'login' }); }
+  if (u) { linkIdentity(u.id, 'email', email); qaGrant(u); startSession(req, res, u.id); return res.json({ status: 'login' }); }
   setCookie(res, 'pending', sign({ provider: 'email', uid: email, email, name: '' }, PENDING_TTL), { maxAge: PENDING_TTL });
   res.json({ status: 'signup', email });
 });
@@ -290,7 +299,7 @@ app.post('/api/auth/complete', (req, res) => {
   if (!terms || !age) return bad(res, '필수 항목에 동의해 주세요.');
   let u = p.email ? getUserByEmail(p.email) : null;
   if (u) linkIdentity(u.id, p.provider, p.uid);
-  else { u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, voice: !!voice, source }); if (referrer) addReferral(u.id, referrer); }
+  else { u = createUser({ email: p.email || null, parentName: name, provider: p.provider, providerUid: p.uid, marketing: !!marketing, voice: !!voice, source }); if (referrer) addReferral(u.id, referrer); qaGrant(u); }
   clearCookie(res, 'pending');
   startSession(req, res, u.id);
   res.json({ ok: true });

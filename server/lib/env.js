@@ -51,6 +51,8 @@ export const config = {
   betaUntil: /^\d{4}-\d{2}-\d{2}$/.test(e.BETA_UNTIL || '') ? Date.parse(`${e.BETA_UNTIL}T23:59:59+09:00`) : 0,
   // 결제사 심사용 계정 (심사가 끝나면 비워 둔다)
   review: { email: (e.REVIEW_EMAIL || '').trim().toLowerCase(), code: (e.REVIEW_CODE || '').trim() },
+  // 운영자 검수용 계정 (2026-11-27): 정해 둔 인증번호로 들어오고, 영어·수학 플러스가 늘 열려 있다. 비우면 꺼짐
+  qa: { email: (e.QA_EMAIL || '').trim().toLowerCase(), code: (e.QA_CODE || '').trim() },
   code: { ttlSec: Number(e.CODE_TTL_SEC || 180), maxTries: Number(e.CODE_MAX_TRIES || 5), resendSec: Number(e.CODE_RESEND_SEC || 30) },
   oauth: {
     kakao: { clientId: e.KAKAO_REST_API_KEY, clientSecret: e.KAKAO_CLIENT_SECRET, email: bool(e.KAKAO_EMAIL, true) },
