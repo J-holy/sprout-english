@@ -1033,7 +1033,7 @@ const mHome = () => {
   return `<div class="wrap sec">
     <h1 class="page-title">${ico('🧮')} 새싹수학 <small class="chip">시험 중</small></h1>
     <div class="m-intro">
-      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🧩 <b>생각 놀이</b> 쉬움·보통·어려움·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
+      <div class="card m-intro-card"><b>이렇게 배워요 · 한 주제 10분</b><p>📜 <b>수학 이야기</b> 옛날 수수께끼 듣기<br>📖 <b>배우기</b> 눌러 보고 옮겨 보기<br>🤲 <b>해 보기</b> 직접 쌓고·옮기고·그려 보기<br>🧩 <b>생각 놀이</b> 쉬움·보통·어려움·도전, 할 때마다 새 문제<br>🖨️ <b>워크시트</b> 화면에서 풀고 인쇄도<br>🏅 <b>천재 카드</b> 다 마치면 한 장!</p></div>
       <div class="card m-intro-card"><b>단계</b><p>${MATH_STAGES.map(s => `${s.icon} <b>${s.name}</b> <small>${s.age}</small> ${MATH_TOPICS.filter(t => t.stage === s.id).map(t => t.title).join('·')}${s.free ? ' <i class="chip">무료</i>' : ''}`).join('<br>')}</p></div>
       <div class="card m-intro-card"><b>부모님께</b><p>틀리면 정답을 바로 보여 주지 않아요. 한 번 틀리면 힌트, 두 번 틀리면 그림 풀이를 보여 줘요. 시간 제한은 없어요. 워크시트는 인쇄하면 다음 장에 정답이 있어요. 새싹·나무 단계는 <a href="#/pricing">새싹수학 플러스</a>예요.</p></div>
     </div>
@@ -1044,23 +1044,25 @@ const mHome = () => {
         const all = st.lesson && st.puzzle && st.ws && st.story !== false;
         return `<div class="card m-topic ${all ? 'done' : ''} ${lock(s) ? 'locked' : ''}">
           <div class="m-topic-head"><span class="m-l-ico">${tIco(t)}</span><b>${t.title}</b>${lock(s) ? '<span class="m-lock" aria-label="잠김">🔒</span>' : st.card ? `<span class="m-cardmark" title="천재 카드">${MATH_STORIES[t.id].card.icon}</span>` : all ? '<span>✅</span>' : ''}</div>
-          <div class="m-topic-btns">${st.story !== null ? btn(s, `#/math/s_${t.id}`, '📜 이야기', st.story) : ''}${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '배우기'}`, done.includes(l.id))).join('')}${(t.games || [t.game]).map((g, i) => btn(s, `#/math/p_${g}`, `🧩 ${i ? MATH_GAMES[g].title : '생각 놀이'}`, i ? false : st.puzzle)).join('')}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트', st.ws)}${Object.entries(t.wsMore || {}).map(([k, w]) => btn(s, `#/math/w_${t.id}_${k}`, `🖨️ ${w.title} 워크시트`, false)).join('')}</div></div>`;
+          <div class="m-topic-btns">${st.story !== null ? btn(s, `#/math/s_${t.id}`, '📜 이야기', st.story) : ''}${ls.map(l => btn(s, `#/math/${l.id}`, `📖 ${ls.length > 1 ? l.title : '배우기'}`, done.includes(l.id))).join('')}${MATH_ACTS[t.id] ? btn(s, `#/math/a_${t.id}`, '🤲 해 보기', !!(mProg()[t.id] || {}).act) : ''}${(t.games || [t.game]).map((g, i) => btn(s, `#/math/p_${g}`, `🧩 ${i ? MATH_GAMES[g].title : '생각 놀이'}`, i ? false : st.puzzle)).join('')}${btn(s, `#/math/w_${t.id}`, '🖨️ 워크시트', st.ws)}${Object.entries(t.wsMore || {}).map(([k, w]) => btn(s, `#/math/w_${t.id}_${k}`, `🖨️ ${w.title} 워크시트`, false)).join('')}</div></div>`;
       }).join('')}</div>`).join('')}
     <p class="fine">새싹수학은 시험 중이에요. 퍼즐과 워크시트 문제는 할 때마다 새로 만들어져요. 로그인하면 진행과 천재 카드가 아이별로 저장돼서 다른 기기에서도 이어져요.</p></div>`;
 };
 
 Views.math = (el, game) => {
   KoSpeech.stop();
-  // 주소: #/math/<레슨 id> · #/math/s_<주제 이야기> · #/math/p_<퍼즐> · #/math/w_<주제 워크시트> (예전 주소 #/math/count 같은 퍼즐 이름도 받는다)
+  // 주소: #/math/<레슨 id> · #/math/s_<주제 이야기> · #/math/a_<주제 해 보기> · #/math/p_<퍼즐> · #/math/w_<주제 워크시트> (예전 주소 #/math/count 같은 퍼즐 이름도 받는다)
   const lesson = game && MATH_LESSONS.find(l => l.id === game);
   const pzKey = game && (game.startsWith('p_') ? game.slice(2) : !lesson && MATH_GAMES[game] ? game : null);
   const [wsId, wsKey] = game && game.startsWith('w_') ? game.slice(2).split('_') : [], wsTopic = wsId && MATH_TOPICS.find(t => t.id === wsId && (!wsKey || (t.wsMore || {})[wsKey]));
   const stTopic = game && game.startsWith('s_') && MATH_STORIES[game.slice(2)] && MATH_TOPICS.find(t => t.id === game.slice(2));
-  const stage = lesson ? lesson.stage : pzKey && MATH_GAMES[pzKey] ? MATH_GAMES[pzKey].stage : (wsTopic || stTopic) ? (wsTopic || stTopic).stage : null;
+  const actTopic = game && game.startsWith('a_') && MATH_ACTS[game.slice(2)] && MATH_TOPICS.find(t => t.id === game.slice(2));
+  const stage = lesson ? lesson.stage : pzKey && MATH_GAMES[pzKey] ? MATH_GAMES[pzKey].stage : (wsTopic || stTopic || actTopic) ? (wsTopic || stTopic || actTopic).stage : null;
   if (stage && !mOpen(stage)) { location.hash = '#/math'; return void setTimeout(() => mathUpsell(stage), 50); }
   if (lesson) return mathLesson(el, lesson);
   if (wsTopic) return mathWorksheet(el, wsTopic, wsKey);
   if (stTopic) return mathStory(el, stTopic);
+  if (actTopic) return mathAct(el, actTopic);
   if (!pzKey || !MATH_GAMES[pzKey]) {
     el.innerHTML = mHome();
     $$('[data-lock]', el).forEach(b => b.onclick = () => mathUpsell(b.dataset.lock));
@@ -1313,7 +1315,7 @@ function mathLesson(el, L) {
     const more = tp && tp.lessons.find(id => id !== L.id && !mathDone().includes(id));
     area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico('🏆')}</div><h2>「${L.title}」 다 배웠어요!</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : ''}
       <p>${more ? '다음 배우기도 이어서 해 볼까요?' : '이제 퍼즐로 해 볼까요?'}</p>
-      <div class="row-center">${more ? `<a class="btn btn-primary" href="#/math/${more}">📖 ${MATH_LESSONS.find(l => l.id === more).title}</a>` : ''}${tp ? `<a class="btn ${more ? 'btn-ghost' : 'btn-primary'}" href="#/math/p_${L.game || tp.game}">🧩 생각 놀이로 해 보기</a>` : ''}</div>
+      <div class="row-center">${more ? `<a class="btn btn-primary" href="#/math/${more}">📖 ${MATH_LESSONS.find(l => l.id === more).title}</a>` : ''}${tp && MATH_ACTS[tp.id] ? `<a class="btn ${more ? 'btn-ghost' : 'btn-primary'}" href="#/math/a_${tp.id}">🤲 직접 해 보기</a>` : ''}${tp ? `<a class="btn ${more || MATH_ACTS[tp.id] ? 'btn-ghost' : 'btn-primary'}" href="#/math/p_${L.game || tp.game}">🧩 생각 놀이로 해 보기</a>` : ''}</div>
       <div class="row-center"><a class="btn btn-ghost" href="#/math">다른 주제</a><button class="btn btn-ghost" data-again>처음부터 다시</button></div></div>`;
     $('[data-again]', area).onclick = () => mathLesson(el, L);
   };
