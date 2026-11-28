@@ -119,9 +119,16 @@ function mergeMath(next, prev) {
   for (const t of new Set([...Object.keys(np), ...Object.keys(pp)])) {
     const x = np[t] || {}, y = pp[t] || {}, cards = [x.card, y.card].filter(Boolean).sort();
     out.prog[t] = {};
-    for (const k of ['story', 'puzzle', 'ws']) if (x[k] || y[k]) out.prog[t][k] = 1;
+    for (const k of ['story', 'puzzle', 'act', 'ws']) if (x[k] || y[k]) out.prog[t][k] = 1;
     if (cards[0]) out.prog[t].card = cards[0];
   }
+  // 생각 놀이 결과 (11-28, 화면의 mMerge와 같게): res는 놀이마다 더 나중 것, log는 같은 판을 한 번만 최근 30판
+  const nr = next.res || {}, pr = prev.res || {}, res = {};
+  for (const g of new Set([...Object.keys(nr), ...Object.keys(pr)])) res[g] = ((nr[g] || {}).at || 0) >= ((pr[g] || {}).at || 0) ? nr[g] : pr[g];
+  if (Object.keys(res).length) out.res = res;
+  const seen = new Set(), log = [...(Array.isArray(next.log) ? next.log : []), ...(Array.isArray(prev.log) ? prev.log : [])]
+    .filter(r => r && typeof r === 'object' && !seen.has(r.at + '|' + r.g) && seen.add(r.at + '|' + r.g)).sort((a, b) => a.at - b.at).slice(-30);
+  if (log.length) out.log = log;
   return out;
 }
 app.put('/api/me/state', requireUser, (req, res) => {

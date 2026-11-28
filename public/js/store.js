@@ -420,6 +420,9 @@ const Store = (() => {
     p.wrong = p.wrong.slice(0, 80); save();
   }
   function clearWrong(key) { const p = profile(); p.wrong = p.wrong.filter(w => w.key !== key); save(); }
+  // 수학 플러스 단계(씨앗 말고) 활동을 마친 날: 환불 규칙(server/lib/refund.js)의 '플러스 학습 시작'에 쓴다 (2026-11-28)
+  // 손님·관리자·검수 계정은 남기지 않는다
+  function markMathPlus() { const u = user(), p = profile(); if (!u || !p || isAdmin(u) || isQA(u)) return; const d = today(); if (p.plusUsed !== d) { p.plusUsed = d; save(); } }
   function addMinutes(sec) { const p = profile(); if (!p) return; const d = today(); p.minutes[d] = (p.minutes[d] || 0) + Math.max(1, Math.round(sec / 60)); save(); }
   function recordSpeaking(text, score) {
     const p = profile(); p.speaking.unshift({ text, score, date: Date.now() }); p.speaking = p.speaking.slice(0, 100);
@@ -724,7 +727,7 @@ const Store = (() => {
     get db() { return db; }, recentKeys, rememberKeys, placeAt, init, loadMe, today, user, isAdmin, exists, kidsPlan, providerReady, sendCode, verifyCode, phoneReady, sendPhoneCode, verifyPhoneCode, completeSignup, pendingSignup,
     snsLocalLogin, logout, deleteAccount, profile, addProfile, selectProfile, removeProfile, updateProfile,
     access, bestCoupon, quote, purchase, setAutoRenew, canRefund, refund,
-    startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, isQA, hasPlus, hasMath, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
+    markMathPlus, startTrial, playGate, addPlayMinute, levelProgress, lessonsDone, isUnlocked, isQA, hasPlus, hasMath, needsPlus, currentLevel, difficulty, finishLesson, addWrong, clearWrong,
     addMinutes, recordSpeaking, readStory, streak, addStars, buy, equip, isWorn, worn, gameResult, markWorksheet,
     tree, addXp, water, wateredToday, challengeResult, TREE,
     dueItems, weakIds, finishBooster, BOOST_BELOW, finishReview, wordStats, skillWeek, missions, claimMissions, bumpDaily,

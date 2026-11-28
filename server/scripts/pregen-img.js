@@ -799,6 +799,10 @@ const MATH_ART = {
   '🍎': 'one red apple with a green leaf', '🐥': 'a cute round yellow baby chick', '⭐': 'one plump yellow star', '🌸': 'one pink five-petal flower', '🚗': 'a small red toy car seen from the side',
   '🎈': 'one red balloon on a short string', '🐟': 'a small blue fish', '🍓': 'one red strawberry with green leaves', '🐶': 'a cute small light brown puppy sitting', '⚽': 'a black and white soccer ball',
   '🍌': 'one yellow banana', '🍇': 'a bunch of purple grapes', '🌙': 'one yellow crescent moon', '❤️': 'one red heart', '🐱': 'a cute small orange cat sitting',
+  // 11-28: 보기에 이모지가 섞이던 것 (다른 무리 찾기의 과일·장난감·채소, 누가 가졌을까의 토끼, 벤 나누기)
+  '🍑': 'one fuzzy peach fruit, soft creamy yellow with a rosy pink blush, with a clear deep vertical groove line running down its middle so it looks like a peach and not an apple, one small green leaf, no stem', '🧸': 'a small brown teddy bear toy sitting', '🥕': 'one orange carrot with green leafy top',
+  '🥦': 'one green broccoli floret', '🥒': 'one green cucumber', '🥬': 'one head of green bok choy with white stems and wide green leaves',
+  '🐰': 'a cute small white bunny with long upright ears sitting', '🍏': 'one green apple with a leaf', '🚒': 'a small red toy fire truck seen from the side', '🦀': 'a cute small red crab with two claws',
 };
 if (only !== 's' && !book) for (const [e, label] of Object.entries(ICONS)) {
   const prompt = e.startsWith('tree-') ? `${STYLE}. A small round icon: ${label.replace(/^GROWTH SERIES \d of 8: /, '')}. The whole plant and mound are centered and fit completely inside a circle with a wide empty margin all around, plain soft cream background, no words, no letters.` : `${STYLE}. A small app icon: ${label}, one simple object in the center, filling most of the picture, soft round cream background, no words, no letters.`;

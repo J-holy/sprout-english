@@ -195,7 +195,7 @@ const MATH_LESSONS = [
     { type: 'quiz', gen: 'masked' }, { type: 'quiz', gen: 'masked' },
   ] },
   { id: 'cases', stage: 'tree', icon: '🎲', title: '경우의 수', topic: '경우의 수', steps: [
-    { type: 'learn', viz: { k: 'pick', groups: [['🧢', '👒'], ['👕', '👚']] }, text: '모자 두 개와 윗옷 두 개가 있어요. 하나씩 골라 입는 방법은 몇 가지일까요?' },
+    { type: 'learn', viz: { k: 'pick', groups: [['🧢', '👒'], ['👕', '👚']] }, text: '모자 두 개와 윗옷 두 개가 있어요. 하나씩 골라 입으면 모두 몇 가지가 나올까요?' },
     { type: 'combo', a: ['🧢', '👒'], b: ['👕', '👚'], text: '모자 하나와 윗옷 하나를 눌러서 짝을 지어 봐요. 다른 짝을 모두 찾아요.' },
     { type: 'learn', viz: { k: 'combo', a: ['🧢', '👒'], b: ['👕', '👚'] }, text: '모자마다 윗옷을 두 가지씩 입을 수 있어서 2 곱하기 2, 네 가지예요. 표를 그려 하나씩 짝지으면 빠뜨리지 않아요. 일어날 수 있는 가짓수를 경우의 수라고 해요.' },
     { type: 'combo', a: ['🧢', '👒', '🎩'], b: ['👕', '👚'], text: '이번에는 모자가 세 개예요. 짝을 모두 찾아봐요.' },
@@ -444,7 +444,7 @@ const MATH_HINTS = {
   poly: '곧은 선을 하나씩 세어 봐요.',
 };
 // 씨앗 문제·조작 놀이에서 읽어 주는 말 (pregen-tts-ko.js가 함께 음성을 만든다)
-const MATH_THINGS = [['🍎', '사과는'], ['🐥', '병아리는'], ['⭐', '별은'], ['🌸', '꽃은'], ['🚗', '자동차는'], ['🎈', '풍선은'], ['🐟', '물고기는'], ['🍓', '딸기는'], ['🐶', '강아지는'], ['⚽', '공은']];
+const MATH_THINGS = [['🍎', '사과가'], ['🐥', '병아리가'], ['⭐', '별이'], ['🌸', '꽃이'], ['🚗', '자동차가'], ['🎈', '풍선이'], ['🐟', '물고기가'], ['🍓', '딸기가'], ['🐶', '강아지가'], ['⚽', '공이']];
 // 세는 말(단위): 동물은 마리, 탈것은 대, 꽃은 송이, 나머지 물건은 개
 const MATH_UNIT = { '🐥': '마리', '🐶': '마리', '🐱': '마리', '🐟': '마리', '🐰': '마리', '🐸': '마리', '🦀': '마리', '🐑': '마리', '🚗': '대', '🚲': '대', '🚌': '대', '🚒': '대', '🚕': '대', '🌸': '송이', '🌷': '송이' };
 const mUnit = e => MATH_UNIT[e] || '개';
@@ -460,7 +460,7 @@ const MATH_SAY = {
 };
 const MATH_VOICE = [
   ...MATH_NATIVE, ...MATH_UNITS.flatMap(u => MATH_CNT.map(c => `모두 ${c} ${u}예요!`)), '뾰족한 곳이 세 군데예요!', '뾰족한 곳이 네 군데예요!',
-  ...MATH_THINGS.map(([e, n]) => `${n} 몇 ${mUnit(e)}일까요?`), ...Object.values(MATH_SAY.shape), ...Object.values(MATH_SAY.shapeHard),
+  ...MATH_THINGS.map(([e, n]) => `${n} 모두 몇 ${mUnit(e)} 있을까요?`), ...Object.values(MATH_SAY.shape), ...Object.values(MATH_SAY.shapeHard),
   MATH_SAY.odd, MATH_SAY.pattern, MATH_SAY.right, MATH_SAY.look, MATH_SAY.sorted, MATH_SAY.wrongBasket, MATH_SAY.extended, MATH_SAY.card,
 ];
 
@@ -484,9 +484,9 @@ Object.assign(MATH_HINTS, {
   blocks: '맨 아래 1층부터 층마다 몇 개인지 세어 더해 봐요. 뒤에 숨어 있는 쌓기나무도 있어요.',
   table: '표에서 그 줄을 손가락으로 짚고 세어 봐요.',
 });
-Object.assign(MATH_SAY, { blocksAsk: '쌓기나무는 모두 몇 개일까요?', tableMost: '가장 많은 것은 무엇일까요?', tableLeast: '가장 적은 것은 무엇일까요?', tableDone: '표가 완성됐어요!' });
+Object.assign(MATH_SAY, { blocksAsk: '쌓기나무가 모두 몇 개 있을까요?', tableMost: '어떤 것이 가장 많을까요?', tableLeast: '어떤 것이 가장 적을까요?', tableDone: '표가 완성됐어요!' });
 MATH_VOICE.push(MATH_SAY.blocksAsk, MATH_SAY.tableMost, MATH_SAY.tableLeast, MATH_SAY.tableDone,
-  ...Object.keys(MATH_NAMES).map(e => `${MATH_NAMES[e]}${(MATH_NAMES[e].charCodeAt(MATH_NAMES[e].length - 1) - 0xac00) % 28 ? '은' : '는'} 몇 ${mUnit(e)}일까요?`), ...['개', '마리'].map(u => `모두 몇 ${u}일까요?`));
+  ...Object.keys(MATH_NAMES).map(e => `${MATH_NAMES[e]}${(MATH_NAMES[e].charCodeAt(MATH_NAMES[e].length - 1) - 0xac00) % 28 ? '이' : '가'} 몇 ${mUnit(e)} 있을까요?`), ...['개', '마리'].map(u => `모두 몇 ${u} 있을까요?`));
 
 // ── 새싹 더하기 (2026-11-27): 벤 다이어그램 · 막대그래프 · 가장 짧은 길 ──
 Object.assign(MATH_NAMES, { '🍒': '체리', '🍋': '레몬', '🍏': '초록 사과', '🦀': '게', '🐸': '개구리', '🚒': '소방차', '🚕': '택시' });
@@ -568,8 +568,8 @@ Object.assign(MATH_HINTS, {
   bigBoard: '100판에서 오른쪽은 1씩, 아래쪽은 10씩 커져요.',
 });
 MATH_SAY.big = {
-  bundle: '모두 몇 개일까요?', pick: '이 수를 나타낸 그림을 골라요', skip10: '10씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요', skip1: '1씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요',
-  placeTens: '이 수에서 십의 자리 숫자는 무엇일까요?', placeOnes: '이 수에서 일의 자리 숫자는 무엇일까요?', compare: '더 큰 수를 골라요', board: '100판의 빈칸에 알맞은 수를 골라요',
+  bundle: '모두 몇 개 있을까요?', pick: '이 수를 나타낸 그림을 골라요', skip10: '10씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요', skip1: '1씩 뛰어 세었어요. 빈칸에 알맞은 수를 골라요',
+  placeTens: '이 수에서 십의 자리에는 어떤 숫자가 있을까요?', placeOnes: '이 수에서 일의 자리에는 어떤 숫자가 있을까요?', compare: '더 큰 수를 골라요', board: '100판의 빈칸에 알맞은 수를 골라요',
   order3: '가장 큰 수를 골라요',
 };
 MATH_SAY.bundled = '열씩 묶어서 다 셌어요!';

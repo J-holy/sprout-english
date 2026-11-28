@@ -103,7 +103,7 @@ const MM = (() => {
       }
       const l = 2 + R(lv ? 3 : 2), w = 1 + R(lv ? 2 : 2) + (lv ? 1 : 0), h = lv === 0 ? 1 : lv === 1 ? 2 : 2 + R(2), ans = l * w * h;
       if (lv === 2 && R(2)) return { ask: `한 층에 ${l * w}개씩 ${h}층을 쌓으면 모두 몇 개일까요?`, show: '', opts: nearby(ans, 4, 60, 3), ans, hint: MATH_HINTS.vol, explain: `<div class="m-viz">${cub(l, w, h)}</div><p class="m-eq-num">${l * w} × ${h} = ${ans}</p>` };
-      return { ask: '쌓기나무는 모두 몇 개일까요?', show: `<div class="m-viz">${cub(l, w, h)}</div>`, opts: nearby(ans, 2, 60, 3), ans, hint: MATH_HINTS.vol,
+      return { ask: '쌓기나무가 모두 몇 개 있을까요?', show: `<div class="m-viz">${cub(l, w, h)}</div>`, opts: nearby(ans, 2, 60, 3), ans, hint: MATH_HINTS.vol,
         explain: `<div class="m-viz">${cub(l, w, h)}</div><p class="m-eq-num">${l} × ${w} = ${l * w}${h > 1 ? `, ${l * w} × ${h} = ${ans}` : ''}</p>` };
     },
   };
