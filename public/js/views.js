@@ -1236,7 +1236,7 @@ function siblingStep(el, name) {
     ${buyNext ? `<a class="btn btn-primary full" href="#${esc(buyNext)}" data-buynext>💎 고르던 요금제로 돌아가기</a>` : ''}
     ${(() => { let r = ''; try { r = sessionStorage.getItem('mathResume') || ''; } catch {} return r ? `<a class="btn btn-primary full" href="#${esc(r)}" data-math-resume>🧮 ${esc(name)} 수학 이어 하기 <small>(손님으로 푼 기록이 저장됐어요)</small></a>` : ''; })()}
     <button class="btn btn-ghost full" data-more>👧👦 형제·자매 추가하기</button>
-    ${u.profiles.map(p => `<button class="btn ${buyNext ? 'btn-ghost' : 'btn-primary'} full" data-go="${p.id}">🧪 ${esc(p.name)} 레벨 테스트로 출발</button>`).join('')}
+    ${u.profiles.map(p => `<button class="btn ${buyNext || (() => { try { return sessionStorage.getItem('mathResume'); } catch { return ''; } })() ? 'btn-ghost' : 'btn-primary'} full" data-go="${p.id}">🧪 ${esc(p.name)} 레벨 테스트로 출발</button>`).join('')}
   </div></div>`;
   $('[data-more]', el).onclick = () => Views.profiles(el, { adding: true });
   const bn = $('[data-buynext]', el); if (bn) bn.onclick = () => { try { sessionStorage.setItem('buyNext', ''); } catch (e) { /* ignore */ } };

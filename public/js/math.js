@@ -1053,14 +1053,35 @@ function mMerge(a, b) {
   for (const t of new Set([...Object.keys(a.prog || {}), ...Object.keys(b.prog || {})])) {
     const x = (a.prog || {})[t] || {}, y = (b.prog || {})[t] || {}, cards = [x.card, y.card].filter(Boolean).sort();
     out.prog[t] = {};
-    for (const k of ['story', 'puzzle', 'ws']) if (x[k] || y[k]) out.prog[t][k] = 1;
+    for (const k of ['story', 'puzzle', 'act', 'ws']) if (x[k] || y[k]) out.prog[t][k] = 1;
     if (cards[0]) out.prog[t].card = cards[0]; // 먼저 받은 날
   }
   out.lv = { ...(b.lv || {}), ...(a.lv || {}) }; // 난이도는 고른 것이라 프로필(a) 쪽을 먼저
+  // 생각 놀이 결과: 놀이마다 더 나중에 한 것, 기록은 같은 판(시각+놀이)을 한 번만
+  const ra = a.res || {}, rb = b.res || {};
+  for (const g of new Set([...Object.keys(ra), ...Object.keys(rb)])) out.res = { ...(out.res || {}), [g]: (ra[g] || {}).at >= ((rb[g] || {}).at || 0) ? ra[g] : rb[g] };
+  const seen = new Set(), log = [...(a.log || []), ...(b.log || [])].filter(r => { const k = r.at + r.g; return !seen.has(k) && seen.add(k); }).sort((x, y) => x.at - y.at).slice(-30);
+  if (log.length) out.log = log;
   return out;
+}
+// 가입·로그인 전에 손님으로 푼 기록(math-state-guest)을 처음 고른 아이 프로필로 옮긴다 (2026-11-28)
+// 옮긴 뒤 손님 기록은 지워서 다른 아이에게 두 번 옮겨지지 않게 한다
+function mAdoptGuest() {
+  const p = Store.profile(); if (!p) return;
+  let g = null; try { g = JSON.parse(localStorage.getItem('math-state-guest') || 'null'); } catch {}
+  if (!g) return;
+  const has = (g.done || []).length || Object.keys(g.prog || {}).length || (g.log || []).length;
+  try {
+    localStorage.removeItem('math-state-guest');
+    if (!has) return;
+    const key = 'math-state-' + p.id, mine = JSON.parse(localStorage.getItem(key) || 'null') || p.math || M_EMPTY();
+    localStorage.setItem(key, JSON.stringify(mMerge(mine, g)));
+    sessionStorage.setItem('mathAdopted', JSON.stringify({ name: p.name, n: (g.log || []).length }));
+  } catch {}
 }
 // 지금 아이의 수학 진행 (읽기). 프로필과 기기 기록이 다르면 합쳐서 양쪽에 다시 적는다
 function mState() {
+  mAdoptGuest();
   const p = Store.profile(), local = mLocal();
   if (!p) return local;
   const merged = mMerge(p.math || M_EMPTY(), local), js = JSON.stringify(merged);
@@ -1094,6 +1115,9 @@ async function mPull(force) {
     return changed;
   } catch { return false; }
 }
+// 프로필을 고르거나 만든 바로 뒤(어느 화면이든) 손님 기록을 옮겨 둔다
+const mAdoptToast = () => { let a = null; try { a = JSON.parse(sessionStorage.getItem('mathAdopted') || 'null'); sessionStorage.removeItem('mathAdopted'); } catch {} if (a && typeof App !== 'undefined') setTimeout(() => App.toast(`손님으로 푼 수학 기록을 ${a.name} 계정에 저장했어요 💾`), 400); };
+window.addEventListener('hashchange', () => { if (Store.profile()) { mState(); mAdoptToast(); } try { if (sessionStorage.getItem('mathResume') === location.hash.slice(1) && Store.profile()) sessionStorage.removeItem('mathResume'); } catch {} });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   mPull(true).then(ch => { if (ch && location.hash === '#/math') App.route(); });
@@ -1205,14 +1229,62 @@ function mathPuzzle(el, game) {
     <div class="m-levels" role="tablist">${MATH_LEVELS.map(([i, n], k) => `<button role="tab" data-lv="${k}" class="${k === lv ? 'on' : ''}" aria-selected="${k === lv}">${i} ${n}</button>`).join('')}</div><div class="card m-area"></div></div>`;
   const area = $('.m-area', el);
   $$('[data-lv]', el).forEach(b => b.onclick = () => { mUpdate(st => { st.lv[game] = +b.dataset.lv; }); Speech.sfx.tap(); mathPuzzle(el, game); });
-  const done = (ok, total) => {
-    const all = ok === total, got = all ? mReward() : 0;
+  const t0 = Date.now();
+  // 끝난 화면: 부모가 읽고 판단할 수 있게 결과 요약 → 다음 추천 하나(크게) → 손님은 기록 저장(가입) → 나머지는 작게 (2026-11-28)
+  const done = (ok, total, extra = {}) => {
+    const all = ok === total, got = all ? mReward() : 0, five = !!MathGen.gen[game], sec = Math.round((Date.now() - t0) / 1000);
     if (all) { Speech.sfx.cheer(); Lesson.confetti(); }
     mMark(topic, 'puzzle');
-    area.innerHTML = `<div class="center m-done"><div class="auth-logo">${ico(all ? '🏆' : '🌱')}</div><h2>${MathGen.gen[game] ? `${ok} / ${total} 처음에 맞혔어요!` : '생각 놀이 완성! 🎉'}</h2>${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && Store.profile() ? '<p class="fine">오늘 수학 별은 다 받았어요</p>' : ''}
-      ${!all && MathGen.gen[game] ? '<p class="fine">처음에 다 맞히면 별을 받아요. 한 번 더 해 볼까요?</p>' : ''}
-      <div class="row-center">${topic ? `<a class="btn btn-primary" href="#/math/w_${topic.id}${(Object.entries(topic.wsMore || {}).find(([, w]) => w.gen === game) || [''])[0] ? '_' + Object.entries(topic.wsMore).find(([, w]) => w.gen === game)[0] : ''}">🖨️ 워크시트로 연습</a>` : ''}<button class="btn btn-ghost" data-again>한 판 더</button><a class="btn btn-ghost" href="#/math">다른 주제</a></div></div>`;
-    $('[data-again]', area).onclick = () => mathPuzzle(el, game);
+    const rec = { g: game, ok, total, lv, at: Date.now(), sec };
+    mUpdate(st => { st.res = { ...(st.res || {}), [game]: rec }; st.log = [...(st.log || []), rec].slice(-30); });
+    const lvName = MATH_LEVELS[lv][1], guest = !Store.profile();
+    const S = MATH_SAY.result;
+    KoSpeech.say(five ? (all ? S.all : S.done) : S.grid);
+    // 잘한 점 (부모가 읽는 말)
+    const good = !five ? (all ? '틀린 곳 없이 한 번에 규칙을 맞춰 퍼즐을 완성했어요.' : '힌트를 보고 규칙을 다시 따져 보며 퍼즐을 끝까지 완성했어요.')
+      : all ? `${total}문제를 모두 처음에 맞혔어요. ${lvName} 단계는 충분히 익혔어요.`
+      : ok >= Math.ceil(total / 2) ? `${total}문제 중 ${ok}문제를 혼자 힘으로 바로 풀었고, 틀린 문제도 힌트를 보고 끝까지 풀었어요.`
+      : '어려운 문제에서도 포기하지 않고 힌트를 보며 끝까지 풀었어요. 개념을 그림으로 한 번 더 보면 좋아요.';
+    // 다음 추천 하나: 다 맞히면 다음 단계, 아니면 같은 주제에서 아직 안 한 것(이야기 → 배우기 → 해 보기), 다 했으면 다음 주제
+    const rec1 = (() => {
+      if (all && lv < 3) return { up: true, label: `⬆️ 다음 단계 도전: ${MATH_LEVELS[lv + 1][1]} ${five ? `${total}문제` : '퍼즐'}`, why: '모두 맞혀서 한 단계 올려 보길 권해요.' };
+      if (topic) {
+        const pr = mProg()[topic.id] || {}, dn = mathDone(), les = topic.lessons.find(l => !dn.includes(l));
+        if (!all && les) return { href: `#/math/${les}`, label: `📖 '${topic.title}' 배우기`, why: '처음에 틀린 문제가 있어서, 개념을 그림으로 다시 보면 좋아요.' };
+        if (MATH_STORIES[topic.id] && !pr.story) return { href: `#/math/s_${topic.id}`, label: `📜 '${topic.title}' 수학 이야기`, why: '이 개념이 왜 생겼는지 옛날 이야기로 들어요.' };
+        if (les) return { href: `#/math/${les}`, label: `📖 '${topic.title}' 배우기`, why: '눌러 보고 옮겨 보며 개념을 익혀요.' };
+        if (MATH_ACTS[topic.id] && !pr.act) return { href: `#/math/a_${topic.id}`, label: `🤲 '${topic.title}' 해 보기`, why: '직접 쌓고 옮기며 손으로 익혀요.' };
+        const i = MATH_TOPICS.indexOf(topic), nx = MATH_TOPICS.slice(i + 1).find(t => mOpen(t.stage));
+        if (nx) return { href: MATH_STORIES[nx.id] ? `#/math/s_${nx.id}` : `#/math/p_${nx.game}`, label: `➡️ 다음 주제: '${nx.title}'`, why: '이 주제는 다 해 봤어요. 다음 주제로 넘어가요.' };
+      }
+      return { again: true, label: '🔁 한 판 더', why: '' };
+    })();
+    const wsHref = topic ? `#/math/w_${topic.id}${(Object.entries(topic.wsMore || {}).find(([, w]) => w.gen === game) || [''])[0] ? '_' + Object.entries(topic.wsMore).find(([, w]) => w.gen === game)[0] : ''}` : '';
+    const here = location.hash.replace(/^#/, '') || `/math/p_${game}`, min = Math.max(1, Math.round(sec / 60));
+    area.innerHTML = `<div class="center m-done m-result"><div class="auth-logo">${ico(all ? '🏆' : '🌱')}</div>
+      <h2>${five ? `${total}문제를 끝까지 다 풀었어요!` : '퍼즐을 완성했어요! 🎉'}</h2>
+      ${got ? '<p>⭐ 별 1개를 받았어요</p>' : all && Store.profile() ? '<p class="fine">오늘 수학 별은 다 받았어요. 내일 또 받을 수 있어요!</p>' : ''}
+      <div class="m-res-card" aria-label="오늘 결과">
+        <h3>오늘 결과 <small>보호자용 요약</small></h3>
+        <dl class="m-res-sum">
+          <div><dt>푼 주제</dt><dd>${topic && topic.title !== d.title ? esc(topic.title) + ' · ' : ''}${esc(d.title)} <small>(${lvName})</small></dd></div>
+          ${five ? `<div><dt>처음에 바로 맞힌 문제</dt><dd><b>${total}문제 중 ${ok}문제</b></dd></div>
+          <div><dt>끝까지 푼 문제</dt><dd>${total}문제 모두${all ? '' : ` <small>(${total - ok}문제는 힌트를 보고 다시 풀었어요)</small>`}</dd></div>`
+          : `<div><dt>결과</dt><dd><b>${all ? '처음 확인에서 바로 완성' : `힌트 ${extra.miss || 1}번 보고 완성`}</b></dd></div>`}
+          <div><dt>걸린 시간</dt><dd>약 ${min}분</dd></div>
+        </dl>
+        <p class="m-res-good"><b>잘한 점</b> ${good}</p>
+      </div>
+      <div class="m-res-next">
+        ${rec1.up ? `<button class="btn btn-primary lg" data-up>${rec1.label}</button>` : rec1.again ? `<button class="btn btn-primary lg" data-again2>${rec1.label}</button>` : `<a class="btn btn-primary lg" href="${rec1.href}">${rec1.label}</a>`}
+        ${rec1.why ? `<p class="fine">${rec1.why}</p>` : ''}
+      </div>
+      ${guest ? `<div class="m-res-save"><a class="btn btn-ghost" href="#/signup?next=${encodeURIComponent(here)}" data-save>💾 이 기록을 저장하고 내일 이어 하기 <small>(무료 가입)</small></a><p class="fine">가입하면 지금 푼 기록이 아이 계정으로 옮겨져요.</p></div>` : ''}
+      <div class="row-center m-res-more">${topic ? `<a class="btn btn-ghost sm" href="${wsHref}">🖨️ 워크시트</a>` : ''}${rec1.again ? '' : '<button class="btn btn-ghost sm" data-again>🔁 한 판 더</button>'}<a class="btn btn-ghost sm" href="#/math">다른 주제</a></div>
+      ${guest ? '' : '<p class="m-res-rep"><a class="link-btn" href="#/parent/report">📊 부모 리포트에서 보기 →</a></p>'}</div>`;
+    const ag = $('[data-again]', area) || $('[data-again2]', area); if (ag) ag.onclick = () => mathPuzzle(el, game);
+    const up = $('[data-up]', area); if (up) up.onclick = () => { mUpdate(st => { st.lv[game] = lv + 1; }); Speech.sfx.tap(); mathPuzzle(el, game); };
+    const sv = $('[data-save]', area); if (sv) sv.onclick = () => { try { sessionStorage.setItem('mathResume', here); } catch {} };
   };
   // 보기 고르는 놀이
   if (MathGen.gen[game]) {
@@ -1243,7 +1315,7 @@ function mathPuzzle(el, game) {
       let good;
       if (game === 'magic') { const s = a => a.reduce((x, y) => x + y, 0); good = [...rows, ...cols, [val[0], val[4], val[8]], [val[2], val[4], val[6]]].every(l => s(l) === 15) && new Set(val).size === 9; }
       else { const boxes = [0, 2, 8, 10].map(o => [val[o], val[o + 1], val[o + 4], val[o + 5]]); good = [...rows, ...cols, ...boxes].every(l => new Set(l).size === 4); }
-      if (good) { $$('.m-cell', area).forEach(c => c.classList.add('ok')); return setTimeout(() => done(miss ? 0 : 1, 1), 600); }
+      if (good) { $$('.m-cell', area).forEach(c => c.classList.add('ok')); return setTimeout(() => done(miss ? 0 : 1, 1, { miss }), 600); }
       Speech.sfx.wrong(); miss++;
       if (miss === 1) return draw(`${game === 'magic' ? '합이 15가 아닌 줄이 있어요.' : '같은 숫자가 겹친 줄이 있어요.'}<br>${hint}`);
       // 그림 풀이: 틀린 칸 하나를 정답으로 채워 보여 준다
@@ -1945,4 +2017,18 @@ function mathWorksheet(el, t, key) {
   $('[data-new]', el).onclick = () => { Speech.sfx.tap(); make(); };
   $('[data-ans]', el).onclick = e => { const on = $('.m-ws', el).classList.toggle('show-ans'); e.target.textContent = on ? '🙈 정답 가리기' : '👀 정답 보기'; };
   $('[data-print]', el).onclick = () => { if (w.grid) mMark(t, 'ws'); window.print(); };
+}
+
+// 부모페이지 리포트의 수학 칸: 최근 생각 놀이 결과와 해 본 주제 (2026-11-28)
+function mathReportCard(p) {
+  let m = p.math || M_EMPTY();
+  try { const l = JSON.parse(localStorage.getItem('math-state-' + p.id) || 'null'); if (l) m = mMerge(m, l); } catch {}
+  const log = (m.log || []).slice(-5).reverse(), prog = m.prog || {}, dn = m.done || [];
+  const topics = MATH_TOPICS.filter(t => { const pr = prog[t.id] || {}; return pr.story || pr.puzzle || pr.act || pr.ws || t.lessons.some(l => dn.includes(l)); });
+  const cards = Object.values(prog).filter(x => x.card).length;
+  if (!log.length && !topics.length) return `<div class="card m-rep" id="math-report"><h3>🧮 수학</h3><p class="fine">아직 푼 수학 문제가 없어요. <a href="#/math">새싹수학 시작하기 →</a></p></div>`;
+  const day = at => { const d = new Date(at); return `${d.getMonth() + 1}/${d.getDate()}`; };
+  return `<div class="card m-rep" id="math-report"><h3>🧮 수학 <small>해 본 주제 ${topics.length}개${cards ? ` · 천재 카드 ${cards}장` : ''}</small></h3>
+    ${log.length ? `<ul class="hist m-rep-list">${log.map(r => { const g = MATH_GAMES[r.g] || { title: r.g }; return `<li><span>${day(r.at)} · ${esc(g.title)} <small>(${MATH_LEVELS[r.lv] ? MATH_LEVELS[r.lv][1] : ''})</small></span><b>${r.total > 1 ? `${r.total}문제 중 ${r.ok}문제 바로 맞힘` : r.ok ? '퍼즐 한 번에 완성' : '퍼즐 완성'}</b></li>`; }).join('')}</ul>` : ''}
+    ${topics.length ? `<p class="fine">${topics.slice(0, 8).map(t => esc(t.title)).join(' · ')}${topics.length > 8 ? ' …' : ''}</p>` : ''}</div>`;
 }

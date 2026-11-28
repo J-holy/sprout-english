@@ -970,3 +970,6 @@ for (const t of MATH_TOPICS) if (MATH_CONCEPT[t.id]) t.ws.concept = MATH_CONCEPT
 // 따라 쓰기 '다 썼어요' 피드백: 잘 썼을 때(돌려 쓴다) · 조금 부족할 때 · 거의 안 썼을 때
 MATH_SAY.trace = { good: ['잘했어요!', '참 잘 썼어요!', '멋지게 썼어요!'], almost: '거의 다 왔어요! 점선을 따라 한 번 더 써 볼까요?', none: '점선을 따라 써 봐요.' };
 MATH_VOICE.push(...MATH_SAY.trace.good, MATH_SAY.trace.almost, MATH_SAY.trace.none);
+// 생각 놀이를 끝낸 화면에서 읽어 주는 말 (2026-11-28)
+MATH_SAY.result = { all: '다섯 문제를 모두 처음에 맞혔어요! 정말 잘했어요.', done: '다섯 문제를 끝까지 다 풀었어요! 잘했어요.', grid: '퍼즐을 완성했어요! 잘했어요.' };
+MATH_VOICE.push(...Object.values(MATH_SAY.result));
