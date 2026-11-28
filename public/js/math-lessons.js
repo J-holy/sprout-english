@@ -68,9 +68,10 @@ const MATH_LESSONS = [
   ] },
   { id: 'blocks', stage: 'seed', icon: '🧱', title: '쌓기나무', topic: '쌓기나무', steps: [
     { type: 'learn', viz: { k: 'blocks', h: [[1]] }, text: '쌓기나무는 반듯한 상자 모양의 나무 조각이에요. 위에서 봐도, 앞에서 봐도, 옆에서 봐도 모두 네모예요.' },
-    { type: 'learn', viz: { k: 'blocks', h: [[3]] }, text: '쌓기나무를 위로 쌓으면 층이 생겨요. 위에 있는 쌓기나무는 아래 쌓기나무가 받치고 있어요.' },
-    { type: 'build', target: [1, 2, 3], text: '한 층, 두 층, 세 층 계단을 쌓아 봐요. 더하기 단추를 누르면 하나씩 올라가요.' },
-    { type: 'learn', viz: { k: 'blocks', h: [[2, 1], [1, 1]] }, text: '뒤에 있는 쌓기나무는 앞에 가려서 다 보이지 않을 때도 있어요. 칸마다 몇 층인지 세어 더하면 모두 몇 개인지 알 수 있어요.' },
+    { type: 'learn', viz: { k: 'blocks', h: [[3]] }, text: '맨 아래 바닥에 놓인 것이 1층이에요. 그 위에 올린 것이 2층, 또 그 위에 올린 것이 3층이에요. 층마다 색을 다르게 칠했어요.' },
+    { type: 'build', target: [1, 2, 3], text: '첫째 칸은 1층까지, 둘째 칸은 2층까지, 셋째 칸은 3층까지 쌓아 봐요. 더하기 단추를 누를 때마다 그 칸에 한 층씩 올라가요.' },
+    { type: 'learn', viz: { k: 'blocks', h: [[2, 2], [2, 1]] }, text: '파란 1층에 4개, 초록 2층에 3개가 있어요. 모두 7개예요. 아래 층 이름 단추를 누르면 그 층을 숨겼다가 다시 볼 수 있어요.' },
+    { type: 'learn', viz: { k: 'blocks', h: [[2, 1], [1, 1]], top: true }, text: '뒤에 있는 쌓기나무는 앞에 가려서 안 보일 때가 있어요. 위에 쌓기나무가 있으면 그 아래에도 받치는 쌓기나무가 꼭 있어요. 위에서 본 모양의 수는 그 칸에 몇 층까지 쌓였는지예요.' },
     { type: 'write', glyph: '층', say: '층이라는 말을 따라 써 봐요.' },
     { type: 'quiz', gen: 'blocks' }, { type: 'quiz', gen: 'blocks' },
   ] },
@@ -327,7 +328,7 @@ const MATH_TOPICS = [
   { id: 'pattern', stage: 'seed', icon: 'math-pattern', title: '규칙 찾기', lessons: ['pattern'], game: 'pattern',
     ws: { sum: '똑같은 차례가 되풀이되는 것을 규칙이라고 해요. 한 묶음을 찾으면 다음을 알 수 있어요.', trace: ['규칙', '다음'], gen: 'pattern', n: 6 } },
   { id: 'blocks', stage: 'seed', icon: 'math-blocks', title: '쌓기나무', lessons: ['blocks'], game: 'blocks',
-    ws: { sum: '쌓기나무는 칸마다 몇 층인지 세어 더해요. 위에 있는 쌓기나무 아래에는 받치는 쌓기나무가 꼭 있어요.', trace: ['층', '쌓기나무'], gen: 'blocks', n: 6 } },
+    ws: { sum: '쌓기나무는 맨 아래 1층부터 층마다 몇 개인지 세어 더해요. 위에 있는 쌓기나무 아래에는 받치는 쌓기나무가 꼭 있어요.', trace: ['층', '쌓기나무'], gen: 'blocks', n: 6 } },
   { id: 'table', stage: 'seed', icon: 'math-table', title: '그림 표', lessons: ['table'], game: 'table',
     ws: { sum: '섞여 있는 것을 종류별로 한 줄에 모으면 표가 돼요. 표를 보면 무엇이 많고 적은지 한눈에 알 수 있어요.', trace: ['표', '많다', '적다'], gen: 'table', n: 6 } },
   { id: 'same', stage: 'seed', icon: 'math-same', title: '똑같은 모양', lessons: ['same'], game: 'same',
@@ -480,7 +481,7 @@ Object.assign(MATH_STORIES, {
   ] },
 });
 Object.assign(MATH_HINTS, {
-  blocks: '아래에 숨어 있는 쌓기나무도 있어요. 칸마다 몇 층인지 세어 더해 봐요.',
+  blocks: '맨 아래 1층부터 층마다 몇 개인지 세어 더해 봐요. 뒤에 숨어 있는 쌓기나무도 있어요.',
   table: '표에서 그 줄을 손가락으로 짚고 세어 봐요.',
 });
 Object.assign(MATH_SAY, { blocksAsk: '쌓기나무는 모두 몇 개일까요?', tableMost: '가장 많은 것은 무엇일까요?', tableLeast: '가장 적은 것은 무엇일까요?', tableDone: '표가 완성됐어요!' });

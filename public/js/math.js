@@ -126,7 +126,10 @@ const MathGen = (() => {
   };
   const ODD = [['🍎', '🍑', '🍌', '🍇'], ['🐶', '🐱', '🐥', '🐟'], ['⭐', '🌙'], ['🧸', '⚽', '🎈'], ['🥕', '🥦', '🥒', '🥬']], ODDN = ['과일', '동물', '하늘', '장난감', '채소'];
   // 쌓기나무 그림: h[줄][칸] = 그 칸의 층 수. h[0]이 맨 뒷줄. 앞에서 조금 위·오른쪽으로 비스듬히 본 모습(칸은 왼쪽→오른쪽)
-  const blocksSvg = (h, s = 30) => {
+  // 층마다 색이 다르다(1층 파랑·2층 초록·3층 주황·4층 보라). opt.ghost = [[줄, 칸], …] 그 칸에 다음으로 놓일 자리를 흐리게 보여 준다
+  const LAYER = [['#1e88e5', '#1565c0', '#90caf9'], ['#43a047', '#2e7d32', '#a5d6a7'], ['#fb8c00', '#e65100', '#ffcc80'], ['#8e24aa', '#6a1b9a', '#ce93d8']];
+  const LNAME = n => n === 1 ? '1층(바닥)' : `${n}층`;
+  const blocksSvg = (h, s = 30, opt = {}) => {
     const Y = h.length, X = h[0].length, d = s * 0.5, P = (x, y, z) => [x * s + y * d, -z * s - y * d], pts = a => a.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ');
     const ST = 'stroke="#3a2d4f" stroke-width="2" stroke-linejoin="round"', cubes = [], floor = [];
     for (let r = 0; r < Y; r++) for (let x = 0; x < X; x++) {
@@ -134,15 +137,25 @@ const MathGen = (() => {
       floor.push(`<polygon points="${pts([P(x, y, 0), P(x + 1, y, 0), P(x + 1, y + 1, 0), P(x, y + 1, 0)])}" fill="none" stroke="currentColor" stroke-opacity=".4" stroke-dasharray="4 3"/>`);
       for (let z = 0; z < h[r][x]; z++) cubes.push([x, y, z]);
     }
+    for (const [r, x] of opt.ghost || []) if (h[r] && h[r][x] < 4) cubes.push([x, Y - 1 - r, h[r][x], 1]);
     cubes.sort((a, b) => b[1] - a[1] || a[0] - b[0] || a[2] - b[2]);
-    const draw = ([x, y, z]) => `<polygon ${ST} fill="#fb8c00" points="${pts([P(x, y, z), P(x + 1, y, z), P(x + 1, y, z + 1), P(x, y, z + 1)])}"/>`
-      + `<polygon ${ST} fill="#f4511e" points="${pts([P(x + 1, y, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x + 1, y, z + 1)])}"/>`
-      + `<polygon ${ST} fill="#ffca28" points="${pts([P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1)])}"/>`;
-    const maxH = Math.max(1, ...h.flat()), w = X * s + Y * d + 8, top = maxH * s + Y * d + 4;
+    const draw = ([x, y, z, g]) => { const c = LAYER[z % 4];
+      return `<g class="${g ? 'm-bghost' : `bl bl${z + 1}`}"><polygon ${ST} fill="${c[0]}" points="${pts([P(x, y, z), P(x + 1, y, z), P(x + 1, y, z + 1), P(x, y, z + 1)])}"/>`
+      + `<polygon ${ST} fill="${c[1]}" points="${pts([P(x + 1, y, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x + 1, y, z + 1)])}"/>`
+      + `<polygon ${ST} fill="${c[2]}" points="${pts([P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1)])}"/></g>`; };
+    const maxH = Math.max(1, ...h.flat(), ...(opt.ghost || []).map(([r, x]) => h[r] ? h[r][x] + 1 : 0)), w = X * s + Y * d + 8, top = maxH * s + Y * d + 4;
     return `<svg viewBox="-4 ${(-top).toFixed(1)} ${w.toFixed(1)} ${(top + 6).toFixed(1)}" class="m-blocks" style="width:${Math.round(w * 1.5)}px" aria-label="쌓기나무 ${h.flat().reduce((a, b) => a + b, 0)}개">${floor.join('')}${cubes.map(draw).join('')}</svg>`;
   };
+  // 층 범례: 층 색과 이름. count면 층마다 몇 개인지와 모두 몇 개인지, toggle이면 눌러서 그 층을 숨겼다 보였다 한다
+  const layerCnt = h => Array.from({ length: Math.max(1, ...h.flat()) }, (_, z) => h.flat().filter(v => v > z).length);
+  const blocksKey = (h, { count = true, toggle = true, layers } = {}) => {
+    const c = layerCnt(h), n = layers || c.length, tag = toggle ? 'button type="button"' : 'span', end = toggle ? 'button' : 'span';
+    return `<div class="m-bkey">${Array.from({ length: n }, (_, z) => `<${tag} class="m-bkey-b" ${toggle ? `data-blayer="${z + 1}" aria-pressed="true"` : ''} style="--lc:${LAYER[z % 4][0]}"><i></i>${LNAME(z + 1)}${count ? ` <b>${c[z] || 0}개</b>` : ''}</${end}>`).join('')}${count ? `<span class="m-bkey-sum">모두 <b>${c.reduce((a, b) => a + b, 0)}개</b></span>` : ''}</div>`;
+  };
+  const blocksBox = (h, s, opt = {}) => `<div class="m-bwrap ${(opt.off || []).map(n => 'off' + n).join(' ')}">${blocksSvg(h, s, opt)}${blocksKey(h, opt)}</div>`;
+  const blocksOff = el => { const w = el && el.querySelector('.m-bwrap'); return w ? [...w.classList].filter(c => /^off\d$/.test(c)).map(c => +c.slice(3)) : []; };
   // 위에서 본 칸마다 층 수 (쌓기나무 그림 풀이)
-  const hmap = h => `<div class="m-hmap" style="--c:${h[0].length}">${h.map(r => r.map(v => `<span>${v || ''}</span>`).join('')).join('')}</div>`;
+  const hmap = h => `<div class="m-hmap" style="--c:${h[0].length}" aria-label="위에서 본 모양, 칸 안의 수는 층 수">${h.map(r => r.map(v => `<span${v ? ` style="--lc:${LAYER[(v - 1) % 4][0]}"` : ''}>${v || ''}</span>`).join('')).join('')}</div>`;
   // 그림 표: rows = [[이모지, 수, 이름?, 그림?]], mode pic(그림) · num(수) · both(그림과 수), hi = 칠할 줄
   const tableHtml = (rows, mode = 'pic', hi = []) => `<table class="m-table"><tbody>${rows.map(([e, n, label, pic], i) => `<tr class="${hi.includes(i) ? 'hi' : ''}"><th>${mPic(e)} ${label || MATH_NAMES[e] || ''}</th><td>${mode === 'num' ? `<b>${n}</b>` : `<span class="m-tpics">${Array.from({ length: n }, () => mPic(pic || e)).join('')}</span>`}${mode === 'both' ? ` <b class="m-tn">${n}</b>` : ''}</td></tr>`).join('')}</tbody></table>`;
   // ── 새싹 더하기 그림 (2026-11-27) ──
@@ -477,9 +490,10 @@ const MathGen = (() => {
         const cap = Math.min(y ? h[y - 1][x] : top, x ? h[y][x - 1] : top), lo = LV >= 2 && (x || y) ? 0 : 1;
         h[y].push(LV === 0 ? 1 + R(3) : !x && !y ? (LV >= 2 ? top : 2 + R(2)) : Math.max(lo, cap - R(LV >= 2 ? 3 : 2)));
       } }
-      const ans = h.flat().reduce((a, b) => a + b, 0), parts = h.flat().filter(Boolean);
-      return { ask: MATH_SAY.blocksAsk, say: MATH_SAY.blocksAsk, show: `<div class="m-viz">${blocksSvg(h)}</div>`, opts: nearby(ans, 1, ans + 4, 3), ans, hint: H.blocks,
-        explain: `<div class="m-viz m-hmap-wrap">${blocksSvg(h, 16)}${hmap(h)}</div><p class="m-eq-num">${parts.join(' + ')} = ${ans}</p><p class="fine">위에서 본 칸마다 몇 층인지 적었어요.</p>` };
+      const ans = h.flat().reduce((a, b) => a + b, 0);
+      const lc = layerCnt(h);
+      return { ask: MATH_SAY.blocksAsk, say: MATH_SAY.blocksAsk, show: `<div class="m-viz">${blocksBox(h, 30, { count: false })}</div>`, opts: nearby(ans, 1, ans + 4, 3), ans, hint: H.blocks,
+        explain: `<div class="m-viz m-hmap-wrap">${blocksBox(h, 16, { toggle: false })}<figure class="m-hmap-fig">${hmap(h)}<figcaption>위에서 본 모양</figcaption></figure></div><p class="m-eq-num">${lc.map((c, z) => `<span class="m-lnum" style="--lc:${LAYER[z % 4][0]}">${z + 1}층 ${c}개</span>`).join(' + ')} = ${ans}개</p><p class="fine">맨 아래 1층부터 층마다 세어 더했어요. 위에서 본 칸의 수는 그 칸에 몇 층까지 쌓였는지예요.</p>` };
     },
     // 그림 표 읽기: 쉬움 몇 개, 보통 가장 많은·적은 것, 도전 수로 쓴 표에서 차이·모두
     table() {
@@ -991,7 +1005,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, figEdge, figDot, figShake, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
+  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, hmap, blocksKey, blocksBox, blocksOff, layerCnt, LAYER, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, figEdge, figDot, figShake, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -1070,6 +1084,9 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   mPull(true).then(ch => { if (ch && location.hash === '#/math') App.route(); });
 });
+// 쌓기나무 범례 단추: 누르면 그 층을 흐리게 숨겼다가 다시 보여 준다
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-blayer]'), w = b && b.closest('.m-bwrap'); if (!w) return;
+  const on = w.classList.toggle('off' + b.dataset.blayer); b.setAttribute('aria-pressed', String(!on)); if (typeof Speech !== 'undefined') Speech.sfx.tap(); });
 const mathDone = () => mState().done;
 const mathMarkDone = id => mUpdate(s => { if (!s.done.includes(id)) s.done.push(id); });
 const mProg = () => mState().prog;
@@ -1273,7 +1290,7 @@ function mathViz(v) {
     case 'angle': return v.all ? `<div class="m-viz m-angs">${[['예각', 45], ['직각', 90], ['둔각', 135]].map(([t, d]) => `<figure>${MathGen.angSvg(d)}<figcaption>${t}</figcaption></figure>`).join('')}</div>` : `<div class="m-viz">${MathGen.angSvg(v.deg)}</div>`;
     case 'poly': return `<div class="m-viz m-angs">${v.s.map((n, k) => `<figure>${MathGen.polySvg(n, ['#00897b', '#f4511e', '#5e35b1', '#1e88e5'][k % 4])}<figcaption>${MathGen.POLY[n]}</figcaption></figure>`).join('')}</div>`;
     case 'grid': return `<div class="m-grid show ${v.n === 3 ? 'magic' : 'sudoku'}" style="--n:${v.n}">${v.vals.map(x => `<span class="m-cell fixed">${x || ''}</span>`).join('')}</div>`;
-    case 'blocks': return `<div class="m-viz">${MathGen.blocksSvg(v.h)}</div>`;
+    case 'blocks': return `<div class="m-viz${v.top ? ' m-hmap-wrap' : ''}">${MathGen.blocksBox(v.h, 30, { count: v.count !== false })}${v.top ? `<figure class="m-hmap-fig">${MathGen.hmap(v.h)}<figcaption>위에서 본 모양</figcaption></figure>` : ''}</div>`;
     case 'table': return `<div class="m-viz">${MathGen.tableHtml(v.rows, v.mode || 'both')}</div>`;
     case 'venn': return `<div class="m-viz">${MathGen.vennSvg(v.A, v.B, (v.items || []).map(e => ({ e, r: MathGen.vRegion(e, v.A, v.B) })))}</div>`;
     case 'bar': return v.table ? `<div class="m-viz m-bars-make"><div>${MathGen.tableHtml(v.rows, 'num')}</div>${MathGen.barSvg(v.rows, v.hi || [])}</div>` : `<div class="m-viz">${MathGen.barSvg(v.rows, v.hi || [])}</div>`;
@@ -1487,17 +1504,17 @@ function mathLesson(el, L) {
         else { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); Speech.sfx.wrong(); }
       });
     } else if (st.type === 'build') {
-      // 쌓기나무 쌓기: 칸마다 ➕·➖로 쌓아 보이는 층 수를 맞춘다
-      const h = st.target.map(() => 0), sum = () => h.reduce((a, b) => a + b, 0);
+      // 쌓기나무 쌓기: 칸마다 [+][−]로 맨 아래 1층부터 쌓아 정한 층까지 맞춘다. 다음에 놓일 자리는 흐린 그림자로 미리 보여 준다
+      const h = st.target.map(() => 0), sum = () => h.reduce((a, b) => a + b, 0), ORD = ['첫째', '둘째', '셋째', '넷째'];
       area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-build-view"></div>
-        <div class="m-build">${st.target.map((t, k) => `<div class="m-build-col"><b>${t}층</b><button class="btn btn-ghost sm" data-add="${k}" aria-label="${k + 1}번째 칸에 하나 올리기">➕</button><button class="btn btn-ghost sm" data-sub="${k}" aria-label="${k + 1}번째 칸에서 하나 내리기">➖</button></div>`).join('')}</div>
+        <div class="m-build">${st.target.map((t, k) => `<div class="m-build-col"><b>${ORD[k]} 칸</b><small>${t}층까지</small><div class="m-build-pm"><button class="btn m-pm-b is-plus" data-add="${k}" aria-label="${ORD[k]} 칸에 하나 쌓기"><b>+</b></button><button class="btn m-pm-b is-minus" data-sub="${k}" aria-label="${ORD[k]} 칸에서 하나 빼기"><b>−</b></button></div></div>`).join('')}</div>
         <p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
       KoSpeech.say(st.text);
       const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-build-view', area); nb.onclick = next;
-      const draw = () => { view.innerHTML = MathGen.blocksSvg([h]); out.textContent = sum() ? `지금 ${sum()}개` : ' '; };
+      const draw = () => { view.innerHTML = MathGen.blocksBox([h], 30, { ghost: h.map((v, k) => v < st.target[k] ? [0, k] : null).filter(Boolean), off: MathGen.blocksOff(view) }); out.textContent = ' '; };
       const check = () => { if (h.every((v, k) => v === st.target[k])) { out.textContent = `모두 ${sum()}개!`; ready(nb, `모두 ${MATH_CNT[sum() - 1]} 개예요!`); } };
-      $$('[data-add]', area).forEach(b => b.onclick = () => { const k = +b.dataset.add; if (h[k] >= 4) return; h[k]++; Speech.sfx.tap(); draw(); check(); });
-      $$('[data-sub]', area).forEach(b => b.onclick = () => { const k = +b.dataset.sub; if (!h[k]) return; h[k]--; Speech.sfx.tap(); nb.disabled = true; draw(); });
+      $$('[data-add]', area).forEach(b => b.onclick = () => { const k = +b.dataset.add; if (h[k] >= 4) return Speech.sfx.wrong(); h[k]++; Speech.sfx.tap(); draw(); check(); });
+      $$('[data-sub]', area).forEach(b => b.onclick = () => { const k = +b.dataset.sub; if (!h[k]) return Speech.sfx.wrong(); h[k]--; Speech.sfx.tap(); nb.disabled = true; draw(); });
       draw();
     } else if (st.type === 'tally') {
       // 표 만들기: 섞인 것을 하나씩 눌러 표의 제 줄로 옮긴다

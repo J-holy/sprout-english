@@ -48,30 +48,30 @@ function mathAct(el, t) {
   const front = h => Array.from({ length: S }, (_, x) => Math.max(...h.map(r => r[x])));
   const frontSvg = (f, col = '#fb8c00') => {
     const s = 22, H = Math.max(1, ...f);
-    return `<svg viewBox="-2 -2 ${S * s + 4} ${H * s + 4}" class="m-front" style="width:${S * s * 1.6}px" aria-label="앞에서 본 모양 ${f.join(', ')}층">${f.map((n, x) => Array.from({ length: n }, (_, z) => `<rect x="${x * s}" y="${(H - 1 - z) * s}" width="${s}" height="${s}" fill="${col}" stroke="#3a2d4f" stroke-width="2"/>`).join('')).join('')}<line x1="-2" y1="${H * s}" x2="${S * s + 2}" y2="${H * s}" stroke="currentColor" stroke-width="2"/></svg>`;
+    return `<svg viewBox="-2 -2 ${S * s + 4} ${H * s + 4}" class="m-front" style="width:${S * s * 1.6}px" aria-label="앞에서 본 모양 ${f.join(', ')}층">${f.map((n, x) => Array.from({ length: n }, (_, z) => `<rect x="${x * s}" y="${(H - 1 - z) * s}" width="${s}" height="${s}" fill="${MathGen.LAYER[z % 4][0]}" stroke="#3a2d4f" stroke-width="2"/>`).join('')).join('')}<line x1="-2" y1="${H * s}" x2="${S * s + 2}" y2="${H * s}" stroke="currentColor" stroke-width="2"/></svg>`;
   };
   const same = (a, b) => a.every((r, y) => r.every((v, x) => v === b[y][x]));
   const sum = h => h.flat().reduce((a, b) => a + b, 0);
   MATH_ACTS.blocks = {
     missions: [
-      { text: '쌓기나무 5개로 마음대로 쌓아 봐요. 칸을 누르면 하나씩 올라가요.', check: h => sum(h) === 5 && '5개로 멋지게 쌓았어요!' },
-      { text: '한 칸에 3층짜리 탑을 쌓아 봐요.', check: h => h.flat().includes(3) && '3층 탑 완성! 아래 쌓기나무가 위를 받치고 있어요.' },
+      { text: '쌓기나무 5개로 마음대로 쌓아 봐요. 칸을 누를 때마다 그 칸에 한 층씩 올라가요.', check: h => sum(h) === 5 && '5개로 멋지게 쌓았어요!' },
+      { text: '한 칸을 세 번 눌러 3층짜리 탑을 쌓아 봐요. 맨 아래가 1층이에요.', check: h => h.flat().includes(3) && '3층 탑 완성! 아래 쌓기나무가 위를 받치고 있어요.' },
       { text: '그림처럼 앞줄에 계단을 쌓아 봐요.', target: [[0, 0, 0], [0, 0, 0], [1, 2, 3]] },
       { text: '그림처럼 쌓아 봐요. 뒤에 숨은 쌓기나무도 잘 보세요.', target: [[0, 1, 0], [1, 2, 1], [0, 1, 0]] },
       { text: '앞에서 보면 그림처럼 보이게 쌓아 봐요. 쌓기나무를 가장 적게 써 볼까요?', front: [2, 1, 3] },
     ],
-    free: { text: '마음대로 쌓아 봐요. 앞에서 본 모양도 함께 보여요.' },
+    free: { text: '마음대로 쌓아 봐요. 층마다 몇 개인지와 앞에서 본 모양도 함께 보여요.' },
     mount(box, m, api) {
       const h = Array.from({ length: S }, () => Array(S).fill(0));
-      let rm = false;
+      let rm = false, last = null;
       box.innerHTML = `${m.target ? `<div class="m-act-goal"><b>이렇게</b>${MathGen.blocksSvg(m.target, 22)}</div>` : ''}${m.front ? `<div class="m-act-goal"><b>앞에서 본 모양</b>${frontSvg(m.front, '#7e57c2')}</div>` : ''}
         <div class="m-act-row"><div class="m-act-view"></div><div class="m-act-side"><small>앞에서 본 모양</small><div class="m-act-front"></div></div></div>
-        <div class="m-act-row"><div class="m-bgrid" role="grid" aria-label="위에서 본 칸. 누르면 쌓기나무를 올려요">${h.map((r, y) => r.map((_, x) => `<button class="m-bcell" data-y="${y}" data-x="${x}"></button>`).join('')).join('')}</div>
-        <div class="m-act-tools"><small>↑ 뒤</small><button class="btn btn-ghost sm on" data-mode="add">➕ 쌓기</button><button class="btn btn-ghost sm" data-mode="rm">➖ 빼기</button><small>↓ 앞</small></div></div>`;
+        <div class="m-act-row m-bpad"><div class="m-bgrid-box"><small>↑ 뒤</small><div class="m-bgrid" role="grid" aria-label="위에서 본 칸. 누르면 그 칸에 한 층씩 올려요">${h.map((r, y) => r.map((_, x) => `<button class="m-bcell" data-y="${y}" data-x="${x}"></button>`).join('')).join('')}</div><small>↓ 앞 · 위에서 본 모양 (칸 안의 수 = 몇 층)</small></div>
+        <div class="m-pm-row m-bmode"><button class="btn m-pm-b is-plus on" data-mode="add" aria-pressed="true"><b>+</b> 쌓기</button><button class="btn m-pm-b is-minus" data-mode="rm" aria-pressed="false"><b>−</b> 빼기</button></div></div>`;
       const view = $('.m-act-view', box), fv = $('.m-act-front', box);
       const draw = () => {
-        view.innerHTML = MathGen.blocksSvg(h, 30); fv.innerHTML = frontSvg(front(h));
-        $$('.m-bcell', box).forEach(b => { const v = h[+b.dataset.y][+b.dataset.x]; b.textContent = v || ''; b.classList.toggle('on', v > 0); b.setAttribute('aria-label', `${v}층`); });
+        view.innerHTML = MathGen.blocksBox(h, 30, { ghost: !rm && last ? [last] : [], off: MathGen.blocksOff(view) }); fv.innerHTML = frontSvg(front(h));
+        $$('.m-bcell', box).forEach(b => { const v = h[+b.dataset.y][+b.dataset.x]; b.textContent = v || ''; b.classList.toggle('on', v > 0); b.style.setProperty('--lc', v ? MathGen.LAYER[(v - 1) % 4][0] : ''); b.setAttribute('aria-label', `${v}층`); });
         const n = sum(h);
         let win = false;
         if (m.check) win = m.check(h);
@@ -79,12 +79,14 @@ function mathAct(el, t) {
         else if (m.front) { const f = front(h); if (f.every((v, x) => v === m.front[x])) win = n === m.front.reduce((a, b) => a + b, 0) ? `앞모습이 똑같아요! ${n}개로 가장 적게 쌓았어요.` : `앞모습이 똑같아요! ${n}개를 썼어요. 더 적게도 쌓을 수 있을까요?`; }
         if (win) api.done(win); else api.status(n ? `쌓기나무 ${n}개` : '칸을 눌러 쌓아 봐요');
       };
-      $$('[data-mode]', box).forEach(b => b.onclick = () => { rm = b.dataset.mode === 'rm'; $$('[data-mode]', box).forEach(x => x.classList.toggle('on', x === b)); Speech.sfx.tap(); });
+      $$('[data-mode]', box).forEach(b => b.onclick = () => { rm = b.dataset.mode === 'rm'; $$('[data-mode]', box).forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); Speech.sfx.tap(); draw(); });
       $$('.m-bcell', box).forEach(b => b.onclick = () => {
         const y = +b.dataset.y, x = +b.dataset.x;
         if (rm ? !h[y][x] : h[y][x] >= MAXH) return Speech.sfx.wrong();
-        h[y][x] += rm ? -1 : 1; Speech.sfx.tap(); draw();
+        h[y][x] += rm ? -1 : 1; last = [y, x]; Speech.sfx.tap(); draw();
       });
+      // 누르는 동안 그 칸에 놓일 자리를 흐리게 미리 보여 준다
+      $$('.m-bcell', box).forEach(b => b.onpointerdown = () => { if (rm) return; last = [+b.dataset.y, +b.dataset.x]; view.innerHTML = MathGen.blocksBox(h, 30, { ghost: [last], off: MathGen.blocksOff(view) }); });
       draw();
     },
   };
