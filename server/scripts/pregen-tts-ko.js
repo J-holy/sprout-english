@@ -4,14 +4,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
-import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { config } from '../lib/env.js';
 
 // 2026-11-26: Neural2-A → Chirp3-HD-Aoede (더 자연스럽고, 읽는 속도는 비슷하다)
-// 2026-11-28: 사용자가 'Zephyr 톤올림'을 골랐다 → Zephyr를 받아 높이를 +300센트(3반음) 올린다 (속도 1.0)
+// 2026-11-28: 사용자가 'Zephyr 톤올림'을 골랐다 → Zephyr를 받아 높이를 올린다
+//   처음엔 AVAudioUnitTimePitch로 +300센트 올렸는데 '사람 같지 않다'(기계음)는 의견 → 재생 속도로 +1.5반음 (B안)
+//   구글에 speakingRate 1/f로 천천히 읽혀 24kHz로 받고, 그 샘플을 24000×f Hz로 재생한다: 높이 1.5반음↑, 빠르기는 원래대로
+//   소리를 쪼개 붙이지 않으니 기계음이 없다. 예비 후보 D: Leda를 같은 방식으로 +1.5반음
 const VOICE = process.env.GOOGLE_TTS_VOICE_KO || 'ko-KR-Chirp3-HD-Zephyr';
-const PITCH_CENTS = 300;
+const SEMI = 1.5, F = 2 ** (SEMI / 12), SR = Math.round(24000 * F); // f ≈ 1.0905, 재생 26172Hz
+const PITCH_TAG = 'resample' + SEMI;
 // 해 보기를 다 마쳤을 때 칭찬하는 말은 아이들이 좋아할 밝은 목소리로 (2026-11-27 사용자가 후보 6개 중 Zephyr를 골랐다)
 const CHEER_VOICE = VOICE; // 칭찬하는 말도 같은 목소리·같은 높이
 const CHEER = new Set(['미션을 모두 해냈어요! 이제 마음대로 해 봐요.']);
@@ -80,7 +83,7 @@ const RATE = 1.0;
 //   (24kHz 그대로는 AAC가 64kbps보다 높게 안 된다: afconvert '!dat' 오류)
 //   v3: 문장 사이 쉼이 0.7초를 넘으면 0.55초로 줄인다(검수에서 '!' 뒤 1~1.5초씩 끊겨 들렸다)
 const AUDIO_V = 'v3', TARGET_DB = -19, PEAK_DB = -1, FADE_MS = 8, KBPS = 96, GAP_MAX = 0.7, GAP_TO = 0.55;
-const fname = t => crypto.createHash('sha256').update(voiceOf(t) + '|' + RATE + '|' + PITCH_CENTS + '|' + AUDIO_V + '|' + speak(t)).digest('hex').slice(0, 16) + '.m4a';
+const fname = t => crypto.createHash('sha256').update(voiceOf(t) + '|' + RATE + '|' + PITCH_TAG + '|' + AUDIO_V + '|' + speak(t)).digest('hex').slice(0, 16) + '.m4a';
 const todo = [...texts].filter(t => !COUNT_WORDS.includes(t)).filter(t => man[t] !== fname(t) || !fs.existsSync(path.join(dir, man[t])));
 console.log(`문장 ${texts.size}개 중 만들 것 ${todo.length}개 (목소리 ${VOICE})`);
 if (process.argv.includes('--show')) for (const t of texts) if (speak(t) !== t) console.log(t, '\n  →', speak(t));
@@ -89,16 +92,16 @@ if (process.argv.includes('--dry')) process.exit(0);
 const synth = async (text, markup = false, voice = VOICE) => {
   const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(process.env.GOOGLE_TTS_API_KEY)}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(30000),
-    body: JSON.stringify({ input: markup ? { markup: text } : { text }, voice: { languageCode: 'ko-KR', name: voice }, audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 24000, speakingRate: RATE, volumeGainDb: 0 } }),
+    body: JSON.stringify({ input: markup ? { markup: text } : { text }, voice: { languageCode: 'ko-KR', name: voice }, audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 24000, speakingRate: +(RATE / F).toFixed(3), volumeGainDb: 0 } }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`${r.status} ${(j.error && j.error.message || '').slice(0, 120)}`);
-  return Buffer.from(j.audioContent, 'base64'); // WAV (24kHz 16bit mono)
+  return Buffer.from(j.audioContent, 'base64'); // WAV (24kHz 16bit mono, 1/f 빠르기로 읽힘)
 };
 // WAV → 소리 구간: 20ms 창의 크기가 기준보다 큰 곳
 const pcm = wav => { const d = wav.indexOf(Buffer.from('data')); return new Int16Array(wav.buffer.slice(wav.byteOffset + d + 8, wav.byteOffset + wav.length - ((wav.length - d - 8) % 2))); };
 const loud = (a, sr = 24000, win = 480, th = 700) => Array.from({ length: Math.floor(a.length / win) }, (_, i) => { let s = 0; for (let k = i * win; k < (i + 1) * win; k++) s += a[k] * a[k]; return Math.sqrt(s / win) > th; });
-const toWav = (a, sr = 24000) => { const b = Buffer.alloc(44 + a.length * 2); b.write('RIFF', 0); b.writeUInt32LE(36 + a.length * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(sr, 24); b.writeUInt32LE(sr * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(a.length * 2, 40); Buffer.from(a.buffer, a.byteOffset, a.length * 2).copy(b, 44); return b; };
+const toWav = (a, sr = SR) => { const b = Buffer.alloc(44 + a.length * 2); b.write('RIFF', 0); b.writeUInt32LE(36 + a.length * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(sr, 24); b.writeUInt32LE(sr * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(a.length * 2, 40); Buffer.from(a.buffer, a.byteOffset, a.length * 2).copy(b, 44); return b; };
 // 크기 맞춤: 20ms 창 중 말소리 창(가장 큰 창의 10%보다 큰 곳)의 평균 크기를 TARGET_DB로, 가장 큰 소리는 PEAK_DB 아래로
 const norm = a => {
   const win = 480, rms = []; let peak = 1;
@@ -109,7 +112,7 @@ const norm = a => {
   return Int16Array.from(a, v => Math.round(v * g));
 };
 // 앞뒤 FADE_MS 페이드 (잘라 쓴 끝에서 '틱' 소리가 나지 않게)
-const fade = a => { const b = Int16Array.from(a), n = Math.min(Math.floor(24 * FADE_MS), Math.floor(b.length / 2)); for (let i = 0; i < n; i++) { const g = i / n; b[i] = Math.round(b[i] * g); b[b.length - 1 - i] = Math.round(b[b.length - 1 - i] * g); } return b; };
+const fade = a => { const b = Int16Array.from(a), n = Math.min(Math.floor(SR / 1000 * FADE_MS), Math.floor(b.length / 2)); for (let i = 0; i < n; i++) { const g = i / n; b[i] = Math.round(b[i] * g); b[b.length - 1 - i] = Math.round(b[b.length - 1 - i] * g); } return b; };
 // 앞은 0.05초, 뒤는 0.15초만 남기고 무음을 잘라 m4a(AAC)로 저장한다 (소리는 norm을 거친 것)
 // 긴 쉼 줄이기: 20ms 창이 조용한 구간이 GAP_MAX초보다 길면 가운데를 잘라 GAP_TO초로 (조용한 곳만 자르니 말소리는 그대로)
 const squeeze = a => {
@@ -118,7 +121,7 @@ const squeeze = a => {
   let from = 0;
   for (let i = first; i <= last; i++) {
     if (L[i]) continue; let j = i; while (j <= last && !L[j]) j++;
-    if ((j - i) * 0.02 > GAP_MAX) { const cut0 = (i * 480) + Math.round(GAP_TO * 24000 / 2), cut1 = (j * 480) - Math.round(GAP_TO * 24000 / 2); keep.push(a.subarray(from, cut0)); from = cut1; }
+    if ((j - i) * 480 / SR > GAP_MAX) { const cut0 = (i * 480) + Math.round(GAP_TO * SR / 2), cut1 = (j * 480) - Math.round(GAP_TO * SR / 2); keep.push(a.subarray(from, cut0)); from = cut1; }
     i = j;
   }
   if (!keep.length) return a;
@@ -131,33 +134,22 @@ const save = (a, f) => {
   const tmp = path.join(dir, f + '.wav'); fs.writeFileSync(tmp, toWav(fade(a.subarray(s0, s1))));
   execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac@48000', '-b', String(KBPS * 1000), '--src-complexity', 'bats', tmp, path.join(dir, f)]); fs.unlinkSync(tmp);
 };
-// 높이 올리기: scripts/pitch-shift.swift를 처음 한 번 빌드해 두고, 여러 소리를 한 번에 넘긴다 (파일마다 swift를 띄우면 느리다)
-const PITCH_SRC = path.join(path.dirname(new URL(import.meta.url).pathname), 'pitch-shift.swift'), PITCH_BIN = path.join(config.dataDir, 'tools', 'pitch-shift');
-const pitchAll = arrs => {
-  if (!PITCH_CENTS || !arrs.length) return arrs;
-  if (!fs.existsSync(PITCH_BIN) || fs.statSync(PITCH_BIN).mtimeMs < fs.statSync(PITCH_SRC).mtimeMs) { fs.mkdirSync(path.dirname(PITCH_BIN), { recursive: true }); execFileSync('swiftc', ['-O', PITCH_SRC, '-o', PITCH_BIN]); }
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pitch-')), ins = arrs.map((_, i) => path.join(tmp, `${i}.wav`)), outs = arrs.map((_, i) => path.join(tmp, `${i}-p.wav`));
-  arrs.forEach((a, i) => fs.writeFileSync(ins[i], toWav(a)));
-  try { execFileSync(PITCH_BIN, [String(PITCH_CENTS), ...ins.flatMap((f, i) => [f, outs[i]])]); return outs.map(f => pcm(fs.readFileSync(f))); }
-  finally { fs.rmSync(tmp, { recursive: true, force: true }); }
-};
-// 처리 순서: LINEAR16 받기(4개씩 함께) → 30개씩 높이 올리기 → 크기 맞춤 → 페이드·저장
+// 처리 순서: LINEAR16 받기(4개씩 함께, 1/f 빠르기) → 크기 맞춤 → 쉼 줄이기·페이드 → SR Hz로 적어 48kHz AAC로 저장
 for (let k = 0; k < todo.length; k += 30) {
   const part = todo.slice(k, k + 30), got = [];
   for (let j = 0; j < part.length; j += 4) {
     const rs = await Promise.allSettled(part.slice(j, j + 4).map(t => synth(speak(t), false, voiceOf(t))));
     rs.forEach((r, i) => { const t = part[j + i]; if (r.status === 'fulfilled') got.push([t, pcm(r.value)]); else console.log('실패', t, r.reason && r.reason.message); });
   }
-  try { const up = pitchAll(got.map(g => g[1])); got.forEach(([t], i) => { save(norm(up[i]), fname(t)); man[t] = fname(t); }); }
-  catch (err) { console.log('높이 올리기 실패', err.message); }
+  for (const [t, a] of got) { try { save(norm(a), fname(t)); man[t] = fname(t); } catch (err) { console.log('저장 실패', t, err.message); } }
   if (k % 150 === 0) console.log(`${Math.min(k + 30, todo.length)} / ${todo.length}`);
 }
 // 세는 낱말: '하나, 둘, … 열다섯.'을 한 번에 읽힌 뒤 쉼(0.12초 넘는 무음)마다 잘라 낱말 하나씩 저장한다
-const cntName = w => 'cnt-' + crypto.createHash('sha256').update(VOICE + '|' + RATE + '|' + PITCH_CENTS + '|' + AUDIO_V + '|pause2|' + COUNT_WORDS.join(',')).digest('hex').slice(0, 8) + '-' + COUNT_WORDS.indexOf(w) + '.m4a';
+const cntName = w => 'cnt-' + crypto.createHash('sha256').update(VOICE + '|' + RATE + '|' + PITCH_TAG + '|' + AUDIO_V + '|pause2|' + COUNT_WORDS.join(',')).digest('hex').slice(0, 8) + '-' + COUNT_WORDS.indexOf(w) + '.m4a';
 if (COUNT_WORDS.some(w => man[w] !== cntName(w) || !fs.existsSync(path.join(dir, man[w])))) {
   // 소리 사이의 조용한 구간 중 가장 긴 14곳(낱말 수 − 1)에서 자른다
   // 낱말 사이에 긴 쉼([pause long])을 넣어 읽혀야 쉼표만 쓸 때처럼 낱말이 붙거나 한 낱말 안에서 갈라지지 않는다
-  const a = norm(pitchAll([pcm(await synth(COUNT_WORDS.join(', [pause long] ') + '.', true))])[0]), L = loud(a, 24000, 240, 600), gaps = [];
+  const a = norm(pcm(await synth(COUNT_WORDS.join(', [pause long] ') + '.', true))), L = loud(a, 24000, 240, 600), gaps = [];
   // 0.06초보다 짧은 소리(숨소리·잡음)는 조용한 것으로 본다
   for (let i = 0; i < L.length;) { if (!L[i]) { i++; continue; } let j = i; while (j < L.length && L[j]) j++; if (j - i < 6) for (let k = i; k < j; k++) L[k] = false; i = j; }
   const first = L.indexOf(true), last = L.lastIndexOf(true);
