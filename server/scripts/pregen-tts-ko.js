@@ -36,36 +36,57 @@ const NAT1 = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여
 const native = n => n === 0 ? '영' : n === 20 ? '스무' : n < 100 ? NAT10[Math.floor(n / 10)] + NAT1[n % 10] : String(n);
 const SINO = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
 const sino = n => n < 10 ? SINO[n] : n < 100 ? (n >= 20 ? SINO[Math.floor(n / 10)] : '') + '십' + (n % 10 ? SINO[n % 10] : '') : String(n);
-const COUNTER = '개|명|마리|칸|줄|쌍|가지|해|송이|번째|번|살|층|접시|조각|권|장|켤레';
+const COUNTER = '걸음|개|명|마리|칸|줄|쌍|가지|해|송이|번째|번|살|층|접시|조각|권|장|켤레';
 // 받침에 맞는 조사 (괄호 안 말 뒤에 붙일 때)
-const josa = (w, j) => { const c = w.charCodeAt(w.length - 1) - 0xac00, has = c >= 0 && c % 28 > 0, rieul = c % 28 === 8;
+// 숫자로 끝나면 한자어로 읽는 소리의 받침을 본다 (0 영·1 일·3 삼·6 육·7 칠·8 팔은 받침, 1·7·8은 ㄹ받침)
+const josa = (w, j) => { const e = w[w.length - 1], dg = /\d/.test(e), c = w.charCodeAt(w.length - 1) - 0xac00, has = dg ? '013678'.includes(e) : c >= 0 && c % 28 > 0, rieul = dg ? '178'.includes(e) : c % 28 === 8;
   const pair = { 과: ['과', '와'], 와: ['과', '와'], 은: ['은', '는'], 는: ['은', '는'], 이: ['이', '가'], 가: ['이', '가'], 을: ['을', '를'], 를: ['을', '를'] }[j];
   if (pair) return has ? pair[0] : pair[1];
   return has && !rieul ? '으로' : '로'; };
 // 규칙으로 안 되는 곳은 직접 고친다 [화면 글자, 읽는 말]
-const SAY_FIX = [['4, 8, 12, 16해째', '네 해째, 여덟 해째, 열두 해째, 열여섯 해째']];
+// '10이에요'는 '십이에요'로 읽혀 '12예요'와 소리가 같다 → 로마 숫자 X는 '열'로 (2026-11-28 검수)
+const SAY_FIX = [['4, 8, 12, 16해째', '네 해째, 여덟 해째, 열두 해째, 열여섯 해째'], ['엑스는 10이에요', '엑스는 열이에요'], ['X는 10이에요', 'X는 열이에요'],
+  // 수를 늘어놓고 끝나면 끝음이 올라가 묻는 말처럼 들렸다 → 말을 맺어 준다
+  ['1, 2, 3, 4가 한 번씩!', '1, 2, 3, 4가 한 번씩 들어가요!'], ['5, 10, 15… 5씩 뛰어요.', '5, 10, 15처럼 5씩 뛰어요.']];
 const speak = t => SAY_FIX.reduce((a, [f, r]) => a.split(f).join(r), t)
+  // 문장 끝이 '수, 수, 수.'로 끝나면 '…수예요.'로 맺는다 (끝음이 올라가지 않게)
+  .replace(/(\d+(?:, \d+){2,})\.?$/, (m, l) => `${l}${'013678'.includes(l[l.length - 1]) ? '이에요' : '예요'}.`)
   .replace(/(\d+)\.(\d+)/g, (_, i, d) => `${sino(+i)} 점 ${[...d].map(c => SINO[+c]).join(' ')}`)
   .replace(new RegExp(`(\\d+)\\s*(${COUNTER})(?![가-힣]*(?:기|하기))`, 'g'), (_, n, c) => `${native(+n)} ${c}`)
+  .replace(/✗/g, '엑스 표').replace(/○/g, '동그라미')
+  // 그림 글자(이모지)는 낱말로 읽거나 빼고, 가운뎃점은 쉼으로 (2026-11-28 검수)
+  .replace(/➕ ➖로/g, '더하기, 빼기 단추로').replace(/🔄 ↔️로/g, '돌리기, 뒤집기 단추로').replace(/✂️/g, '가위')
+  .replace(/[🍎🍑🍒🍌🍓🍇]/gu, e => ({ '🍎': '사과', '🍑': '복숭아', '🍒': '체리', '🍌': '바나나', '🍓': '딸기', '🍇': '포도' })[e])
+  .replace(/\s*(?:\p{Extended_Pictographic}|[➕➖↔])\uFE0F?\s*/gu, ' ').replace(/\s*·\s*/g, ', ').replace(/ {2,}/g, ' ').trim()
   .replace(/\s*×\s*/g, ' 곱하기 ')
   .replace(/\s*÷\s*/g, ' 나누기 ')
   .replace(/\s*\+\s*/g, ' 더하기 ')
-  .replace(/\s*\(([^)]+)\)(과|와|으로|로|은|는|이|가|을|를)?/g, (_, b, j) => `, 그러니까 ${b}${j ? josa(b, j) : ','}`)
+  // 2026-11-28 검수: 빼기 기호(−)와 등호(=)도 말로 읽는다 (13 − 5 → 13 빼기 5, 3 곱하기 2 = 6 → 3 곱하기 2는 6)
+  .replace(/(\d)\s*[−–]\s*(?=\d)/g, '$1 빼기 ')
+  .replace(/(\d)\s*=\s*/g, (_, d) => `${d}${'013678'.includes(d) ? '은' : '는'} `)
+  // 괄호 뒤에 조사가 아닌 글자(에·만 등)가 바로 붙으면 쉼표를 넣지 않는다 (5,에 → 5에)
+  .replace(/\s*\(([^)]+)\)(과|와|으로|로|은|는|이|가|을|를)?(?=([가-힣])?)/g, (_, b, j, nx) => `, 그러니까 ${b}${j ? josa(b, j) : nx ? '' : ','}`)
   .replace(/(^|[^A-Za-z])I(?![A-Za-z])/g, '$1아이').replace(/(^|[^A-Za-z])V(?![A-Za-z])/g, '$1브이').replace(/(^|[^A-Za-z])X(?![A-Za-z])/g, '$1엑스');
 const manPath = path.join(dir, 'manifest.json');
 const man = fs.existsSync(manPath) ? JSON.parse(fs.readFileSync(manPath, 'utf8')) : {};
 // 파일 이름에 목소리가 들어가므로, 목소리를 바꾸면 이름이 달라진 문장은 다시 만든다
 // 2026-11-27: 속도 0.9 → 1.0 (0.9에서는 낱말이 늘어지고 짧은 말이 빠지거나 문장 사이가 1초 넘게 쉬었다)
 const RATE = 1.0;
-const fname = t => crypto.createHash('sha256').update(voiceOf(t) + '|' + RATE + '|' + speak(t)).digest('hex').slice(0, 16) + '.m4a';
+// 2026-11-28: 소리 다듬기 v2 — 구글 쪽 볼륨 +8dB를 없애고(소리가 32767에 닿아 지직거렸다), 받은 소리를 우리가 크기 맞춤
+//   말소리 구간의 평균 크기를 -19dBFS로 맞추되 가장 큰 소리는 -1dBFS를 넘지 않게, 앞뒤 8ms 페이드, 48kHz AAC 96kbps
+//   (24kHz 그대로는 AAC가 64kbps보다 높게 안 된다: afconvert '!dat' 오류)
+//   v3: 문장 사이 쉼이 0.7초를 넘으면 0.55초로 줄인다(검수에서 '!' 뒤 1~1.5초씩 끊겨 들렸다)
+const AUDIO_V = 'v3', TARGET_DB = -19, PEAK_DB = -1, FADE_MS = 8, KBPS = 96, GAP_MAX = 0.7, GAP_TO = 0.55;
+const fname = t => crypto.createHash('sha256').update(voiceOf(t) + '|' + RATE + '|' + AUDIO_V + '|' + speak(t)).digest('hex').slice(0, 16) + '.m4a';
 const todo = [...texts].filter(t => !COUNT_WORDS.includes(t)).filter(t => man[t] !== fname(t) || !fs.existsSync(path.join(dir, man[t])));
 console.log(`문장 ${texts.size}개 중 만들 것 ${todo.length}개 (목소리 ${VOICE})`);
 if (process.argv.includes('--show')) for (const t of texts) if (speak(t) !== t) console.log(t, '\n  →', speak(t));
+if (process.argv.includes('--list')) { fs.writeFileSync(process.argv[process.argv.indexOf('--list') + 1], JSON.stringify([...texts].map(t => ({ t, say: speak(t), f: fname(t) })))); process.exit(0); }
 if (process.argv.includes('--dry')) process.exit(0);
 const synth = async (text, markup = false, voice = VOICE) => {
   const r = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(process.env.GOOGLE_TTS_API_KEY)}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(30000),
-    body: JSON.stringify({ input: markup ? { markup: text } : { text }, voice: { languageCode: 'ko-KR', name: voice }, audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 24000, speakingRate: RATE, volumeGainDb: 8 } }),
+    body: JSON.stringify({ input: markup ? { markup: text } : { text }, voice: { languageCode: 'ko-KR', name: voice }, audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 24000, speakingRate: RATE, volumeGainDb: 0 } }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`${r.status} ${(j.error && j.error.message || '').slice(0, 120)}`);
@@ -75,23 +96,48 @@ const synth = async (text, markup = false, voice = VOICE) => {
 const pcm = wav => { const d = wav.indexOf(Buffer.from('data')); return new Int16Array(wav.buffer.slice(wav.byteOffset + d + 8, wav.byteOffset + wav.length - ((wav.length - d - 8) % 2))); };
 const loud = (a, sr = 24000, win = 480, th = 700) => Array.from({ length: Math.floor(a.length / win) }, (_, i) => { let s = 0; for (let k = i * win; k < (i + 1) * win; k++) s += a[k] * a[k]; return Math.sqrt(s / win) > th; });
 const toWav = (a, sr = 24000) => { const b = Buffer.alloc(44 + a.length * 2); b.write('RIFF', 0); b.writeUInt32LE(36 + a.length * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(sr, 24); b.writeUInt32LE(sr * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(a.length * 2, 40); Buffer.from(a.buffer, a.byteOffset, a.length * 2).copy(b, 44); return b; };
-// 앞은 0.05초, 뒤는 0.15초만 남기고 무음을 잘라 m4a(AAC)로 저장한다
+// 크기 맞춤: 20ms 창 중 말소리 창(가장 큰 창의 10%보다 큰 곳)의 평균 크기를 TARGET_DB로, 가장 큰 소리는 PEAK_DB 아래로
+const norm = a => {
+  const win = 480, rms = []; let peak = 1;
+  for (let i = 0; i + win <= a.length; i += win) { let s = 0; for (let k = i; k < i + win; k++) s += a[k] * a[k]; rms.push(Math.sqrt(s / win)); }
+  for (const v of a) peak = Math.max(peak, Math.abs(v));
+  const top = Math.max(1, ...rms), act = rms.filter(r => r > top * 0.1), m = act.length ? Math.sqrt(act.reduce((x, r) => x + r * r, 0) / act.length) : top;
+  const g = Math.min(32767 * 10 ** (TARGET_DB / 20) / m, 32767 * 10 ** (PEAK_DB / 20) / peak);
+  return Int16Array.from(a, v => Math.round(v * g));
+};
+// 앞뒤 FADE_MS 페이드 (잘라 쓴 끝에서 '틱' 소리가 나지 않게)
+const fade = a => { const b = Int16Array.from(a), n = Math.min(Math.floor(24 * FADE_MS), Math.floor(b.length / 2)); for (let i = 0; i < n; i++) { const g = i / n; b[i] = Math.round(b[i] * g); b[b.length - 1 - i] = Math.round(b[b.length - 1 - i] * g); } return b; };
+// 앞은 0.05초, 뒤는 0.15초만 남기고 무음을 잘라 m4a(AAC)로 저장한다 (소리는 norm을 거친 것)
+// 긴 쉼 줄이기: 20ms 창이 조용한 구간이 GAP_MAX초보다 길면 가운데를 잘라 GAP_TO초로 (조용한 곳만 자르니 말소리는 그대로)
+const squeeze = a => {
+  const L = loud(a), first = L.indexOf(true), last = L.lastIndexOf(true), keep = [];
+  if (first < 0) return a;
+  let from = 0;
+  for (let i = first; i <= last; i++) {
+    if (L[i]) continue; let j = i; while (j <= last && !L[j]) j++;
+    if ((j - i) * 0.02 > GAP_MAX) { const cut0 = (i * 480) + Math.round(GAP_TO * 24000 / 2), cut1 = (j * 480) - Math.round(GAP_TO * 24000 / 2); keep.push(a.subarray(from, cut0)); from = cut1; }
+    i = j;
+  }
+  if (!keep.length) return a;
+  keep.push(a.subarray(from)); const out = new Int16Array(keep.reduce((n, k) => n + k.length, 0)); let o = 0; for (const k of keep) { out.set(k, o); o += k.length; } return out;
+};
 const save = (a, f) => {
+  a = squeeze(a);
   const L = loud(a), first = L.indexOf(true), last = L.lastIndexOf(true);
   const s0 = first < 0 ? 0 : Math.max(0, first * 480 - 1200), s1 = last < 0 ? a.length : Math.min(a.length, (last + 1) * 480 + 3600);
-  const tmp = path.join(dir, f + '.wav'); fs.writeFileSync(tmp, toWav(a.subarray(s0, s1)));
-  execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac', '-b', '64000', tmp, path.join(dir, f)]); fs.unlinkSync(tmp);
+  const tmp = path.join(dir, f + '.wav'); fs.writeFileSync(tmp, toWav(fade(a.subarray(s0, s1))));
+  execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac@48000', '-b', String(KBPS * 1000), '--src-complexity', 'bats', tmp, path.join(dir, f)]); fs.unlinkSync(tmp);
 };
 for (const t of todo) {
-  try { save(pcm(await synth(speak(t), false, voiceOf(t))), fname(t)); man[t] = fname(t); }
+  try { save(norm(pcm(await synth(speak(t), false, voiceOf(t)))), fname(t)); man[t] = fname(t); }
   catch (err) { console.log('실패', t, err.message); }
 }
 // 세는 낱말: '하나, 둘, … 열다섯.'을 한 번에 읽힌 뒤 쉼(0.12초 넘는 무음)마다 잘라 낱말 하나씩 저장한다
-const cntName = w => 'cnt-' + crypto.createHash('sha256').update(VOICE + '|' + RATE + '|pause2|' + COUNT_WORDS.join(',')).digest('hex').slice(0, 8) + '-' + COUNT_WORDS.indexOf(w) + '.m4a';
+const cntName = w => 'cnt-' + crypto.createHash('sha256').update(VOICE + '|' + RATE + '|' + AUDIO_V + '|pause2|' + COUNT_WORDS.join(',')).digest('hex').slice(0, 8) + '-' + COUNT_WORDS.indexOf(w) + '.m4a';
 if (COUNT_WORDS.some(w => man[w] !== cntName(w) || !fs.existsSync(path.join(dir, man[w])))) {
   // 소리 사이의 조용한 구간 중 가장 긴 14곳(낱말 수 − 1)에서 자른다
   // 낱말 사이에 긴 쉼([pause long])을 넣어 읽혀야 쉼표만 쓸 때처럼 낱말이 붙거나 한 낱말 안에서 갈라지지 않는다
-  const a = pcm(await synth(COUNT_WORDS.join(', [pause long] ') + '.', true)), L = loud(a, 24000, 240, 600), gaps = [];
+  const a = norm(pcm(await synth(COUNT_WORDS.join(', [pause long] ') + '.', true))), L = loud(a, 24000, 240, 600), gaps = [];
   // 0.06초보다 짧은 소리(숨소리·잡음)는 조용한 것으로 본다
   for (let i = 0; i < L.length;) { if (!L[i]) { i++; continue; } let j = i; while (j < L.length && L[j]) j++; if (j - i < 6) for (let k = i; k < j; k++) L[k] = false; i = j; }
   const first = L.indexOf(true), last = L.lastIndexOf(true);
