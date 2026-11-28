@@ -3,41 +3,41 @@
  * 주제 카드 하나 = 10분 놀이: ① 수학 이야기 → ② 개념 배우기(눌러 보고 옮겨 보기) → ③ 퍼즐(쉬움·보통·어려움·도전) → ④ 워크시트(화면·인쇄) → ⑤ 별과 천재 카드
  * 틀리면 정답을 바로 보여 주지 않는다: 1번 틀리면 힌트 한 줄, 2번 틀리면 그림 풀이. 시간 제한은 없다 */
 const MATH_GAMES = {
-  count: { icon: '🍎', title: '수 세기', stage: 'seed', c: '#ff8a65', hub: '그림을 세어 몇 개인지 골라요' },
-  big: { icon: '💯', title: '큰 수 생각 놀이', stage: 'seed', c: '#ffb74d', hub: '묶음·자릿값·뛰어 세기·크기 비교' },
-  shape: { icon: '🔷', title: '모양 찾기', stage: 'seed', c: '#4db6ac', hub: '세모·네모·동그라미를 찾아요' },
-  odd: { icon: '🧺', title: '다른 무리 찾기', stage: 'seed', c: '#ffb74d', hub: '같은 무리가 아닌 것을 골라요' },
-  pattern: { icon: '🔁', title: '다음에 올 것', stage: 'seed', c: '#9575cd', hub: '규칙을 찾아 빈칸을 채워요' },
-  blocks: { icon: '🧱', title: '쌓기나무', stage: 'seed', c: '#ffb74d', hub: '쌓기나무가 모두 몇 개일까' },
-  table: { icon: '📊', title: '그림 표 읽기', stage: 'seed', c: '#4db6ac', hub: '표를 보고 답해요' },
-  mental: { icon: '⚡', title: '빠른 머리셈', stage: 'sprout', c: '#64b5f6', hub: '더하기·빼기' },
-  magic: { icon: '✨', title: '마방진', stage: 'sprout', c: '#f06292', hub: '가로·세로·대각선 합이 모두 15' },
-  sudoku: { icon: '🔢', title: '4×4 스도쿠', stage: 'sprout', c: '#aed581', hub: '줄마다 1·2·3·4가 한 번씩' },
-  venn: { icon: '⭕', title: '벤 다이어그램', stage: 'sprout', c: '#f06292', hub: '두 동그라미에 나눠요' },
-  graph: { icon: '📈', title: '막대그래프', stage: 'sprout', c: '#64b5f6', hub: '그래프를 읽어요' },
-  path: { icon: '🗺️', title: '가장 짧은 길', stage: 'sprout', c: '#aed581', hub: '가장 짧은 길을 찾아요' },
-  same: { icon: '🧩', title: '똑같은 모양 찾기', stage: 'seed', c: '#4db6ac', hub: '돌리고 뒤집어도 같은 모양' },
-  fbox: { icon: '🎩', title: '마술 상자', stage: 'sprout', c: '#9575cd', hub: '넣으면 규칙대로 나와요' },
-  logic: { icon: '🔍', title: '누가 무엇을 가졌을까', stage: 'sprout', c: '#64b5f6', hub: '단서로 풀기·거꾸로 풀기' },
-  euler: { icon: '✏️', title: '한붓그리기', stage: 'sprout', c: '#aed581', hub: '연필을 떼지 않고 한 번에' },
-  match: { icon: '🔥', title: '성냥개비 생각 놀이', stage: 'sprout', c: '#ff8a65', hub: '막대 하나 옮겨 식 고치기' },
-  balance: { icon: '⚖️', title: '저울 맞추기', stage: 'tree', c: '#ffb74d', hub: '상자 안의 수 찾기' },
-  base: { icon: '🏛️', title: '다른 묶음으로 세기', stage: 'tree', c: '#f06292', hub: '5씩 묶기·로마 숫자' },
-  pento: { icon: '🟩', title: '펜토미노', stage: 'tree', c: '#4db6ac', hub: '빈칸에 맞는 조각 찾기' },
-  trc: { icon: '🔺', title: '세모와 동그라미', stage: 'tree', c: '#ff8a65', hub: '삼각형 이름·지름·세 각의 합' },
-  avg: { icon: '📏', title: '고르게 나누기', stage: 'tree', c: '#9575cd', hub: '똑같이 나누기·평균' },
-  split: { icon: '🌲', title: '수 쪼개기', stage: 'tree', c: '#aed581', hub: '곱셈 나무·소수' },
-  div: { icon: '🍬', title: '나눗셈', stage: 'tree', c: '#f06292', hub: '나눠 담기·나머지' },
-  mul: { icon: '✖️', title: '곱셈 생각 놀이', stage: 'tree', c: '#ff8a65', hub: '2~9단 곱셈' },
-  frac: { icon: '🍕', title: '분수 생각 놀이', stage: 'tree', c: '#4db6ac', hub: '색칠한 부분은 얼마일까' },
-  factor: { icon: '🍪', title: '약수·배수 생각 놀이', stage: 'tree', c: '#ffb74d', hub: '약수와 배수 고르기' },
-  angle: { icon: '📐', title: '각 생각 놀이', stage: 'tree', c: '#9575cd', hub: '예각·직각·둔각' },
-  poly: { icon: '🐝', title: '다각형 생각 놀이', stage: 'tree', c: '#64b5f6', hub: '이름과 변의 수' },
-  seq: { icon: '🐇', title: '수의 규칙 생각 놀이', stage: 'tree', c: '#aed581', hub: '다음에 올 수 찾기' },
-  cipher: { icon: '🗝️', title: '암호 풀기', stage: 'tree', c: '#9575cd', hub: '수를 글자로, 글자를 수로' },
-  masked: { icon: '🎭', title: '복면산', stage: 'tree', c: '#f06292', hub: '가려진 숫자 찾기' },
-  cases: { icon: '🎲', title: '경우의 수', stage: 'tree', c: '#ffb74d', hub: '빠짐없이 세기' },
-  area: { icon: '🟦', title: '넓이와 둘레', stage: 'tree', c: '#4db6ac', hub: '칸을 세어 넓이·둘레' },
+  count: { icon: '🍎', title: '수 세기', stage: 'seed', c: '#f4511e', hub: '그림을 세어 몇 개인지 골라요' },
+  big: { icon: '💯', title: '큰 수 생각 놀이', stage: 'seed', c: '#fb8c00', hub: '묶음·자릿값·뛰어 세기·크기 비교' },
+  shape: { icon: '🔷', title: '모양 찾기', stage: 'seed', c: '#00897b', hub: '세모·네모·동그라미를 찾아요' },
+  odd: { icon: '🧺', title: '다른 무리 찾기', stage: 'seed', c: '#fb8c00', hub: '같은 무리가 아닌 것을 골라요' },
+  pattern: { icon: '🔁', title: '다음에 올 것', stage: 'seed', c: '#5e35b1', hub: '규칙을 찾아 빈칸을 채워요' },
+  blocks: { icon: '🧱', title: '쌓기나무', stage: 'seed', c: '#fb8c00', hub: '쌓기나무가 모두 몇 개일까' },
+  table: { icon: '📊', title: '그림 표 읽기', stage: 'seed', c: '#00897b', hub: '표를 보고 답해요' },
+  mental: { icon: '⚡', title: '빠른 머리셈', stage: 'sprout', c: '#1e88e5', hub: '더하기·빼기' },
+  magic: { icon: '✨', title: '마방진', stage: 'sprout', c: '#d81b60', hub: '가로·세로·대각선 합이 모두 15' },
+  sudoku: { icon: '🔢', title: '4×4 스도쿠', stage: 'sprout', c: '#7cb342', hub: '줄마다 1·2·3·4가 한 번씩' },
+  venn: { icon: '⭕', title: '벤 다이어그램', stage: 'sprout', c: '#d81b60', hub: '두 동그라미에 나눠요' },
+  graph: { icon: '📈', title: '막대그래프', stage: 'sprout', c: '#1e88e5', hub: '그래프를 읽어요' },
+  path: { icon: '🗺️', title: '가장 짧은 길', stage: 'sprout', c: '#7cb342', hub: '가장 짧은 길을 찾아요' },
+  same: { icon: '🧩', title: '똑같은 모양 찾기', stage: 'seed', c: '#00897b', hub: '돌리고 뒤집어도 같은 모양' },
+  fbox: { icon: '🎩', title: '마술 상자', stage: 'sprout', c: '#5e35b1', hub: '넣으면 규칙대로 나와요' },
+  logic: { icon: '🔍', title: '누가 무엇을 가졌을까', stage: 'sprout', c: '#1e88e5', hub: '단서로 풀기·거꾸로 풀기' },
+  euler: { icon: '✏️', title: '한붓그리기', stage: 'sprout', c: '#7cb342', hub: '연필을 떼지 않고 한 번에' },
+  match: { icon: '🔥', title: '성냥개비 생각 놀이', stage: 'sprout', c: '#f4511e', hub: '막대 하나 옮겨 식 고치기' },
+  balance: { icon: '⚖️', title: '저울 맞추기', stage: 'tree', c: '#fb8c00', hub: '상자 안의 수 찾기' },
+  base: { icon: '🏛️', title: '다른 묶음으로 세기', stage: 'tree', c: '#d81b60', hub: '5씩 묶기·로마 숫자' },
+  pento: { icon: '🟩', title: '펜토미노', stage: 'tree', c: '#00897b', hub: '빈칸에 맞는 조각 찾기' },
+  trc: { icon: '🔺', title: '세모와 동그라미', stage: 'tree', c: '#f4511e', hub: '삼각형 이름·지름·세 각의 합' },
+  avg: { icon: '📏', title: '고르게 나누기', stage: 'tree', c: '#5e35b1', hub: '똑같이 나누기·평균' },
+  split: { icon: '🌲', title: '수 쪼개기', stage: 'tree', c: '#7cb342', hub: '곱셈 나무·소수' },
+  div: { icon: '🍬', title: '나눗셈', stage: 'tree', c: '#d81b60', hub: '나눠 담기·나머지' },
+  mul: { icon: '✖️', title: '곱셈 생각 놀이', stage: 'tree', c: '#f4511e', hub: '2~9단 곱셈' },
+  frac: { icon: '🍕', title: '분수 생각 놀이', stage: 'tree', c: '#00897b', hub: '색칠한 부분은 얼마일까' },
+  factor: { icon: '🍪', title: '약수·배수 생각 놀이', stage: 'tree', c: '#fb8c00', hub: '약수와 배수 고르기' },
+  angle: { icon: '📐', title: '각 생각 놀이', stage: 'tree', c: '#5e35b1', hub: '예각·직각·둔각' },
+  poly: { icon: '🐝', title: '다각형 생각 놀이', stage: 'tree', c: '#1e88e5', hub: '이름과 변의 수' },
+  seq: { icon: '🐇', title: '수의 규칙 생각 놀이', stage: 'tree', c: '#7cb342', hub: '다음에 올 수 찾기' },
+  cipher: { icon: '🗝️', title: '암호 풀기', stage: 'tree', c: '#5e35b1', hub: '수를 글자로, 글자를 수로' },
+  masked: { icon: '🎭', title: '복면산', stage: 'tree', c: '#d81b60', hub: '가려진 숫자 찾기' },
+  cases: { icon: '🎲', title: '경우의 수', stage: 'tree', c: '#fb8c00', hub: '빠짐없이 세기' },
+  area: { icon: '🟦', title: '넓이와 둘레', stage: 'tree', c: '#00897b', hub: '칸을 세어 넓이·둘레' },
 };
 const MATH_LEVELS = [['🌱', '쉬움'], ['🌿', '보통'], ['💪', '어려움'], ['🔥', '도전']];
 // 새싹스쿨 그림: 놀이 아이콘(PICS.i['math-…'])과 세기·규칙 스티커(PICS.x['m'+이모지]). 그림이 없으면 이모지
@@ -102,7 +102,7 @@ const MathGen = (() => {
     sq: ['네모', '<rect x="12" y="12" width="76" height="76" rx="4"/>', 4],
     circ: ['동그라미', '<circle cx="50" cy="50" r="42"/>', 0],
   };
-  const COLORS = ['#ff8a65', '#4db6ac', '#9575cd', '#64b5f6', '#f06292', '#ffd54f'];
+  const COLORS = ['#f4511e', '#00897b', '#5e35b1', '#1e88e5', '#d81b60', '#fbc02d'];
   const svg = (k, col, rot = 0) => `<svg viewBox="0 0 100 100" class="m-shape" aria-label="${SHAPES[k][0]}"><g fill="${col}" stroke="#3a2d4f" stroke-width="5" transform="rotate(${rot} 50 50)">${SHAPES[k][1]}</g></svg>`;
   // 나무 단계 그림: 분수 원(색칠 n/d), 각(두 선과 호), 정다각형
   const KN = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구', '십'];
@@ -111,7 +111,7 @@ const MathGen = (() => {
   const pie = (n, d, cls = 'm-pie') => {
     const P = a => [50 + 44 * Math.cos(a), 50 + 44 * Math.sin(a)].map(x => x.toFixed(2)).join(' ');
     let g = '';
-    for (let k = 0; k < d; k++) { const a0 = k / d * 2 * Math.PI - Math.PI / 2, a1 = (k + 1) / d * 2 * Math.PI - Math.PI / 2; g += `<path d="M50 50 L${P(a0)} A44 44 0 0 1 ${P(a1)} Z" fill="${k < n ? '#ff8a65' : '#fff8ec'}"/>`; }
+    for (let k = 0; k < d; k++) { const a0 = k / d * 2 * Math.PI - Math.PI / 2, a1 = (k + 1) / d * 2 * Math.PI - Math.PI / 2; g += `<path d="M50 50 L${P(a0)} A44 44 0 0 1 ${P(a1)} Z" fill="${k < n ? '#f4511e' : '#fff8ec'}"/>`; }
     return `<svg viewBox="0 0 100 100" class="${cls}" aria-label="${d}조각 중 ${n}조각"><g stroke="#3a2d4f" stroke-width="3" stroke-linejoin="round">${g}</g></svg>`;
   };
   const angSvg = (deg, flip = 0) => {
@@ -119,7 +119,7 @@ const MathGen = (() => {
     const mark = deg === 90 ? '<path d="M57 82 V70 H45" fill="none" stroke="#ff7043" stroke-width="3"/>' : `<path d="M61 82 A16 16 0 0 0 ${ax.toFixed(1)} ${ay.toFixed(1)}" fill="none" stroke="#ff7043" stroke-width="3"/>`;
     return `<svg viewBox="-12 12 124 78" class="m-ang" aria-label="${deg}도 각"><g ${flip ? 'transform="translate(100 0) scale(-1 1)"' : ''}>${mark}<g stroke="currentColor" stroke-width="5" stroke-linecap="round"><line x1="45" y1="82" x2="104" y2="82"/><line x1="45" y1="82" x2="${X.toFixed(1)}" y2="${Y.toFixed(1)}"/></g><circle cx="45" cy="82" r="4" fill="currentColor"/></g></svg>`;
   };
-  const polySvg = (n, col = '#4db6ac', rot = 0) => {
+  const polySvg = (n, col = '#00897b', rot = 0) => {
     if (n === 4) rot += 45; // 네모는 반듯하게 (마름모로 보이지 않게)
     const pts = Array.from({ length: n }, (_, k) => { const a = (k / n * 360 - 90 + rot) * Math.PI / 180; return `${(50 + 42 * Math.cos(a)).toFixed(1)},${(52 + 42 * Math.sin(a)).toFixed(1)}`; }).join(' ');
     return `<svg viewBox="0 0 100 100" class="m-shape m-poly" aria-label="${POLY[n]}"><polygon points="${pts}" fill="${col}" stroke="#3a2d4f" stroke-width="5" stroke-linejoin="round"/></svg>`;
@@ -135,9 +135,9 @@ const MathGen = (() => {
       for (let z = 0; z < h[r][x]; z++) cubes.push([x, y, z]);
     }
     cubes.sort((a, b) => b[1] - a[1] || a[0] - b[0] || a[2] - b[2]);
-    const draw = ([x, y, z]) => `<polygon ${ST} fill="#ffb74d" points="${pts([P(x, y, z), P(x + 1, y, z), P(x + 1, y, z + 1), P(x, y, z + 1)])}"/>`
-      + `<polygon ${ST} fill="#ff8a65" points="${pts([P(x + 1, y, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x + 1, y, z + 1)])}"/>`
-      + `<polygon ${ST} fill="#ffe082" points="${pts([P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1)])}"/>`;
+    const draw = ([x, y, z]) => `<polygon ${ST} fill="#fb8c00" points="${pts([P(x, y, z), P(x + 1, y, z), P(x + 1, y, z + 1), P(x, y, z + 1)])}"/>`
+      + `<polygon ${ST} fill="#f4511e" points="${pts([P(x + 1, y, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x + 1, y, z + 1)])}"/>`
+      + `<polygon ${ST} fill="#ffca28" points="${pts([P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1)])}"/>`;
     const maxH = Math.max(1, ...h.flat()), w = X * s + Y * d + 8, top = maxH * s + Y * d + 4;
     return `<svg viewBox="-4 ${(-top).toFixed(1)} ${w.toFixed(1)} ${(top + 6).toFixed(1)}" class="m-blocks" style="width:${Math.round(w * 1.5)}px" aria-label="쌓기나무 ${h.flat().reduce((a, b) => a + b, 0)}개">${floor.join('')}${cubes.map(draw).join('')}</svg>`;
   };
@@ -158,16 +158,16 @@ const MathGen = (() => {
   const vName = (r, A, B) => ({ a: `${A}에만`, ab: '두 곳 모두 (겹친 곳)', b: `${COLN[B]}에만`, o: '둘 다 아님 (바깥)' })[r];
   const vennSvg = (A, B, placed = [], hi = null) => {
     const SL = { a: [[78, 92], [78, 132], [102, 62]], ab: [[160, 86], [160, 128]], b: [[242, 92], [242, 132], [218, 62]], o: [[22, 40], [298, 40], [22, 178], [298, 178]] }, used = { a: 0, ab: 0, b: 0, o: 0 };
-    const items = placed.map(({ e, r }) => { const [x, y] = SL[r][used[r]++ % SL[r].length]; return `${r === hi ? `<circle cx="${x}" cy="${y - 7}" r="17" fill="#ffd54f" opacity=".8"/>` : ''}<text x="${x}" y="${y}" font-size="28" text-anchor="middle">${e}</text>`; }).join('');
+    const items = placed.map(({ e, r }) => { const [x, y] = SL[r][used[r]++ % SL[r].length]; return `${r === hi ? `<circle cx="${x}" cy="${y - 7}" r="17" fill="#fbc02d" opacity=".8"/>` : ''}<text x="${x}" y="${y}" font-size="28" text-anchor="middle">${e}</text>`; }).join('');
     return `<svg viewBox="0 0 320 210" class="m-venn" aria-label="벤 다이어그램: ${A}, ${COLN[B]}"><rect x="2" y="2" width="316" height="206" rx="14" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="5 4"/>
-      <circle cx="120" cy="108" r="80" fill="#64b5f6" fill-opacity=".22" stroke="#1e88e5" stroke-width="3"/><circle cx="200" cy="108" r="80" fill="#f06292" fill-opacity=".22" stroke="#d81b60" stroke-width="3"/>
+      <circle cx="120" cy="108" r="80" fill="#1e88e5" fill-opacity=".22" stroke="#1e88e5" stroke-width="3"/><circle cx="200" cy="108" r="80" fill="#d81b60" fill-opacity=".22" stroke="#d81b60" stroke-width="3"/>
       <text x="78" y="26" font-size="15" font-weight="700" fill="#1e88e5" text-anchor="middle">${A}</text><text x="242" y="26" font-size="15" font-weight="700" fill="#d81b60" text-anchor="middle">${COLN[B]}</text>${items}</svg>`;
   };
   // 막대그래프: rows = [[이모지, 수]], hi = 읽는 줄을 보여 줄 막대
   const barSvg = (rows, hi = [], title = '') => {
     const n = rows.length, top = Math.max(5, ...rows.map(r => r[1])), W = 56 * n + 46, ph = 150, u = ph / top, base = ph + 30;
     const ticks = Array.from({ length: top + 1 }, (_, k) => `<line x1="34" x2="${W - 6}" y1="${base - k * u}" y2="${base - k * u}" stroke="currentColor" stroke-opacity="${k ? .15 : .6}"/><text x="28" y="${base - k * u + 4}" font-size="11" text-anchor="end" fill="currentColor">${k}</text>`).join('');
-    const COLS = ['#ff8a65', '#4db6ac', '#9575cd', '#ffb74d'];
+    const COLS = ['#f4511e', '#00897b', '#5e35b1', '#fb8c00'];
     const bars = rows.map(([e, v], i) => { const x = 46 + i * 56; return `<rect x="${x}" y="${base - v * u}" width="36" height="${v * u}" rx="4" fill="${COLS[i % 4]}" stroke="#3a2d4f" stroke-width="2"/>`
       + (hi.includes(i) ? `<line x1="34" x2="${x}" y1="${base - v * u}" y2="${base - v * u}" stroke="#e53935" stroke-width="2.5" stroke-dasharray="5 3"/><text x="${x + 18}" y="${base - v * u - 6}" font-size="15" font-weight="700" fill="#e53935" text-anchor="middle">${v}</text>` : '')
       + `<text x="${x + 18}" y="${base + 24}" font-size="22" text-anchor="middle">${e}</text>`; }).join('');
@@ -186,7 +186,7 @@ const MathGen = (() => {
   const pathSvg = ({ W, H, s, g, walls = [], routes = [], nums = {} }) => {
     const C = 44, cells = [], marks = [];
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const k = x + ',' + y;
-      cells.push(`<rect x="${x * C + 2}" y="${y * C + 2}" width="${C - 4}" height="${C - 4}" rx="7" fill="${walls.includes(k) ? '#c5e1a5' : '#fffaf0'}" stroke="#bcaaa4" stroke-width="1.5"/>`);
+      cells.push(`<rect x="${x * C + 2}" y="${y * C + 2}" width="${C - 4}" height="${C - 4}" rx="7" fill="${walls.includes(k) ? '#9ccc65' : '#fffaf0'}" stroke="#bcaaa4" stroke-width="1.5"/>`);
       const t = x === s[0] && y === s[1] ? '🏠' : x === g[0] && y === g[1] ? '🏫' : walls.includes(k) ? '🌳' : '';
       if (t) marks.push(`<text x="${x * C + C / 2}" y="${y * C + C / 2 + 9}" font-size="26" text-anchor="middle">${t}</text>`);
       else if (k in nums) marks.push(`<text x="${x * C + C / 2}" y="${y * C + C / 2 + 6}" font-size="16" font-weight="700" text-anchor="middle" fill="#6d4c41">${nums[k]}</text>`); }
@@ -212,7 +212,7 @@ const MathGen = (() => {
   // 칸 모양: cells = ['x,y'], nums = 칸에 번호, edge = 둘레 선을 빨갛게
   const cellsSvg = ({ W, H, cells, nums = false, edge = false }) => {
     const C = 30, has = (x, y) => cells.includes(x + ',' + y), out = [];
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) out.push(`<rect x="${x * C}" y="${y * C}" width="${C}" height="${C}" fill="${has(x, y) ? '#81d4fa' : '#fffaf0'}" stroke="#b0bec5" stroke-width="1"/>`);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) out.push(`<rect x="${x * C}" y="${y * C}" width="${C}" height="${C}" fill="${has(x, y) ? '#039be5' : '#fffaf0'}" stroke="#b0bec5" stroke-width="1"/>`);
     if (nums) cells.forEach((k, i) => { const [x, y] = k.split(',').map(Number); out.push(`<text x="${x * C + C / 2}" y="${y * C + C / 2 + 5}" font-size="13" font-weight="700" text-anchor="middle" fill="#0d47a1">${i + 1}</text>`); });
     const lines = [];
     for (const k of cells) { const [x, y] = k.split(',').map(Number);
@@ -268,7 +268,7 @@ const MathGen = (() => {
   const pVars = (c, flip) => { const out = new Set(); let a = pNorm(c); for (let i = 0; i < 4; i++) { out.add(pKey(a)); if (flip) out.add(pKey(pFlip(a))); a = pRot(a); } return out; };
   const pGrow = n => { const c = [[0, 0]]; while (c.length < n) { const [x, y] = c[R(c.length)], [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][R(4)]; if (Math.abs(x + dx) < 3 && Math.abs(y + dy) < 3 && !c.some(p => p[0] === x + dx && p[1] === y + dy)) c.push([x + dx, y + dy]); } return pNorm(c); };
   const pScale = (c, k) => pNorm(c.flatMap(([x, y]) => Array.from({ length: k * k }, (_, i) => [x * k + i % k, y * k + Math.floor(i / k)])));
-  const pSvg = (c, col = '#4db6ac', s = 18) => { c = pNorm(c); const W = Math.max(...c.map(p => p[0])) + 1, H = Math.max(...c.map(p => p[1])) + 1;
+  const pSvg = (c, col = '#00897b', s = 18) => { c = pNorm(c); const W = Math.max(...c.map(p => p[0])) + 1, H = Math.max(...c.map(p => p[1])) + 1;
     return `<svg viewBox="-2 -2 ${W * s + 4} ${H * s + 4}" class="m-poly-shape" style="width:${W * s + 4}px" aria-label="칸 ${c.length}개 모양">${c.map(([x, y]) => `<rect x="${x * s}" y="${y * s}" width="${s}" height="${s}" fill="${col}" stroke="#3a2d4f" stroke-width="2"/>`).join('')}</svg>`; };
   // 논리 표: 사람 × 물건, sol[i] = i번째 사람이 가진 물건 칸, show면 ○·✗를 채운다
   const FR = [['🐶', '강아지'], ['🐱', '고양이'], ['🐰', '토끼']], IT = [['🍎', '사과'], ['🍌', '바나나'], ['🍓', '딸기']];
@@ -355,7 +355,7 @@ const MathGen = (() => {
     const lab = sides ? [[0, 1], [1, 2], [2, 0]].map(([a, b], k) => { const [x, y] = mid(a, b); return `<text x="${x}" y="${y}" dy="${y > 60 ? 14 : -6}" font-size="12" font-weight="700" text-anchor="middle" fill="#e53935">${sides[k]}</text>`; }).join('') : '';
     const ang = angles ? P.map(([x, y], k) => `<text x="${x}" y="${y}" dx="${x < 40 ? 14 : x > 80 ? -16 : 0}" dy="${y < 30 ? 22 : -6}" font-size="11" text-anchor="middle" fill="#7e57c2">${angles[k]}</text>`).join('') : '';
     const sq = right >= 0 ? (() => { const [x, y] = P[right]; return `<rect x="${x}" y="${y - 10}" width="10" height="10" fill="none" stroke="#ff7043" stroke-width="2"/>`; })() : '';
-    return `<svg viewBox="-12 -12 144 124" class="m-tri" aria-label="세모"><polygon points="${pts}" fill="#ffe0b2" stroke="#3a2d4f" stroke-width="3" stroke-linejoin="round"/>${sq}${lab}${ang}</svg>`; };
+    return `<svg viewBox="-12 -12 144 124" class="m-tri" aria-label="세모"><polygon points="${pts}" fill="#ffa726" stroke="#3a2d4f" stroke-width="3" stroke-linejoin="round"/>${sq}${lab}${ang}</svg>`; };
   const TRIS = { 정삼각형: [[60, 8], [112, 98], [8, 98]], 이등변: [[60, 4], [96, 98], [24, 98]], 부등변: [[20, 20], [118, 98], [6, 98]], 직각: [[8, 8], [8, 98], [100, 98]], 둔각: [[30, 70], [122, 98], [2, 98]], 예각: [[70, 6], [108, 98], [18, 98]] };
   // 동그라미: 반지름·지름, 직선과 만나는 점
   const circSvg = ({ r = null, d = null, line = null } = {}) => `<svg viewBox="0 0 120 120" class="m-circ" aria-label="동그라미"><circle cx="60" cy="60" r="44" fill="#e3f2fd" stroke="#1e88e5" stroke-width="3"/><circle cx="60" cy="60" r="3" fill="#3a2d4f"/>
@@ -383,7 +383,7 @@ const MathGen = (() => {
       const rotOf = k => LV === 0 ? 0 : k === 'tri' ? [0, 15, -15, 180][R(4)] : R(LV >= 2 ? 45 : 30);
       const opts = shuffle(LV === 3 ? [...keys, R(2) ? 'p5' : 'p6'] : keys).map((k, i) => ({ k, html: SHAPES[k] ? svg(k, cols[i], rotOf(k)) : polySvg(k === 'p5' ? 5 : 6, cols[i], R(40)) })), say = (LV >= 2 ? MATH_SAY.shapeHard : MATH_SAY.shape)[want];
       return { ask: say, say, show: '', opts: opts.map(o => o.k), labels: Object.fromEntries(opts.map(o => [o.k, o.html])), ans: want, hint: H.shape,
-        explain: `<div class="m-viz m-shapes">${svg(want, '#ffd54f')}</div><p class="m-eq-num">${SHAPES[want][0]} · 뾰족한 곳 ${SHAPES[want][2]}군데</p>` };
+        explain: `<div class="m-viz m-shapes">${svg(want, '#fbc02d')}</div><p class="m-eq-num">${SHAPES[want][0]} · 뾰족한 곳 ${SHAPES[want][2]}군데</p>` };
     },
     pattern() {
       const units = [[['A', 'B']], [['A', 'A', 'B'], ['A', 'B', 'C'], ['A', 'B', 'B']], [['A', 'B', 'B', 'C'], ['A', 'A', 'B', 'B'], ['A', 'B', 'C', 'C']], [['A', 'B', 'C', 'B'], ['A', 'A', 'B', 'C'], ['A', 'B', 'B', 'C', 'C'], ['A', 'B', 'A', 'C', 'C']]][LV];
@@ -465,7 +465,7 @@ const MathGen = (() => {
     // 다각형: 이름 또는 변의 수
     poly() {
       const ns = [[3, 4, 5], [3, 4, 5, 6, 8], [3, 4, 5, 6, 7, 8], [5, 6, 7, 8]][LV], n = ns[R(ns.length)], show = `<div class="m-viz">${polySvg(n, COLORS[R(6)], LV ? R(60) : 0)}</div>`;
-      const explain = `<div class="m-viz">${polySvg(n, '#ffd54f')}</div><p class="m-eq-num">변 ${n}개 → ${POLY[n]}</p>`;
+      const explain = `<div class="m-viz">${polySvg(n, '#fbc02d')}</div><p class="m-eq-num">변 ${n}개 → ${POLY[n]}</p>`;
       if (R(2)) { const o = shuffle([n, ...shuffle(ns.filter(v => v !== n)).slice(0, 2)]); return { ask: '이 도형의 이름은 무엇일까요?', show, opts: o.map(v => POLY[v]), ans: POLY[n], hint: H.poly, explain }; }
       return { ask: '변은 모두 몇 개일까요?', show, opts: shuffle([n, ...shuffle([3, 4, 5, 6, 7, 8].filter(v => v !== n)).slice(0, 2)]), ans: n, hint: H.poly, explain };
     },
@@ -768,7 +768,7 @@ const MathGen = (() => {
     },
     // 똑같은 모양(합동과 닮음): 쉬움 그대로, 보통 돌린 모양, 어려움 뒤집은 모양(한 칸 다른 함정), 도전 크기만 다른 닮은 모양
     same() {
-      const n = LV >= 2 ? 5 : 4, base = pGrow(n), vars = pVars(base, true), cols = shuffle(['#4db6ac', '#ff8a65', '#9575cd', '#64b5f6', '#f06292']);
+      const n = LV >= 2 ? 5 : 4, base = pGrow(n), vars = pVars(base, true), cols = shuffle(['#00897b', '#f4511e', '#5e35b1', '#1e88e5', '#d81b60']);
       let right = base;
       if (LV === 1) for (let i = 0; i < 4 && pKey(right) === pKey(base); i++) right = pRot(right), right = R(2) ? pRot(right) : right;
       if (LV === 2) { right = pFlip(base); for (let i = R(4); i--;) right = pRot(right); }
@@ -785,8 +785,8 @@ const MathGen = (() => {
       }
       const opts = shuffle(['a', 'b', 'c']), shapes = { a: right, b: wrong[0], c: wrong[1] };
       const ask = ['똑같은 모양을 골라요', '돌리면 똑같아지는 모양을 골라요', '돌리거나 뒤집으면 똑같아지는 모양을 골라요', '크기만 다르고 모양이 똑같은 것을 골라요'][LV];
-      return { ask, say: ask, show: `<div class="m-viz">${pSvg(base, '#ffd54f', LV === 3 ? 14 : 22)}</div>`, opts, labels: Object.fromEntries(opts.map((k, i) => [k, pSvg(shapes[k], cols[i], LV === 3 ? 12 : 18)])), ans: 'a', hint: H.same,
-        explain: `<div class="m-viz m-b10cmp"><figure>${pSvg(base, '#ffd54f', 18)}<figcaption>처음 모양</figcaption></figure><figure>${pSvg(right, '#4db6ac', LV === 3 ? 12 : 18)}<figcaption>${['그대로', '돌렸어요', '뒤집었어요', '두 배로 키웠어요'][LV]}</figcaption></figure></div>` };
+      return { ask, say: ask, show: `<div class="m-viz">${pSvg(base, '#fbc02d', LV === 3 ? 14 : 22)}</div>`, opts, labels: Object.fromEntries(opts.map((k, i) => [k, pSvg(shapes[k], cols[i], LV === 3 ? 12 : 18)])), ans: 'a', hint: H.same,
+        explain: `<div class="m-viz m-b10cmp"><figure>${pSvg(base, '#fbc02d', 18)}<figcaption>처음 모양</figcaption></figure><figure>${pSvg(right, '#00897b', LV === 3 ? 12 : 18)}<figcaption>${['그대로', '돌렸어요', '뒤집었어요', '두 배로 키웠어요'][LV]}</figcaption></figure></div>` };
     },
     // 누가 무엇을 가졌을까(논리)·거꾸로 풀기: 쉬움 둘, 보통 셋(가졌다·안 가졌다), 어려움 셋(안 가졌다만, 표 그려 풀기), 도전 거꾸로 풀기
     logic() {
@@ -892,10 +892,10 @@ const MathGen = (() => {
       for (let t = 0; wrong.length < 2 && t < 400; t++) { const w = pGrow(n); if (pVars(hole, true).has(pKey(w)) || wrong.some(v => pVars(v, true).has(pKey(w)))) continue; let o = w; for (let i = R(4); i--;) o = pRot(o); wrong.push(o); }
       // 세 칸 조각처럼 모양이 몇 가지 없으면, 칸 수가 다른 조각으로 채운다(칸 수 세기 연습)
       while (wrong.length < 2) wrong.push(pGrow(n + (wrong.length ? -1 : 1)));
-      const keys = shuffle(['a', 'b', 'c']), shapes = { [keys[0]]: right, [keys[1]]: wrong[0], [keys[2]]: wrong[1] }, cols = ['#4db6ac', '#ff8a65', '#9575cd'];
+      const keys = shuffle(['a', 'b', 'c']), shapes = { [keys[0]]: right, [keys[1]]: wrong[0], [keys[2]]: wrong[1] }, cols = ['#00897b', '#f4511e', '#5e35b1'];
       return { ask: '빈칸에 딱 맞는 조각을 골라요', say: '빈칸에 딱 맞는 조각을 골라요', show: `<div class="m-viz">${holeBoard(hole, n > 4 ? 6 : 5, 4)}</div>${LV >= 2 ? '<p class="fine">돌리거나 뒤집어서 넣어도 돼요</p>' : LV ? '<p class="fine">돌려서 넣어도 돼요</p>' : ''}`, opts: ['a', 'b', 'c'],
         labels: Object.fromEntries(['a', 'b', 'c'].map((k, i) => [k, pSvg(shapes[k], cols[i], 16)])), ans: keys[0], hint: H.pento,
-        explain: `<div class="m-viz m-b10cmp"><figure>${holeBoard(hole, n > 4 ? 6 : 5, 4, 18)}<figcaption>빈칸</figcaption></figure><figure>${pSvg(hole, '#4db6ac', 18)}<figcaption>돌리거나 뒤집어 맞춘 조각</figcaption></figure></div>` };
+        explain: `<div class="m-viz m-b10cmp"><figure>${holeBoard(hole, n > 4 ? 6 : 5, 4, 18)}<figcaption>빈칸</figcaption></figure><figure>${pSvg(hole, '#00897b', 18)}<figcaption>돌리거나 뒤집어 맞춘 조각</figcaption></figure></div>` };
     },
     // 세모와 동그라미 더 알기: 쉬움 변으로 세모 이름, 보통 각으로 세모 이름, 어려움 반지름·지름, 도전 세 각의 합·원과 직선이 만나는 점
     trc() {
@@ -1258,7 +1258,7 @@ function mathViz(v) {
   if (!v) return '';
   const row = (e, n, cls = '') => Array.from({ length: n }, () => `<span class="${cls}">${mPic(e)}</span>`).join('');
   const SH = { tri: '<polygon points="50,8 94,90 6,90"/>', sq: '<rect x="12" y="12" width="76" height="76" rx="4"/>', circ: '<circle cx="50" cy="50" r="42"/>' };
-  const COL = { tri: '#ff8a65', sq: '#64b5f6', circ: '#ffd54f' };
+  const COL = { tri: '#f4511e', sq: '#1e88e5', circ: '#fbc02d' };
   const sh = k => `<svg viewBox="0 0 100 100" class="m-shape"><g fill="${COL[k]}" stroke="#3a2d4f" stroke-width="5">${SH[k]}</g></svg>`;
   switch (v.k) {
     case 'count': return `<div class="m-viz m-count">${row(v.e, v.n)}</div>`;
@@ -1271,7 +1271,7 @@ function mathViz(v) {
     case 'frac': return `<div class="m-viz">${MathGen.pie(v.n, v.d)}</div><p class="m-eq-num">${MathGen.fracTxt(v.n + '/' + v.d)}</p>`;
     case 'nums': return `<div class="m-viz m-nums">${Array.from({ length: v.to }, (_, k) => `<span class="${v.hi.includes(k + 1) ? 'hi' : ''}">${k + 1}</span>`).join('')}</div>`;
     case 'angle': return v.all ? `<div class="m-viz m-angs">${[['예각', 45], ['직각', 90], ['둔각', 135]].map(([t, d]) => `<figure>${MathGen.angSvg(d)}<figcaption>${t}</figcaption></figure>`).join('')}</div>` : `<div class="m-viz">${MathGen.angSvg(v.deg)}</div>`;
-    case 'poly': return `<div class="m-viz m-angs">${v.s.map((n, k) => `<figure>${MathGen.polySvg(n, ['#4db6ac', '#ff8a65', '#9575cd', '#64b5f6'][k % 4])}<figcaption>${MathGen.POLY[n]}</figcaption></figure>`).join('')}</div>`;
+    case 'poly': return `<div class="m-viz m-angs">${v.s.map((n, k) => `<figure>${MathGen.polySvg(n, ['#00897b', '#f4511e', '#5e35b1', '#1e88e5'][k % 4])}<figcaption>${MathGen.POLY[n]}</figcaption></figure>`).join('')}</div>`;
     case 'grid': return `<div class="m-grid show ${v.n === 3 ? 'magic' : 'sudoku'}" style="--n:${v.n}">${v.vals.map(x => `<span class="m-cell fixed">${x || ''}</span>`).join('')}</div>`;
     case 'blocks': return `<div class="m-viz">${MathGen.blocksSvg(v.h)}</div>`;
     case 'table': return `<div class="m-viz">${MathGen.tableHtml(v.rows, v.mode || 'both')}</div>`;
@@ -1425,13 +1425,13 @@ function mathLesson(el, L) {
     } else if (st.type === 'corners') {
       // 뾰족한 곳(꼭짓점) 누르기
       const P = st.s === 'tri' ? [[50, 8], [94, 90], [6, 90]] : [[12, 12], [88, 12], [88, 88], [12, 88]];
-      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz"><svg viewBox="-12 -12 124 124" class="m-corners" aria-label="뾰족한 곳 누르기"><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="${st.s === 'tri' ? '#ff8a65' : '#64b5f6'}" stroke="#3a2d4f" stroke-width="5" stroke-linejoin="round"/>${P.map(([x, y], k) => `<g class="cn" data-k="${k}" role="button" tabindex="0"><circle cx="${x}" cy="${y}" r="13" fill="#fff" stroke="#3a2d4f" stroke-width="3"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="700"></text></g>`).join('')}</svg></div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz"><svg viewBox="-12 -12 124 124" class="m-corners" aria-label="뾰족한 곳 누르기"><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="${st.s === 'tri' ? '#f4511e' : '#1e88e5'}" stroke="#3a2d4f" stroke-width="5" stroke-linejoin="round"/>${P.map(([x, y], k) => `<g class="cn" data-k="${k}" role="button" tabindex="0"><circle cx="${x}" cy="${y}" r="13" fill="#fff" stroke="#3a2d4f" stroke-width="3"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="700"></text></g>`).join('')}</svg></div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
       KoSpeech.say(st.text); KoSpeech.preload(MATH_NATIVE.slice(0, st.n));
       const nb = $('[data-next]', area), out = $('.m-tapn', area); let c = 0; nb.onclick = next;
       $$('.cn', area).forEach(g => g.onclick = g.onkeydown = e => {
         if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
         if (g.classList.contains('on')) return;
-        c++; g.classList.add('on'); g.querySelector('text').textContent = c; g.querySelector('circle').setAttribute('fill', '#ffd54f'); Speech.sfx.tap(); KoSpeech.say(MATH_NATIVE[c - 1]); out.textContent = c;
+        c++; g.classList.add('on'); g.querySelector('text').textContent = c; g.querySelector('circle').setAttribute('fill', '#fbc02d'); Speech.sfx.tap(); KoSpeech.say(MATH_NATIVE[c - 1]); out.textContent = c;
         if (c === P.length) { out.textContent = `뾰족한 곳 ${c}군데!`; ready(nb, `뾰족한 곳이 ${MATH_CNT[c - 1]} 군데예요!`); }
       });
     } else if (st.type === 'sort') {
@@ -1675,11 +1675,11 @@ function mathLesson(el, L) {
       // 돌리고 뒤집기: 단추로 모양을 돌리거나 뒤집어 처음 모양과 똑같이 맞춘다
       let cur = MathGen.pNorm(st.start);
       const goal = MathGen.pKey(st.goal);
-      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-b10cmp"><figure>${st.board ? MathGen.holeBoard(st.goal, 5, 4, 22) : MathGen.pSvg(st.goal, '#ffd54f', 22)}<figcaption>${st.board ? '이 빈칸에 맞게' : '이 모양처럼'}</figcaption></figure><figure class="m-turn-view"></figure></div>
+      area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-b10cmp"><figure>${st.board ? MathGen.holeBoard(st.goal, 5, 4, 22) : MathGen.pSvg(st.goal, '#fbc02d', 22)}<figcaption>${st.board ? '이 빈칸에 맞게' : '이 모양처럼'}</figcaption></figure><figure class="m-turn-view"></figure></div>
         <div class="row-center"><button class="btn btn-ghost" data-rot>↻ 돌리기</button>${st.flip ? '<button class="btn btn-ghost" data-flip>⇋ 뒤집기</button>' : ''}</div><p class="m-eq-num m-tapn" aria-live="polite">&nbsp;</p>${nextBtn}`;
       KoSpeech.say(st.text);
       const nb = $('[data-next]', area), view = $('.m-turn-view', area), out = $('.m-tapn', area); nb.onclick = next;
-      const draw = () => { view.innerHTML = MathGen.pSvg(cur, '#4db6ac', 22); if (MathGen.pKey(cur) === goal) { out.textContent = '똑같아졌어요!'; ready(nb, MATH_SAY.sameShape); } else { out.textContent = ' '; nb.disabled = true; } };
+      const draw = () => { view.innerHTML = MathGen.pSvg(cur, '#00897b', 22); if (MathGen.pKey(cur) === goal) { out.textContent = '똑같아졌어요!'; ready(nb, MATH_SAY.sameShape); } else { out.textContent = ' '; nb.disabled = true; } };
       $('[data-rot]', area).onclick = () => { cur = MathGen.pRot(cur); Speech.sfx.tap(); draw(); };
       const fl = $('[data-flip]', area); if (fl) fl.onclick = () => { cur = MathGen.pFlip(cur); Speech.sfx.tap(); draw(); };
       draw();

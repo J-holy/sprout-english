@@ -46,7 +46,7 @@ function mathAct(el, t) {
 (() => {
   const S = 3, MAXH = 4;
   const front = h => Array.from({ length: S }, (_, x) => Math.max(...h.map(r => r[x])));
-  const frontSvg = (f, col = '#ffb74d') => {
+  const frontSvg = (f, col = '#fb8c00') => {
     const s = 22, H = Math.max(1, ...f);
     return `<svg viewBox="-2 -2 ${S * s + 4} ${H * s + 4}" class="m-front" style="width:${S * s * 1.6}px" aria-label="앞에서 본 모양 ${f.join(', ')}층">${f.map((n, x) => Array.from({ length: n }, (_, z) => `<rect x="${x * s}" y="${(H - 1 - z) * s}" width="${s}" height="${s}" fill="${col}" stroke="#3a2d4f" stroke-width="2"/>`).join('')).join('')}<line x1="-2" y1="${H * s}" x2="${S * s + 2}" y2="${H * s}" stroke="currentColor" stroke-width="2"/></svg>`;
   };
@@ -64,7 +64,7 @@ function mathAct(el, t) {
     mount(box, m, api) {
       const h = Array.from({ length: S }, () => Array(S).fill(0));
       let rm = false;
-      box.innerHTML = `${m.target ? `<div class="m-act-goal"><b>이렇게</b>${MathGen.blocksSvg(m.target, 22)}</div>` : ''}${m.front ? `<div class="m-act-goal"><b>앞에서 본 모양</b>${frontSvg(m.front, '#b39ddb')}</div>` : ''}
+      box.innerHTML = `${m.target ? `<div class="m-act-goal"><b>이렇게</b>${MathGen.blocksSvg(m.target, 22)}</div>` : ''}${m.front ? `<div class="m-act-goal"><b>앞에서 본 모양</b>${frontSvg(m.front, '#7e57c2')}</div>` : ''}
         <div class="m-act-row"><div class="m-act-view"></div><div class="m-act-side"><small>앞에서 본 모양</small><div class="m-act-front"></div></div></div>
         <div class="m-act-row"><div class="m-bgrid" role="grid" aria-label="위에서 본 칸. 누르면 쌓기나무를 올려요">${h.map((r, y) => r.map((_, x) => `<button class="m-bcell" data-y="${y}" data-x="${x}"></button>`).join('')).join('')}</div>
         <div class="m-act-tools"><small>↑ 뒤</small><button class="btn btn-ghost sm on" data-mode="add">➕ 쌓기</button><button class="btn btn-ghost sm" data-mode="rm">➖ 빼기</button><small>↓ 앞</small></div></div>`;
@@ -340,7 +340,7 @@ function mathAct(el, t) {
   const sector = (k, n, on) => {
     const a0 = (k / n) * 2 * Math.PI - Math.PI / 2, a1 = ((k + 1) / n) * 2 * Math.PI - Math.PI / 2, r = 80;
     const p = n === 1 ? `<circle cx="100" cy="100" r="${r}"/>` : `<path d="M100 100 L${100 + r * Math.cos(a0)} ${100 + r * Math.sin(a0)} A${r} ${r} 0 0 1 ${100 + r * Math.cos(a1)} ${100 + r * Math.sin(a1)} Z"/>`;
-    return `<g class="m-slice ${on ? 'on' : ''}" data-k="${k}" fill="${on ? '#ff8a65' : '#fff3e0'}" stroke="#8d6e63" stroke-width="3" stroke-linejoin="round">${p}</g>`;
+    return `<g class="m-slice ${on ? 'on' : ''}" data-k="${k}" fill="${on ? '#f4511e' : '#fff3e0'}" stroke="#8d6e63" stroke-width="3" stroke-linejoin="round">${p}</g>`;
   };
   MATH_ACTS.frac = {
     missions: [
@@ -388,7 +388,7 @@ function mathAct(el, t) {
       const view = $('.m-act-polyv', box);
       const draw = () => {
         const xy = pts.map(P), cs = closed ? corners(xy) : [];
-        view.innerHTML = `<svg viewBox="0 0 100 100" class="m-act-dots" aria-label="점판">${closed ? `<polygon points="${xy.join(' ')}" fill="#4db6ac" fill-opacity=".55" stroke="#3a2d4f" stroke-width="2.5" stroke-linejoin="round"/>` : `<polyline points="${xy.join(' ')}" fill="none" stroke="#3a2d4f" stroke-width="2.5" stroke-linejoin="round"/>`}
+        view.innerHTML = `<svg viewBox="0 0 100 100" class="m-act-dots" aria-label="점판">${closed ? `<polygon points="${xy.join(' ')}" fill="#00897b" fill-opacity=".55" stroke="#3a2d4f" stroke-width="2.5" stroke-linejoin="round"/>` : `<polyline points="${xy.join(' ')}" fill="none" stroke="#3a2d4f" stroke-width="2.5" stroke-linejoin="round"/>`}
           ${Array.from({ length: G * G }, (_, k) => { const [x, y] = P(k), i = pts.indexOf(k); return `<g class="m-pdot" data-k="${k}"><circle cx="${x}" cy="${y}" r="9" fill="transparent"/><circle cx="${x}" cy="${y}" r="${i >= 0 ? 4 : 2.6}" fill="${i === 0 && !closed ? '#ff7043' : i >= 0 ? '#3a2d4f' : '#b0bec5'}"/></g>`; }).join('')}
           ${cs.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="4.5" fill="#ff7043"/>`).join('')}</svg>`;
         $$('.m-pdot', view).forEach(g => g.onclick = () => {

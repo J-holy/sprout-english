@@ -2,9 +2,9 @@
  * 생각 놀이 문제(MathGen.gen.sym/dec/vol), 그림(mathViz: sym · dec · line · cuboid), 🤲 해 보기(MATH_ACTS)
  * 「프랑스 원리 수학」1·2권 차례에서 주제만 골랐고, 그림·문제는 모두 새로 만든다 */
 Object.assign(MATH_GAMES, {
-  sym: { icon: '🦋', title: '선대칭 생각 놀이', stage: 'sprout', c: '#9575cd', hub: '반쪽을 보고 나머지 찾기' },
-  dec: { icon: '📏', title: '소수 생각 놀이', stage: 'tree', c: '#64b5f6', hub: '0.1이 몇 개일까' },
-  vol: { icon: '📦', title: '부피 생각 놀이', stage: 'tree', c: '#ffb74d', hub: '쌓기나무로 부피 재기' },
+  sym: { icon: '🦋', title: '선대칭 생각 놀이', stage: 'sprout', c: '#5e35b1', hub: '반쪽을 보고 나머지 찾기' },
+  dec: { icon: '📏', title: '소수 생각 놀이', stage: 'tree', c: '#1e88e5', hub: '0.1이 몇 개일까' },
+  vol: { icon: '📦', title: '부피 생각 놀이', stage: 'tree', c: '#fb8c00', hub: '쌓기나무로 부피 재기' },
 });
 
 const MM = (() => {
@@ -25,7 +25,7 @@ const MM = (() => {
   };
   const mirror = (c, W, H, axis) => c.map(([x, y]) => axis === 'v' ? [W - 1 - x, y] : [x, H - 1 - y]);
   const shiftOver = (c, W, H, axis) => c.map(([x, y]) => axis === 'v' ? [x + W / 2, y] : [x, y + H / 2]);
-  const symSvg = ({ W, H, a = [], b = [], axis = 'v', ca = '#9575cd', cb = '#ce93d8', s = 24, q = false }) => {
+  const symSvg = ({ W, H, a = [], b = [], axis = 'v', ca = '#5e35b1', cb = '#ab47bc', s = 24, q = false }) => {
     const cell = ([x, y], col) => `<rect x="${x * s}" y="${y * s}" width="${s}" height="${s}" fill="${col}" stroke="#3a2d4f" stroke-width="1.5"/>`;
     const grid = Array.from({ length: W * H }, (_, i) => `<rect x="${(i % W) * s}" y="${Math.floor(i / W) * s}" width="${s}" height="${s}" fill="#fff" stroke="#d6cfe0" stroke-width="1"/>`).join('');
     const ax = axis === 'v' ? `<line x1="${W * s / 2}" y1="-6" x2="${W * s / 2}" y2="${H * s + 6}" stroke="#e53935" stroke-width="3" stroke-dasharray="7 5"/>` : `<line x1="-6" y1="${H * s / 2}" x2="${W * s + 6}" y2="${H * s / 2}" stroke="#e53935" stroke-width="3" stroke-dasharray="7 5"/>`;
@@ -34,7 +34,7 @@ const MM = (() => {
   };
   // 이야기·배우기용 고정 그림
   const BF = [[2, 0], [1, 1], [2, 1], [0, 2], [1, 2], [2, 2], [1, 3], [2, 3], [2, 4], [1, 5], [2, 5]];
-  const symFixed = s => s === 'half' ? symSvg({ W: 6, H: 6, a: BF, q: true }) : symSvg({ W: 6, H: 6, a: BF, b: s === 'full' ? mirror(BF, 6, 6, 'v') : [], ...(s === 'bfly' ? { b: mirror(BF, 6, 6, 'v'), cb: '#9575cd' } : {}) });
+  const symFixed = s => s === 'half' ? symSvg({ W: 6, H: 6, a: BF, q: true }) : symSvg({ W: 6, H: 6, a: BF, b: s === 'full' ? mirror(BF, 6, 6, 'v') : [], ...(s === 'bfly' ? { b: mirror(BF, 6, 6, 'v'), cb: '#5e35b1' } : {}) });
   // 정다각형·도형의 대칭축 수 (도전)
   const AXES = [['정삼각형', 3, 3], ['정사각형', 4, 4], ['정오각형', 5, 5], ['정육각형', 6, 6]];
 
@@ -43,8 +43,8 @@ const MM = (() => {
       const lv = LV();
       if (lv === 3) {
         const [name, n, ans] = AXES[R(AXES.length)];
-        return { ask: `${name}에는 대칭축이 몇 개 있을까요?`, show: `<div class="m-viz">${MathGen.polySvg(n, '#ce93d8', 0)}</div>`, opts: shuffle([ans, ...shuffle([1, 2, 3, 4, 5, 6, 8].filter(v => v !== ans)).slice(0, 2)]), ans, hint: MATH_HINTS.sym,
-          explain: `<div class="m-viz">${MathGen.polySvg(n, '#ffd54f', 0)}</div><p class="m-eq-num">반으로 접어 꼭 맞는 선을 모두 찾으면 ${ans}개예요. 변과 각이 모두 같은 도형은 변의 수만큼 대칭축이 있어요.</p>` };
+        return { ask: `${name}에는 대칭축이 몇 개 있을까요?`, show: `<div class="m-viz">${MathGen.polySvg(n, '#ab47bc', 0)}</div>`, opts: shuffle([ans, ...shuffle([1, 2, 3, 4, 5, 6, 8].filter(v => v !== ans)).slice(0, 2)]), ans, hint: MATH_HINTS.sym,
+          explain: `<div class="m-viz">${MathGen.polySvg(n, '#fbc02d', 0)}</div><p class="m-eq-num">반으로 접어 꼭 맞는 선을 모두 찾으면 ${ans}개예요. 변과 각이 모두 같은 도형은 변의 수만큼 대칭축이 있어요.</p>` };
       }
       const axis = lv === 2 ? 'h' : 'v', W = lv === 0 ? 4 : 6, H = lv === 0 ? 4 : axis === 'h' ? 6 : 5, n = lv === 0 ? 3 : lv === 1 ? 5 : 6;
       let half, right, wrong1, wrong2;
@@ -153,7 +153,7 @@ MATH_ACTS.sym = {
     box.innerHTML = `<div class="m-act-sym"></div><div class="row-center"><button class="btn btn-ghost sm" data-clear>🧽 칸 비우기</button></div>`;
     const draw = () => {
       const all = m.open ? [...half, ...MM.mirror(half, W, H, axis)] : half;
-      $('.m-act-sym', box).innerHTML = MM.symSvg({ W, H, a: all, b: m.open ? [] : mine, axis, s, ca: '#9575cd', cb: '#ce93d8' }).replace('<svg ', '<svg data-board ');
+      $('.m-act-sym', box).innerHTML = MM.symSvg({ W, H, a: all, b: m.open ? [] : mine, axis, s, ca: '#5e35b1', cb: '#ab47bc' }).replace('<svg ', '<svg data-board ');
       const svg = $('[data-board]', box);
       svg.onclick = e => {
         const p = mSvgPt(svg, e), x = Math.floor(p.x / s), y = Math.floor(p.y / s);

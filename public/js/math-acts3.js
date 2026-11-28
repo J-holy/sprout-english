@@ -140,7 +140,7 @@ MATH_ACTS.cases = {
       let t = null, b = null;
       box.innerHTML = `<div class="m-act-row"><div class="m-act-side"><small>윗옷</small>${T.map(([e, n], i) => `<button class="btn btn-ghost sm" data-t="${i}">${e} ${n}</button>`).join('')}</div><div class="m-act-kid"></div><div class="m-act-side"><small>아래옷</small>${B.map(([e, n], i) => `<button class="btn btn-ghost sm" data-b="${i}">${e} ${n}</button>`).join('')}</div></div><table class="m-act-combo"></table>`;
       const draw = () => {
-        $('.m-act-kid', box).innerHTML = `<span class="m-kid-top" style="background:${t === null ? '#eee' : ['#ef5350', '#42a5f5', '#ffee58'][t]}">${t === null ? '?' : ''}</span><span class="m-kid-bot">${b === null ? '?' : B[b][0]}</span>`;
+        $('.m-act-kid', box).innerHTML = `<span class="m-kid-top" style="background:${t === null ? '#eee' : ['#e53935', '#1e88e5', '#fdd835'][t]}">${t === null ? '?' : ''}</span><span class="m-kid-bot">${b === null ? '?' : B[b][0]}</span>`;
         $$('[data-t]', box).forEach(x => x.classList.toggle('on', +x.dataset.t === t)); $$('[data-b]', box).forEach(x => x.classList.toggle('on', +x.dataset.b === b));
         if (t !== null && b !== null) found.add(`${t}${b}`);
         $('.m-act-combo', box).innerHTML = `<tr><th></th>${B.map(([e]) => `<th>${e}</th>`).join('')}</tr>${T.map(([e], i) => `<tr><th>${e}</th>${B.map((_, j) => `<td>${found.has(`${i}${j}`) ? '✅' : ''}</td>`).join('')}</tr>`).join('')}`;
@@ -232,7 +232,7 @@ MATH_ACTS.base = {
 // ── 펜토미노: 조각을 고르고 돌리고 뒤집어, 판의 칸을 눌러 놓는다. 판을 빈틈없이 채우면 성공 ──
 (() => {
   const P = { L: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]], P: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]], V: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]], U: [[0, 0], [2, 0], [0, 1], [1, 1], [2, 1]], Y: [[1, 0], [0, 1], [1, 1], [1, 2], [1, 3]] };
-  const COL = ['#4db6ac', '#ff8a65', '#9575cd', '#64b5f6', '#f06292'];
+  const COL = ['#00897b', '#f4511e', '#5e35b1', '#1e88e5', '#d81b60'];
   MATH_ACTS.pento = {
     missions: [
       { text: '조각을 눌러 고르고, 🔄 ↔️로 모양을 바꾼 다음 판의 칸을 눌러 놓아요. 두 조각으로 판을 빈틈없이 채워 봐요.', W: 5, H: 2, ps: ['L', 'L'] },
@@ -318,7 +318,7 @@ MATH_ACTS.base = {
           if (ok) api.done(m.want === 'any' ? '세 각을 더하면 180도! 어떤 삼각형이든 늘 180도예요.' : `${m.want === 'iso' ? '이등변삼각형' : m.want === 'right' ? '직각삼각형' : '둔각삼각형'} 완성! 세 각의 합은 이번에도 180도예요.`);
           else api.status(m.want === 'free' ? `${name}이에요. 새로 만들기로 다른 삼각형도 만들어 봐요` : `${name}이에요. 새로 만들기로 다시 해 봐요`);
         } else api.status(`점 ${pts.length} / 3`);
-        v.innerHTML = `<svg viewBox="0 0 100 100" class="m-act-dots">${pts.length === 3 ? `<polygon points="${xy.join(' ')}" fill="#ffcc80" fill-opacity=".7" stroke="#3a2d4f" stroke-width="2" stroke-linejoin="round"/>` : `<polyline points="${xy.join(' ')}" fill="none" stroke="#3a2d4f" stroke-width="2"/>`}${Array.from({ length: G * G }, (_, k) => { const [x, y] = P(k), on = pts.includes(k); return `<g class="m-pdot" data-k="${k}"><circle cx="${x}" cy="${y}" r="7" fill="transparent"/><circle cx="${x}" cy="${y}" r="${on ? 3.8 : 2.2}" fill="${on ? '#e64a19' : '#b0bec5'}"/></g>`; }).join('')}</svg>`;
+        v.innerHTML = `<svg viewBox="0 0 100 100" class="m-act-dots">${pts.length === 3 ? `<polygon points="${xy.join(' ')}" fill="#ffa726" fill-opacity=".7" stroke="#3a2d4f" stroke-width="2" stroke-linejoin="round"/>` : `<polyline points="${xy.join(' ')}" fill="none" stroke="#3a2d4f" stroke-width="2"/>`}${Array.from({ length: G * G }, (_, k) => { const [x, y] = P(k), on = pts.includes(k); return `<g class="m-pdot" data-k="${k}"><circle cx="${x}" cy="${y}" r="7" fill="transparent"/><circle cx="${x}" cy="${y}" r="${on ? 3.8 : 2.2}" fill="${on ? '#e64a19' : '#b0bec5'}"/></g>`; }).join('')}</svg>`;
         $('.m-act-eq', box).innerHTML = info;
         $$('.m-pdot', v).forEach(g => g.onclick = () => {
           const k = +g.dataset.k; if (pts.length >= 3 || pts.includes(k)) return Speech.sfx.wrong();

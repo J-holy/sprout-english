@@ -225,7 +225,7 @@ MATH_ACTS.table = {
       if (!m.open) $('.m-act-shadow', box).innerHTML = MathGen.pSvg(goal, '#cfd8dc', m.grow ? 16 : 26);
       const draw = () => {
         const c = big(cur, k);
-        $('.m-act-piece', box).innerHTML = MathGen.pSvg(c, '#4db6ac', m.grow || m.open ? 16 : 26);
+        $('.m-act-piece', box).innerHTML = MathGen.pSvg(c, '#00897b', m.grow || m.open ? 16 : 26);
         if (m.open) return api.status(k > 1 ? `${k}배로 키웠어요. 모양은 그대로예요` : ' ');
         if (MathGen.pKey(c) === MathGen.pKey(goal)) api.done(m.grow ? '크기만 다르고 모양이 같은 것을 닮음이라고 해요!' : '딱 맞아요! 돌리거나 뒤집어서 겹치는 모양을 합동이라고 해요.'); else api.status(' ');
       };
