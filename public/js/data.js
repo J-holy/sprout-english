@@ -50,7 +50,7 @@ const lowestMonthly = (kids = 'one', subject = 'en') => promoMonthly(kids, PROMO
 const wonText = n => n.toLocaleString('ko-KR') + '원';
 // 카카오톡 채널 '새싹스쿨' (11-24 개설): 채널 추가·1:1 채팅 문의
 // 고객센터 운영 시간 (정해지면 문의 칸에 보인다)
-const SUPPORT_HOURS = '';
+const SUPPORT_HOURS = '평일 10시~18시 (주말·공휴일 문의는 다음 평일에 답변)';
 const KAKAO_CHANNEL = { home: 'https://pf.kakao.com/_RxjmvX', chat: 'https://pf.kakao.com/_RxjmvX/chat' };
 // 과목별로 무엇을 하면 '플러스 학습 시작'인지 (청약철회·환불 안내에 같은 말로 쓴다, 11-28 컨설팅)
 const PLUS_START = {
