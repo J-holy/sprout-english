@@ -22,7 +22,7 @@ const MATH_STORY_PICS = {
  "masked-0": "ms/masked-0-2f5bcb8d.jpg",
  "masked-3": "ms/masked-3-839d124c.jpg",
  "cases-0": "ms/cases-0-d1a42954.jpg",
- "cases-1": "ms/cases-1-fcdb7f53.jpg",
+ "cases-1": "ms/cases-1-80acef36.jpg",
  "cases-3": "ms/cases-3-2997f8eb.jpg",
  "count-4": "ms/count-4-e538c91e.jpg",
  "same-0": "ms/same-0-c3ff1301.jpg",
@@ -67,6 +67,6 @@ const MATH_STORY_PICS = {
  "dec-0": "ms/dec-0-87f8cc59.jpg",
  "vol-0": "ms/vol-0-02c7bdca.jpg",
  "vol-1": "ms/vol-1-2a6da427.jpg",
- "vol-2": "ms/vol-2-167e10df.jpg",
+ "vol-2": "ms/vol-2-d4a30309.jpg",
  "angle-0": "ms/angle-0-8b0bec4b.jpg"
 };

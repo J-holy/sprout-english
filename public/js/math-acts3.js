@@ -15,7 +15,7 @@ MATH_ACTS.factor = {
     if (m.n) {
       const ds = [...Array(m.n).keys()].map(k => k + 1).filter(k => m.n % k === 0), found = new Set();
       let k = 1;
-      box.innerHTML = `<div class="row-center m-act-cut"><button class="btn btn-ghost sm" data-c="-1">➖</button><b class="m-act-n"></b><button class="btn btn-ghost sm" data-c="1">➕ 접시</button></div><div class="m-act-plates"></div><p class="m-act-eq"></p><div class="m-act-chips"></div>`;
+      box.innerHTML = `<div class="row-center m-act-cut"><button class="btn m-pm-b is-plus sm" data-c="1" aria-label="접시 하나 더하기"><b>+</b> 접시</button><b class="m-act-n"></b><button class="btn m-pm-b is-minus sm" data-c="-1" aria-label="접시 하나 빼기"><b>−</b> 접시</button></div><div class="m-act-plates"></div><p class="m-act-eq"></p><div class="m-act-chips"></div>`;
       const draw = () => {
         const q = Math.floor(m.n / k), r = m.n % k;
         $('.m-act-n', box).textContent = `접시 ${k}개`;
@@ -61,11 +61,11 @@ MATH_ACTS.seq = {
   mount(box, m, api) {
     const ans = m.open ? 0 : m.s.length === 5 ? m.s[3] + m.s[4] : m.s[3] + (m.s[3] - m.s[2]), h = m.open ? [1, 1, 1, 1, 1] : [...m.s, 0];
     let cur = h.length - 1;
-    box.innerHTML = `<div class="m-act-tw"></div><div class="row-center"><button class="btn btn-ghost sm" data-c="-1">➖</button><button class="btn btn-ghost sm" data-c="1">➕ 쌓기</button></div>`;
+    box.innerHTML = `<div class="m-act-tw"></div><div class="row-center"><button class="btn m-pm-b is-plus sm" data-c="1" aria-label="하나 쌓기"><b>+</b> 쌓기</button><button class="btn m-pm-b is-minus sm" data-c="-1" aria-label="하나 빼기"><b>−</b> 빼기</button></div>`;
     const draw = () => {
       $('.m-act-tw', box).innerHTML = MathGen.towers(h, cur);
       if (m.open) { $$('.m-tower', box).forEach(t => t.onclick = () => { cur = +t.dataset.t; Speech.sfx.tap(); draw(); }); return api.status('탑을 눌러 고르고 ➕ ➖로 쌓아요'); }
-      if (h[cur] === ans) api.done(m.win); else api.status(h[cur] > ans ? '너무 높아요' : ' ');
+      if (h[cur] === ans) api.done(m.win); else api.undo(), api.status(h[cur] > ans ? '너무 높아요' : ' ');
     };
     $$('[data-c]', box).forEach(b => b.onclick = () => { const v = h[cur] + +b.dataset.c; if (v < 0 || v > 14) return Speech.sfx.wrong(); h[cur] = v; Speech.sfx.tap(); draw(); });
     draw();
@@ -89,7 +89,7 @@ MATH_ACTS.cipher = {
     const draw = () => {
       $('.m-act-slots', box).innerHTML = m.open ? `<span class="m-slot">${got.map(k => SY[k]).join('') || '?'}</span><span class="m-slot">${got.map(k => k + 1).join(' · ') || '?'}</span>` : goal.map((_, i) => `<span class="m-slot">${got[i] === undefined ? '?' : m.word ? got[i] + 1 : SY[got[i]]}</span>`).join('');
       if (m.open) return api.status(got.length ? '친구에게 숫자만 알려 주면 비밀 편지가 돼요' : ' ');
-      if (got.length === goal.length) { if (got.every((k, i) => k + 1 === goal[i])) api.done(m.win); else api.status('표에서 숫자와 글자를 다시 맞춰 봐요'); }
+      if (got.length === goal.length) { if (got.every((k, i) => k + 1 === goal[i])) api.done(m.win); else api.undo(), api.status('표에서 숫자와 글자를 다시 맞춰 봐요'); }
       else api.status(' ');
     };
     $$('[data-k]', box).forEach(b => b.onclick = () => { if (!m.open && got.length >= goal.length) return; got.push(+b.dataset.k); Speech.sfx.tap(); draw(); });
@@ -111,12 +111,12 @@ MATH_ACTS.masked = {
   mount(box, m, api) {
     const val = Object.fromEntries(m.v.map(e => [e, 0]));
     const calc = ([t, op]) => t.map(e => val[e]).reduce((a, b) => op === '+' ? a + b : a - b);
-    box.innerHTML = `<div class="m-act-vars">${m.v.map(e => `<div class="m-act-var"><span>${e}</span><button class="btn btn-ghost sm" data-e="${e}" data-c="-1">➖</button><b data-v="${e}"></b><button class="btn btn-ghost sm" data-e="${e}" data-c="1">➕</button></div>`).join('')}</div><div class="m-act-eqs"></div>`;
+    box.innerHTML = `<div class="m-act-vars">${m.v.map(e => `<div class="m-act-var"><span>${e}</span><button class="btn m-pm-b is-plus sm" data-e="${e}" data-c="1" aria-label="${e} 하나 늘리기"><b>+</b></button><b data-v="${e}"></b><button class="btn m-pm-b is-minus sm" data-e="${e}" data-c="-1" aria-label="${e} 하나 줄이기"><b>−</b></button></div>`).join('')}</div><div class="m-act-eqs"></div>`;
     const draw = () => {
       m.v.forEach(e => { $(`[data-v="${e}"]`, box).textContent = val[e]; });
       $('.m-act-eqs', box).innerHTML = m.eqs.map(q => { const r = calc(q), ok = q[2] === null || r === q[2]; return `<p class="${q[2] !== null && ok ? 'ok' : ''}">${q[0].join(` ${q[1] === '-' ? '−' : '+'} `)} = ${q[2] ?? '?'} <small>→ ${q[0].map(e => val[e]).join(` ${q[1] === '-' ? '−' : '+'} `)} = <b>${r}</b> ${q[2] === null ? '' : ok ? '✅' : ''}</small></p>`; }).join('');
       if (m.open) return api.status(' ');
-      if (m.eqs.every(q => calc(q) === q[2])) api.done(`${m.v.map(e => `${e} = ${val[e]}`).join(', ')}! 가려진 수를 찾았어요.`, m.win); else api.status(' ');
+      if (m.eqs.every(q => calc(q) === q[2])) api.done(`${m.v.map(e => `${e} = ${val[e]}`).join(', ')}! 가려진 수를 찾았어요.`, m.win); else api.undo(), api.status(' ');
     };
     $$('[data-c]', box).forEach(b => b.onclick = () => { const e = b.dataset.e, n = val[e] + +b.dataset.c; if (n < 0 || n > 9) return Speech.sfx.wrong(); val[e] = n; Speech.sfx.tap(); draw(); });
     draw();
@@ -145,7 +145,7 @@ MATH_ACTS.cases = {
         if (t !== null && b !== null) found.add(`${t}${b}`);
         $('.m-act-combo', box).innerHTML = `<tr><th></th>${B.map(([e]) => `<th>${e}</th>`).join('')}</tr>${T.map(([e], i) => `<tr><th>${e}</th>${B.map((_, j) => `<td>${found.has(`${i}${j}`) ? '✅' : ''}</td>`).join('')}</tr>`).join('')}`;
         if (m.open) return api.status(`${found.size}가지 입어 봤어요`);
-        if (found.size === T.length * B.length) api.done(m.win); else api.status(`${found.size}가지 찾았어요`);
+        if (found.size === T.length * B.length) api.done(m.win); else api.undo(), api.status(`${found.size}가지 찾았어요`);
       };
       $$('[data-t]', box).forEach(x => x.onclick = () => { t = +x.dataset.t; Speech.sfx.tap(); draw(); });
       $$('[data-b]', box).forEach(x => x.onclick = () => { b = +x.dataset.b; Speech.sfx.tap(); draw(); });
@@ -158,7 +158,7 @@ MATH_ACTS.cases = {
       $('.m-act-slots', box).innerHTML = [...Array(n).keys()].map(i => `<span class="m-slot">${row[i] || (i + 1) + '번'}</span>`).join('');
       $$('[data-e]', box).forEach(x => x.disabled = row.includes(x.dataset.e));
       $('.m-act-chips', box).innerHTML = [...found].map(s => `<span class="chip">${s}</span>`).join('');
-      if (found.size === all) api.done(m.win); else api.status(`${found.size}가지 찾았어요`);
+      if (found.size === all) api.done(m.win); else api.undo(), api.status(`${found.size}가지 찾았어요`);
     };
     $$('[data-e]', box).forEach(x => x.onclick = () => {
       if (m.first && !row.length && x.dataset.e !== m.first) { Speech.sfx.wrong(); return api.status(`맨 앞에는 ${m.first}가 서요`); }
@@ -211,7 +211,7 @@ MATH_ACTS.base = {
     if (m.tally) {
       let n = 0;
       box.innerHTML = `<div class="m-act-tal"></div><p class="m-act-eq"></p><div class="row-center"><button class="btn btn-ghost sm" data-c="-1">➖</button><button class="btn btn-ghost" data-c="1">✏️ 긋기</button></div>`;
-      const draw = () => { $('.m-act-tal', box).innerHTML = MathGen.tally(n); $('.m-act-eq', box).innerHTML = `5 묶음 <b>${Math.floor(n / 5)}</b>개와 <b>${n % 5}</b> → <b>${n}</b>`; if (n === m.tally) api.done(m.win); else api.status(' '); };
+      const draw = () => { $('.m-act-tal', box).innerHTML = MathGen.tally(n); $('.m-act-eq', box).innerHTML = `5 묶음 <b>${Math.floor(n / 5)}</b>개와 <b>${n % 5}</b> → <b>${n}</b>`; if (n === m.tally) api.done(m.win); else api.undo(), api.status(' '); };
       $$('[data-c]', box).forEach(b => b.onclick = () => { const v = n + +b.dataset.c; if (v < 0 || v > 30) return; n = v; Speech.sfx.tap(); draw(); });
       return draw();
     }
@@ -222,7 +222,7 @@ MATH_ACTS.base = {
       const ok = s && s === MathGen.roman(val(s));
       $('.m-act-roman', box).innerHTML = `<b>${s || '?'}</b> = ${s ? (ok ? val(s) : '바른 로마 숫자가 아니에요') : ''}`;
       if (m.open) return api.status(' ');
-      if (s === MathGen.roman(m.roman)) api.done(`${s} = ${m.win}`, m.win); else api.status(' ');
+      if (s === MathGen.roman(m.roman)) api.done(`${s} = ${m.win}`, m.win); else api.undo(), api.status(' ');
     };
     $$('[data-r]', box).forEach(b => b.onclick = () => { s = b.dataset.r ? (s + b.dataset.r).slice(0, 8) : s.slice(0, -1); Speech.sfx.tap(); draw(); });
     draw();
@@ -260,7 +260,7 @@ MATH_ACTS.base = {
           const x0 = i % m.W, y0 = Math.floor(i / m.W), [ax, ay] = shapes[sel][0], cells = shapes[sel].map(([x, y]) => [x - ax + x0, y - ay + y0]);
           if (!cells.every(([x, y]) => x >= 0 && y >= 0 && x < m.W && y < m.H && g[y * m.W + x] < 0)) { Speech.sfx.wrong(); return api.status('거기에는 안 들어가요. 돌리거나 다른 칸에 놓아 봐요'); }
           cells.forEach(([x, y]) => { g[y * m.W + x] = sel; }); used[sel] = true; sel = used.indexOf(false); if (sel < 0) sel = null; Speech.sfx.tap(); draw();
-          if (g.every(v => v >= 0)) api.done('판을 빈틈없이 채웠어요! 놓은 조각을 누르면 다시 뺄 수 있어요.'); else api.status('조각의 맨 윗줄 왼쪽 칸이 누른 칸에 놓여요');
+          if (g.every(v => v >= 0)) api.done('판을 빈틈없이 채웠어요! 놓은 조각을 누르면 다시 뺄 수 있어요.'); else api.undo(), api.status('조각의 맨 윗줄 왼쪽 칸이 누른 칸에 놓여요');
         });
       };
       $('[data-rot]', box).onclick = () => { if (sel === null) return; shapes[sel] = MathGen.pRot(shapes[sel]); Speech.sfx.tap(); draw(); };
@@ -293,7 +293,7 @@ MATH_ACTS.base = {
         const draw = () => {
           s.innerHTML = `${Array.from({ length: 7 }, (_, i) => `<line x1="${4 + i * 18}" y1="4" x2="${4 + i * 18}" y2="112" stroke="currentColor" stroke-opacity=".12"/><line x1="4" y1="${4 + i * 18}" x2="112" y2="${4 + i * 18}" stroke="currentColor" stroke-opacity=".12"/>`).join('')}<circle cx="58" cy="58" r="${r * 18}" fill="#e3f2fd" fill-opacity=".6" stroke="#1e88e5" stroke-width="2.5"/><line x1="${58 - r * 18}" y1="58" x2="${58 + r * 18}" y2="58" stroke="#43a047" stroke-width="2" stroke-dasharray="3 3"/><line x1="58" y1="58" x2="${58 + r * 18}" y2="58" stroke="#e53935" stroke-width="3"/><circle cx="58" cy="58" r="3.5" fill="#3a2d4f"/><circle cx="${58 + r * 18}" cy="58" r="7" fill="#ff7043" stroke="#fff" stroke-width="2"/>`;
           $('.m-act-eq', box).innerHTML = `반지름 <b style="color:#e53935">${r}</b>칸 · 지름 <b style="color:#43a047">${r * 2}</b>칸`;
-          if (r === m.circle) api.done(`반지름 3칸이면 지름은 6칸! 지름은 반지름의 두 배예요.`); else api.status('손잡이를 오른쪽·왼쪽으로 끌어요');
+          if (r === m.circle) api.done(`반지름 3칸이면 지름은 6칸! 지름은 반지름의 두 배예요.`); else api.undo(), api.status('손잡이를 오른쪽·왼쪽으로 끌어요');
         };
         const move = e => { const p = mSvgPt(s, e), v = Math.max(1, Math.min(3, Math.round(Math.abs(p.x - 58) / 18))); if (v !== r) { r = v; Speech.sfx.tap(); draw(); } };
         s.onpointerdown = e => { e.preventDefault(); try { s.setPointerCapture(e.pointerId); } catch (_) {} drag = true; move(e); };
@@ -356,7 +356,7 @@ MATH_ACTS.avg = {
         else { h[i]++; hand = null; }
         Speech.sfx.tap(); draw();
       });
-      if (!m.open && hand === null && h.every(x => x === avg)) api.done(m.win); else if (!m.open) api.status(' ');
+      if (!m.open && hand === null && h.every(x => x === avg)) api.done(m.win); else if (!m.open) api.undo(), api.status(' ');
     };
     draw();
   },
@@ -410,7 +410,7 @@ MATH_ACTS.div = {
         const full = bags.filter(b => b === m.bag).length;
         $('.m-act-eq', box).innerHTML = `봉지 <b>${full}</b>개 꽉 참`;
         $$('.m-candy', box).forEach(c => c.onclick = () => { pile--; bags[bags.length - 1]++; if (bags[bags.length - 1] === m.bag && pile) bags.push(0); Speech.sfx.tap(); draw(); });
-        if (!pile) api.done(m.win); else api.status(`남은 사탕 ${pile}개`);
+        if (!pile) api.done(m.win); else api.undo(), api.status(`남은 사탕 ${pile}개`);
       };
       return draw();
     }

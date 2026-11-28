@@ -19,7 +19,7 @@ function mSortMount(box, m, api, why) {
     const k = left.findIndex(it => it.i === sel), it = left[k];
     if (it.k !== b.dataset.b) { Speech.sfx.wrong(); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400); return api.status(why ? why(it) : '다시 생각해 봐요'); }
     left.splice(k, 1); (placed[it.k] = placed[it.k] || []).push(it.e); sel = null; Speech.sfx.tap(); draw();
-    if (!left.length) api.done(m.win || '모두 제자리에 넣었어요!'); else api.status(`${left.length}개 남았어요`);
+    if (!left.length) api.done(m.win || '모두 제자리에 넣었어요!'); else api.undo(), api.status(`${left.length}개 남았어요`);
   });
   draw(); api.status('물건을 끌어서 바구니에 놓아요. 눌러서 고른 다음 바구니를 눌러도 돼요');
 }
@@ -56,10 +56,10 @@ MATH_ACTS.count = {
       if (m.pairs) {
         if (r + b === 10 && r && b) found.add(r);
         chips.innerHTML = [...found].sort((x, y) => x - y).map(k => `<span class="chip">${k} + ${10 - k}</span>`).join('');
-        if (found.size >= 4) api.done('10 짝꿍을 네 가지 넘게 찾았어요! 1과 9, 2와 8, 3과 7, 4와 6, 5와 5.'); else api.status(found.size ? `${['한', '두', '세'][found.size - 1]} 가지 찾았어요. 빨강 수를 바꿔 또 찾아봐요` : '10칸을 빨강과 파랑으로 가득 채워요');
+        if (found.size >= 4) api.done('10 짝꿍을 네 가지 넘게 찾았어요! 1과 9, 2와 8, 3과 7, 4와 6, 5와 5.'); else api.undo(), api.status(found.size ? `${['한', '두', '세'][found.size - 1]} 가지 찾았어요. 빨강 수를 바꿔 또 찾아봐요` : '10칸을 빨강과 파랑으로 가득 채워요');
         return;
       }
-      const w = m.ok && m.ok(r, b); if (w) api.done(w); else api.status(' ');
+      const w = m.ok && m.ok(r, b); if (w) api.done(w); else api.undo(), api.status(' ');
     };
     $$('[data-col]', box).forEach(b => b.onclick = () => { col = +b.dataset.col; $$('[data-col]', box).forEach(x => x.classList.toggle('on', x === b)); Speech.sfx.tap(); });
     draw();
@@ -86,14 +86,15 @@ MATH_ACTS.big = {
       const n = t * 10 + o;
       $('.m-act-big', box).innerHTML = `<div class="m-b10"><span class="m-rods">${'<i class="m-rod"></i>'.repeat(t)}</span>${o ? `<span class="m-ones${o >= 10 ? ' many' : ''}">${'<i class="m-one"></i>'.repeat(o)}</span>` : ''}</div>`;
       $('.m-act-eq', box).innerHTML = `십 묶음 <b>${t}</b>개 · 낱개 <b>${o}</b>개 → <b>${o >= 10 ? '?' : n}</b>`;
-      tieB.disabled = o < 10;
-      if (m.open) return api.status(o >= 10 ? '낱개가 열 개 넘었어요. 묶어 봐요!' : ' ');
+      // 십 묶음이 이미 열 개(100)면 더 묶을 수 없으니 단추도 끈다 (QA 02: 눌려도 아무 일이 없던 상태)
+      tieB.disabled = o < 10 || t >= 10;
+      if (m.open) return api.status(o >= 10 ? (t >= 10 ? '십 묶음이 열 개라 더 묶을 수 없어요. 낱개를 빼 봐요.' : '낱개가 열 개 넘었어요. 묶어 봐요!') : ' ');
       if (n === m.goal && o < 10) api.done(m.win);
-      else { api.undo(); api.status(o >= 10 ? '낱개가 열 개 넘었어요. 열 개를 묶어 봐요.' : ' '); }
+      else { api.undo(); api.status(o >= 10 ? (t >= 10 ? '십 묶음이 열 개라 더 묶을 수 없어요. 낱개를 빼 봐요.' : '낱개가 열 개 넘었어요. 열 개를 묶어 봐요.') : ' '); }
     };
     $$('[data-d]', box).forEach(b => b.onclick = () => {
       const d = b.dataset.d;
-      if (d === 't+' && t < 10) t++; else if (d === 't-' && t > 0) t--; else if (d === 'o+' && o < 19) o++; else if (d === 'o-' && o > 0) o--; else return;
+      if (d === 't+' && t < 10) t++; else if (d === 't-' && t > 0) t--; else if (d === 'o+' && o < 19) o++; else if (d === 'o-' && o > 0) o--; else return Speech.sfx.wrong();
       Speech.sfx.tap(); draw();
     });
     tieB.onclick = () => { if (o < 10 || t >= 10) return; o -= 10; t++; Speech.sfx.correct(); draw(); };
@@ -158,7 +159,7 @@ MATH_ACTS.group.free = MATH_ACTS.group.missions[4];
         const want = m.unit[(shown.length + add.length) % m.unit.length];
         if (k !== want) { Speech.sfx.wrong(); return api.status(`앞에서 ${[...m.unit].map(x => C[x]).join(', ')} 차례가 되풀이돼요. 몇 번째인지 세어 봐요`); }
         add.push(k); Speech.sfx.tap(); draw();
-        if (add.length === need) api.done(m.win); else api.status(' ');
+        if (add.length === need) api.done(m.win); else api.undo(), api.status(' ');
       });
       if (m.open) $('[data-back]', box).onclick = () => { add.pop(); draw(); };
       draw();
@@ -227,7 +228,7 @@ MATH_ACTS.table = {
         const c = big(cur, k);
         $('.m-act-piece', box).innerHTML = MathGen.pSvg(c, '#00897b', m.grow || m.open ? 16 : 26);
         if (m.open) return api.status(k > 1 ? `${k}배로 키웠어요. 모양은 그대로예요` : ' ');
-        if (MathGen.pKey(c) === MathGen.pKey(goal)) api.done(m.grow ? '크기만 다르고 모양이 같은 것을 닮음이라고 해요!' : '딱 맞아요! 돌리거나 뒤집어서 겹치는 모양을 합동이라고 해요.'); else api.status(' ');
+        if (MathGen.pKey(c) === MathGen.pKey(goal)) api.done(m.grow ? '크기만 다르고 모양이 같은 것을 닮음이라고 해요!' : '딱 맞아요! 돌리거나 뒤집어서 겹치는 모양을 합동이라고 해요.'); else api.undo(), api.status(' ');
       };
       $('[data-rot]', box).onclick = () => { cur = MathGen.pRot(cur); Speech.sfx.tap(); draw(); };
       $('[data-flip]', box).onclick = () => { cur = MathGen.pFlip(cur); Speech.sfx.tap(); draw(); };
@@ -335,7 +336,7 @@ MATH_ACTS.sudoku = {
     const draw = () => {
       v.innerHTML = g.map((x, i) => `<button class="m-sd ${giv[i] ? 'giv' : ''} ${i === cur ? 'cur' : ''} ${bad(i) ? 'bad' : ''} ${i % 4 === 1 ? 'br' : ''} ${Math.floor(i / 4) === 1 ? 'bb' : ''}" data-i="${i}">${x || ''}</button>`).join('');
       $$('.m-sd', v).forEach(b => b.onclick = () => { const i = +b.dataset.i; if (giv[i]) return Speech.sfx.wrong(); cur = i; Speech.sfx.tap(); draw(); });
-      if (g.every(Boolean) && !g.some((_, i) => bad(i))) api.done('스도쿠 완성! 줄마다 1, 2, 3, 4가 한 번씩 들어갔어요.'); else api.status(g.some((_, i) => bad(i)) ? '빨간 수가 같은 줄이나 네모에 겹쳤어요' : ' ');
+      if (g.every(Boolean) && !g.some((_, i) => bad(i))) api.done('스도쿠 완성! 줄마다 1, 2, 3, 4가 한 번씩 들어갔어요.'); else api.undo(), api.status(g.some((_, i) => bad(i)) ? '빨간 수가 같은 줄이나 네모에 겹쳤어요' : ' ');
     };
     $$('[data-n]', box).forEach(b => b.onclick = () => { if (cur === null || giv[cur]) return; g[cur] = +b.dataset.n; Speech.sfx.tap(); draw(); });
     draw();
@@ -375,7 +376,7 @@ MATH_ACTS.venn = {
       const e = left[sel], r = MathGen.vRegion(e, m.A, m.B);
       if (r !== b.dataset.r) { Speech.sfx.wrong(); return api.status(`${e}는 ${m.A}인가요? ${N}인가요? 둘 다 따져 봐요`); }
       placed.push({ e, r }); left.splice(sel, 1); sel = null; Speech.sfx.tap(); draw();
-      if (!left.length) api.done('다 넣었어요! 두 무리에 모두 드는 것은 겹친 곳에 있어요.'); else api.status(`${left.length}개 남았어요`);
+      if (!left.length) api.done('다 넣었어요! 두 무리에 모두 드는 것은 겹친 곳에 있어요.'); else api.undo(), api.status(`${left.length}개 남았어요`);
     });
     draw(); api.status('물건을 끌어서 들어갈 곳에 놓아요. 눌러서 고른 다음 아래 단추를 눌러도 돼요');
   },
@@ -441,9 +442,11 @@ MATH_ACTS.graph = {
           if (i !== g) return api.status(`${p.length - 1}걸음`);
           const n = p.length - 1;
           if (m.open) return api.status(`${n}걸음에 도착! 가장 짧은 길은 ${best}걸음이에요`);
-          if (n > best) return api.status(`${n}걸음에 도착! 그런데 ${best}걸음 길이 있어요. 처음부터 다시 해 봐요`);
-          found.add(p.join());
-          if (m.two) return found.size >= 2 ? api.done(`${best}걸음 길을 두 가지 찾았어요! 학교 쪽으로만 가면 모두 가장 짧은 길이에요.`) : (api.status(`${best}걸음! 처음부터 눌러 다른 길로도 가 봐요`), setTimeout(() => { p = [s]; draw(); }, 900));
+          // 두 길 찾기에서는 '처음부터'를 누르면 찾은 길까지 지워지니, 걸은 길만 저절로 집으로 되돌린다 (QA 14)
+          const home = () => setTimeout(() => { p = [s]; draw(); }, 900);
+          if (n > best) { if (m.two) { home(); return api.status(`${n}걸음에 도착! 그런데 ${best}걸음 길이 있어요. 집에서 다시 가 봐요`); } return api.status(`${n}걸음에 도착! 그런데 ${best}걸음 길이 있어요. 처음부터 다시 해 봐요`); }
+          const dup = found.has(p.join()); found.add(p.join());
+          if (m.two) return found.size >= 2 ? api.done(`${best}걸음 길을 두 가지 찾았어요! 학교 쪽으로만 가면 모두 가장 짧은 길이에요.`) : (api.status(dup ? '아까와 같은 길이에요. 집으로 돌아가요. 다른 길로 가 봐요' : `${best}걸음 길 하나를 찾았어요! 집으로 돌아가요. 이번에는 다른 길로 가 봐요`), home());
           api.done(m.win);
         });
       };

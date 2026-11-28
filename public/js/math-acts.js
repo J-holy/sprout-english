@@ -77,7 +77,7 @@ function mathAct(el, t) {
         if (m.check) win = m.check(h);
         else if (m.target) win = same(h, m.target) && `똑같이 쌓았어요! 쌓기나무 ${n}개예요.`;
         else if (m.front) { const f = front(h); if (f.every((v, x) => v === m.front[x])) win = n === m.front.reduce((a, b) => a + b, 0) ? `앞모습이 똑같아요! ${n}개로 가장 적게 쌓았어요.` : `앞모습이 똑같아요! ${n}개를 썼어요. 더 적게도 쌓을 수 있을까요?`; }
-        if (win) api.done(win); else api.status(n ? `쌓기나무 ${n}개` : '칸을 눌러 쌓아 봐요');
+        if (win) api.done(win); else api.undo(), api.status(n ? `쌓기나무 ${n}개` : '칸을 눌러 쌓아 봐요');
       };
       $$('[data-mode]', box).forEach(b => b.onclick = () => { rm = b.dataset.mode === 'rm'; $$('[data-mode]', box).forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); Speech.sfx.tap(); draw(); });
       $$('.m-bcell', box).forEach(b => b.onclick = () => {
@@ -326,7 +326,7 @@ function mathAct(el, t) {
         for (const t of [45, 90, 120, 180]) if (Math.abs(v - t) <= 2) v = t;
         if (v === d && sv.firstChild) return;
         d = v; sv.innerHTML = svg(d); sv.setAttribute('aria-label', `${d}도, ${kind(d)}`); out.innerHTML = `<b>${d}°</b> ${kind(d)}`;
-        if (m.ok && m.ok(d)) api.done(typeof m.win === 'function' ? m.win(d) : m.win); else if (m.ok) api.status(' ');
+        if (m.ok && m.ok(d)) api.done(typeof m.win === 'function' ? m.win(d) : m.win); else if (m.ok) api.undo(), api.status(' ');
       };
       const move = e => { const p = mSvgPt(sv, e); let a = Math.atan2(CY - p.y, p.x - CX) * 180 / Math.PI; if (a < -90) a = 180; else if (a < 0) a = 0; set(a); };
       sv.onpointerdown = e => { e.preventDefault(); try { sv.setPointerCapture(e.pointerId); } catch (_) {} drag = true; move(e); };
@@ -364,7 +364,7 @@ function mathAct(el, t) {
         nl.textContent = `${n}조각`;
         fr.innerHTML = k ? `${MathGen.fracTxt(`${k}/${n}`)}<small>칠한 ${k}조각<br>전체 ${n}조각</small>` : '<small>조각을 눌러<br>칠해요</small>';
         $$('.m-slice', view).forEach(g => g.onclick = () => { const j = +g.dataset.k; on[j] = !on[j]; Speech.sfx.tap(); draw(); });
-        if (m.ok && m.ok(k, n)) api.done(m.win); else if (m.ok) api.status(' ');
+        if (m.ok && m.ok(k, n)) api.done(m.win); else if (m.ok) api.undo(), api.status(' ');
       };
       $$('[data-c]', box).forEach(b => b.onclick = () => { const v = n + +b.dataset.c; if (v < 1 || v > 8) return Speech.sfx.wrong(); n = v; on = []; Speech.sfx.tap(); draw(); });
       draw();
@@ -379,7 +379,16 @@ function mathAct(el, t) {
   const hit = (p1, p2, p3, p4) => { const d1 = cross(p3, p4, p1), d2 = cross(p3, p4, p2), d3 = cross(p1, p2, p3), d4 = cross(p1, p2, p4); return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)); };
   // 한 줄 위에 있는 꼭짓점은 빼고 센다
   const corners = pts => pts.filter((p, i) => cross(pts[(i - 1 + pts.length) % pts.length], p, pts[(i + 1) % pts.length]) !== 0);
-  const simple = pts => { const n = pts.length; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { if (Math.abs(i - j) <= 1 || (i === 0 && j === n - 1)) continue; if (hit(pts[i], pts[(i + 1) % n], pts[j], pts[(j + 1) % n])) return false; } return true; };
+  // 겹침 검사 (2026-11-28 QA: 같은 선을 되짚어 그린 세모가 통과했다)
+  //  · 이웃한 두 변이 한 줄 위에서 되돌아가면(되짚기) 안 된다
+  //  · 이웃하지 않은 두 변은 끝점이 닿거나 겹치기만 해도 안 된다
+  const onSeg = (p, a, b) => cross(a, b, p) === 0 && Math.min(a[0], b[0]) <= p[0] && p[0] <= Math.max(a[0], b[0]) && Math.min(a[1], b[1]) <= p[1] && p[1] <= Math.max(a[1], b[1]);
+  const touch = (a, b, c, d) => hit(a, b, c, d) || onSeg(a, c, d) || onSeg(b, c, d) || onSeg(c, a, b) || onSeg(d, a, b);
+  const simple = pts => { const n = pts.length;
+    for (let i = 0; i < n; i++) { const a = pts[(i - 1 + n) % n], v = pts[i], b = pts[(i + 1) % n];
+      if (cross(a, v, b) === 0 && (v[0] - a[0]) * (b[0] - v[0]) + (v[1] - a[1]) * (b[1] - v[1]) < 0) return false; }
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { if (j === i + 1 || (i === 0 && j === n - 1)) continue; if (touch(pts[i], pts[(i + 1) % n], pts[j], pts[(j + 1) % n])) return false; }
+    return true; };
   const area2 = pts => Math.abs(pts.reduce((s, p, i) => s + cross([0, 0], p, pts[(i + 1) % pts.length]), 0));
   MATH_ACTS.poly = {
     missions: [3, 4, 5, 6, 8].map(n => ({ text: `점을 차례로 눌러 ${MathGen.POLY[n]}을 만들어 봐요. 처음 점을 다시 누르면 닫혀요.${n === 8 ? ' 변이 여덟 개예요!' : ''}`, n })),
@@ -398,17 +407,21 @@ function mathAct(el, t) {
           const k = +g.dataset.k;
           if (k === pts[0] && pts.length >= 3) {
             const xy2 = pts.map(P);
-            if (!simple(xy2)) { Speech.sfx.wrong(); return api.status('선이 서로 엇갈렸어요. 하나 지우기로 고쳐 봐요'); }
+            if (!simple(xy2)) { Speech.sfx.wrong(); return api.status('선이 엇갈리거나 같은 선을 두 번 지났어요. 하나 지우기로 고쳐 봐요'); }
             if (!area2(xy2)) { Speech.sfx.wrong(); return api.status('모두 한 줄 위에 있어서 도형이 안 돼요'); }
             closed = true; Speech.sfx.tap(); draw(); return judge();
           }
           if (pts.includes(k)) return Speech.sfx.wrong();
+          if (pts.length >= 2) { const q = [...pts, k].map(P), n = q.length, a = q[n - 3], v = q[n - 2], b = q[n - 1];
+            const back = cross(a, v, b) === 0 && (v[0] - a[0]) * (b[0] - v[0]) + (v[1] - a[1]) * (b[1] - v[1]) < 0;
+            const over = q.slice(0, n - 2).some((_, i) => i + 1 < n - 2 && touch(q[i], q[i + 1], v, b));
+            if (back || over) { Speech.sfx.wrong(); return api.status('그 점으로 가면 선이 겹쳐요. 다른 점을 눌러요'); } }
           pts.push(k); Speech.sfx.tap(); draw(); api.status(pts.length === 1 ? '다음 점을 눌러요' : `점 ${pts.length}개 · 처음 점(주황)을 누르면 닫혀요`);
         });
       };
       const judge = () => {
         const c = corners(pts.map(P)).length, name = MathGen.POLY[c] || `${c}각형`;
-        if (m.n) { if (c === m.n) api.done(`${name} 완성! 변 ${c}개, 꼭짓점 ${c}개예요.`); else api.status(`변이 ${c}개인 ${name}이에요. ${MathGen.POLY[m.n]}은 변이 ${m.n}개예요. 하나 지우기로 고쳐 봐요`); }
+        if (m.n) { if (c === m.n) api.done(`${name} 완성! 변 ${c}개, 꼭짓점 ${c}개예요.`); else api.undo(), api.status(`변이 ${c}개인 ${name}이에요. ${MathGen.POLY[m.n]}은 변이 ${m.n}개예요. 하나 지우기로 고쳐 봐요`); }
         else api.status(`${name}! 변 ${c}개, 꼭짓점 ${c}개`);
       };
       $('[data-undo]', box).onclick = () => { if (closed) { closed = false; api.undo(); } else pts.pop(); Speech.sfx.tap(); draw(); api.status(pts.length ? `점 ${pts.length}개` : '점을 눌러 시작해요'); };
@@ -424,14 +437,14 @@ function mathAct(el, t) {
     missions: [
       { text: '사탕을 2줄에 3개씩 놓아 봐요. 2줄 3번째 칸을 누르면 돼요.', ok: (r, c) => r === 2 && c === 3 && '3 × 2 = 6! 3개씩 2줄이면 6개예요.' },
       { text: '사탕을 3줄에 4개씩 놓아 봐요. 3줄 4번째 칸을 누르면 돼요.', ok: (r, c) => r === 3 && c === 4 && '4 × 3 = 12! 4개씩 3줄이면 12개예요.' },
-      { text: '🔄 돌려 보기를 눌러서 4줄에 3개씩으로 바꿔 봐요. 사탕은 몇 개가 될까요?', ok: (r, c, turned) => r === 4 && c === 3 && turned && '3 × 4 = 12, 그대로 12개! 순서를 바꿔 곱해도 같아요.' },
+      { text: '사탕이 3줄에 4개씩 있어요. 🔄 돌려 보기를 눌러서 4줄에 3개씩으로 바꿔 봐요. 사탕은 몇 개가 될까요?', r0: 3, c0: 4, ok: (r, c, turned) => r === 4 && c === 3 && turned && '3 × 4 = 12, 그대로 12개! 순서를 바꿔 곱해도 같아요.' },
       { text: '5줄에 6개씩 놓아 봐요. 모두 몇 개일까요?', ok: (r, c) => r === 5 && c === 6 && '6 × 5 = 30! 6씩 5번 뛰어 세면 6, 12, 18, 24, 30.' },
       { text: '사탕 18개를 3줄로 똑같이 놓아 봐요. 한 줄에 몇 개씩일까요?', ok: (r, c) => r === 3 && c === 6 && '6 × 3 = 18! 18개를 3줄로 놓으면 한 줄에 6개씩이에요.' },
       { text: '사탕 12개를 똑같은 줄로 놓는 방법을 세 가지 찾아봐요.', twelve: true },
     ],
     free: { text: '칸을 눌러 마음대로 곱셈을 만들어 봐요.' },
     mount(box, m, api) {
-      let r = 0, c = 0, turned = false;
+      let r = m.r0 || 0, c = m.c0 || 0, turned = false; // QA 19: 돌려 보기 미션은 사탕이 놓인 채로 시작
       const found = new Set();
       box.innerHTML = `<div class="m-act-arr" style="--c:${CL}"></div><p class="m-act-eq"></p><div class="row-center"><button class="btn btn-ghost sm" data-turn>🔄 돌려 보기</button></div>`;
       const g = $('.m-act-arr', box), eq = $('.m-act-eq', box);
@@ -447,9 +460,9 @@ function mathAct(el, t) {
           return found.size >= 3 ? api.done(`${list}! 모두 12개예요. 12는 여러 가지 곱셈으로 만들 수 있어요.`, '세 가지 모두 찾았어요! 모두 12개예요. 12는 여러 가지 곱셈으로 만들 수 있어요.') : api.status(found.size ? `찾은 방법: ${list}` : r && c ? `${r * c}개예요. 12개가 되게 해 봐요` : ' ');
         }
         const w = m.ok && r && c && m.ok(r, c, turned);
-        if (w) api.done(w); else if (m.ok) api.status(' ');
+        if (w) api.done(w); else if (m.ok) api.undo(), api.status(' ');
       };
-      $('[data-turn]', box).onclick = () => { if (!r) return; if (c > RW) { Speech.sfx.wrong(); return api.status(`판이 좁아서 ${c}줄은 못 놓아요`); } [r, c] = [c, r]; turned = true; Speech.sfx.tap(); draw(); judge(); };
+      $('[data-turn]', box).onclick = () => { if (!r) { Speech.sfx.wrong(); return api.status('먼저 칸을 눌러 사탕을 놓아요'); } if (c > RW) { Speech.sfx.wrong(); return api.status(`판이 좁아서 ${c}줄은 못 놓아요`); } [r, c] = [c, r]; turned = true; Speech.sfx.tap(); draw(); judge(); };
       draw();
     },
   };
@@ -488,7 +501,7 @@ function mathAct(el, t) {
         $$('.m-cell', g).forEach(b => b.onclick = () => { const k = +b.dataset.k; on.has(k) ? on.delete(k) : on.add(k); Speech.sfx.tap(); draw(); });
         if (!m.ok) return;
         if (s.a && !s.one) return api.status('칸이 모두 한 덩어리로 이어져야 해요');
-        const w = s.a && m.ok(s); if (w) api.done(w); else api.status(' ');
+        const w = s.a && m.ok(s); if (w) api.done(w); else api.undo(), api.status(' ');
       };
       draw();
     },

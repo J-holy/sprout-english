@@ -103,11 +103,13 @@ const MathGen = (() => {
     circ: ['동그라미', '<circle cx="50" cy="50" r="42"/>', 0],
   };
   const COLORS = ['#f4511e', '#00897b', '#5e35b1', '#1e88e5', '#d81b60', '#fbc02d'];
-  const svg = (k, col, rot = 0) => `<svg viewBox="0 0 100 100" class="m-shape" aria-label="${SHAPES[k][0]}"><g fill="${col}" stroke="#3a2d4f" stroke-width="5" transform="rotate(${rot} 50 50)">${SHAPES[k][1]}</g></svg>`;
+  const svg = (k, col, rot = 0) => `<svg viewBox="0 0 100 100" class="m-shape" aria-label="${SHAPES[k][0]}"><g fill="${col}" stroke="#3a2d4f" stroke-width="5" transform="rotate(${rot} 50 50)${rot % 360 ? ' translate(50 50) scale(.78) translate(-50 -50)' : ''}">${SHAPES[k][1]}</g></svg>`;
   // 나무 단계 그림: 분수 원(색칠 n/d), 각(두 선과 호), 정다각형
   const KN = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구', '십'];
   const POLY = { 3: '삼각형', 4: '사각형', 5: '오각형', 6: '육각형', 7: '칠각형', 8: '팔각형' };
-  const fracTxt = v => { const [n, d] = v.split('/'); return `<span class="m-fr" aria-label="${KN[d]}분의 ${KN[n]}"><b>${n}</b><b>${d}</b></span>`; };
+  // 읽는 말: 11 이상도 (십일, 이십삼 …)
+  const knum = n => { n = +n; if (n <= 10) return KN[n]; const t = Math.floor(n / 10), o = n % 10; return n >= 100 ? String(n) : `${t > 1 ? KN[t] : ''}십${o ? KN[o] : ''}`; };
+  const fracTxt = v => { const [n, d] = v.split('/'); return `<span class="m-fr" aria-label="${knum(d)}분의 ${knum(n)}"><b>${n}</b><b>${d}</b></span>`; };
   const pie = (n, d, cls = 'm-pie') => {
     const P = a => [50 + 44 * Math.cos(a), 50 + 44 * Math.sin(a)].map(x => x.toFixed(2)).join(' ');
     let g = '';
@@ -144,13 +146,13 @@ const MathGen = (() => {
       + `<polygon ${ST} fill="${c[1]}" points="${pts([P(x + 1, y, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x + 1, y, z + 1)])}"/>`
       + `<polygon ${ST} fill="${c[2]}" points="${pts([P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1)])}"/></g>`; };
     const maxH = Math.max(1, ...h.flat(), ...(opt.ghost || []).map(([r, x]) => h[r] ? h[r][x] + 1 : 0)), w = X * s + Y * d + 8, top = maxH * s + Y * d + 4;
-    return `<svg viewBox="-4 ${(-top).toFixed(1)} ${w.toFixed(1)} ${(top + 6).toFixed(1)}" class="m-blocks" style="width:${Math.round(w * 1.5)}px" aria-label="쌓기나무 ${h.flat().reduce((a, b) => a + b, 0)}개">${floor.join('')}${cubes.map(draw).join('')}</svg>`;
+    return `<svg viewBox="-4 ${(-top).toFixed(1)} ${w.toFixed(1)} ${(top + 6).toFixed(1)}" class="m-blocks" style="width:${Math.round(w * 1.5)}px" role="img" aria-label="쌓기나무를 쌓은 그림">${floor.join('')}${cubes.map(draw).join('')}</svg>`;
   };
   // 층 범례: 층 색과 이름. count면 층마다 몇 개인지와 모두 몇 개인지, toggle이면 눌러서 그 층을 숨겼다 보였다 한다
   const layerCnt = h => Array.from({ length: Math.max(1, ...h.flat()) }, (_, z) => h.flat().filter(v => v > z).length);
-  const blocksKey = (h, { count = true, toggle = true, layers } = {}) => {
+  const blocksKey = (h, { count = true, toggle = true, layers, off = [] } = {}) => {
     const c = layerCnt(h), n = layers || c.length, tag = toggle ? 'button type="button"' : 'span', end = toggle ? 'button' : 'span';
-    return `<div class="m-bkey">${Array.from({ length: n }, (_, z) => `<${tag} class="m-bkey-b" ${toggle ? `data-blayer="${z + 1}" aria-pressed="true"` : ''} style="--lc:${LAYER[z % 4][0]}"><i></i>${LNAME(z + 1)}${count ? ` <b>${c[z] || 0}개</b>` : ''}</${end}>`).join('')}${count ? `<span class="m-bkey-sum">모두 <b>${c.reduce((a, b) => a + b, 0)}개</b></span>` : ''}</div>`;
+    return `<div class="m-bkey">${Array.from({ length: n }, (_, z) => `<${tag} class="m-bkey-b" ${toggle ? `data-blayer="${z + 1}" aria-pressed="${!off.includes(z + 1)}"` : ''} style="--lc:${LAYER[z % 4][0]}"><i></i>${LNAME(z + 1)}${count ? ` <b>${c[z] || 0}개</b>` : ''}</${end}>`).join('')}${count ? `<span class="m-bkey-sum">모두 <b>${c.reduce((a, b) => a + b, 0)}개</b></span>` : ''}</div>`;
   };
   const blocksBox = (h, s, opt = {}) => `<div class="m-bwrap ${(opt.off || []).map(n => 'off' + n).join(' ')}">${blocksSvg(h, s, opt)}${blocksKey(h, opt)}</div>`;
   const blocksOff = el => { const w = el && el.querySelector('.m-bwrap'); return w ? [...w.classList].filter(c => /^off\d$/.test(c)).map(c => +c.slice(3)) : []; };
@@ -453,7 +455,7 @@ const MathGen = (() => {
       const opts = shuffle([key, ...shuffle([...new Set(cand)]).filter(v => !seen.has(val(v)) && seen.add(val(v))).slice(0, 2)]);
       const explain = `<div class="m-viz">${pie(n, d)}</div><p class="m-eq-num">모두 ${d}조각 중 색칠한 ${n}조각 → ${fracTxt(key)}</p>`;
       if (LV === 0 || R(2)) return { ask: '색칠한 부분은 전체의 얼마일까요?', show: `<div class="m-viz">${pie(n, d)}</div>`, opts, labels: Object.fromEntries(opts.map(v => [v, fracTxt(v)])), ans: key, hint: H.frac, explain };
-      const kn = v => v > 10 ? '십' + KN[v - 10] : KN[v];
+      const kn = knum;
       return { ask: `색칠한 부분이 <b>${kn(d)}분의 ${kn(n)}</b>인 것을 골라요`, show: `<p class="m-eq-num">${fracTxt(key)}</p>`, opts, labels: Object.fromEntries(opts.map(v => [v, pie(...v.split('/').map(Number), 'm-pie sm')])), ans: key, hint: H.frac, explain };
     },
     // 약수와 배수: 'n의 약수' 또는 'k의 배수'를 네 개 중에서 고른다
@@ -980,14 +982,26 @@ const MathGen = (() => {
   // 3×3 마방진: 1~9로 합이 15. 기본판을 돌리고 뒤집어 8가지 중 하나
   const BASE = [2, 7, 6, 9, 5, 1, 4, 3, 8];
   const rot = g => [6, 3, 0, 7, 4, 1, 8, 5, 2].map(i => g[i]), flip = g => [2, 1, 0, 5, 4, 3, 8, 7, 6].map(i => g[i]);
-  function magic(blanks = 3) { let g = BASE; for (let i = R(4); i--;) g = rot(g); if (R(2)) g = flip(g); return { size: 3, sol: g, max: 9, holes: shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8]).slice(0, blanks) }; }
+  // 답이 몇 개인지 센다(2개까지만). 빈칸을 뚫은 판은 답이 하나뿐일 때만 낸다 (QA 11: 답이 셋인 스도쿠가 나왔다)
+  const LINES3 = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  const UNITS4 = [...[0, 1, 2, 3].map(r => [0, 1, 2, 3].map(c => r * 4 + c)), ...[0, 1, 2, 3].map(c => [0, 1, 2, 3].map(r => r * 4 + c)), ...[0, 2, 8, 10].map(b => [b, b + 1, b + 4, b + 5])];
+  const solutions = (size, sol, holes) => {
+    const g = sol.map((v, i) => holes.includes(i) ? 0 : v), units = size === 3 ? LINES3 : UNITS4, max = size === 3 ? 9 : 4;
+    const okAt = i => units.filter(u => u.includes(i)).every(u => { const v = u.map(k => g[k]), f = v.filter(Boolean);
+      if (new Set(f).size !== f.length) return false; if (size === 3) { const sm = f.reduce((a, b) => a + b, 0); return f.length === 3 ? sm === 15 : sm < 15; } return true; })
+      && (size !== 3 || new Set(g.filter(Boolean)).size === g.filter(Boolean).length);
+    let n = 0; const go = k => { if (n > 1) return; if (k === holes.length) { n++; return; } const i = holes[k]; for (let v = 1; v <= max; v++) { g[i] = v; if (okAt(i)) go(k + 1); } g[i] = 0; };
+    go(0); return n;
+  };
+  const uniqueHoles = (size, sol, blanks) => { let h; for (let t = 0; t < 200; t++) { h = shuffle([...Array(size * size).keys()]).slice(0, blanks); if (solutions(size, sol, h) === 1) return h; } return h; };
+  function magic(blanks = 3) { let g = BASE; for (let i = R(4); i--;) g = rot(g); if (R(2)) g = flip(g); return { size: 3, sol: g, max: 9, holes: uniqueHoles(3, g, blanks) }; }
   // 4×4 스도쿠: 바른 판을 숫자 바꾸기·줄 바꾸기로 섞는다
   function sudoku(blanks = 6) {
     let g = [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]];
     const p = shuffle([1, 2, 3, 4]); g = g.map(r => r.map(v => p[v - 1]));
     if (R(2)) g = [g[1], g[0], g[2], g[3]]; if (R(2)) g = [g[0], g[1], g[3], g[2]]; if (R(2)) g = [g[2], g[3], g[0], g[1]];
     if (R(2)) g = g.map(r => [r[1], r[0], r[2], r[3]]); if (R(2)) g = g[0].map((_, c) => g.map(r => r[c]));
-    return { size: 4, sol: g.flat(), max: 4, holes: shuffle([...Array(16).keys()]).slice(0, blanks) };
+    return { size: 4, sol: g.flat(), max: 4, holes: uniqueHoles(4, g.flat(), blanks) };
   }
   const setLevel = l => { LV = Math.max(0, Math.min(3, l | 0)); };
   // 같은 문제가 이어서 나오지 않게: 종류마다 최근 8문제를 기억하고, 겹치면 다시 만든다.
@@ -1005,7 +1019,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, hmap, blocksKey, blocksBox, blocksOff, layerCnt, LAYER, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, figEdge, figDot, figShake, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
+  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, solutions, blocksSvg, hmap, blocksKey, blocksBox, blocksOff, layerCnt, LAYER, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, figEdge, figDot, figShake, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -1897,7 +1911,7 @@ function mathWorksheet(el, t, key) {
     <div class="no-print row"><a class="link-btn" href="#/math">← 새싹수학</a><button class="btn btn-ghost" data-new>🔄 새 문제</button></div>
     <div class="no-print m-levels" role="tablist">${MATH_LEVELS.map(([i, n], k) => `<button role="tab" data-wlv="${k}" class="${k === lv ? 'on' : ''}" aria-selected="${k === lv}">${i} ${n}</button>`).join('')}</div>
     <div class="no-print row"><button class="btn btn-ghost" data-ans>👀 정답 보기</button><button class="btn btn-primary" data-print>🖨️ 워크시트 인쇄</button></div>
-    <p class="no-print fine">화면에서 보기를 눌러 풀 수 있어요. 정답은 화면에서는 가려 두고, 인쇄하거나 PDF로 저장하면 다음 장에 나와요.</p>
+    <p class="no-print fine">${w.grid ? '' : '화면에서 보기를 눌러 풀 수 있어요. '}정답은 화면에서는 가려 두고, 인쇄하거나 PDF로 저장하면 다음 장에 나와요.</p>
     <p class="no-print mws-score" aria-live="polite"></p>
     <article class="worksheet m-ws">
       <header><b><img class="logo-inline" src="img/logo.svg" alt=""> 새싹스쿨 · 새싹수학 워크시트</b><span>${s.icon} ${s.name} 단계 · ${esc(key ? w.title : t.title)} · <span class="mws-lv">${MATH_LEVELS[lv][1]}</span></span><span>이름: ${p ? esc(p.name) : '________'} &nbsp; 날짜: ________</span></header>

@@ -344,13 +344,13 @@ const MATH_TOPICS = [
   { id: 'graph', stage: 'sprout', icon: 'math-graph', title: '막대그래프', lessons: ['graph'], game: 'graph',
     ws: { sum: '수를 막대 길이로 나타낸 것이 막대그래프예요. 가장 긴 막대가 가장 많아요.', trace: ['그래프', '막대'], gen: 'graph', n: 6 } },
   { id: 'path', stage: 'sprout', icon: '🗺️', title: '가장 짧은 길', lessons: ['path'], game: 'path',
-    ws: { sum: '돌아가지 않고 학교 쪽으로만 가면 가장 짧아요. 가로 칸 수와 세로 칸 수를 더하면 가장 짧은 걸음 수예요.', trace: ['거리', '짧다'], gen: 'path', n: 6 } },
+    ws: { sum: '돌아가지 않고 학교 쪽으로만 가면 가장 짧아요. 가로 칸 수와 세로 칸 수를 더하면 가장 짧은 걸음 수예요. 나무처럼 길을 막는 것이 있으면 돌아가야 해서 더 걸릴 수 있어요.', trace: ['거리', '짧다'], gen: 'path', n: 6 } },
   { id: 'fbox', stage: 'sprout', icon: 'math-fbox', title: '마술 상자', lessons: ['fbox'], game: 'fbox',
     ws: { sum: '넣으면 늘 같은 규칙으로 나오는 것을 함수라고 해요. 넣은 수와 나온 수를 표로 견주면 규칙이 보여요.', trace: ['함수', '+3', '×2'], gen: 'fbox', n: 6 } },
   { id: 'logic', stage: 'sprout', icon: 'math-logic', title: '누가 무엇을 가졌을까', lessons: ['logic'], game: 'logic',
     ws: { sum: '단서를 차근차근 따지면 답을 찾을 수 있어요. 표를 그려 아닌 칸에 ✗를 하거나, 끝에서부터 거꾸로 풀어요.', trace: ['논리', '○', '✗'], gen: 'logic', n: 6 } },
   { id: 'euler', stage: 'sprout', icon: '✏️', title: '한붓그리기', lessons: ['euler'], game: 'euler',
-    ws: { sum: '연필을 떼지 않고 같은 선을 두 번 지나지 않게 그리는 것이 한붓그리기예요. 선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.', trace: ['한붓', '점', '선'], gen: 'euler', n: 6 } },
+    ws: { sum: '연필을 떼지 않고 같은 선을 두 번 지나지 않게 그리는 것이 한붓그리기예요. 모든 선이 서로 이어져 있고, 선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.', trace: ['한붓', '점', '선'], gen: 'euler', n: 6 } },
   { id: 'match', stage: 'sprout', icon: 'math-match', title: '성냥개비 생각 놀이', lessons: ['match'], game: 'match',
     ws: { sum: '성냥개비 막대로 숫자를 만들 수 있어요. 막대 하나를 빼거나 옮기면 다른 숫자가 돼요.', trace: ['막대', '8', '0'], gen: 'match', n: 6 } },
   { id: 'mul', stage: 'tree', icon: 'math-mul', title: '곱셈', lessons: ['mul'], game: 'mul',
@@ -360,7 +360,7 @@ const MATH_TOPICS = [
   { id: 'factor', stage: 'tree', icon: 'math-factor', title: '약수와 배수', lessons: ['factor'], game: 'factor',
     ws: { sum: '어떤 수를 남김없이 나누는 수는 약수, 어떤 수에 1, 2, 3…을 곱한 수는 배수예요.', trace: ['약수', '배수'], gen: 'factor', n: 8 } },
   { id: 'angle', stage: 'tree', icon: 'math-angle', title: '각', lessons: ['angle'], game: 'angle',
-    ws: { sum: '직각은 90도예요. 직각보다 작으면 예각, 크면 둔각이에요.', trace: ['직각', '예각', '둔각', '90°'], gen: 'angle', n: 6 } },
+    ws: { sum: '직각은 90도예요. 직각보다 작으면 예각, 직각보다 크고 180도보다 작으면 둔각이에요.', trace: ['직각', '예각', '둔각', '90°'], gen: 'angle', n: 6 } },
   { id: 'poly', stage: 'tree', icon: 'math-poly', title: '다각형', lessons: ['poly'], game: 'poly',
     ws: { sum: '곧은 선으로만 둘러싸인 도형이 다각형이에요. 변의 수와 꼭짓점의 수는 같아요.', trace: ['변', '꼭짓점', '육각형'], gen: 'poly', n: 6 } },
   { id: 'seq', stage: 'tree', icon: 'math-seq', title: '수의 규칙', lessons: ['seq'], game: 'seq',
@@ -384,7 +384,7 @@ const MATH_TOPICS = [
   { id: 'avg', stage: 'tree', icon: 'math-avg', title: '고르게 나누기', lessons: ['avg'], game: 'avg',
     ws: { sum: '모두 더해서 똑같이 나눈 값이 평균이에요. 높은 탑에서 낮은 탑으로 옮겨 고르게 맞추는 것과 같아요.', trace: ['평균', '÷'], gen: 'avg', n: 6 } },
   { id: 'split', stage: 'tree', icon: 'math-split', title: '수 쪼개기', lessons: ['split'], game: 'split',
-    ws: { sum: '어떤 수든 더 쪼갤 수 없는 수(소수)끼리의 곱으로 쪼갤 수 있어요. 곱셈 나무를 그려 끝까지 쪼개요.', trace: ['소수', '2 × 3'], gen: 'split', n: 6 } },
+    ws: { sum: '1보다 큰 자연수는 모두 더 쪼갤 수 없는 수(소수)끼리의 곱으로 쪼갤 수 있어요. 곱셈 나무를 그려 끝까지 쪼개요.', trace: ['소수', '2 × 3'], gen: 'split', n: 6 } },
   { id: 'div', stage: 'tree', icon: 'math-div', title: '나눗셈', lessons: ['div'], game: 'div',
     ws: { sum: '똑같이 나눠 담는 것이 나눗셈이에요. 똑같이 나누고 남는 것을 나머지라고 해요.', trace: ['÷', '나머지'], gen: 'div', n: 8 } },
 ];
@@ -626,7 +626,7 @@ Object.assign(MATH_STORIES, {
     { viz: { k: 'scene', items: ['🏰', '🌉', '🌊'] }, text: '옛날 쾨니히스베르크라는 도시에는 강이 흐르고, 일곱 개의 다리가 있었어요.' },
     { viz: { k: 'scene', items: ['🚶', '🌉', '❓'] }, text: '사람들은 궁금했어요. 다리를 모두 한 번씩만 건너서 산책을 마칠 수 있을까?' },
     { viz: { k: 'scene', items: ['🟤', '🌉', '🟤', '🌉', '🟤'] }, text: '수학자 오일러는 땅을 점으로, 다리를 선으로 바꿔 그렸어요. 그리고 점마다 선이 몇 개 모이는지 세어 보았지요.' },
-    { viz: { k: 'scene', items: ['✏️', '🏠', '✨'] }, text: '선이 홀수 개 모인 점이 없거나 두 개뿐이면 한 번에 그릴 수 있어요. 그 도시는 땅 네 곳에 모두 홀수 개의 다리가 모여서 안 되었대요. 우리도 한 번에 그려 볼까요?' },
+    { viz: { k: 'scene', items: ['✏️', '🏠', '✨'] }, text: '모든 선이 서로 이어져 있고, 선이 홀수 개 모인 점이 없거나 두 개뿐이면 한 번에 그릴 수 있어요. 그 도시는 땅 네 곳에 모두 홀수 개의 다리가 모여서 안 되었대요. 우리도 한 번에 그려 볼까요?' },
   ] },
   match: { card: { icon: '🔥', name: '성냥개비 할아버지', line: '막대 하나로 수수께끼를 냈어요' }, pages: [
     { viz: { k: 'scene', items: ['🚂', '👴', '🧒'] }, text: '옛날 긴 기차 여행 길에, 할아버지가 심심해하는 손주에게 성냥갑을 꺼내 보였어요. 불은 붙이지 않고 막대로만 하는 놀이였지요.' },
@@ -641,7 +641,7 @@ MATH_STORIES.fbox.pages[0].text = '옛날 독일에 라이프니츠라는 학자
 MATH_STORIES.fbox.pages[2].text = '라이프니츠는 이렇게 규칙대로 바뀌는 것에 함수라는 이름을 붙였어요. 넣은 수와 나온 수를 표에 나란히 적으면 규칙이 보여요.';
 Object.assign(MATH_HINTS, {
   euler: '점마다 선이 몇 개 모이는지 세어 봐요. 홀수 개 모인 점에서 시작해요.',
-  eulerOdd: '선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.',
+  eulerOdd: '모든 선이 이어져 있고, 선이 홀수 개 모인 점이 0개나 2개면 한 번에 그릴 수 있어요.',
   match: '숫자마다 막대가 몇 개인지 세어 봐요. 8은 일곱 개를 다 써요.',
   matchEq: '어느 숫자의 막대 하나가 다른 자리로 가면 맞는 식이 될지 하나씩 바꿔 봐요.',
 });
@@ -672,7 +672,7 @@ Object.assign(MATH_STORIES, {
     { viz: { k: 'scene', items: ['🏛️', '📜', '🔢'] }, text: '옛날 이집트의 큰 도서관에 에라토스테네스라는 학자가 있었어요. 수를 쪼개 보는 놀이를 즐겼대요.' },
     { viz: { k: 'rects', n: 12 }, text: '12는 2 곱하기 6, 3 곱하기 4처럼 여러 가지로 쪼갤 수 있어요. 그런데 7은 1 곱하기 7 말고는 쪼갤 수 없지요.' },
     { viz: { k: 'nums', to: 30, hi: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29] }, text: '에라토스테네스는 수를 쭉 적고, 2는 남기고 2의 배수를, 3은 남기고 3의 배수를 차례로 지워 나갔어요. 끝까지 남은 수가 더 쪼갤 수 없는 소수였어요.' },
-    { viz: { k: 'ftree', n: 36 }, text: '어떤 수든 소수끼리의 곱으로 쪼갤 수 있어요. 곱셈 나무를 그려 끝까지 쪼개 볼까요?' },
+    { viz: { k: 'ftree', n: 36 }, text: '1보다 큰 자연수는 모두 소수끼리의 곱으로 쪼갤 수 있어요. 곱셈 나무를 그려 끝까지 쪼개 볼까요?' },
   ] },
 });
 Object.assign(MATH_HINTS, {
@@ -722,7 +722,7 @@ Object.assign(MATH_STORIES, {
     { viz: { k: 'scene', items: ['🏜️', '🔺', '☀️'] }, text: '옛날 그리스의 탈레스가 이집트에 갔을 때, 사람들이 물었어요. 저 커다란 피라미드는 얼마나 높을까요?' },
     { viz: { k: 'scene', items: ['📏', '☀️', '🌑'] }, text: '탈레스는 땅에 막대를 꽂고 그림자를 지켜보았어요. 막대의 그림자가 막대 길이와 똑같아지는 때를 기다렸지요.' },
     { viz: { k: 'angle', deg: 45 }, text: '그때 햇빛은 모든 것에 같은 각으로 비춰요. 그러니 피라미드의 그림자 길이를 재면, 그게 바로 피라미드의 높이였어요.' },
-    { viz: { k: 'angle', all: true }, text: '두 선이 벌어진 정도를 각이라고 해요. 직각보다 작으면 예각, 크면 둔각이에요. 우리도 각을 알아볼까요?' },
+    { viz: { k: 'angle', all: true }, text: '두 선이 벌어진 정도를 각이라고 해요. 직각보다 작으면 예각, 직각보다 크고 쭉 편 일직선보다 작으면 둔각이에요. 우리도 각을 알아볼까요?' },
   ] },
   poly: { card: { icon: '🐝', name: '파푸스', line: '벌집이 왜 육각형인지 생각했어요' }, pages: [
     { viz: { k: 'scene', items: ['🏛️', '🍯', '🐝'] }, text: '옛날 알렉산드리아에 파푸스라는 학자가 있었어요. 벌집을 들여다보다가 방이 모두 똑같은 모양이라는 것을 알아챘대요.' },
@@ -757,7 +757,7 @@ MATH_LESSONS.push(
   { id: 'dec', stage: 'tree', icon: 'math-dec', title: '소수', topic: '소수', steps: [
     { type: 'learn', viz: { k: 'dec', n: 1 }, text: '초콜릿 하나를 똑같이 열 조각으로 나눴어요. 그중 한 조각은 10분의 1이고, 0.1이라고 써요. 영 점 일이라고 읽어요.' },
     { type: 'learn', viz: { k: 'dec', n: 3 }, text: '0.1이 세 개 모이면 0.3이에요. 점 앞의 0은 아직 하나가 다 안 됐다는 뜻이에요.' },
-    { type: 'learn', viz: { k: 'dec', n: 12 }, text: '하나를 다 채우고 두 조각이 더 있으면 1.2예요. 점 앞은 다 채운 개수, 점 뒤는 열 조각 중 몇 조각인지예요.' },
+    { type: 'learn', viz: { k: 'dec', n: 12 }, text: '하나를 다 채우고 두 조각이 더 있으면 1.2예요. 점 앞은 다 채운 개수, 점 바로 뒤 첫째 자리는 열 조각 중 몇 조각인지예요. 여기서는 점 뒤에 한 자리만 있는 소수를 배워요.' },
     { type: 'learn', viz: { k: 'line', at: 5 }, text: '0과 1 사이를 똑같이 열 칸으로 나누면 한 칸이 0.1이에요. 다섯 칸 간 곳은 0.5, 딱 절반이에요. 0.1, 0.5처럼 점을 찍어 나타내는 수를 소수라고 해요. 수 쪼개기에서 배운 소수와 이름만 같고 다른 수예요.' },
     { type: 'write', glyph: '0.1', say: '영 점 일을 써 봐요. 0을 쓰고, 점을 콕 찍고, 1을 써요.' },
     { type: 'quiz', gen: 'dec', lv: 0 }, { type: 'quiz', gen: 'dec', lv: 1 },
@@ -774,7 +774,7 @@ MATH_TOPICS.push(
   { id: 'sym', stage: 'sprout', icon: 'math-sym', title: '선대칭', lessons: ['sym'], game: 'sym',
     ws: { sum: '가운데 선을 따라 접었을 때 양쪽이 꼭 맞게 겹치는 모양이 선대칭 모양이에요. 접는 선을 대칭축이라고 해요.', trace: ['대칭', '대칭축'], gen: 'sym', n: 6, mix: true } },
   { id: 'dec', stage: 'tree', icon: 'math-dec', title: '소수', lessons: ['dec'], game: 'dec',
-    ws: { sum: '하나를 똑같이 열로 나눈 하나는 0.1이에요. 0.1이 열 개면 1이에요. 점 앞은 다 채운 개수, 점 뒤는 열 조각 중 몇 조각인지예요.', trace: ['0.1', '0.5', '1.2'], gen: 'dec', n: 8, mix: true } },
+    ws: { sum: '하나를 똑같이 열로 나눈 하나는 0.1이에요. 0.1이 열 개면 1이에요. 점 앞은 다 채운 개수, 점 바로 뒤 첫째 자리는 열 조각 중 몇 조각인지예요. 여기서는 소수 첫째 자리까지만 풀어요.', trace: ['0.1', '0.5', '1.2'], gen: 'dec', n: 8, mix: true } },
   { id: 'vol', stage: 'tree', icon: 'math-vol', title: '부피', lessons: ['vol'], game: 'vol',
     ws: { sum: '쌓기나무가 몇 개 들어가는지로 부피를 재요. 바닥 한 층의 개수에 층 수를 곱하면 돼요.', trace: ['부피', '가로×세로×높이'], gen: 'vol', n: 6, mix: true } },
 );
@@ -794,7 +794,7 @@ Object.assign(MATH_STORIES, {
   vol: { card: { icon: '🛁', name: '아르키메데스', line: '넘친 물로 부피를 알았어요' }, pages: [
     { viz: { k: 'scene', items: ['🏛️', '👑', '🤔'] }, text: '옛날 시라쿠사의 왕이 새 금관을 받았어요. 왕은 금관이 진짜 금으로만 만들어졌는지 궁금했대요.' },
     { viz: { k: 'scene', items: ['🛁', '💧', '💧'] }, text: '아르키메데스는 목욕통에 들어가다가 물이 넘치는 것을 보았어요. 몸이 들어간 만큼 물이 넘쳤지요.' },
-    { viz: { k: 'scene', items: ['👑', '💧', '✨'] }, text: '넘친 물을 재면 금관이 차지하는 크기를 알 수 있었어요. 그는 기뻐서 유레카, 찾았다 하고 외쳤대요.' },
+    { viz: { k: 'scene', items: ['👑', '💧', '✨'] }, text: '금관을 물에 푹 잠기게 넣고 넘친 물을 재면, 금관이 차지하는 크기를 알 수 있었어요. 그는 기뻐서 유레카, 찾았다 하고 외쳤대요.' },
     { viz: { k: 'cuboid', l: 3, w: 2, h: 2 }, text: '물건이 차지하는 크기를 부피라고 해요. 우리는 쌓기나무로 부피를 재어 볼까요?' },
   ] },
 });

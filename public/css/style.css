@@ -2296,3 +2296,33 @@ button.m-bkey-b { cursor: pointer; min-height: 40px; }
 .m-bmode .m-pm-b:not(.on) { opacity: .5; } .m-bmode .m-pm-b.on { box-shadow: 0 0 0 4px #ffd23f; }
 .m-bcell.on, :root[data-theme="dark"] .m-bcell.on { background: color-mix(in srgb, var(--lc, #ffca28) 35%, #fff); border: 3px solid var(--lc, #3a2d4f); color: #1a1220; }
 .m-ws .m-bkey-b { min-height: 0; padding: 2px 8px; font-size: .85rem; }
+
+/* 좁은 화면(320·375px) 넘침 (2026-11-28 QA): 카드 안 grid가 가장 넓은 자식만큼 넓어져 본문까지 밀리던 것 */
+.m-area { grid-template-columns: minmax(0, 1fr); }
+.m-area > * { max-width: 100%; }
+/* 01 수 세기: 칸 그림이 좁은 화면에 맞게 줄어든다 */
+.m-count, .m-viz.m-count { font-size: clamp(1.5rem, 8vw, 2.6rem); }
+/* 02 백까지 세기: 10칸 판이 카드 폭에 맞게 */
+.m-hund { grid-template-columns: repeat(10, minmax(0, 34px)); width: 100%; max-width: 360px; }
+.m-hund span { min-width: 0; }
+@media (max-width: 420px) { .m-hund { grid-template-columns: repeat(10, minmax(0, 30px)); } .m-hund span { font-size: clamp(.62rem, 3vw, .95rem); height: 28px; border-radius: 5px; } }
+/* 25 암호: 글자 단추판이 카드 폭에 맞게 */
+.m-keypad { grid-template-columns: repeat(7, minmax(0, 48px)); width: 100%; }
+.m-keyb { min-width: 0; padding: 0; }
+@media (max-width: 420px) { .m-keyb { height: 46px; font-size: 1.05rem; } }
+/* 표 만들기: 좁으면 칸을 줄인다 */
+@media (max-width: 420px) { .m-table.tally td.m-in { min-width: 0; font-size: 1.2rem; } .m-table th, .m-table td { padding: 5px 6px; } }
+/* 29 저울: 좁은 화면에서는 저울 그림을 작게 */
+@media (max-width: 420px) { .m-scale { zoom: .82; } .m-scales .m-scale { zoom: .6; } }
+@media (max-width: 360px) { .m-scale { zoom: .7; } .m-scales .m-scale { zoom: .52; } }
+/* 수의 규칙 탑: 좁으면 간격을 줄인다 */
+@media (max-width: 420px) { .m-towers { gap: 6px; } .m-tower i { width: 28px; } }
+/* 10·11 워크시트: 화면이 좁으면 문제를 한 줄에 하나씩 (인쇄는 그대로 두 줄) */
+@media screen and (max-width: 520px) { .mws-probs, .mws-probs.grids { grid-template-columns: minmax(0, 1fr); } .mws-q .m-scale { zoom: .7; } }
+.m-help, .m-explain { min-width: 0; max-width: 100%; } .m-explain { grid-template-columns: minmax(0, 1fr); } .m-explain .m-nums { margin-inline: auto; }
+/* 작은 [+][−] 단추 (부피·접시·탑·복면산): 한 줄에 같은 크기로 */
+.m-pm-b.sm { min-height: 44px; min-width: 52px; padding: 4px 12px; font-size: 1rem; flex: none; }
+.m-pm-b.sm b { font-size: 1.35rem; }
+.m-vol-ctl .row-center { flex-wrap: nowrap; gap: 8px; } .m-vol-ctl .row-center > b { min-width: 2.4em; } .m-vol-ctl [data-v] { min-width: 1.4em; font: 700 1.3rem var(--en); text-align: center; }
+.m-vol-ctl .m-pm-b b, .m-act-var .m-pm-b b, .m-act-cut .m-pm-b b { min-width: 0; color: inherit; text-align: center; font: 700 1.35rem var(--en); }
+.m-act-cut { flex-wrap: nowrap; gap: 6px; } .m-act-cut .m-act-n { white-space: nowrap; font-size: .95rem; }

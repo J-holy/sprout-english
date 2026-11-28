@@ -203,15 +203,16 @@ MATH_ACTS.dec = {
 MATH_ACTS.vol = {
   missions: [
     { text: '바닥에 쌓기나무를 가로 세 개, 세로 두 개로 깔아 봐요. 높이는 한 층이에요.', goal: [3, 2, 1], win: '한 층에 3 곱하기 2, 여섯 개예요!' },
-    { text: '이제 똑같은 층을 하나 더 올려서 두 층으로 만들어 봐요. 모두 몇 개일까요?', goal: [3, 2, 2], win: '여섯 개씩 두 층, 열두 개예요! 층 수를 곱하면 돼요.' },
+    { text: '이제 똑같은 층을 하나 더 올려서 두 층으로 만들어 봐요. 모두 몇 개일까요?', start: [3, 2, 1], goal: [3, 2, 2], win: '여섯 개씩 두 층, 열두 개예요! 층 수를 곱하면 돼요.' },
     { text: '가로, 세로, 높이를 모두 2로 만들어 봐요. 모서리 길이가 모두 같은 정육면체예요.', goal: [2, 2, 2], win: '여덟 개! 2 곱하기 2 곱하기 2는 8이에요.' },
     { text: '쌓기나무 열두 개로 상자 모양을 만들어 봐요.', vol: 12, win: '열두 개! 가로, 세로, 높이를 곱해서 12가 되면 모두 정답이에요.' },
     { text: '쌓기나무 스물네 개로 상자 모양을 만들어 봐요. 가로, 세로, 높이를 바꿔 봐요.', vol: 24, win: '스물네 개! 가로, 세로, 높이를 곱해서 24가 되면 모두 정답이에요.' },
   ],
   free: { text: '가로, 세로, 높이를 마음대로 바꾸며 부피를 재어 봐요.', open: true },
   mount(box, m, api) {
-    const d = { l: 1, w: 1, h: 1 }, NM = { l: '가로', w: '세로', h: '높이' };
-    box.innerHTML = `<div class="m-act-vol"></div><p class="m-act-eq"></p><div class="m-vol-ctl">${['l', 'w', 'h'].map(k => `<div class="row-center"><b>${NM[k]}</b><button class="btn btn-ghost sm" data-k="${k}" data-d="-1">➖</button><span data-v="${k}"></span><button class="btn btn-ghost sm" data-k="${k}" data-d="1">➕</button></div>`).join('')}</div>`;
+    // QA 38: 두 번째 미션은 앞 미션에서 깐 3×2×1에서 이어서 시작
+    const [l0, w0, h0] = m.start || [1, 1, 1], d = { l: l0, w: w0, h: h0 }, NM = { l: '가로', w: '세로', h: '높이' };
+    box.innerHTML = `<div class="m-act-vol"></div><p class="m-act-eq"></p><div class="m-vol-ctl">${['l', 'w', 'h'].map(k => `<div class="row-center"><b>${NM[k]}</b><button class="btn m-pm-b is-plus sm" data-k="${k}" data-d="1" aria-label="${NM[k]} 하나 늘리기"><b>+</b></button><span data-v="${k}"></span><button class="btn m-pm-b is-minus sm" data-k="${k}" data-d="-1" aria-label="${NM[k]} 하나 줄이기"><b>−</b></button></div>`).join('')}</div>`;
     const draw = () => {
       const v = d.l * d.w * d.h;
       $('.m-act-vol', box).innerHTML = `<div class="m-viz">${MM.cub(d.l, d.w, d.h, 24)}</div>`;
