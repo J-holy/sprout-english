@@ -1327,34 +1327,56 @@ function mathViz(v) {
 // 따라 쓰기: 연한 글자 위를 손가락으로 덧쓰면 덮은 정도로 확인한다 (영어 레슨 trace와 같은 방식, 한글·여러 글자도)
 function mathTrace(box, glyph, onOk) {
   const W = 360, H = 260;
-  box.innerHTML = `<div class="trace-wrap"><canvas class="trace m-trace" width="${W}" height="${H}" aria-label="${esc(glyph)} 따라 쓰기"></canvas></div>
-    <div class="row-center"><button class="btn btn-ghost" data-clear>지우기</button><button class="btn btn-primary" data-check disabled>다 썼어요</button></div><p class="m-msg fine" aria-live="polite"></p>`;
-  const cv = box.querySelector('canvas'), c = cv.getContext('2d');
+  box.innerHTML = `<div class="trace-wrap m-trace-wrap"><canvas class="trace m-trace" width="${W}" height="${H}" aria-label="${esc(glyph)} 따라 쓰기"></canvas><div class="m-tfx" aria-hidden="true"></div></div>
+    <div class="row-center"><button class="btn btn-ghost" data-clear>지우기</button><button class="btn btn-primary" data-check>다 썼어요</button></div><p class="m-msg m-tmsg" aria-live="polite"></p>`;
+  const cv = box.querySelector('canvas'), c = cv.getContext('2d'), msg = box.querySelector('.m-msg'), fx = box.querySelector('.m-tfx');
   const fam = '"Jua", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Baloo 2", sans-serif';
   const mk = () => { const x = document.createElement('canvas'); x.width = W; x.height = H; return x; };
   let size = 220; c.font = `bold ${size}px ${fam}`; const w = c.measureText(glyph).width; if (w > W - 40) size = Math.floor(size * (W - 40) / w);
   const font = `bold ${size}px ${fam}`, cy = H / 2 + size * 0.06;
-  const put = (ctx, fill) => { ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = fill; ctx.fillText(glyph, W / 2, cy); };
+  const put = (ctx, fill, dx = 0, dy = 0) => { ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = fill; ctx.fillText(glyph, W / 2 + dx, cy + dy); };
   const mask = mk(), mc = mask.getContext('2d'); put(mc, '#000');
+  // 점선 테두리: 글자를 둘레로 밀어 찍고 가운데를 지운 바깥 테두리에 빗금 무늬를 씌운다 (strokeText는 iPhone에서 안쪽 윤곽까지 그린다)
+  const edge = mk(), ec = edge.getContext('2d');
+  for (let k = 0; k < 16; k++) put(ec, '#000', 3 * Math.cos(k * Math.PI / 8), 3 * Math.sin(k * Math.PI / 8));
+  ec.globalCompositeOperation = 'destination-out'; put(ec, '#000');
+  const tile = document.createElement('canvas'); tile.width = tile.height = 12; const tc = tile.getContext('2d'); tc.fillRect(0, 0, 6, 12);
+  ec.globalCompositeOperation = 'destination-in'; ec.fillStyle = ec.createPattern(tile, 'repeat'); ec.save(); ec.rotate(Math.PI / 4); ec.fillRect(-W, -H * 2, W * 3, H * 4); ec.restore();
+  ec.globalCompositeOperation = 'source-in'; ec.fillStyle = '#9e8fa8'; ec.fillRect(0, 0, W, H);
   const ink = mk(), ic = ink.getContext('2d');
-  const guide = () => { c.clearRect(0, 0, W, H); put(c, getComputedStyle(document.documentElement).getPropertyValue('--trace-guide').trim() || '#e4e0ea'); };
+  const guide = () => { c.clearRect(0, 0, W, H); put(c, getComputedStyle(document.documentElement).getPropertyValue('--trace-guide').trim() || '#e4e0ea'); c.drawImage(edge, 0, 0); };
   guide();
-  let drawing = false, last = null, len = 0;
+  let drawing = false, last = null, len = 0, done = false;
   const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const line = (ctx, a, b, col) => { ctx.strokeStyle = col; ctx.lineWidth = Math.max(12, size / 12); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); };
-  cv.onpointerdown = e => { drawing = true; last = pos(e); cv.setPointerCapture(e.pointerId); };
-  cv.onpointermove = e => { if (!drawing) return; const p = pos(e); line(c, last, p, '#ff7043'); line(ic, last, p, '#000'); len += Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; box.querySelector('[data-check]').disabled = len < 80; };
+  const say = (t, cls) => { msg.textContent = t.replace('! ', '!\n'); msg.className = `m-msg m-tmsg ${cls}`; KoSpeech.say(t); };
+  const clear = () => { ic.clearRect(0, 0, W, H); len = 0; guide(); };
+  cv.onpointerdown = e => { if (done) return; drawing = true; last = pos(e); cv.setPointerCapture(e.pointerId); msg.textContent = ''; msg.className = 'm-msg m-tmsg'; };
+  cv.onpointermove = e => { if (!drawing) return; const p = pos(e); line(c, last, p, '#ff7043'); line(ic, last, p, '#000'); len += Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; };
   cv.onpointerup = cv.onpointercancel = () => { drawing = false; };
-  box.querySelector('[data-clear]').onclick = () => { ic.clearRect(0, 0, W, H); len = 0; guide(); box.querySelector('[data-check]').disabled = true; };
+  box.querySelector('[data-clear]').onclick = () => { if (!done) { clear(); msg.textContent = ''; msg.className = 'm-msg m-tmsg'; } };
   box.querySelector('[data-check]').onclick = () => {
+    if (done) return;
     const m = mc.getImageData(0, 0, W, H).data, d = ic.getImageData(0, 0, W, H).data;
-    let mN = 0, cov = 0, iN = 0, on = 0;
-    for (let k = 3; k < m.length; k += 16) { const a = m[k] > 0, b = d[k] > 0; if (a) { mN++; if (b) cov++; } if (b) { iN++; if (a) on++; } }
-    const ok = cov / Math.max(mN, 1) > 0.3 && on / Math.max(iN, 1) > 0.4;
-    if (ok) { Speech.sfx.correct(); onOk(); }
-    else { Speech.sfx.wrong(); box.querySelector('.m-msg').textContent = '연한 글자 위를 따라서 한 번 더 써 볼까요?'; }
+    // 글자를 위·가운데·아래 세 칸으로 나눠 칸마다 덮은 비율도 센다 (한 부분만 쓰고 끝내면 '거의 다 왔어요')
+    let mN = 0, cov = 0, iN = 0, on = 0, y0 = H, y1 = 0;
+    for (let k = 3; k < m.length; k += 16) if (m[k] > 0) { const y = Math.floor((k >> 2) / W); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    const bN = [0, 0, 0], bC = [0, 0, 0];
+    for (let k = 3; k < m.length; k += 16) { const a = m[k] > 0, b = d[k] > 0; if (a) { mN++; const z = Math.min(2, Math.floor(((k >> 2) / W - y0) * 3 / (y1 - y0 + 1))); bN[z]++; if (b) { cov++; bC[z]++; } } if (b) { iN++; if (a) on++; } }
+    const r = mathTrace.grade(cov / Math.max(mN, 1), on / Math.max(iN, 1), len, Math.min(...bC.map((x, z) => x / Math.max(bN[z], 1)))), T = MATH_SAY.trace;
+    if (r === 'good') {
+      done = true; box.querySelectorAll('button').forEach(b => b.disabled = true);
+      Speech.sfx.correct(); say(T.good[mathTrace.n++ % T.good.length], 'good');
+      fx.innerHTML = Array.from({ length: 9 }, (_, k) => `<i style="--a:${k * 40}deg;--d:${(k % 3) * 60}ms">${k % 2 ? '✨' : '⭐'}</i>`).join('');
+      setTimeout(onOk, 1600);
+    } else if (r === 'almost') { Speech.sfx.wrong(); say(T.almost, 'almost'); }
+    else { Speech.sfx.wrong(); clear(); say(T.none, 'none'); }
   };
 }
+// 덮은 비율(cov)·점선 안쪽 비율(on)·그은 길이·가장 덜 덮은 칸(band)으로 나눈다. 아이에게 너그럽게:
+// 글자의 4분의 1을 덮고, 위·가운데·아래 칸을 10%씩은 지나가고, 그은 선의 35%가 글자 안에 있으면 잘했어요
+mathTrace.grade = (cov, on, len, band = 1) => len < 40 || cov < 0.06 ? 'none' : cov >= 0.25 && on >= 0.35 && band >= 0.1 ? 'good' : 'almost';
+mathTrace.n = Math.floor(Math.random() * 3);
 
 const mSayBtns = t => `<div class="row-center m-say"><button class="btn btn-ghost" data-ko="${esc(t)}">🔊 듣기</button><button class="btn btn-ghost" data-ko-slow="${esc(t)}">🐢 천천히</button></div>`;
 const mWireSay = area => {

@@ -966,3 +966,6 @@ const MATH_CONCEPT = {
 ]
 };
 for (const t of MATH_TOPICS) if (MATH_CONCEPT[t.id]) t.ws.concept = MATH_CONCEPT[t.id];
+// 따라 쓰기 '다 썼어요' 피드백: 잘 썼을 때(돌려 쓴다) · 조금 부족할 때 · 거의 안 썼을 때
+MATH_SAY.trace = { good: ['잘했어요!', '참 잘 썼어요!', '멋지게 썼어요!'], almost: '거의 다 왔어요! 점선을 따라 한 번 더 써 볼까요?', none: '점선을 따라 써 봐요.' };
+MATH_VOICE.push(...MATH_SAY.trace.good, MATH_SAY.trace.almost, MATH_SAY.trace.none);
