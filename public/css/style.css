@@ -2326,3 +2326,11 @@ button.m-bkey-b { cursor: pointer; min-height: 40px; }
 .m-vol-ctl .row-center { flex-wrap: nowrap; gap: 8px; } .m-vol-ctl .row-center > b { min-width: 2.4em; } .m-vol-ctl [data-v] { min-width: 1.4em; font: 700 1.3rem var(--en); text-align: center; }
 .m-vol-ctl .m-pm-b b, .m-act-var .m-pm-b b, .m-act-cut .m-pm-b b { min-width: 0; color: inherit; text-align: center; font: 700 1.35rem var(--en); }
 .m-act-cut { flex-wrap: nowrap; gap: 6px; } .m-act-cut .m-act-n { white-space: nowrap; font-size: .95rem; }
+
+/* 요금표 맨 위 1개월 요금 한눈에 (11-28 컨설팅 반영) */
+.price-glance h2 { margin: 0 0 8px; font-size: 1.15rem; } .price-glance h2 small { color: var(--muted); font-size: .8rem; font-weight: 400; }
+.price-glance ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.price-glance li { background: var(--soft); border-radius: 14px; padding: 10px; display: grid; gap: 2px; text-align: center; }
+.price-glance li span { font-weight: 800; font-size: 1.1rem; }
+.price-glance .fine { margin: 10px 0 0; }
+@media (max-width: 400px) { .price-glance ul { grid-template-columns: 1fr; } .price-glance li { grid-template-columns: 1fr auto; text-align: left; align-items: center; } }

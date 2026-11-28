@@ -208,11 +208,12 @@ const UI = {
     return `<div class="faq">${list.map(f => `<details class="faq-item"><summary><span class="q">Q</span>${esc(f.q)}</summary><div class="faq-a">${esc(f.a)}</div></details>`).join('')}</div>`;
   },
   ratingBars(reviews) {
-    const n = reviews.length || 1;
-    return `<div class="rating-bars"><div class="rb-total">후기 ${reviews.length}개</div>${[4, 3, 2, 1].map(r => {
+    // 후기가 적을 때 백분율(예: 1건에 100%)은 부풀려 보이므로 10건이 모이기 전에는 건수만 보여 준다
+    const n = reviews.length || 1, few = reviews.length < 10;
+    return `<div class="rating-bars"><div class="rb-total">부모 후기 ${reviews.length}건</div>${[4, 3, 2, 1].map(r => {
       const c = reviews.filter(x => x.rating === r).length; const pct = Math.round(c / n * 100);
-      return `<div class="rb-row"><span class="rb-label">${['', '😢', '😐', '🙂', '😍'][r]} ${RATING_LABELS[r]}</span><div class="rb-bar"><i style="width:${pct}%"></i></div><span class="rb-pct">${pct}%</span><span class="rb-cnt">${c}명</span></div>`;
-    }).join('')}</div>`;
+      return `<div class="rb-row"><span class="rb-label">${['', '😢', '😐', '🙂', '😍'][r]} ${RATING_LABELS[r]}</span><div class="rb-bar"><i style="width:${pct}%"></i></div>${few ? '' : `<span class="rb-pct">${pct}%</span>`}<span class="rb-cnt">${c}건</span></div>`;
+    }).join('')}${few ? '<p class="fine">후기가 10건 모이면 비율도 함께 보여 드려요.</p>' : ''}</div>`;
   },
   reviewCard(r, admin = false) {
     return `<article class="review-card"><div class="rv-top"><span class="rv-rate r${r.rating}">${['', '😢', '😐', '🙂', '😍'][r.rating]} ${RATING_LABELS[r.rating]}</span>${r.sample ? '<span class="tag">예시</span>' : ''}
@@ -483,7 +484,7 @@ Views.home = el => {
         <p>새싹스쿨은 영어와 수학을 아이 혼자 놀이처럼 하는 학교예요. 영어는 레벨 진단으로 매일 할 레슨이 정해지고, 수학은 퍼즐로 생각하는 힘을 길러요. 부모님은 옆에 앉아 있지 않아도 돼요. 오늘 무엇을 할 수 있게 됐는지는 리포트로 받아요.</p>
         <div class="row">
           <a class="btn btn-primary lg" href="#/sample/A">▶ 영어 3분 체험 (가입 없이)</a>
-          <a class="btn btn-ghost lg" href="#/math">🧮 수학 생각 놀이 해 보기</a>
+          <a class="btn btn-ghost lg" href="#/math/p_count">🧮 가입 없이 수학 5문제 풀기</a>
         </div>
         <ul class="trust"><li>✅ 영어 ${FREE().name}은 평생 무료</li><li>✅ 수학 씨앗 단계(5~6세쯤)는 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
       </div>
@@ -870,6 +871,10 @@ Views.pricing = (el, params) => {
     ${u ? `<div class="card status-card">${statusText(a, u)} ${a.kind === 'member' ? '<a href="#/parent/member">멤버십 보기 →</a>' : ''}</div>` : ''}
     ${params && params.get('error') ? `<div class="card notice error-card">⚠️ 결제를 완료하지 못했어요: ${esc(params.get('error'))}</div>` : ''}
 
+    <div class="card price-glance"><h2>한눈에 보는 1개월 요금 <small>아이 1명</small></h2>
+      <ul>${Object.entries(SUBJECTS).map(([k, n]) => `<li><b>${n}</b><span>${won(planMonthly('one', 1, k))}</span></li>`).join('')}</ul>
+      <p class="fine">✅ 한 번만 결제 · <b>자동결제 없음</b> · 카드 등록 없음 · 끝나기 3일 전에 알려 드려요. 3·6·12개월권과 할인은 아래에서 볼 수 있어요.</p></div>
+
     <div class="free-plan card">
       <div><span class="chip">무료</span><h2>${F.name}은 평생 무료</h2>
         <p>${F.range}(${F.levels}, <b>${F.lessons}레슨</b>)와 스토리북 ${F.books}권, 놀이터·말하기 연습·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
@@ -1029,7 +1034,7 @@ Views.auth = (el, mode, params) => {
       <p class="fine center">입력한 메일로 6자리 숫자가 와요. 그 숫자만 넣으면 끝!</p></form>`}
       ${showForm && Store.phoneReady() ? `<div class="row-center"><button class="link-btn" data-via>${via === 'phone' ? '이메일로 받을래요' : '휴대폰으로 받을래요'}</button></div>` : ''}
       ${isUp ? '' : '<p class="fine center">비밀번호 없이, 가입할 때 쓴 방법으로 들어와요.</p>'}
-      <p class="center switch">${isUp ? '이미 계정이 있나요? <a href="#/login">로그인</a>' : '처음이세요? <a href="#/signup">무료로 회원가입</a>'}</p>`);
+      <p class="center switch">${isUp ? `이미 계정이 있나요? <a href="#/login${next !== '/study' ? '?next=' + encodeURIComponent(next) : ''}">로그인</a>` : `처음이세요? <a href="#/signup${next !== '/study' ? '?next=' + encodeURIComponent(next) : ''}">무료로 회원가입</a>`}</p>`);
     $$('[data-sns]', el).forEach(b => b.onclick = () => snsFlow(b.dataset.sns));
     const toggle = $('[data-via]', el);
     if (toggle) toggle.onclick = () => { via = via === 'phone' ? 'email' : 'phone'; choose(); };
