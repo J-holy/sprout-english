@@ -629,7 +629,7 @@ const Lesson = (() => {
           <button class="btn btn-ghost" data-slow>🐢 천천히</button>
           ${Speech.canListen ? '<button class="btn btn-primary mic" data-mic>🎤 말하기</button>' : '<button class="btn btn-primary" data-self>따라 말했어요</button>'}
         </div>
-        ${Speech.canListen ? '<button class="link-btn" data-skip>지금은 말하기 어려워요 (건너뛰기)</button>' : `<p class="hint mic-hint">🎤 지금은 "듣고 따라 말하기"로 진행해요. ${esc(Speech.unsupportedReason())}</p>`}`;
+        ${Speech.canListen ? '<button class="link-btn" data-skip>지금은 말하기 어려워요 (건너뛰기)</button> <a class="link-btn diag-link" href="#/help?diag=1">🔧 소리·마이크 점검</a>' : `<p class="hint mic-hint">🎤 지금은 "듣고 따라 말하기"로 진행해요. ${esc(Speech.unsupportedReason())}</p>`}`;
       el.querySelectorAll('[data-say]').forEach(b => b.onclick = () => Speech.speak(b.dataset.say));
       const res = el.querySelector('.speak-result');
       el.querySelector('[data-listen]').onclick = () => Speech.speak(q.target);

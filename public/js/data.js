@@ -49,7 +49,15 @@ const promoEndText = () => { const d = new Date(PROMO.until); return `${d.getMon
 const lowestMonthly = (kids = 'one', subject = 'en') => promoMonthly(kids, PROMO.months, subject) || SUBJECT_PLANS[subject][kids].m12;
 const wonText = n => n.toLocaleString('ko-KR') + '원';
 // 카카오톡 채널 '새싹스쿨' (11-24 개설): 채널 추가·1:1 채팅 문의
+// 고객센터 운영 시간 (정해지면 문의 칸에 보인다)
+const SUPPORT_HOURS = '';
 const KAKAO_CHANNEL = { home: 'https://pf.kakao.com/_RxjmvX', chat: 'https://pf.kakao.com/_RxjmvX/chat' };
+// 과목별로 무엇을 하면 '플러스 학습 시작'인지 (청약철회·환불 안내에 같은 말로 쓴다, 11-28 컨설팅)
+const PLUS_START = {
+  en: () => `영어 ${FREE().plusFrom} 이상 레슨이나 플러스 스토리북`,
+  ma: () => '수학 새싹·나무 단계 활동(배우기·이야기·해 보기·생각 놀이)',
+};
+const plusStartText = (subject = 'en') => subject === 'both' ? `${PLUS_START.en()} 또는 ${PLUS_START.ma()}` : (PLUS_START[subject] || PLUS_START.en)();
 const WELCOME_RATE = 0.2; // 웰컴쿠폰: 첫 결제 20% 추가 할인 (모든 기간)
 const round10 = n => Math.round(n / 10) * 10;
 const planMonthly = (kids, months, subject = 'en') => SUBJECT_PLANS[subject][kids]['m' + months];

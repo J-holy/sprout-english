@@ -2401,3 +2401,15 @@ button.m-bkey-b { cursor: pointer; min-height: 40px; }
 :root[data-theme="dark"] .diff { color: #c9bbff; }
 :root[data-theme="dark"] .m-area .m-ftab td.q { color: #5e35b1; }
 :root[data-theme="dark"] .m-area :is(.m-num, .m-tapi) i { background: #bf360c; }
+
+/* 결제 창 마지막 확인 · 가격 카드 총액 (11-28 컨설팅 반영) */
+.pay-final { background: var(--soft); border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; margin: 10px 0; font-size: .9rem; }
+.pay-final ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.plan-pay { display: grid; justify-items: center; gap: 1px; margin: 4px 0 8px; }
+.plan-pay b { font-family: var(--title); font-size: 1.6rem; line-height: 1.15; }
+.plan-pay small { color: var(--muted); font-size: .78rem; }
+.compare .cmp-sub th { background: var(--soft); font-family: var(--title); text-align: left; }
+.place-why { text-align: left; background: var(--soft); border-radius: 16px; padding: 12px 16px; margin: 12px 0; }
+.place-why h3 { font-size: 1rem; margin: 6px 0 4px; } .place-why ul { margin: 0 0 6px; padding-left: 18px; display: grid; gap: 3px; font-size: .92rem; }
+.diag-link { margin-left: 8px; font-size: .85rem; }
+#diag { scroll-margin-top: 90px; } #diag.flash { animation: diagFlash 1.6s ease 2; } @keyframes diagFlash { 50% { box-shadow: 0 0 0 6px var(--sun); } }

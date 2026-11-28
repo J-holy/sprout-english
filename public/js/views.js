@@ -171,14 +171,15 @@ const UI = {
         const disc = Math.round((1 - monthly / P.list) * 100);
         const perDay = Math.round((q.rate || q.promo ? q.monthly : monthly) / 30 / 10) * 10;
         return `<div class="plan-card ${months === 12 ? 'best' : ''}">
-          ${months === 12 ? `<span class="ribbon">${q.promo ? `오픈 기념 특가 · ${promoEndText()}까지` : '가장 인기'}</span>` : ''}
+          ${months === 12 ? `<span class="ribbon">${q.promo ? `오픈 기념 특가 · ${promoEndText()}까지` : '1년 꾸준히 · 가장 많이 할인'}</span>` : ''}
           <h4>${months}개월</h4>
+          <div class="plan-pay"><small>${q.rate || q.promo ? (q.promo ? '특가 적용 시' : '첫 결제 쿠폰 적용 시') : ''} 한 번에 결제</small><b>${won(q.total)}</b><small>${fmtDay(Date.now() + months * 30 * 86400000)}까지 · 자동결제 없음</small></div>
           <p class="plan-fit">${{ 1: '먼저 한 달 해보기', 3: '한 계절 꾸준히 해보기', 6: subj === 'ma' ? '반년 동안 수학 습관 만들기' : `영어는 하루 2레슨이면 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS, 2))})`, 12: subj === 'ma' ? '1년 동안 개념부터 퍼즐까지 꾸준히' : `영어는 하루 1레슨으로 전체 과정 완주 (${durationText(studyWeeks(TOTAL_LESSONS))})` }[months]}</p>
           <dl>${disc ? `<dt>1개월 요금</dt><dd class="strike">월 ${won(P.list)}</dd>` : ''}
           <dt>플러스</dt><dd><b>월 ${won(monthly)}</b> ${disc ? `<small>${disc}%↓</small>` : ''}</dd>
           ${q.promo ? `<dt>오픈 특가</dt><dd class="hot"><span class="pct">특가</span>월 ${won(q.monthly)}</dd>` : ''}
           ${q.rate ? `<dt>첫 결제 쿠폰</dt><dd class="hot"><span class="pct">${Math.round(q.rate * 100)}%</span>월 ${won(q.monthly)}</dd>` : ''}</dl>
-          <div class="plan-total">하루 약 <b>${won(perDay)}</b> · 총 ${won(q.total)}</div>
+          <div class="plan-total">월 ${won(q.monthly)}꼴 · 하루 약 ${won(perDay)}</div>
           <button class="btn btn-primary full" data-buy="${months}">선택하기</button></div>`;
       }).join('');
       $$('[data-buy]', root).forEach(b => b.onclick = () => App.buy(+b.dataset.buy, subj));
@@ -893,7 +894,7 @@ Views.pricing = (el, params) => {
 
     <h2 class="sec-sub">💎 플러스에 들어 있는 것 <small>하루 약 ${won(Math.round(lowestMonthly() / 30 / 10) * 10)} (12개월 기준)</small></h2>
     <div class="value-grid">${[
-      ['📚', '1년 커리큘럼', `8단계 26레벨 ${TOTAL_LESSONS}레슨 · 미국 킨더~초2 수준`],
+      ['📚', '1년 커리큘럼', `8단계 26레벨 ${TOTAL_LESSONS}레슨 · 알파벳·파닉스부터 기초 문장·시제까지`],
       ['🔁', '망각 곡선 복습', '배운 단어·문장을 1·3·7·14·30일에 다시 꺼내 오래 기억'],
       ['📊', '영역별 분석 리포트', '듣기·읽기·말하기·쓰기 정답률, 주간 변화, 맞춤 추천'],
       ['🎤', 'AI 발음 코치', '단어마다 초록·노랑·빨강으로 발음 피드백'],
@@ -915,8 +916,10 @@ Views.pricing = (el, params) => {
     <h2 class="sec-sub">무료 vs 플러스</h2>
     <div class="table-wrap"><table class="table compare">
       <thead><tr><th>기능</th><th>무료 (평생)</th><th>💎 플러스</th></tr></thead>
-      <tbody>${[[`${F.range} ${F.name} (${F.lessons}레슨)`, '✅', '✅'], [`${F.plus} ${F.plusWhat} (${F.plusLessons}레슨)`, '7일 무료 체험', '✅'], ['스토리북', `${F.books}권`, `${STORIES.length}권 전체`],
-        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅'], ['부모 리포트 · 학습 알림 · 워크시트', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(lowestMonthly())}부터 · 한 번만 결제`]]
+      <tbody><tr class="cmp-sub"><th colspan="3">🔤 새싹영어</th></tr>${[[`${F.range} ${F.name} (${F.lessons}레슨)`, '✅', '✅'], [`${F.plus} ${F.plusWhat} (${F.plusLessons}레슨)`, '7일 무료 체험', '✅ 영어·영어+수학 이용권'], ['스토리북', `${F.books}권`, `${STORIES.length}권 전체`],
+        ['AI 발음 코치 · 놀이터 · 별 상점', '✅', '✅']].map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+        <tr class="cmp-sub"><th colspan="3">🧮 새싹수학</th></tr>${[['씨앗 단계 (5~6세쯤) 배우기·생각 놀이·해 보기·워크시트', '✅', '✅'], ['새싹·나무 단계 (7~10세쯤)', '7일 무료 체험 중 이용', '✅ 수학·영어+수학 이용권']].map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+        <tr class="cmp-sub"><th colspan="3">👪 공통</th></tr>${[['부모 리포트 · 학습 알림', '✅', '✅'], ['아이 프로필', '여러 명', '여러 명 (형제·자매 할인)'], ['결제', '없음', `월 ${won(lowestMonthly())}부터 · 한 번만 결제`]]
         .map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
 
     <h2 class="sec-sub">결제 · 환불 안내</h2>
@@ -931,7 +934,7 @@ Views.pricing = (el, params) => {
       <dt>결제 방식</dt><dd>한 번만 결제(단건결제) · 신용·체크카드(토스페이먼츠) 또는 카카오페이</dd>
       <dt>결제 시기</dt><dd>구매할 때 한 번 결제해요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 종료일을 알려 드려요. 계속 이용하려면 이용권을 다시 구매해요.</dd>
       <dt>이용 종료</dt><dd>자동결제가 없어 해지할 필요가 없어요. 이용 기간이 끝나면 무료 이용(${F.range})으로 돌아가요.</dd>
-      <dt>환불(청약철회)</dt><dd>결제 후 7일 이내이고 플러스 학습(${F.plusFrom} 이상 레슨, 플러스 스토리북)을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
+      <dt>환불(청약철회)</dt><dd>결제 후 7일 이내이고 플러스 학습(새싹영어: ${esc(plusStartText('en'))} · 새싹수학: ${esc(plusStartText('ma'))})을 시작하지 않았으면 부모페이지에서 바로 전액 환불돼요. 플러스 학습을 시작했거나 7일이 지났으면 고객센터로 신청해 주세요. 이용을 시작한 달(30일 단위)을 빼고 남은 달만큼 환불해 드려요(예: 12개월 이용권을 5일 썼다면 1개월치를 빼고 11개월치 환불). 1개월 이용권은 이용을 시작하면 환불되지 않아요. 회사 사정으로 이용하지 못한 기간은 늘려 드리거나 환불해요.</dd>
       <dt>교환·상품 변경</dt><dd>디지털 이용권이라 교환은 없어요. 기간을 바꾸려면 고객센터로 문의해 주세요.</dd>
       <dt>문의·이의신청</dt><dd>고객센터 010-5117-1247 · support@saessakschool.co.kr · <a href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener">카카오톡 채널 '새싹스쿨'</a></dd>
       <dt>약관</dt><dd><a href="terms.html" target="_blank" rel="noopener">이용약관</a> 제5조(플러스 이용권과 결제)·제6조(청약철회와 환불)</dd></dl></div>
@@ -967,9 +970,10 @@ Views.help = el => {
     <div id="faqList"></div>
     <div class="card contact-card"><h3>💬 찾는 답이 없으면 문의해 주세요</h3>
       <p>결제·환불·학습·소리 문제 모두 도와드려요. 카카오톡 채널로 물어보시면 가장 빨리 답해 드려요.</p>
+      <p class="fine">📮 문의 창구: 카카오톡 채널 '새싹스쿨' · 이메일 support@saessakschool.co.kr · 전화 010-5117-1247${SUPPORT_HOURS ? ` · 🕘 운영 시간 ${SUPPORT_HOURS}` : ''}</p>
       <div class="row"><a class="btn btn-primary sm btn-kakao" href="${KAKAO_CHANNEL.chat}" target="_blank" rel="noopener"><img class="kakao-ico" src="img/kakao-talk.svg" alt="" draggable="false"> 카카오톡으로 문의</a><a class="btn btn-ghost sm" href="tel:010-5117-1247">📞 010-5117-1247</a><a class="btn btn-ghost sm" data-mail href="mailto:support@saessakschool.co.kr">✉️ 이메일 문의</a></div>
       <p class="fine">이메일 문의를 누르면 사용 중인 기기·브라우저 정보가 미리 적혀 있어서 더 빨리 확인할 수 있어요.</p></div>
-    <div class="card notice"><b>🔧 이 기기 진단</b>
+    <div class="card notice" id="diag"><b>🔧 이 기기 진단</b>
       <p>음성 합성 ${Speech.canSpeak ? '✅' : '❌'} · 음성 인식 ${Speech.canListen ? '✅' : '❌'} · 알림 ${'Notification' in window ? '✅' : '❌'}</p>
       ${Speech.canListen ? '' : `<p class="mic-hint">🎤 ${esc(Speech.unsupportedReason())}</p>`}
       <div class="row"><button class="btn btn-ghost sm" data-test-voice>🔊 목소리 테스트</button><button class="btn btn-ghost sm" data-test-sfx>🎵 효과음 테스트</button>
@@ -983,6 +987,8 @@ Views.help = el => {
   };
   $('.search', el).oninput = e => { q = e.target.value.trim(); draw(); };
   $$('[data-c]', el).forEach(b => b.onclick = () => { cat = b.dataset.c; $$('[data-c]', el).forEach(x => x.classList.toggle('on', x === b)); draw(); });
+  // 레슨·말하기 화면의 '소리·마이크 점검'에서 왔으면 기기 진단 칸으로 바로 내려간다
+  if (/[?&]diag=1/.test(location.hash)) setTimeout(() => { const d = $('#diag', el); if (d) { d.scrollIntoView({ block: 'start' }); d.classList.add('flash'); } }, 50);
   // 이메일 문의: 제목과 기기 정보를 미리 넣는다 (사용자가 직접 보내는 메일)
   const E = Speech.env, dev = `${E.ipad ? 'iPad' : E.ios ? 'iPhone' : E.android ? 'Android' : 'PC'} · ${(navigator.userAgent.match(/(CriOS|Chrome|Firefox|Edg|Whale|SamsungBrowser|Version)\/[\d.]+/) || ['브라우저'])[0].replace('Version', 'Safari')} · 음성 인식 ${Speech.canListen ? '가능' : '불가'}`;
   $('[data-mail]', el).href = 'mailto:support@saessakschool.co.kr?subject=' + encodeURIComponent('[새싹스쿨 문의] ') + '&body=' + encodeURIComponent(`문의 내용:\n\n\n---\n(확인용) 기기: ${dev}`);
@@ -1711,6 +1717,17 @@ function testBlock(st, n = testSize(st), levels = st.levels, used = { items: new
   fill(false); fill(true);
   return shuffle(pick).map((q, k) => ({ ...q, key: `lt${st.id}-${used.items.size}-${k}`, sayAfter: null, ...(q.type === 'choice' ? { options: [...q.options, DONT_KNOW] } : {}) }));
 }
+// 레벨 진단 결과: 왜 이 단계부터인지와 첫 주에 할 일 (11-28 컨설팅: 부모가 '왜 여기부터?'를 알 수 있게)
+function placeWhy(report, stage, start) {
+  const st = STAGES[stage - 1], passed = report.filter(x => x.passed), here = report.find(x => x.st.id === stage);
+  const why = [];
+  if (passed.length) why.push(`${passed.map(x => `섬 ${x.st.id} ${x.st.title}`).join(', ')} 문제는 잘 풀었어요 (${passed.map(x => `${x.counted}/${x.total}`).join(', ')}).`);
+  if (here && !here.passed) why.push(`섬 ${stage} ${st.title} 문제는 ${here.counted}/${here.total}개 맞혀서, 여기부터 배우면 너무 쉽지도 어렵지도 않아요.`);
+  else if (!passed.length) why.push(`처음부터 차근차근 배우는 것이 딱 맞아요.`);
+  const skills = (st.skills || []).slice(0, 3).join(' · ');
+  return `<div class="place-why"><h3>🧭 이렇게 판단했어요</h3><ul>${why.map(w => `<li>${w}</li>`).join('')}</ul>
+    <h3>📅 첫 주에 해 볼 활동</h3><ul><li>하루 레슨 1~2개 (10~15분) · Level ${start} Day 1부터</li>${skills ? `<li>이번 섬에서 익히는 것: ${skills}</li>` : ''}<li>주말에는 스토리북 한 권을 '천천히 읽기'로 함께 들어 보기</li><li>일주일 뒤 부모 리포트에서 정답률과 말하기 기록 확인하기</li></ul></div>`;
+}
 Views.leveltest = el => {
   const p = Store.profile();
   el.innerHTML = `<div class="wrap sec narrow"><div class="card intro center">
@@ -1784,6 +1801,7 @@ Views.leveltest = el => {
         <h2>추천 출발 레벨은 Level ${start}</h2><p>${STAGES[stage - 1].title}섬 — ${STAGES[stage - 1].desc}</p>
         <ul class="plain test-report">${report.map(x => `<li>${mark(x)} 섬 ${x.st.id} ${x.st.title} · ${x.counted}/${x.total}
           <small class="fine">${x.st.levels.filter(L => x.levels[L]).map(L => `${L} ${x.levels[L].ok}/${x.levels[L].n}`).join(' · ')}</small></li>`).join('')}</ul>
+        ${placeWhy(report, stage, start)}
         ${fast ? `<p class="hint">⚡ 문제를 다 보기 전에 고른 정답 ${fast}개는 찍었을 수 있어서 세지 않았어요.</p>` : ''}
         ${p && stage > 1 ? '<p class="hint">처음 2번의 레슨이 어려우면(평균 60점 아래) 한 섬 앞에서 다시 시작하도록 자동으로 맞춰 드려요.</p>' : ''}
         <div class="row-center">${p ? `<button class="btn btn-ghost" data-keep>지금 레벨 유지</button><button class="btn btn-primary" data-apply>Level ${start}부터 시작</button>` : '<a class="btn btn-primary" href="#/signup">가입하고 이 레벨로 시작</a>'}</div></div>`;
