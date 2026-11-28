@@ -490,7 +490,7 @@ Views.home = el => {
         <p>새싹스쿨은 영어와 수학을 아이 혼자 놀이처럼 하는 학교예요. 영어는 레벨 진단으로 매일 할 레슨이 정해지고, 수학은 퍼즐로 생각하는 힘을 길러요. 부모님은 옆에 앉아 있지 않아도 돼요. 오늘 무엇을 할 수 있게 됐는지는 리포트로 받아요.</p>
         <div class="row">
           <a class="btn btn-primary lg" href="#/sample/A">▶ 영어 3분 체험 (가입 없이)</a>
-          <a class="btn btn-ghost lg" href="#/math/p_count">🧮 가입 없이 수학 5문제 풀기</a>
+          <a class="btn btn-primary lg" href="#/math/p_count">▶ 수학 5문제 체험 (가입 없이)</a>
         </div>
         <ul class="trust">${UI.freeLines().map(([i, t]) => `<li>${i} ${t}</li>`).join('')}<li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
       </div>
