@@ -150,12 +150,12 @@ const UI = {
       <p class="fine center">모든 상품은 한 번만 결제하는 이용권이에요. 자동으로 다시 결제되지 않고, 이용 기간이 끝나기 3일 전에 알려 드려요.${!API.on || API.cfg.payments === 'demo' ? ' · 데모라 실제 결제는 일어나지 않아요.' : ''}</p>
     </div>`;
   },
-  wirePlans(root) {
+  wirePlans(root, pick = {}) {
     const loggedIn = !!Store.user(), kids = Store.kidsPlan();
     $('.plan-kids', root).innerHTML = kids === 'two'
       ? `👧👦 아이 ${Store.user().profiles.length}명을 등록해서 <b>형제·자매 요금</b>이 적용되고 있어요.`
       : '👧👦 형제·자매가 함께 배우나요? 아이를 추가하면 <b>형제·자매 할인</b>이 자동으로 적용돼요.';
-    let subj = 'both';
+    let subj = ['both', 'en', 'ma'].includes(pick.subject) ? pick.subject : 'both';
     const DESC = { both: () => `새싹영어와 새싹수학을 모두 해요. 따로 하면 월 ${won(SUBJECT_PLANS.en[kids].m1 + SUBJECT_PLANS.ma[kids].m1)} → 함께 월 ${won(SUBJECT_PLANS.both[kids].m1)}`,
       en: () => `알파벳부터 과거·미래까지 ${FREE().plus} 영어 전체 · 스토리북 ${STORIES.length}권`, ma: () => '수 세기부터 마방진·스도쿠까지 개념 레슨 · 생각 놀이 · 워크시트' };
     const draw = () => {
@@ -203,6 +203,12 @@ const UI = {
   // 후기 부탁을 이미 했는지 (이 기기 기준, 쓰거나 '다음에'를 누르면 30일 동안 다시 묻지 않음)
   reviewAsked(set) {
     try { if (set) { localStorage.setItem('rvAsked', String(Date.now())); return true; } return Date.now() - Number(localStorage.getItem('rvAsked') || 0) < 30 * 864e5; } catch (e) { return false; }
+  },
+  // 과목별 무료 범위와 체험 조건 (홈·가입·요금표가 같은 문구를 쓴다)
+  freeLines() {
+    const f = FREE();
+    return [['🔤', `영어 ${f.name}(${f.range}) 평생 무료`], ['🧮', '수학 씨앗 단계(5~6세쯤) 평생 무료'],
+      ['🎁', `7일 무료 체험: 영어 ${f.plusFrom}에 들어갈 때 한 번 시작 · 체험 중에는 수학 플러스도 열려요`], ['🔒', '카드 등록·자동결제 없음']];
   },
   faq(list) {
     return `<div class="faq">${list.map(f => `<details class="faq-item"><summary><span class="q">Q</span>${esc(f.q)}</summary><div class="faq-a">${esc(f.a)}</div></details>`).join('')}</div>`;
@@ -486,7 +492,7 @@ Views.home = el => {
           <a class="btn btn-primary lg" href="#/sample/A">▶ 영어 3분 체험 (가입 없이)</a>
           <a class="btn btn-ghost lg" href="#/math/p_count">🧮 가입 없이 수학 5문제 풀기</a>
         </div>
-        <ul class="trust"><li>✅ 영어 ${FREE().name}은 평생 무료</li><li>✅ 수학 씨앗 단계(5~6세쯤)는 무료</li><li>✅ 다음 단계도 7일 무료 체험</li><li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
+        <ul class="trust">${UI.freeLines().map(([i, t]) => `<li>${i} ${t}</li>`).join('')}<li>✅ 부모님이 옆에 없어도 아이 혼자 끝까지</li></ul>
       </div>
       <div class="mini-wrap"><div class="mini-tabs" role="tablist"><button class="on" data-mt="en">${ico('🔤')} 영어 맛보기</button><button data-mt="math">${ico('🧮')} 수학 맛보기</button></div>
         <div class="card mini-quiz tilt" id="miniQuiz" aria-label="지금 바로 풀어보는 문제"></div></div>
@@ -878,7 +884,8 @@ Views.pricing = (el, params) => {
     <div class="free-plan card">
       <div><span class="chip">무료</span><h2>${F.name}은 평생 무료</h2>
         <p>${F.range}(${F.levels}, <b>${F.lessons}레슨</b>)와 스토리북 ${F.books}권, 놀이터·말하기 연습·부모 리포트까지 <b>기간 제한 없이 무료</b>예요.
-        아이가 ${F.plusFrom}에 들어갈 때 <b>7일 무료 체험</b>을 시작할 수 있어요. 카드 등록도 자동결제도 없어요.</p></div>
+        아이가 ${F.plusFrom}에 들어갈 때 <b>7일 무료 체험</b>을 시작할 수 있어요. 카드 등록도 자동결제도 없어요.</p>
+        <ul class="trust">${UI.freeLines().map(([i, t]) => `<li>${i} ${t}</li>`).join('')}</ul></div>
       <a class="btn btn-primary lg" href="${u ? '#/study' : '#/signup'}">${u ? '📚 학습하러 가기' : '🌱 무료로 시작하기'}</a>
     </div>
 
@@ -931,7 +938,15 @@ Views.pricing = (el, params) => {
     ${UI.faq(FAQ.filter(f => f.cat === '요금' || f.cat === '멤버십'))}
     ${!API.on || API.cfg.payments === 'demo' ? '<p class="fine center">이 앱은 데모라 실제 결제는 일어나지 않아요.</p>' : ''}
   </div>`;
-  UI.wirePlans($('.plans', el));
+  // 가입·로그인 뒤 돌아왔으면(#/pricing?buy=12&subject=ma) 고르던 과목을 펼치고 그 이용권 결제 창을 바로 연다
+  // (SNS 로그인은 서버가 뒤에 ?welcome=을 붙일 수 있어서 값 뒤의 ?부터는 버린다)
+  const pick = { subject: ((params && params.get('subject')) || '').split('?')[0], buy: parseInt((params && params.get('buy')) || '', 10) };
+  UI.wirePlans($('.plans', el), pick);
+  if ([1, 3, 6, 12].includes(pick.buy)) {
+    try { history.replaceState(null, '', '#/pricing'); sessionStorage.setItem('buyNext', ''); } catch (e) { /* ignore */ }
+    $('.plans', el).scrollIntoView({ block: 'start' });
+    if (u) setTimeout(() => App.buy(pick.buy, ['both', 'en', 'ma'].includes(pick.subject) ? pick.subject : 'both'), 300);
+  }
 };
 function statusText(a, u) {
   if (a.kind === 'admin') return '🛠️ 관리자 계정 · 모든 기능을 제한 없이 이용 중';
@@ -998,7 +1013,8 @@ Views.auth = (el, mode, params) => {
   const steps = isUp ? ['방법 선택', '본인 확인', '정보 입력'] : ['방법 선택', '본인 확인'];
   const NAMES = { kakao: '카카오', naver: '네이버', google: 'Google', apple: 'Apple', email: '이메일', phone: '휴대폰' };
   const providers = Object.entries(CONFIG.AUTH_PROVIDERS).filter(([k]) => Store.providerReady(k));
-  const done = () => { App.refreshHeader(); location.hash = Store.profile() ? '#' + next : '#/profiles'; };
+  // 처음 가입해 아이 등록부터 하는 경우에도 고르던 요금제로 돌아갈 수 있게 기억해 둔다
+  const done = () => { App.refreshHeader(); if (!Store.profile() && next.startsWith('/pricing')) { try { sessionStorage.setItem('buyNext', next); } catch (e) { /* ignore */ } } location.hash = Store.profile() ? '#' + next : '#/profiles'; };
   const busy = (btn, on) => { if (!btn) return; btn.disabled = on; btn.classList.toggle('loading', on); };
   // 화면을 열 때마다 인사말과 맞이하는 동물 친구 셋을 새로 고른다 (같은 화면 안에서는 그대로)
   const hello = greeting();
@@ -1021,7 +1037,7 @@ Views.auth = (el, mode, params) => {
   const choose = (error = '') => {
     const viaName = via === 'phone' ? '휴대폰' : '이메일';
     shell(0, `${hero()}
-      ${isUp ? `<h1>무료로 시작해요 🌱</h1><ul class="perks"><li>🌱 ${FREE().name}(${FREE().range}) 평생 무료</li><li>🎁 다음 단계 7일 무료 체험</li><li>🎟️ 플러스 첫 결제 20% 쿠폰</li><li>🔒 카드 등록·자동결제 없음</li></ul>`
+      ${isUp ? `<h1>무료로 시작해요 🌱</h1><ul class="perks">${UI.freeLines().map(([i, t]) => `<li>${i} ${t}</li>`).join('')}<li>🎟️ 플러스 첫 결제 20% 쿠폰</li></ul>`
         : `<h1 class="hello">${esc(hello[0])}</h1><p class="center hello-sub">${esc(hello[1])}</p>`}
       ${error ? `<p class="form-err center">${esc(error)}</p>` : ''}
       ${providers.length ? `<div class="sns">${providers.map(([k, p]) => `<button class="sns-btn ${k}" data-sns="${k}"><span class="sns-ico">${p.icon}</span>${NAMES[k]}로 ${isUp ? '가입하기' : '로그인'}${last.method === k ? '<em class="last">최근 사용</em>' : ''}</button>`).join('')}</div>
@@ -1209,16 +1225,21 @@ Views.profiles = (el, { adding = false } = {}) => {
 // 프로필을 만든 뒤: 형제·자매를 더 등록하거나 레벨 테스트로 출발한다
 function siblingStep(el, name) {
   const u = Store.user(), n = u.profiles.length;
+  let buyNext = ''; try { buyNext = sessionStorage.getItem('buyNext') || ''; } catch (e) { /* ignore */ }
+  if (!/^\/pricing(\?[\w=&.%-]*)?$/.test(buyNext)) buyNext = '';
   el.innerHTML = `<div class="wrap sec narrow"><div class="card auth-card center sibling-step">
     <div class="auth-logo">🎉</div><h1>${esc(name)} 프로필을 만들었어요!</h1>
     <p>${n >= 2 ? `아이 ${n}명이 함께 배워요. 플러스를 결제할 때 <b>형제·자매 요금</b>이 자동으로 적용돼요.` : '형제·자매도 함께 배우나요? 지금 추가하면 플러스를 결제할 때 <b>형제·자매 할인</b>이 자동으로 적용돼요.'}</p>
     <p class="fine">플러스 12개월 기준: 1명 월 ${won(PLANS.one.m12)} · 2명 이상 월 ${won(PLANS.two.m12)}</p>
     <div class="mic-ask" hidden><p>🎤 말하기 연습에는 마이크가 필요해요. 지금 한 번 허용해 두면 공부하는 중에 다시 묻지 않아요.</p>
       <button class="btn btn-ghost full" data-mic>🎤 마이크 허용하기</button><p class="fine mic-ask-out"></p></div>
+    ${buyNext ? `<a class="btn btn-primary full" href="#${esc(buyNext)}" data-buynext>💎 고르던 요금제로 돌아가기</a>` : ''}
+    ${(() => { let r = ''; try { r = sessionStorage.getItem('mathResume') || ''; } catch {} return r ? `<a class="btn btn-primary full" href="#${esc(r)}" data-math-resume>🧮 ${esc(name)} 수학 이어 하기 <small>(손님으로 푼 기록이 저장됐어요)</small></a>` : ''; })()}
     <button class="btn btn-ghost full" data-more>👧👦 형제·자매 추가하기</button>
-    ${u.profiles.map(p => `<button class="btn btn-primary full" data-go="${p.id}">🧪 ${esc(p.name)} 레벨 테스트로 출발</button>`).join('')}
+    ${u.profiles.map(p => `<button class="btn ${buyNext ? 'btn-ghost' : 'btn-primary'} full" data-go="${p.id}">🧪 ${esc(p.name)} 레벨 테스트로 출발</button>`).join('')}
   </div></div>`;
   $('[data-more]', el).onclick = () => Views.profiles(el, { adding: true });
+  const bn = $('[data-buynext]', el); if (bn) bn.onclick = () => { try { sessionStorage.setItem('buyNext', ''); } catch (e) { /* ignore */ } };
   $$('[data-go]', el).forEach(b => b.onclick = () => { Store.selectProfile(b.dataset.go); App.refreshHeader(); location.hash = '#/leveltest'; });
   // 마이크는 가입할 때 한 번 허용받는다 (이미 허용했거나 앱 안 브라우저처럼 쓸 수 없으면 묻지 않는다)
   const ask = $('.mic-ask', el), E = Speech.env;
@@ -1932,6 +1953,7 @@ const ParentTabs = {
           <div class="card"><h3>${m + 1}월 학습 도장</h3><div class="cal">${['일', '월', '화', '수', '목', '금', '토'].map(w => `<b>${w}</b>`).join('')}${'<span></span>'.repeat(first)}${[...Array(dim)].map((_, k) => { const d = Store.today(new Date(y, m, k + 1)); const n = p.stamps[d] || 0; return `<span class="${n ? 'stamped' : ''} ${d === Store.today() ? 'today' : ''}" title="${n}개">${n ? '🌱' : k + 1}</span>`; }).join('')}</div></div>
         </div>
         <div class="card"><h3>섬별 진도 <small>(출발 레벨 ${p.startLevel} · 난이도 ${{ auto: '자동', easy: '쉬움', normal: '보통', hard: '도전' }[p.difficulty || 'auto']})</small></h3>${STAGES.map(s => { const done = s.levels.reduce((a, lv) => a + Store.lessonsDone(lv, p), 0), tot = s.levels.length * LESSONS_PER_LEVEL; return `<div class="prog-row"><span>섬${s.id} ${s.title}</span><div class="rb-bar"><i style="width:${done / tot * 100}%;background:${s.color}"></i></div><small>${done}/${tot}</small></div>`; }).join('')}</div>
+        ${typeof mathReportCard === 'function' ? mathReportCard(p) : ''}
         <div class="two-col top">
           ${UI.boostReport(p)}
           <div class="card"><h3>최근 말하기</h3>${sp.length ? `<ul class="hist">${sp.slice(0, 6).map(r => `<li><span>${esc(r.text)}</span><b class="score-pill small ${scoreClass(r.score)}">${r.score}</b></li>`).join('')}</ul>` : '<p>아직 기록이 없어요.</p>'}</div>

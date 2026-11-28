@@ -230,7 +230,7 @@ const App = (() => {
   }
 
   function buy(months, subject = 'en') {
-    if (!Store.user()) { toast('로그인 후 구매할 수 있어요. 처음이면 회원가입부터!'); return go('/login?next=/pricing'); }
+    if (!Store.user()) { toast('로그인 후 구매할 수 있어요. 처음이면 회원가입부터!'); return go('/login?next=' + encodeURIComponent(`/pricing?buy=${months}&subject=${subject}`)); } // 가입·로그인 뒤 고른 과목·기간으로 돌아온다
     if (Store.isAdmin()) return toast('관리자 계정은 결제 없이 모든 기능을 쓸 수 있어요.');
     const kids = Store.kidsPlan(), q = Store.quote(kids, months, subject);
     const payMode = API.on ? API.cfg.payments : 'demo';

@@ -179,7 +179,18 @@ const Gen = (() => {
         seen.add(best.key); out.push(best); count[best.type] = (count[best.type] || 0) + 1;
       }
     }
-    return spread(out);
+    const res = spread(out);
+    // 알파벳 단계: 첫 문제는 소리를 듣고 그림을 고르는 쉬운 문제로, 철자(빈칸·첫 글자) 문제는 셋째부터 (11-28 컨설팅: 첫 문제가 _uice 빈칸이라 어려움)
+    if (st === 1 && res.length) {
+      const easy = q => /^ltr-(pic|listen)-/.test(q.key), spell = q => /^ltr-(miss|start)-/.test(q.key);
+      if (!easy(res[0])) {
+        const i = res.findIndex(easy);
+        if (i > 0) res.unshift(res.splice(i, 1)[0]);
+        else { const alt = cands.flat().find(q => /^ltr-pic-/.test(q.key) && q.item === res[0].item); if (alt) res[0] = alt; }
+      }
+      if (res.length > 2 && spell(res[1])) { const j = res.findIndex((q, k) => k > 1 && !spell(q)); if (j > 0) [res[1], res[j]] = [res[j], res[1]]; }
+    }
+    return res;
   }
   // 같은 항목이나 같은 말(질문·단어)을 묻는 문항이 바로 이어지지 않게 뒤쪽 문항과 자리를 바꾼다
   //   (2026-11 제보: 같은 것이 연달아 나왔다. 'What is your name?'처럼 대답만 다른 항목이 이어지기도 했다)
