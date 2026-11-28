@@ -299,11 +299,22 @@ const MathGen = (() => {
   const DRAWABLE = ['tri', 'sq', 'sqd', 'house', 'housex', 'bow', 'star', 'twosq', 'twosqd', 'zig'], NOTDRAW = ['env', 'window', 'tric', 'plus'];
   const degs = f => f.n.map((_, i) => f.e.filter(([a, b]) => a === i || b === i).length);
   const oddOf = f => degs(f).map((d, i) => d % 2 ? i : -1).filter(i => i >= 0);
-  const figSvg = (f, { labels = {}, used = [], odd = false, size = 150, cls = '' } = {}) => {
-    const d = degs(f), lines = f.e.map(([a, b], k) => `<line x1="${f.n[a][0]}" y1="${f.n[a][1]}" x2="${f.n[b][0]}" y2="${f.n[b][1]}" stroke="${used.includes(k) ? '#ff7043' : 'currentColor'}" stroke-width="${used.includes(k) ? 6 : 4}" stroke-linecap="round"/>`).join('');
-    const dots = f.n.map(([x, y], i) => `<g class="m-fnode" data-node="${i}"><circle cx="${x}" cy="${y}" r="${odd && d[i] % 2 ? 8 : 6}" fill="${odd && d[i] % 2 ? '#e53935' : '#3a2d4f'}" stroke="#fff" stroke-width="2"/>${labels[i] ? `<text x="${x + (x > 50 ? 9 : -9)}" y="${y - 8}" font-size="13" font-weight="700" text-anchor="middle" fill="#7e57c2">${labels[i]}</text>` : ''}${odd ? `<text x="${x}" y="${y + 20}" font-size="11" text-anchor="middle" fill="${d[i] % 2 ? '#e53935' : '#78909c'}">${d[i]}</text>` : ''}</g>`).join('');
+  // 한붓그리기 선 하나: 지나간 선은 진하게, 방금 그은 선(anim)은 앞 점에서 그 점까지 그어지는 효과
+  const figEdge = (f, k, on, anim, w = [4, 6]) => {
+    let [a, b] = f.e[k]; const mv = anim && anim.k === k;
+    if (mv && anim.from === b) [a, b] = [b, a];
+    const L = Math.ceil(Math.hypot(f.n[a][0] - f.n[b][0], f.n[a][1] - f.n[b][1])) + 1;
+    return `<line x1="${f.n[a][0]}" y1="${f.n[a][1]}" x2="${f.n[b][0]}" y2="${f.n[b][1]}" stroke="${on ? '#d84315' : 'currentColor'}" stroke-opacity="${on ? 1 : .55}" stroke-width="${on ? w[1] : w[0]}" stroke-linecap="round"${mv ? ` class="m-fdraw" style="stroke-dasharray:${L};stroke-dashoffset:${L};animation-delay:-${Math.min(400, Date.now() - anim.t0)}ms"` : ''}/>`;
+  };
+  // 지금 선 점: 크고 주황색, 둘레에 반짝이는 테두리. hit: 손가락으로 누르기 쉬운 보이지 않는 넓은 원
+  const figDot = (x, y, { on = false, r = 6, fill = '#3a2d4f', hit = true } = {}) => `${hit ? `<circle class="m-fhit" cx="${x}" cy="${y}" r="16" fill="transparent"/>` : ''}${on ? `<circle class="m-fring" cx="${x}" cy="${y}" r="15" style="animation-delay:-${Date.now() % 1000}ms"/>` : ''}<circle class="m-fdot" cx="${x}" cy="${y}" r="${on ? 10 : r}" fill="${on ? '#ff7043' : fill}" stroke="#fff" stroke-width="2"/>`;
+  const figSvg = (f, { labels = {}, used = [], odd = false, size = 150, cls = '', cur = null, anim = null } = {}) => {
+    const d = degs(f), lines = f.e.map((_, k) => figEdge(f, k, used.includes(k), anim)).join('');
+    const dots = f.n.map(([x, y], i) => `<g class="m-fnode" data-node="${i}">${figDot(x, y, { on: i === cur, r: odd && d[i] % 2 ? 8 : 6, fill: odd && d[i] % 2 ? '#e53935' : '#3a2d4f', hit: cls.includes('play') })}${labels[i] ? `<text x="${x + (x > 50 ? 9 : -9)}" y="${y - 8}" font-size="13" font-weight="700" text-anchor="middle" fill="#7e57c2">${labels[i]}</text>` : ''}${odd ? `<text x="${x}" y="${y + 20}" font-size="11" text-anchor="middle" fill="${d[i] % 2 ? '#e53935' : '#78909c'}">${d[i]}</text>` : ''}</g>`).join('');
     return `<svg viewBox="-12 -12 124 124" class="m-fig ${cls}" style="width:${size}px" aria-label="점 ${f.n.length}개, 선 ${f.e.length}개 그림">${lines}${dots}</svg>`;
   };
+  // 갈 수 없는 점: 살짝 흔들기
+  const figShake = g => { if (!g) return; g.classList.remove('m-fbad'); void g.getBoundingClientRect(); g.classList.add('m-fbad'); };
   const figFlip = f => ({ n: f.n.map(([x, y]) => [100 - x, y]), e: f.e });
   // 성냥개비 숫자: 일곱 칸(a 위, b 오른쪽 위, c 오른쪽 아래, d 아래, e 왼쪽 아래, f 왼쪽 위, g 가운데)
   const DIG = { 0: 'abcdef', 1: 'bc', 2: 'abged', 3: 'abgcd', 4: 'fgbc', 5: 'afgcd', 6: 'afgedc', 7: 'abc', 8: 'abcdefg', 9: 'abcfgd' };
@@ -980,7 +991,7 @@ const MathGen = (() => {
   };
   for (const k of Object.keys(gen)) gen[k] = fresh(k, gen[k], q => `${q.ask}|${q.show}|${q.ans}`);
   const magicF = fresh('magic', magic, q => q.sol.join() + '|' + q.holes.join()), sudokuF = fresh('sudoku', sudoku, q => q.sol.join() + '|' + q.holes.join());
-  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
+  return { gen, scaleSet, tiltOf, sItem, magic: magicF, sudoku: sudokuF, shuffle, pie, angSvg, polySvg, fracTxt, POLY, KN, blocksSvg, tableHtml, vennSvg, vRegion, barSvg, picGraph, pathSvg, bfs, distMap, nseq, pmRows, figEdge, figDot, figShake, SYL, keyTable, shiftW, colAdd, cellsSvg, perim, rectCells, comboGrid, b10, hund, fbox, scale, pNorm, pKey, pRot, pFlip, pSvg, FR, IT, lTable, tally, roman, dotGroups, FIGS, figSvg, segSet, eqSvg, SEGXY, stick, holeBoard, triSvg, TRIS, circSvg, towers, isPrime, pfac, ftree, treeHtml, plates, setLevel, get level() { return LV; } };
 })();
 
 // ── 단계·주제·잠금·진행 ──
@@ -1691,26 +1702,26 @@ function mathLesson(el, L) {
     } else if (st.type === 'stroke') {
       // 한붓그리기: 점을 차례로 눌러 선을 따라간다. 같은 선은 두 번 못 지나고, 막히면 처음부터
       const f = MathGen.FIGS[st.fig];
-      let cur = null, used = [];
+      let cur = null, used = [], anim = null;
       area.innerHTML = `${head}<p class="m-text">${esc(st.text)}</p><div class="m-viz m-stroke"></div><p class="m-eq-num m-tapn" aria-live="polite">시작할 점을 눌러요</p>
         <div class="row-center"><button class="btn btn-ghost" data-reset>처음부터</button><button class="btn btn-primary" data-next disabled>다음 →</button></div>`;
       KoSpeech.say(st.text);
       const nb = $('[data-next]', area), out = $('.m-tapn', area), view = $('.m-stroke', area); nb.onclick = next;
       const draw = () => {
-        view.innerHTML = MathGen.figSvg(f, { used, size: 230, cls: 'play' }).replace(`data-node="${cur}"><circle`, `data-node="${cur}" class="m-fnode cur"><circle`);
+        view.innerHTML = MathGen.figSvg(f, { used, cur, anim, size: 230, cls: 'play' });
         $$('.m-fnode', view).forEach(g => g.onclick = () => {
           const i = +g.dataset.node;
-          if (cur === null) { cur = i; Speech.sfx.tap(); out.textContent = '선을 따라 다음 점을 눌러요'; return draw(); }
+          if (cur === null || (!used.length && !f.e.some(([a, b]) => (a === cur && b === i) || (b === cur && a === i)))) { if (i === cur) return; cur = i; Speech.sfx.tap(); out.textContent = '선을 따라 다음 점을 눌러요'; return draw(); }
           const k = f.e.findIndex(([a, b], j) => !used.includes(j) && ((a === cur && b === i) || (b === cur && a === i)));
-          if (k < 0) { Speech.sfx.wrong(); out.textContent = '그 점으로 가는 남은 선이 없어요'; return; }
-          used.push(k); cur = i; Speech.sfx.tap();
+          if (k < 0) { if (i === cur) return; Speech.sfx.wrong(); MathGen.figShake(g); out.textContent = '그 점으로 가는 남은 선이 없어요'; return; }
+          used.push(k); anim = { k, from: cur, t0: Date.now() }; cur = i; Speech.sfx.tap();
           if (used.length === f.e.length) { out.textContent = '한 번에 다 그렸어요! ✏️'; draw(); return ready(nb, MATH_SAY.stroked); }
           const left = f.e.some(([a, b], j) => !used.includes(j) && (a === cur || b === cur));
           out.textContent = left ? `선 ${used.length} / ${f.e.length}` : '막혔어요! 처음부터 다른 점에서 시작해 봐요';
           draw();
         });
       };
-      $('[data-reset]', area).onclick = () => { cur = null; used = []; out.textContent = '시작할 점을 눌러요'; Speech.sfx.tap(); draw(); };
+      $('[data-reset]', area).onclick = () => { cur = null; used = []; anim = null; out.textContent = '시작할 점을 눌러요'; Speech.sfx.tap(); draw(); };
       draw();
     } else if (st.type === 'sticks') {
       // 성냥개비 숫자: 막대를 눌러 빼고(손에 듦), 빈자리를 눌러 놓는다. 목표 숫자가 되면 끝

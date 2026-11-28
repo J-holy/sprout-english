@@ -191,40 +191,49 @@ function mathAct(el, t) {
   const GRID = { n: Array.from({ length: 9 }, (_, k) => [15 + (k % 3) * 35, 15 + Math.floor(k / 3) * 35]), e: [] };
   const SVG0 = '<svg viewBox="-8 -8 116 116" class="m-fig play m-act-fig">';
   const svgOf = (f, o) => `${SVG0}${figIn(f, o)}</svg>`;
-  const figIn = (f, { used = [], cur = null, odd = false, sel = null, tmp = null } = {}) => {
+  const figIn = (f, { used = [], cur = null, odd = false, sel = null, tmp = null, anim = null } = {}) => {
     const d = degs(f);
-    return `${f.e.map(([a, b], k) => `<line x1="${f.n[a][0]}" y1="${f.n[a][1]}" x2="${f.n[b][0]}" y2="${f.n[b][1]}" stroke="${used.includes(k) ? '#ff7043' : 'currentColor'}" stroke-opacity="${used.includes(k) ? 1 : .55}" stroke-width="${used.includes(k) ? 7 : 4}" stroke-linecap="round"/>`).join('')}
+    return `${f.e.map((_, k) => MathGen.figEdge(f, k, used.includes(k), anim, [4, 7])).join('')}
       ${tmp ? `<line x1="${tmp[0]}" y1="${tmp[1]}" x2="${tmp[2]}" y2="${tmp[3]}" stroke="#ff7043" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"/>` : ''}
-      ${f.n.map(([x, y], i) => { const red = odd && d[i] % 2; return `<g class="m-fnode" data-node="${i}"><circle cx="${x}" cy="${y}" r="${i === cur || i === sel ? 9 : 7}" fill="${i === cur || i === sel ? '#ff7043' : red ? '#e53935' : '#3a2d4f'}" stroke="#fff" stroke-width="2"/>${odd && d[i] ? `<text x="${x}" y="${y + 19}" font-size="10" text-anchor="middle" fill="${red ? '#e53935' : '#78909c'}">${d[i]}</text>` : ''}</g>`; }).join('')}`;
+      ${f.n.map(([x, y], i) => { const red = odd && d[i] % 2; return `<g class="m-fnode" data-node="${i}">${MathGen.figDot(x, y, { on: i === cur || i === sel, r: 7, fill: red ? '#e53935' : '#3a2d4f' })}${odd && d[i] ? `<text x="${x}" y="${y + 19}" font-size="10" text-anchor="middle" fill="${red ? '#e53935' : '#78909c'}">${d[i]}</text>` : ''}</g>`; }).join('')}`;
   };
-  // 끌어서 그리기. onEnd(결과): 'done' 다 그림 · 'lift' 중간에 뗌 · 'stuck' 막힘
+  // 그리기: 점을 차례로 눌러도 되고, 누른 채로 선을 따라 끌어도 된다. 지금 선 점은 늘 표시되고, 갈 수 없는 점은 흔들린다
   const drawMode = (view, f, api, { hintAfter = 2, onDone } = {}) => {
-    let used = [], cur = null, tmp = null, fails = 0, busy = false;
+    let used = [], cur = null, tmp = null, fails = 0, busy = false, anim = null, lock = false;
     view.innerHTML = svgOf(f, {});
     const svg = $('svg', view);
-    const paint = () => { svg.innerHTML = figIn(f, { used, cur, tmp, odd: fails >= hintAfter }); };
-    const near = p => f.n.findIndex(([x, y]) => Math.hypot(x - p.x, y - p.y) < 11);
-    const fail = msg => { fails++; busy = false; Speech.sfx.wrong(); api.status(msg + (fails >= hintAfter ? ' · 빨간 점(선이 홀수 개 모인 점)에서 시작해 봐요' : '')); used = []; cur = null; tmp = null; paint(); };
+    const paint = () => { svg.innerHTML = figIn(f, { used, cur, tmp, anim, odd: fails >= hintAfter }); };
+    const near = p => f.n.findIndex(([x, y]) => Math.hypot(x - p.x, y - p.y) < 16);
+    const shake = i => MathGen.figShake($(`[data-node="${i}"]`, svg));
+    const edgeTo = j => f.e.findIndex(([a, b], q) => !used.includes(q) && ((a === cur && b === j) || (b === cur && a === j)));
+    const fail = msg => { fails++; busy = false; lock = false; Speech.sfx.wrong(); api.status(msg + (fails >= hintAfter ? ' · 빨간 점(선이 홀수 개 모인 점)에서 시작해 봐요' : '')); used = []; cur = null; tmp = null; anim = null; paint(); };
+    const step = j => {
+      const k = edgeTo(j); if (k < 0) return false;
+      used.push(k); anim = { k, from: cur, t0: Date.now() }; cur = j; tmp = null; Speech.sfx.tap();
+      if (used.length === f.e.length) { busy = false; lock = true; paint(); onDone ? onDone() : api.done('한 번에 다 그렸어요! ✏️'); return true; }
+      if (!f.e.some(([a, b], q) => !used.includes(q) && (a === cur || b === cur))) { busy = false; lock = true; paint(); setTimeout(() => fail('막혔어요! 다른 점에서 다시 시작해 봐요'), 500); return true; }
+      api.status(`선 ${used.length} / ${f.e.length} · 다음 점을 눌러요`);
+      return true;
+    };
     svg.onpointerdown = e => {
+      if (lock) return;
       const i = near(mSvgPt(svg, e)); if (i < 0) return;
       e.preventDefault(); try { svg.setPointerCapture(e.pointerId); } catch (_) {}
-      busy = true; used = []; cur = i; tmp = null; Speech.sfx.tap(); api.status('손을 떼지 말고 선을 따라가요'); paint();
+      if (cur !== null && i !== cur && !step(i)) {
+        if (used.length) { Speech.sfx.wrong(); shake(i); api.status('그 점으로 가는 남은 선이 없어요'); return; }
+        cur = null;
+      }
+      if (cur === null) { cur = i; used = []; anim = null; Speech.sfx.tap(); api.status('다음 점을 누르거나, 선을 따라 끌어요'); }
+      busy = !lock; tmp = null; paint();
     };
     svg.onpointermove = e => {
       if (!busy) return;
       const p = mSvgPt(svg, e), j = near(p);
-      if (j >= 0 && j !== cur) {
-        const k = f.e.findIndex(([a, b], q) => !used.includes(q) && ((a === cur && b === j) || (b === cur && a === j)));
-        if (k >= 0) {
-          used.push(k); cur = j; Speech.sfx.tap();
-          if (used.length === f.e.length) { busy = false; tmp = null; paint(); return onDone ? onDone() : api.done('한 번에 다 그렸어요! ✏️'); }
-          if (!f.e.some(([a, b], q) => !used.includes(q) && (a === cur || b === cur))) return fail('막혔어요! 다른 점에서 다시 시작해 봐요');
-        }
-      }
-      tmp = [f.n[cur][0], f.n[cur][1], p.x, p.y]; paint();
+      if (j >= 0 && j !== cur) { step(j); if (!busy) return; }
+      tmp = Math.hypot(f.n[cur][0] - p.x, f.n[cur][1] - p.y) > 12 ? [f.n[cur][0], f.n[cur][1], p.x, p.y] : null; paint();
     };
-    svg.onpointerup = svg.onpointercancel = () => { if (!busy) return; busy = false; if (used.length < f.e.length) fail(used.length ? '손을 뗐어요! 처음부터 다시 그려 봐요' : '점을 누른 채로 선을 따라 끌어요'); };
-    api.status('점 하나를 누르고, 손을 떼지 않고 선을 따라 끌어요');
+    svg.onpointerup = svg.onpointercancel = () => { if (!busy) return; busy = false; tmp = null; paint(); };
+    api.status('시작할 점을 누르고, 다음 점을 차례로 눌러요 (끌어도 돼요)');
     paint();
   };
   MATH_ACTS.euler = {
