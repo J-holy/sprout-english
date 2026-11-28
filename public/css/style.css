@@ -9,7 +9,7 @@
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --sky: #2b1e33; --sky2: #382741; --paper: #3d2b48; --ink: #fff3f6; --muted: #d6c3da; --line: #170f1c;
+  --sky: #2b1e33; --sky2: #382741; --paper: #3d2b48; --ink: #fff3f6; --muted: #d6c3da; --line: #9a80ad; /* 11-28: 테두리가 바탕(#2b1e33)과 거의 같아 칸이 안 보였다 → 밝은 보라 테두리 */
   --sun: #ffd23f; --sun-ink: #3f2d46; --grass-soft: #24402f; --berry-soft: #562c46; --grape-soft: #42305e; --bad-soft: #562838;
   --soft: #33243d; --trace-guide: #4d3958; --shadow: 4px 4px 0 #120b16; --shadow-sm: 3px 3px 0 #120b16;
   color-scheme: dark;
@@ -2355,3 +2355,49 @@ button.m-bkey-b { cursor: pointer; min-height: 40px; }
 @media (max-width: 360px) { .m-res-sum > div { flex-direction: column; align-items: flex-start; gap: 0; } .m-res-sum dd { text-align: left; } .m-rep-list li { flex-direction: column; align-items: flex-start; } }
 .m-res-save .btn small { display: block; }
 .m-res-save .btn { flex-direction: column; gap: 0; line-height: 1.35; }
+
+/* 밤 모드 글자 대비 (11-28 점검: 본문 4.5:1, 큰 글씨 3:1 미만이던 곳) */
+:root[data-theme="dark"] .mq-play { color: var(--sun-ink); }
+:root[data-theme="dark"] .rv-rate { color: #c9bbff; }
+:root[data-theme="dark"] .btn.danger, :root[data-theme="dark"] .link-btn.danger { color: #ff9db4; }
+:root[data-theme="dark"] .stage-tag, :root[data-theme="dark"] .node-ball, :root[data-theme="dark"] .level-box, :root[data-theme="dark"] .az.on b, :root[data-theme="dark"] .az.on small, :root[data-theme="dark"] .badge, :root[data-theme="dark"] .c-rate { text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+
+/* ── 수학 밤 화면 대비 (2026-11-28): 낮 화면은 그대로, 밤 모드에서만 ── */
+/* 연한 단추 테두리가 밤 바탕에 묻히던 것: 수학 화면 안 단추는 밝은 테두리 */
+:root[data-theme="dark"] :is(.m-area, .m-levels, .m-topics, .m-topic, .m-intro, .m-sec, .m-stage, .m-rep) .btn,
+:root[data-theme="dark"] .worksheet-wrap:has(.m-ws) > .no-print .btn { border-color: #eadcf0; }
+/* 보라 글자(물음표 칸·큰 수·암호·그림 풀이 제목 등)는 밤에 더 밝은 보라로 */
+:root[data-theme="dark"] .m-area { --grape: #c3b2ff; }
+:root[data-theme="dark"] .m-area :is(.m-explain > b, .m-help b) { color: #c3b2ff; }
+:root[data-theme="dark"] .m-area .m-basket, :root[data-theme="dark"] .m-area .m-sort-bin { border-color: #c3b2ff; }
+:root[data-theme="dark"] .m-act-roman b { color: #e1bee7; }
+:root[data-theme="dark"] .m-area .m-sum.ok { color: #a5d6a7; } :root[data-theme="dark"] .m-area .m-sum.no { color: #ef9a9a; }
+:root[data-theme="dark"] .m-area b[style*="#e53935"] { color: #ef9a9a !important; }
+/* 진한 색 칸 위 흰 숫자: 밤에는 칸 색을 한 단계 더 진하게 */
+:root[data-theme="dark"] .m-hopn.on { background: #33691e; border-color: #aed581; }
+:root[data-theme="dark"] .m-weight { background: #455a64; }
+:root[data-theme="dark"] .m-pm-b.is-minus, :root[data-theme="dark"] .m-area .m-pm-b[aria-label$="빼기"] { background: #bf360c; }
+:root[data-theme="dark"] .m-pm-b.is-plus, :root[data-theme="dark"] .m-area .m-pm-b[aria-label$="더하기"] { background: #2e7d32; }
+/* 쌓기·빼기 고르기: 안 고른 쪽은 흐리게 하지 않고 테두리만 남긴다 */
+:root[data-theme="dark"] .m-bmode .m-pm-b:not(.on) { opacity: 1; background: transparent; }
+:root[data-theme="dark"] .m-bmode .m-pm-b.is-plus:not(.on) { color: #a5d6a7; border-color: #a5d6a7; }
+:root[data-theme="dark"] .m-bmode .m-pm-b.is-minus:not(.on) { color: #ffab91; border-color: #ffab91; }
+:root[data-theme="dark"] .m-area .m-arr.on { background: #f8bbd0; border-color: #f48fb1; }
+:root[data-theme="dark"] .m-kid-top { color: #3a2d4f; }
+/* SVG 안 글자: 밝은 색 + 어두운 테두리(후광)로 어떤 도형 위에서도 읽히게 */
+:root[data-theme="dark"] .m-area svg text { paint-order: stroke; stroke: #1a1220; stroke-width: 3px; stroke-linejoin: round; }
+:root[data-theme="dark"] .m-area svg text:is([fill="#000"], [fill="#000000"], [fill="#3a2d4f"], [fill="#222"], [fill="currentColor"]) { fill: #fff3f6; }
+:root[data-theme="dark"] .m-area svg text[fill="#0d47a1"], :root[data-theme="dark"] .m-area svg text[fill="#1e88e5"] { fill: #90caf9; }
+:root[data-theme="dark"] .m-area svg text[fill="#6d4c41"] { fill: #d7ccc8; }
+:root[data-theme="dark"] .m-area svg text:is([fill="#7e57c2"], [fill="#5e35b1"]) { fill: #d1c4e9; }
+:root[data-theme="dark"] .m-area svg text[fill="#d81b60"] { fill: #f48fb1; }
+:root[data-theme="dark"] .m-area svg text[fill="#e53935"] { fill: #ef9a9a; }
+:root[data-theme="dark"] .m-area svg text[fill="#78909c"] { fill: #cfd8dc; }
+:root[data-theme="dark"] .m-area svg text:is([fill="#43a047"], [fill="#2e7d32"]) { fill: #a5d6a7; }
+:root[data-theme="dark"] .m-area svg text[fill="#b0a6c0"] { fill: #e1d8ea; }
+:root[data-theme="dark"] .m-area svg text:not([fill]) { fill: #fff3f6; }
+:root[data-theme="dark"] .m-area tr.hi :is(.q, .m-tn, td, th) { color: #3a2d4f; }
+:root[data-theme="dark"] .m-fbox-hat b { color: #ef9a9a; }
+:root[data-theme="dark"] .diff { color: #c9bbff; }
+:root[data-theme="dark"] .m-area .m-ftab td.q { color: #5e35b1; }
+:root[data-theme="dark"] .m-area :is(.m-num, .m-tapi) i { background: #bf360c; }
